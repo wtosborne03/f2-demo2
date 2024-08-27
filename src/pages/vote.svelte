@@ -12,7 +12,7 @@
     sendMessage({
       type: "game",
       data: {
-        type: "voter",
+        type: "vote",
         answer: m_data.options[index],
       },
     });
@@ -22,6 +22,7 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
+  <div class="mb-2 p-4">Choose the best answer:</div>
   {#each m_data.options as answer}
     <button
       style="width: 100%; font-size: 1.5rem;"
