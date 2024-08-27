@@ -75,7 +75,7 @@ function joinRoom(code: string, name: string) {
 
 function reconnect() {
 
-    if (!document.hidden) {
+    if (!document.hidden && ws.readyState == ws.CLOSED) {
         websocketSetup();
         ws.onopen = () => {
             ws.send(
