@@ -24,7 +24,8 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div>{m_data.question}</div>
-  <input type="text" maxlength="30" bind:value={answer_text} />
-  <button on:click={submit_prompt}>Submit</button>
+  <div>Fill in the Blank:</div>
+  <div class="mb-2 p-4">{m_data.question}</div>
+  <input class="input" type="text" maxlength="30" bind:value={answer_text} />
+  <button class="btn variant-filled" on:click={submit_prompt}>Submit</button>
 </div>
