@@ -34,7 +34,11 @@ function setup_script() {
 
 function websocketSetup() {
     ws = new WebSocket('wss://locktext.xyz/');
+    ws.onopen = () => {
+        toastStore.trigger({ message: 'WS Connected' });
+    }
     ws.onmessage = (event) => {
+
         let e_data = JSON.parse(event.data)
 
         console.log("Received:", e_data);
@@ -72,7 +76,7 @@ function joinRoom(code: string, name: string) {
 }
 
 function reconnect() {
-    toastStore.trigger({ message: 'state_change' });
+
     if (!document.hidden) {
         websocketSetup();
         ws.send(
