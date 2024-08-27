@@ -57,17 +57,10 @@ function websocketSetup() {
 
     }
     ws.onclose = () => {
-        websocketSetup();
-        ws.onopen = () => {
-            ws.send(
-                JSON.stringify({
-                    type: "joinRoom",
-                    data: { roomId: r_code, name: r_name },
-                }),
-            );
-        }
+        setTimeout(reconnect, 1000);
     }
 }
+
 
 
 function joinRoom(code: string, name: string) {
@@ -85,17 +78,15 @@ function joinRoom(code: string, name: string) {
 }
 
 function reconnect() {
-    toastStore.trigger({ message: ws.readyState.toString() });
-    if (!document.hidden && ws.readyState == ws.CLOSED) {
-        websocketSetup();
-        ws.onopen = () => {
-            ws.send(
-                JSON.stringify({
-                    type: "joinRoom",
-                    data: { roomId: r_code, name: r_name },
-                }),
-            );
-        }
+    websocketSetup();
+
+    ws.onopen = () => {
+        ws.send(
+            JSON.stringify({
+                type: "joinRoom",
+                data: { roomId: r_code, name: r_name },
+            }),
+        );
     }
 }
 
