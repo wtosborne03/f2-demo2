@@ -20,7 +20,7 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center p-4"
 >
   <div class="mb-2 p-4">Choose the best answer:</div>
   {#each m_data.options as answer}
