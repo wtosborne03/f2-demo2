@@ -71,6 +71,7 @@ function joinRoom(code: string, name: string) {
 }
 
 function reconnect() {
+    toastStore.trigger({ message: 'state_change' });
     if (!document.hidden) {
         ws.send(
             JSON.stringify({
