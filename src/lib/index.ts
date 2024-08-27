@@ -22,7 +22,7 @@ let screens: Record<string, any> = {
 
 function setup_script() {
     toastStore = getToastStore();
-    ws = new WebSocket('ws://localhost:8080');
+    ws = new WebSocket('ws://147.182.137.218:8080');
     ws.onmessage = (event) => {
         let e_data = JSON.parse(event.data)
 
