@@ -74,7 +74,7 @@ function joinRoom(code: string, name: string) {
 }
 
 function reconnect() {
-
+    toastStore.trigger({ message: ws.readyState.toString() });
     if (!document.hidden && ws.readyState == ws.CLOSED) {
         websocketSetup();
         ws.onopen = () => {
