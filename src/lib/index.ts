@@ -34,9 +34,7 @@ function setup_script() {
 
 function websocketSetup() {
     ws = new WebSocket('wss://locktext.xyz/');
-    ws.onopen = () => {
-        toastStore.trigger({ message: 'WS Connected' });
-    }
+
     ws.onmessage = (event) => {
 
         let e_data = JSON.parse(event.data)
