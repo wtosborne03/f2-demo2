@@ -9,7 +9,8 @@ import { getToastStore, initializeStores } from '@skeletonlabs/skeleton';
 import { get } from 'svelte/store';
 
 // place files you want to import through the `$lib` alias in this folder.
-const ws = new WebSocket('ws://localhost:8080');
+
+let ws: WebSocket;
 let toastStore: any;
 
 let screens: Record<string, any> = {
@@ -21,9 +22,32 @@ let screens: Record<string, any> = {
 
 function setup_script() {
     toastStore = getToastStore();
+    ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+        let e_data = JSON.parse(event.data)
+
+        console.log("Received:", e_data);
+        console.log(e_data['type']);
+        switch (e_data['type']) {
+            case "error":
+                toastStore.trigger({ message: e_data['message'] });
+                break;
+            case "state":
+                updateState(e_data['state']);
+                break;
+            case "roomDestroyed":
+                let p_player = get(player_state);
+                p_player.screen = "room_ended";
+                player_state.set(p_player);
+                break;
+        }
+
+    }
 }
 
-function joinRoom(code: String, name: String) {
+function joinRoom(code: string, name: string) {
+    localStorage.setItem("name", name);
+    localStorage.setItem("code", code);
     ws.send(
         JSON.stringify({
             type: "joinRoom",
@@ -33,26 +57,8 @@ function joinRoom(code: String, name: String) {
 
 }
 
-ws.onmessage = (event) => {
-    let e_data = JSON.parse(event.data)
 
-    console.log("Received:", e_data);
-    console.log(e_data['type']);
-    switch (e_data['type']) {
-        case "error":
-            toastStore.trigger({ message: e_data['message'] });
-            break;
-        case "state":
-            updateState(e_data['state']);
-            break;
-        case "roomDestroyed":
-            let p_player = get(player_state);
-            p_player.screen = "room_ended";
-            player_state.set(p_player);
-            break;
-    }
 
-}
 
 function sendMessage(message: any) {
     ws.send(
