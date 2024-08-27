@@ -1,9 +1,10 @@
 <script>
   import { fade } from "svelte/transition";
   import { joinRoom } from "$lib/index";
+  import { browser } from "$app/environment";
 
-  let roomCode = "";
-  let name = "";
+  let roomCode = (browser && localStorage.getItem("code")) || "";
+  let name = (browser && localStorage.getItem("name")) || "";
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">

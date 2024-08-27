@@ -1,6 +1,7 @@
 <script lang="ts">
   import "$lib/index";
   import { setup_script } from "$lib/index";
+  import { onMount } from "svelte";
 
   import Start from "../pages/start.svelte";
   import Game from "../pages/game.svelte";
@@ -12,7 +13,10 @@
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   let page_value: string = "index";
-  setup_script();
+
+  onMount(() => {
+    setup_script();
+  });
 
   const screens: { [key: string]: any } = {
     index: Start,
