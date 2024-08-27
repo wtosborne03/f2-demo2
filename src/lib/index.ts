@@ -79,12 +79,14 @@ function reconnect() {
 
     if (!document.hidden) {
         websocketSetup();
-        ws.send(
-            JSON.stringify({
-                type: "joinRoom",
-                data: { roomId: r_code, name: r_name },
-            }),
-        );
+        ws.onopen = () => {
+            ws.send(
+                JSON.stringify({
+                    type: "joinRoom",
+                    data: { roomId: r_code, name: r_name },
+                }),
+            );
+        }
     }
 }
 
