@@ -28,7 +28,7 @@ function app_init() {
 
 // setup websocket when app mounts
 function setup_script() {
-    document.addEventListener('visibilitychange', reconnect);
+    //document.addEventListener('visibilitychange', reconnect);
     websocketSetup();
 }
 
@@ -55,6 +55,17 @@ function websocketSetup() {
                 break;
         }
 
+    }
+    ws.onclose = () => {
+        websocketSetup();
+        ws.onopen = () => {
+            ws.send(
+                JSON.stringify({
+                    type: "joinRoom",
+                    data: { roomId: r_code, name: r_name },
+                }),
+            );
+        }
     }
 }
 
