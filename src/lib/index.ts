@@ -24,7 +24,7 @@ function app_init() {
 
 // setup websocket when app mounts
 function setup_script() {
-    ws = new WebSocket('ws://147.182.137.218:8080');
+    ws = new WebSocket('wss://locktext.xyz/');
     ws.onmessage = (event) => {
         let e_data = JSON.parse(event.data)
 
