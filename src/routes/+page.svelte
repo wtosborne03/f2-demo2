@@ -9,6 +9,8 @@
   import GameAdmin from "../pages/game_admin.svelte";
   import MultipleChoice from "../pages/multiple_choice.svelte";
   import RoomEnded from "../pages/room_ended.svelte";
+  import Vote from "../pages/vote.svelte";
+  import Prompt from "../pages/prompt.svelte";
 
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
@@ -27,6 +29,8 @@
     can_start: GameAdmin,
     multiple_choice: MultipleChoice,
     room_ended: RoomEnded,
+    vote: Vote,
+    prompt: Prompt,
   };
 
   player_state.subscribe((value: PlayerState) => {
