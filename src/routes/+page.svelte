@@ -1,6 +1,6 @@
 <script lang="ts">
   import "$lib/index";
-  import { setup_script } from "$lib/index";
+  import { setup_script, app_init } from "$lib/index";
   import { onMount } from "svelte";
 
   import Start from "../pages/start.svelte";
@@ -13,6 +13,8 @@
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   let page_value: string = "index";
+
+  app_init();
 
   onMount(() => {
     setup_script();
