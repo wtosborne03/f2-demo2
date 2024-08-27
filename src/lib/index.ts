@@ -7,6 +7,7 @@ import { player_state } from '../stores/player_state';
 import type { PlayerState } from '../types/player_state';
 import { getToastStore, initializeStores, type ToastStore } from '@skeletonlabs/skeleton';
 import { get } from 'svelte/store';
+import { join } from 'path';
 
 let ws: WebSocket;
 let toastStore: ToastStore;
@@ -17,6 +18,9 @@ let screens: Record<string, any> = {
     "multiple_choice": MultipleChoice,
 };
 
+let r_code = "";
+let r_name = "";
+
 // setup toast store on app initialization
 function app_init() {
     toastStore = getToastStore();
@@ -24,6 +28,9 @@ function app_init() {
 
 // setup websocket when app mounts
 function setup_script() {
+    document.addEventListener('visibilitychange', reconnect);
+
+
     ws = new WebSocket('wss://locktext.xyz/');
     ws.onmessage = (event) => {
         let e_data = JSON.parse(event.data)
@@ -45,11 +52,15 @@ function setup_script() {
         }
 
     }
+
 }
+
 
 function joinRoom(code: string, name: string) {
     localStorage.setItem("name", name);
     localStorage.setItem("code", code);
+    r_code = code;
+    r_name = name;
     ws.send(
         JSON.stringify({
             type: "joinRoom",
@@ -57,6 +68,17 @@ function joinRoom(code: string, name: string) {
         }),
     );
 
+}
+
+function reconnect() {
+    if (!document.hidden) {
+        ws.send(
+            JSON.stringify({
+                type: "joinRoom",
+                data: { roomId: r_code, name: r_name },
+            }),
+        );
+    }
 }
 
 function sendMessage(message: any) {
