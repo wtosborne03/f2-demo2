@@ -29,8 +29,10 @@ function app_init() {
 // setup websocket when app mounts
 function setup_script() {
     document.addEventListener('visibilitychange', reconnect);
+    websocketSetup();
+}
 
-
+function websocketSetup() {
     ws = new WebSocket('wss://locktext.xyz/');
     ws.onmessage = (event) => {
         let e_data = JSON.parse(event.data)
@@ -52,7 +54,6 @@ function setup_script() {
         }
 
     }
-
 }
 
 
@@ -73,6 +74,7 @@ function joinRoom(code: string, name: string) {
 function reconnect() {
     toastStore.trigger({ message: 'state_change' });
     if (!document.hidden) {
+        websocketSetup();
         ws.send(
             JSON.stringify({
                 type: "joinRoom",
