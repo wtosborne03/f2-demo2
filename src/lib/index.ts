@@ -5,14 +5,11 @@ import Blank from '../pages/blank.svelte';
 import MultipleChoice from '../pages/multiple_choice.svelte';
 import { player_state } from '../stores/player_state';
 import type { PlayerState } from '../types/player_state';
-import { getToastStore, initializeStores } from '@skeletonlabs/skeleton';
+import { getToastStore, initializeStores, type ToastStore } from '@skeletonlabs/skeleton';
 import { get } from 'svelte/store';
 
-// place files you want to import through the `$lib` alias in this folder.
-
 let ws: WebSocket;
-let toastStore: any;
-
+let toastStore: ToastStore;
 let screens: Record<string, any> = {
     "start": Game,
     "can_start": GameAdmin,
@@ -20,8 +17,13 @@ let screens: Record<string, any> = {
     "multiple_choice": MultipleChoice,
 };
 
-function setup_script() {
+// setup toast store on app initialization
+function app_init() {
     toastStore = getToastStore();
+}
+
+// setup websocket when app mounts
+function setup_script() {
     ws = new WebSocket('ws://147.182.137.218:8080');
     ws.onmessage = (event) => {
         let e_data = JSON.parse(event.data)
@@ -57,9 +59,6 @@ function joinRoom(code: string, name: string) {
 
 }
 
-
-
-
 function sendMessage(message: any) {
     ws.send(
         JSON.stringify({
@@ -72,4 +71,4 @@ function updateState(state: PlayerState) {
     player_state.set(state);
 }
 
-export { joinRoom, setup_script, sendMessage }
+export { joinRoom, setup_script, app_init, sendMessage }
