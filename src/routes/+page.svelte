@@ -1,6 +1,6 @@
 <script lang="ts">
   import "$lib/index";
-  import { setup_script, app_init } from "$lib/index";
+  import { setup_script, app_init, sendMessage } from "$lib/index";
   import { onMount } from "svelte";
 
   import Start from "../pages/start.svelte";
@@ -14,6 +14,9 @@
 
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
+  import { blur } from "svelte/transition";
+  import { slide } from "svelte/transition";
+  import gsap from "gsap";
   let page_value: string = "index";
 
   app_init();
@@ -36,6 +39,17 @@
   player_state.subscribe((value: PlayerState) => {
     page_value = value.screen;
   });
+
+  /** Plays a background animation/emote */
 </script>
 
-<svelte:component this={screens[page_value]} />
+{#key page_value}
+  <div
+    id="main-background"
+    class="w-full h-full"
+    out:blur={{ duration: 200 }}
+    in:blur={{ delay: 200, duration: 200 }}
+  >
+    <svelte:component this={screens[page_value]} />
+  </div>
+{/key}

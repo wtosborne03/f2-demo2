@@ -28,6 +28,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@floating-ui/dom": "1.6.10"
+    "@floating-ui/dom": "1.6.10",
+    "gsap": "^3.12.5"
   }
 }

@@ -18,6 +18,8 @@
 
   import { player_state } from "../stores/player_state";
 
+  import doubloon from "$lib/assets/icons/doubloon.png";
+
   let score = 0;
   let name = "";
   player_state.subscribe((value: PlayerState) => {
@@ -38,11 +40,14 @@
       slotTrail="place-content-end"
     >
       <svelte:fragment slot="lead">
-        <strong class="text-xl uppercase">Gg</strong>
+        <strong class="text-xl uppercase">JG</strong>
       </svelte:fragment>
       <span class="text-xl">{name}</span>
       <svelte:fragment slot="trail">
-        <span class="text-xl">Score: {score}</span>
+        <span class="text-xl flex flex-row items-center justify-center gap-2"
+          >{score}
+          <img class="w-8 h-8" src={doubloon} alt="coin" /></span
+        >
       </svelte:fragment>
     </AppBar>
   </svelte:fragment>

@@ -7,7 +7,6 @@ import { player_state } from '../stores/player_state';
 import type { PlayerState } from '../types/player_state';
 import { getToastStore, initializeStores, type ToastStore } from '@skeletonlabs/skeleton';
 import { get } from 'svelte/store';
-import { join } from 'path';
 
 let ws: WebSocket;
 let toastStore: ToastStore;

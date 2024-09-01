@@ -12,7 +12,7 @@
     <!-- Animated Logo -->
     <figure>
       <section class="img-bg" />
-      <h3 class="h3">Goober Grabble</h3>
+      <h3 class="h3">John Game</h3>
     </figure>
     <!-- / -->
 
