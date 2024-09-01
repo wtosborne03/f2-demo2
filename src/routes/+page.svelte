@@ -11,6 +11,7 @@
   import RoomEnded from "../pages/room_ended.svelte";
   import Vote from "../pages/vote.svelte";
   import Prompt from "../pages/prompt.svelte";
+  import PromptPhoto from "../pages/prompt_photo.svelte";
 
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
@@ -34,6 +35,7 @@
     room_ended: RoomEnded,
     vote: Vote,
     prompt: Prompt,
+    prompt_photo: PromptPhoto,
   };
 
   player_state.subscribe((value: PlayerState) => {
