@@ -5,7 +5,6 @@
   import type { PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
   import imageCompression from "browser-image-compression";
-  import { stat } from "fs";
 
   let m_data: PromptData;
   m_data = get<PlayerState>(player_state).page_data;
