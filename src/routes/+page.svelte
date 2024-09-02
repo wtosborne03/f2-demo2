@@ -12,6 +12,7 @@
   import Vote from "../pages/vote.svelte";
   import Prompt from "../pages/prompt.svelte";
   import PromptPhoto from "../pages/prompt_photo.svelte";
+  import Confirm from "../pages/confirm.svelte";
 
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
@@ -36,6 +37,7 @@
     vote: Vote,
     prompt: Prompt,
     prompt_photo: PromptPhoto,
+    confirm: Confirm,
   };
 
   player_state.subscribe((value: PlayerState) => {

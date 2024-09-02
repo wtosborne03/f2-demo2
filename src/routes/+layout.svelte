@@ -22,9 +22,11 @@
 
   let score = 0;
   let name = "";
+  let admin = false;
   player_state.subscribe((value: PlayerState) => {
     score = value.score;
     name = value.name;
+    admin = value.admin;
   });
   initializeStores();
 </script>
@@ -43,6 +45,9 @@
         <strong class="text-xl uppercase">JG</strong>
       </svelte:fragment>
       <span class="text-xl">{name}</span>
+      {#if admin}
+        <span class="text-md">[Admin]</span>
+      {/if}
       <svelte:fragment slot="trail">
         <span class="text-xl flex flex-row items-center justify-center gap-2"
           >{score}
