@@ -6,5 +6,7 @@ export const player_state = writable<PlayerState>({
     score: 0,
     screen: "index",
     page_data: {},
+    admin: false,
+    drinks: 0
 });
 
