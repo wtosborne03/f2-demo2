@@ -5,5 +5,6 @@ interface PlayerState {
     page_data: any;
     admin: boolean;
     drinks: number;
+    timer: number;
 }
 export type { PlayerState };
