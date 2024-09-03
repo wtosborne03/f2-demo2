@@ -5,6 +5,11 @@
   import type { PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
   import imageCompression from "browser-image-compression";
+  import {
+    srcToWebP,
+    blobToWebP,
+    arrayBufferToWebP,
+  } from "webp-converter-browser";
 
   let m_data: PromptData;
   m_data = get<PlayerState>(player_state).page_data;
@@ -21,9 +26,9 @@
 
     if (file) {
       const options = {
-        maxSizeMB: 0.1,
+        quality: 0.3,
       };
-      const compressedFile = await imageCompression(file, options);
+      const compressedFile = await blobToWebP(file, options);
       statuse = "Compressing Image... Done";
       statuse = "File size: " + compressedFile.size / 1024 / 1024 + " MB";
       const reader = new FileReader();
