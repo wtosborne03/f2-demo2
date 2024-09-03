@@ -63,6 +63,7 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
+  {statuse}
   <div>Select Photo:</div>
   <div class="mb-2 p-4">{m_data.question}</div>
   <button class="btn variant-filled" on:click={() => fileinput.click()}
