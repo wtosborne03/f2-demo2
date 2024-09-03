@@ -3,7 +3,7 @@
   import { AppShell, AppBar } from "@skeletonlabs/skeleton";
   import { Toast, initializeStores } from "@skeletonlabs/skeleton";
   import type { PlayerState } from "../types/player_state";
-  import "./toolbar";
+  import "./toolbar.svelte";
 
   // Floating UI for Popups
   import {
