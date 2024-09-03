@@ -44,10 +44,12 @@
       <svelte:fragment slot="lead">
         <strong class="text-xl uppercase">JG</strong>
       </svelte:fragment>
-      <span class="text-xl">{name}</span>
-      {#if admin}
-        <span class="text-md">[Admin]</span>
-      {/if}
+      <span class="text-xl flex flex-col justify-center items-center gap-0"
+        >{name}{#if admin}
+          <span class="text-sm">[admin]</span>
+        {/if}</span
+      >
+
       <svelte:fragment slot="trail">
         <span class="text-xl flex flex-row items-center justify-center gap-2"
           >{score}

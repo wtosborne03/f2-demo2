@@ -50,7 +50,7 @@
 {#key page_value}
   <div
     id="main-background"
-    class="w-full h-full"
+    class="w-full h-full p-4"
     out:blur={{ duration: 200 }}
     in:blur={{ delay: 200, duration: 200 }}
   >

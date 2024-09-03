@@ -14,6 +14,7 @@
   let statuse = "";
 
   async function handleFileInput(event: Event) {
+    submit_ready();
     statuse = "Compressing Image...";
     const fileInput = event.target as HTMLInputElement;
     const file = fileInput.files?.[0];
@@ -34,6 +35,15 @@
     }
   }
 
+  function submit_ready() {
+    sendMessage({
+      type: "game",
+      data: {
+        type: "ready",
+      },
+    });
+  }
+
   function submit_prompt(image_b64: string) {
     sendMessage({
       type: "game",
@@ -50,7 +60,6 @@
 >
   <div>Select Photo:</div>
   <div class="mb-2 p-4">{m_data.question}</div>
-  {statuse}
   <button class="btn variant-filled" on:click={() => fileinput.click()}
     >Choose</button
   >
