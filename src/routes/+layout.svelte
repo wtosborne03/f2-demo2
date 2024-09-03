@@ -66,7 +66,7 @@
 <AppShell>
   <svelte:fragment slot="header">
     <!-- App Bar -->
-    <div class="sticky">
+    <div class="fixed w-full">
       <AppBar
         gridColumns="grid-cols-3"
         slotDefault="place-self-center"
@@ -99,6 +99,7 @@
         {/if}
       </AppBar>
     </div>
+    <div class="h-12"></div>
   </svelte:fragment>
   <!-- Page Route Content -->
   <slot />
