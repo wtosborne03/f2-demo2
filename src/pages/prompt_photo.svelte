@@ -5,6 +5,8 @@
   import type { PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
   import imageCompression from "browser-image-compression";
+  import Compressor from "compressorjs";
+
   import {
     srcToWebP,
     blobToWebP,
@@ -23,21 +25,30 @@
     statuse = "Compressing Image...";
     const fileInput = event.target as HTMLInputElement;
     const file = fileInput.files?.[0];
-
     if (file) {
-      const options = {
+      new Compressor(file, {
         quality: 0.3,
-      };
-      const compressedFile = await blobToWebP(file, options);
-      statuse = "Compressing Image... Done";
-      statuse = "File size: " + compressedFile.size / 1024 / 1024 + " MB";
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        base64Image = e.target?.result as string;
-        submit_prompt(base64Image);
-      };
-      reader.readAsDataURL(compressedFile);
+        maxWidth: 900,
+        maxHeight: 900,
+        success(result) {
+          sendCompressedImage(result);
+        },
+        error(err) {
+          console.log(err.message);
+        },
+      });
     }
+  }
+
+  function sendCompressedImage(file: File | Blob) {
+    statuse = "Compressing Image... Done";
+    statuse = "File size: " + file.size / 1024 / 1024 + " MB";
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      base64Image = e.target?.result as string;
+      submit_prompt(base64Image);
+    };
+    reader.readAsDataURL(file);
   }
 
   function submit_ready() {
