@@ -13,6 +13,7 @@
   import Prompt from "../pages/prompt.svelte";
   import PromptPhoto from "../pages/prompt_photo.svelte";
   import Confirm from "../pages/confirm.svelte";
+  import Dilemma from "../pages/dilemma.svelte";
 
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
@@ -38,6 +39,7 @@
     prompt: Prompt,
     prompt_photo: PromptPhoto,
     confirm: Confirm,
+    dilemma: Dilemma,
   };
 
   player_state.subscribe((value: PlayerState) => {
