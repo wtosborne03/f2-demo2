@@ -66,37 +66,39 @@
 <AppShell>
   <svelte:fragment slot="header">
     <!-- App Bar -->
-    <AppBar
-      gridColumns="grid-cols-3"
-      slotDefault="place-self-center"
-      slotTrail="place-content-end"
-    >
-      <svelte:fragment slot="lead">
-        <strong class="text-xl uppercase">JG</strong>
-      </svelte:fragment>
-      <span class="text-xl flex flex-col justify-center items-center gap-0"
-        >{name}{#if admin}
-          <span class="text-sm">[admin]</span>
-        {/if}</span
+    <div class="sticky">
+      <AppBar
+        gridColumns="grid-cols-3"
+        slotDefault="place-self-center"
+        slotTrail="place-content-end"
       >
-
-      <svelte:fragment slot="trail">
-        <span class="text-xl flex flex-row items-center justify-center gap-2"
-          >{score}
-          <img class="w-8 h-8" src={doubloon} alt="coin" /></span
+        <svelte:fragment slot="lead">
+          <strong class="text-xl uppercase">JG</strong>
+        </svelte:fragment>
+        <span class="text-xl flex flex-col justify-center items-center gap-0"
+          >{name}{#if admin}
+            <span class="text-sm">[admin]</span>
+          {/if}</span
         >
-      </svelte:fragment>
 
-      <!-- Countdown Bar -->
-      {#if timer_running}
-        <div class="w-full bg-gray-200 h-2 mt-2 col-span-3">
-          <div
-            class="bg-blue-500 h-full"
-            style="width: {(100 * time_left) / timer_duration}%"
-          ></div>
-        </div>
-      {/if}
-    </AppBar>
+        <svelte:fragment slot="trail">
+          <span class="text-xl flex flex-row items-center justify-center gap-2"
+            >{score}
+            <img class="w-8 h-8" src={doubloon} alt="coin" /></span
+          >
+        </svelte:fragment>
+
+        <!-- Countdown Bar -->
+        {#if timer_running}
+          <div class="w-screen bg-gray-200 h-2 mt-2 col-span-3">
+            <div
+              class="bg-blue-500 h-full"
+              style="width: {(100 * time_left) / timer_duration}%"
+            ></div>
+          </div>
+        {/if}
+      </AppBar>
+    </div>
   </svelte:fragment>
   <!-- Page Route Content -->
   <slot />
