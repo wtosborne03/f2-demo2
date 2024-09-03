@@ -12,17 +12,18 @@
     blobToWebP,
     arrayBufferToWebP,
   } from "webp-converter-browser";
+  import Spinner from "../components/spinner.svelte";
 
   let m_data: PromptData;
   m_data = get<PlayerState>(player_state).page_data;
 
   let base64Image: string | null = null;
   let fileinput: HTMLInputElement;
-  let statuse = "";
+  let loading = false;
 
   async function handleFileInput(event: Event) {
     submit_ready();
-    statuse = "Compressing Image...";
+    loading = true;
     const fileInput = event.target as HTMLInputElement;
     const file = fileInput.files?.[0];
     if (file) {
@@ -41,8 +42,6 @@
   }
 
   function sendCompressedImage(file: File | Blob) {
-    statuse = "Compressing Image... Done";
-    statuse = "File size: " + file.size / 1024 / 1024 + " MB";
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       base64Image = e.target?.result as string;
@@ -74,7 +73,9 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  {statuse}
+  {#if loading}
+    <Spinner />
+  {/if}
   <div>Select Photo:</div>
   <div class="mb-2 p-4">{m_data.question}</div>
   <button class="btn variant-filled" on:click={() => fileinput.click()}
