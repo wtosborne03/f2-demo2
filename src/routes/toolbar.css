@@ -1,0 +1,20 @@
+#toolbar-wrap {
+    position: sticky;
+    top: 0px;
+    height: 60px;
+    width: 100%;
+}
+
+#toolbar {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    padding: 15px;
+    background-color: #f1f5f9;
+}
+
+#toolbar.down {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 500ms;
+}

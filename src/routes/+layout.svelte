@@ -3,6 +3,7 @@
   import { AppShell, AppBar } from "@skeletonlabs/skeleton";
   import { Toast, initializeStores } from "@skeletonlabs/skeleton";
   import type { PlayerState } from "../types/player_state";
+  import "./toolbar";
 
   // Floating UI for Popups
   import {
@@ -63,8 +64,8 @@
 
 <Toast />
 <!-- App Shell -->
-<div class="sticky top-0 h-24 w-full">
-  <div class="absolute inset-x-0">
+<div id="toolbar-wrap">
+  <div id="toolbar">
     <!-- App Bar -->
     <AppBar
       gridColumns="grid-cols-3"
