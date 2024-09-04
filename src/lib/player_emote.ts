@@ -2,7 +2,10 @@
 import gsap from "gsap";
 import { sendMessage } from "$lib";
 
-function playerEmote() {
+function playerEmote(event: Event) {
+    if (event.target !== event.currentTarget) {
+        return;
+    }
     gsap.fromTo(
         "body",
         {

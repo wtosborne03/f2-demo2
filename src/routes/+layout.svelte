@@ -80,6 +80,8 @@
 </div>
 
 <!-- Page Route Content -->
-<div class="flex-grow">
+<div class="grow">
   <slot />
 </div>
+
+<footer class="footer footer-center" style="height: 60px;"></footer>
