@@ -8,6 +8,7 @@ export const player_state = writable<PlayerState>({
     page_data: {},
     admin: false,
     drinks: 0,
-    timer: 0,
+    timer_duration: 0,
+    time_left: 0
 });
 

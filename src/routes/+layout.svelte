@@ -27,36 +27,14 @@
 
   let timer_duration = 0;
   let time_left = 0;
-  let timer_running = false;
-  let timer: any;
-
-  function startTimer(duration: number) {
-    timer_running = true;
-    timer_duration = duration;
-    time_left = duration;
-    timer = setInterval(() => {
-      time_left--;
-      if (time_left <= 0) {
-        clearInterval(timer);
-        timer_running = false;
-      }
-    }, 1000);
-  }
-
-  function stopTimer() {
-    timer_running = false;
-    clearInterval(timer);
-  }
 
   player_state.subscribe((value: PlayerState) => {
     score = value.score;
     name = value.name;
     admin = value.admin;
-    if (value.timer > 0) {
-      startTimer(value.timer);
-    } else {
-      stopTimer();
-    }
+
+    timer_duration = value.timer_duration;
+    time_left = value.time_left;
   });
 
   initializeStores();
@@ -89,7 +67,7 @@
       </svelte:fragment>
 
       <!-- Countdown Bar -->
-      {#if timer_running}
+      {#if timer_duration > 0}
         <div class="w-screen bg-gray-200 h-2 mt-2 col-span-3">
           <div
             class="bg-blue-500 h-full"
