@@ -1,3 +1,5 @@
+import type { settings } from "../types/settings";
+
 interface QuestionData {
     question: string;
     answers: string[];
@@ -14,4 +16,9 @@ interface InstructionData {
 interface VoteData {
     options: string[];
 }
-export type { QuestionData, PromptData, VoteData, InstructionData };
+
+interface adminStartData {
+    settings: settings;
+}
+
+export type { QuestionData, PromptData, VoteData, InstructionData, adminStartData };
