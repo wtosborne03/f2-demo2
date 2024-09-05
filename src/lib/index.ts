@@ -32,7 +32,7 @@ function setup_script() {
 }
 
 function websocketSetup() {
-    ws = new WebSocket('wss://locktext.xyz/');
+    ws = new WebSocket('wss://lil-feed.com/');
 
     ws.onmessage = (event) => {
 
