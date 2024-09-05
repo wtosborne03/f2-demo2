@@ -14,13 +14,13 @@
   import PromptPhoto from "../pages/prompt_photo.svelte";
   import Confirm from "../pages/confirm.svelte";
   import Dilemma from "../pages/dilemma.svelte";
+  import PhotoPicker from "../pages/photo_picker.svelte";
 
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import { blur } from "svelte/transition";
   import { slide } from "svelte/transition";
   import gsap from "gsap";
-  import PhotoPicker from "../pages/photo_picker.svelte";
   let page_value: string = "index";
 
   app_init();
