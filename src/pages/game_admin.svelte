@@ -10,10 +10,6 @@
   let s_data: adminStartData;
   s_data = get<PlayerState>(player_state).page_data;
 
-  player_state.subscribe((value) => {
-    //s_data = value.page_data;
-  });
-
   let music = true;
 
   $: s_data, sendMessage({ type: "settings", data: s_data.settings });

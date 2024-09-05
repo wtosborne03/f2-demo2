@@ -4,7 +4,6 @@
   import type { photoPickerData } from "../types/page_data";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
-  import { send } from "vite";
 
   let s_data: photoPickerData;
   s_data = get<PlayerState>(player_state).page_data;
@@ -18,11 +17,21 @@
   function carouselRight() {
     s_data.photo_index += 1;
   }
+  function submit_answer() {
+    sendMessage({
+      type: "game",
+      data: {
+        type: "vote",
+      },
+    });
+  }
 </script>
 
-<div class="container h-full mx-auto flex flex-col justify-center items-center">
+<div
+  class="container h-full mx-auto flex flex-col justify-center items-center text-2xl"
+>
   Pick the photo that you think represent you best.
-  <div class="flex flex-col justify-between">
+  <div class="flex flex-row w-full p-8 justify-between">
     <button
       type="button"
       class="btn-icon variant-filled"
@@ -31,7 +40,7 @@
     >
       <i class="fa-solid fa-arrow-left" />
     </button>
-    <span class="text-xl font-bold">Photo {s_data.photo_index + 1}</span>
+    <span class="text-3xl font-bold">Photo {s_data.photo_index + 1}</span>
     <button
       type="button"
       class="btn-icon variant-filled"
@@ -41,7 +50,9 @@
       <i class="fa-solid fa-arrow-right" />
     </button>
   </div>
-  <button type="button" class="btn variant-filled text-lg"
-    >Vote for Photo {s_data.photo_index + 1}</button
+  <button
+    type="button"
+    class="btn variant-filled text-2xl"
+    on:click={submit_answer}>Vote for Photo {s_data.photo_index + 1}</button
   >
 </div>
