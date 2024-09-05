@@ -20,6 +20,7 @@
   import { blur } from "svelte/transition";
   import { slide } from "svelte/transition";
   import gsap from "gsap";
+  import PhotoPicker from "../pages/photo_picker.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -40,6 +41,7 @@
     prompt_photo: PromptPhoto,
     confirm: Confirm,
     dilemma: Dilemma,
+    photo_picker: PhotoPicker,
   };
 
   player_state.subscribe((value: PlayerState) => {
