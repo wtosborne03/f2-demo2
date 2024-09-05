@@ -20,5 +20,8 @@ interface VoteData {
 interface adminStartData {
     settings: settings;
 }
-
-export type { QuestionData, PromptData, VoteData, InstructionData, adminStartData };
+interface photoPickerData {
+    photo_amount: number;
+    photo_index: number;
+}
+export type { QuestionData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData };
