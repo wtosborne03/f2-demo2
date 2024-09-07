@@ -26,7 +26,6 @@
 >
   <aside class="alert variant-filled-warning mb-4 text-2xl">
     <!-- Icon -->
-    <div>⚠️</div>
     <!-- Message -->
     <div class="alert-message">
       <h3 class="h3 text-3xl">Your List Matters</h3>
@@ -37,10 +36,10 @@
   <div>List title:</div>
   <div class="text-xl text-center">{m_data.list_prompt}</div>
   {#each { length: 5 } as _, i}
-    <div class="flex flex-row justify-start items-center">
+    <div class="flex flex-row justify-start items-center w-full">
       <span class="text-lg">{i + 1}: </span>
       <input
-        class="input mt-2"
+        class="input mt-2 w-full"
         type="text"
         maxlength="20"
         bind:value={list_answers[i]}
