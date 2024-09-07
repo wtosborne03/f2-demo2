@@ -21,6 +21,8 @@
   import { blur } from "svelte/transition";
   import { slide } from "svelte/transition";
   import gsap from "gsap";
+  import ListPrompt from "../pages/list_prompt.svelte";
+  import ListGuess from "../pages/list_guess.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -42,6 +44,8 @@
     confirm: Confirm,
     dilemma: Dilemma,
     photo_picker: PhotoPicker,
+    list_prompt: ListPrompt,
+    list_guess: ListGuess,
   };
 
   player_state.subscribe((value: PlayerState) => {

@@ -24,4 +24,8 @@ interface photoPickerData {
     photo_amount: number;
     photo_index: number;
 }
-export type { QuestionData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData };
+
+interface ListPromptData {
+    list_prompt: string,
+}
+export type { QuestionData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
