@@ -22,9 +22,9 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center overflow-scroll"
 >
-  <aside class="alert variant-filled-warning mb-10 text-2xl">
+  <aside class="alert variant-filled-warning mb-4 text-2xl">
     <!-- Icon -->
     <div>⚠️</div>
     <!-- Message -->
@@ -47,7 +47,7 @@
       />
     </div>
   {/each}
-  <button class="btn variant-filled mt-12" on:click={submit_prompt}
+  <button class="btn variant-filled mt-4" on:click={submit_prompt}
     >Submit</button
   >
 </div>
