@@ -43,6 +43,13 @@
   let timer_duration = 0;
   let interval: NodeJS.Timeout;
 
+  onMount(() => {
+    if (timer_duration > 0) {
+      interval = setInterval(updateTimer, 1000);
+      time_left = timer_duration;
+    }
+  });
+
   // Subscribe to player state store
   player_state.subscribe((value: PlayerState) => {
     score = value.score;
@@ -62,8 +69,6 @@
 
   // Start the timer update interval when the component mounts
   initializeStores();
-
-  onMount(() => {});
 
   // Clean up the interval when the component is destroyed
   onDestroy(() => {
