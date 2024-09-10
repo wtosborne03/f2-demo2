@@ -5,7 +5,7 @@ interface PlayerState {
     page_data: any;
     admin: boolean;
     drinks: number;
+    timer_stamp: Date;
     timer_duration: number;
-    time_left: number;
 }
 export type { PlayerState };
