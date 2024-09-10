@@ -21,12 +21,12 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div class="text-lg">Try to guess the title of the list 🤔</div>
+  <div class="text-lg text-center">Think of a way out 🤔</div>
   <div class="flex flex-row justify-start items-center w-full">
-    <input
-      class="input mt-10 w-full"
-      type="text"
-      maxlength="28"
+    <textarea
+      class="textarea mt-10 w-full"
+      maxlength="60"
+      rows="4"
       placeholder="List Title"
       bind:value={guess}
     />
