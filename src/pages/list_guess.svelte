@@ -25,7 +25,7 @@
   <div class="flex flex-row justify-start items-center w-full">
     <textarea
       class="textarea mt-10 w-full"
-      maxlength="60"
+      maxlength="78"
       rows="4"
       placeholder="List Title"
       bind:value={guess}

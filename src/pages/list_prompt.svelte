@@ -40,7 +40,7 @@
       class="textarea mt-2 w-full"
       placeholder="Survival Scenario"
       rows="4"
-      maxlength="60"
+      maxlength="110"
       bind:value={survival_prompt}
     />
   </div>
