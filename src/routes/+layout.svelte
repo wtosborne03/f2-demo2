@@ -23,14 +23,29 @@
   import doubloon from "$lib/assets/icons/doubloon.png";
   import { onMount, onDestroy } from "svelte";
 
+  async function getCurrentTimestamp() {
+    try {
+      const response = await fetch("http://worldtimeapi.org/api/ip");
+      const data = await response.json();
+      const currentTime = new Date(data.utc_datetime); // Time in UTC
+      console.log("Current Timestamp:", currentTime.getTime()); // Timestamp in milliseconds
+      return currentTime.getTime();
+    } catch (error) {
+      console.error("Error fetching time:", error);
+      return 0;
+    }
+  }
+
   let score = 0;
   let name = "";
   let admin = false;
 
   const remaining_time = writable(0); // Use a store for remaining_time
 
-  const updateTimer = () => {
-    remaining_time.set((new Date(timer_stamp).getTime() - Date.now()) / 1000);
+  const updateTimer = async () => {
+    remaining_time.set(
+      (new Date(timer_stamp).getTime() - (await getCurrentTimestamp())) / 1000,
+    );
   };
   let time_left = 0;
 
