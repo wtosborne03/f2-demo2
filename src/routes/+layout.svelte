@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import "../app.postcss";
   import { AppShell, AppBar } from "@skeletonlabs/skeleton";
   import { Toast, initializeStores } from "@skeletonlabs/skeleton";
@@ -39,10 +39,9 @@
     console.log(time_left);
   });
 
-  let timer_stamp: Date = new Date(0);
-  let timer_duration = 0;
+  let timer_stamp: Date = get(player_state).timer_stamp;
+  let timer_duration = get(player_state).timer_duration;
   let interval: NodeJS.Timeout;
-
   onMount(() => {
     if (timer_duration > 0) {
       interval = setInterval(updateTimer, 1000);
