@@ -4,6 +4,7 @@
   import type { photoPickerData } from "../types/page_data";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
+  import Icon from "@iconify/svelte";
 
   let s_data: photoPickerData;
   s_data = get<PlayerState>(player_state).page_data;
@@ -31,23 +32,23 @@
   class="container h-full mx-auto flex flex-col justify-center items-center text-2xl"
 >
   Pick the photo that you think represent you best.
-  <div class="flex flex-row w-full p-8 justify-between">
+  <div class="flex flex-row w-full p-8 justify-between items-center">
     <button
       type="button"
-      class="btn-icon variant-filled"
+      class="btn-icon"
       disabled={s_data.photo_index === 0}
       on:click={carouselLeft}
     >
-      <i class="fa-solid fa-arrow-left" />
+      <Icon icon="icon-park-solid:left-c" width="64" height="64" />
     </button>
     <span class="text-3xl font-bold">Photo {s_data.photo_index + 1}</span>
     <button
       type="button"
-      class="btn-icon variant-filled"
+      class="btn-icon"
       disabled={s_data.photo_index === s_data.photo_amount - 1}
       on:click={carouselRight}
     >
-      <i class="fa-solid fa-arrow-right" />
+      <Icon icon="icon-park-solid:right-c" width="64" height="64" />
     </button>
   </div>
   <button
