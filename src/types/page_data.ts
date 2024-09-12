@@ -28,4 +28,8 @@ interface photoPickerData {
 interface ListPromptData {
     list_prompt: string,
 }
-export type { QuestionData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+interface BallData {
+    color: string,
+}
+
+export type { QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
