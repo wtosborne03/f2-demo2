@@ -94,8 +94,8 @@
 
 <Toast />
 <!-- App Shell -->
-<div id="toolbar-wrap">
-  <div id="toolbar">
+<div id="toolbar-wrap" class="z-20">
+  <div id="toolbar" class="z-20">
     <!-- App Bar -->
     <AppBar
       gridColumns="grid-cols-3"
