@@ -49,12 +49,11 @@
     ] as const;
     const types = ["♠️", "♣️", "♦️", "♥️"] as const;
 
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
     const randomValue = values[Math.floor(Math.random() * values.length)];
     const randomType = types[Math.floor(Math.random() * types.length)];
 
     return {
-      color: randomColor,
+      color: randomType == "♠️" || randomType == "♥️" ? colors[0] : colors[1],
       value: randomValue,
       type: randomType,
       flipped: false, // Card will stay face down at start
