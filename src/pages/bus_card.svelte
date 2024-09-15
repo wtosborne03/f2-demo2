@@ -249,7 +249,7 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-start items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-start items-center overflow-scroll"
 >
   {#if failed}
     {#if m_data.drinking}
@@ -270,8 +270,8 @@
       >
     {/if}
   {:else}
-    <h1 class="mb-4 text-center text-4xl">Ride the Bus</h1>
-    <div class="flex flex-wrap flex-row justify-center gap-4 mb-4">
+    <h1 class="mb-3 text-center text-3xl">Ride the Bus</h1>
+    <div class="flex flex-wrap flex-row justify-center gap-4 mb-3">
       {#each cards as card}
         <div class="flex flex-col justify-end items-center h-36 gap-2">
           {#if card == cards[round_progress]}
@@ -287,7 +287,7 @@
       {/each}
     </div>
     {#if round_progress >= 0 && round_progress < 4}
-      <div class="text-xl mb-4">Will this card be:</div>
+      <div class="text-xl mb-1">Will this card be:</div>
     {/if}
     {#if round_progress === -1}
       <div></div>
