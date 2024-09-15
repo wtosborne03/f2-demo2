@@ -270,10 +270,10 @@
       >
     {/if}
   {:else}
-    <h1 class="mb-12 text-center text-4xl">Ride the Bus</h1>
-    <div class="flex flex-wrap flex-row justify-center gap-4 mb-12">
+    <h1 class="mb-4 text-center text-4xl">Ride the Bus</h1>
+    <div class="flex flex-wrap flex-row justify-center gap-4 mb-4">
       {#each cards as card}
-        <div class="flex flex-col justify-end items-center h-52 gap-2">
+        <div class="flex flex-col justify-end items-center h-36 gap-2">
           {#if card == cards[round_progress]}
             <span>👇</span>
           {/if}

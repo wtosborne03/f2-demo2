@@ -9,7 +9,7 @@
   };
 </script>
 
-<div class="card w-32 h-44 relative perspective-1000 cursor-pointer">
+<div class="card w-24 h-32 relative perspective-1000 cursor-pointer">
   <div
     class="card-inner w-full h-full absolute transform-style-3d transition-transform duration-500 {flipped
       ? '[transform:rotateY(180deg)]'
