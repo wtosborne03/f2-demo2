@@ -53,7 +53,7 @@
     const randomType = types[Math.floor(Math.random() * types.length)];
 
     return {
-      color: randomType == "♠️" || randomType == "♥️" ? colors[0] : colors[1],
+      color: randomType == "♦️" || randomType == "♥️" ? colors[0] : colors[1],
       value: randomValue,
       type: randomType,
       flipped: false, // Card will stay face down at start
