@@ -38,6 +38,7 @@
     "joystick-controller": "^1.1.1",
     "nipplejs": "^0.10.2",
     "sharp": "^0.33.5",
+    "svelte-playing-cards": "^2.2.0",
     "webp-converter-browser": "^1.0.4"
   }
 }

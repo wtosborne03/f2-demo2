@@ -31,5 +31,8 @@ interface ListPromptData {
 interface BallData {
     color: string,
 }
+interface BusData {
+    drinking: boolean,
+}
 
-export type { QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+export type { BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
