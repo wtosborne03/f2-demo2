@@ -28,7 +28,7 @@
   <div class="mb-2 p-4">{m_data.question}</div>
   <form class="flex flex-col justify-center items-center">
     <input
-      class="input"
+      class="input w-full"
       type="text"
       maxlength="50"
       bind:value={answer_text}
