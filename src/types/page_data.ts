@@ -34,5 +34,9 @@ interface BallData {
 interface BusData {
     drinking: boolean,
 }
+interface ProductPromptData {
+    category: string,
+}
 
-export type { BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+
+export type { ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };

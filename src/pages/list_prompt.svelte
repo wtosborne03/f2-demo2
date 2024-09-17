@@ -35,16 +35,18 @@
     <!-- Actions -->
   </aside>
   <div class="text-xl text-center">Survival Scenario</div>
-  <div class="flex flex-row justify-start items-center w-full">
-    <textarea
-      class="textarea mt-2 w-full"
-      placeholder="Survival Scenario"
-      rows="4"
-      maxlength="110"
-      bind:value={survival_prompt}
-    />
-  </div>
-  <button class="btn variant-filled mt-4" on:click={submit_prompt}
-    >Submit</button
-  >
+  <form class="flex flex-col justify-center items-center">
+    <div class="flex flex-row justify-start items-center w-full">
+      <textarea
+        class="textarea mt-2 w-full"
+        placeholder="Survival Scenario"
+        rows="4"
+        maxlength="110"
+        bind:value={survival_prompt}
+      />
+    </div>
+    <button class="btn variant-filled mt-4" on:click={submit_prompt}
+      >Submit</button
+    >
+  </form>
 </div>

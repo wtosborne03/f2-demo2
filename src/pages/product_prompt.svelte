@@ -2,17 +2,20 @@
   import { sendMessage } from "$lib";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
-  import type { ListPromptData, PromptData } from "../types/page_data";
+  import type { ProductPromptData, PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
 
-  let guess = "";
+  let m_data: ProductPromptData;
+  m_data = get<PlayerState>(player_state).page_data;
+
+  let answer_text = "";
 
   function submit_prompt() {
     sendMessage({
       type: "game",
       data: {
-        type: "guess",
-        answer: guess,
+        type: "answer",
+        answer: answer_text,
       },
     });
   }
@@ -21,17 +24,17 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div class="text-lg text-center">Think of a way out 🤔</div>
+  <div class="mb-2 p-4 text-center">
+    Come up with a unique feature for your {m_data.category} product.
+  </div>
   <form class="flex flex-col justify-center items-center">
-    <div class="flex flex-row justify-start items-center w-full">
-      <textarea
-        class="textarea mt-10 w-full"
-        maxlength="78"
-        rows="4"
-        placeholder="List Title"
-        bind:value={guess}
-      />
-    </div>
+    <input
+      class="input"
+      type="text"
+      maxlength="50"
+      bind:value={answer_text}
+      on:submit={submit_prompt}
+    />
     <button class="btn variant-filled mt-12" on:click={submit_prompt}
       >Submit</button
     >
