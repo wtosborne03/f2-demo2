@@ -26,8 +26,16 @@
 >
   <div>Fill in the Blank:</div>
   <div class="mb-2 p-4">{m_data.question}</div>
-  <input class="input" type="text" maxlength="50" bind:value={answer_text} />
-  <button class="btn variant-filled mt-12" on:click={submit_prompt}
-    >Submit</button
-  >
+  <form class="flex flex-col justify-center items-center">
+    <input
+      class="input"
+      type="text"
+      maxlength="50"
+      bind:value={answer_text}
+      on:submit={submit_prompt}
+    />
+    <button class="btn variant-filled mt-12" on:click={submit_prompt}
+      >Submit</button
+    >
+  </form>
 </div>

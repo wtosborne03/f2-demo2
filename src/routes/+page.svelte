@@ -25,6 +25,7 @@
   import ListGuess from "../pages/list_guess.svelte";
   import Ball from "../pages/ball.svelte";
   import BusCard from "../pages/bus_card.svelte";
+  import ProductPrompt from "../pages/product_prompt.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -50,6 +51,7 @@
     list_guess: ListGuess,
     ball: Ball,
     bus_card: BusCard,
+    product_prompt: ProductPrompt,
   };
 
   player_state.subscribe((value: PlayerState) => {
