@@ -38,19 +38,4 @@
       Meet up with your coworkers to discuss synergy.
     </div>
   </aside>
-  <div class="mb-2 p-4 text-center">
-    Come up with a unique feature for your <b>{m_data.category}</b> product.
-  </div>
-  <form class="flex flex-col justify-center items-center">
-    <input
-      class="input w-full"
-      type="text"
-      maxlength="50"
-      bind:value={answer_text}
-      on:submit={submit_prompt}
-    />
-    <button class="btn variant-filled mt-12" on:click={submit_prompt}
-      >Submit</button
-    >
-  </form>
 </div>

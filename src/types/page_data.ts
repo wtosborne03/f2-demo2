@@ -35,6 +35,7 @@ interface BusData {
     drinking: boolean,
 }
 interface ProductPromptData {
+    team: string,
     category: string,
 }
 
