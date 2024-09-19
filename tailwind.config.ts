@@ -18,6 +18,13 @@ export default {
 						name: 'skeleton',
 						enhancements: true,
 					},
+					{
+						name: "gold-nouveau",
+						enhancements: true,
+					},
+					{ name: "rocket", enhancements: true },
+					{ name: "sahara", enhancements: true },
+
 				],
 			},
 		}),

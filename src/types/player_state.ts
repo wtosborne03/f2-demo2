@@ -7,5 +7,7 @@ interface PlayerState {
     drinks: number;
     timer_stamp: Date;
     timer_duration: number;
+    index: number;
+    color: string;
 }
 export type { PlayerState };

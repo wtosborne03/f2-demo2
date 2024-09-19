@@ -10,5 +10,7 @@ export const player_state = writable<PlayerState>({
     drinks: 0,
     timer_stamp: new Date(0),
     timer_duration: 0,
+    index: 0,
+    color: '',
 });
 

@@ -25,11 +25,12 @@
   <div class="mb-2 p-4">Choose the best answer:</div>
   {#each m_data.options as answer}
     <button
-      style="width: 100%; font-size: 1.5rem;"
+      style="width: 100%; font-size: 1.5rem; white-space: normal; word-wrap: break-word;"
       class="btn variant-filled m-2 p-2"
       on:click={() =>
         submit_answer(m_data.options.findIndex((a) => a == answer))}
-      >{answer}</button
     >
+      {answer}
+    </button>
   {/each}
 </div>

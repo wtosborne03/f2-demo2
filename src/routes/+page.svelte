@@ -26,6 +26,7 @@
   import Ball from "../pages/ball.svelte";
   import BusCard from "../pages/bus_card.svelte";
   import ProductPrompt from "../pages/product_prompt.svelte";
+  import ProductBlank from "../pages/product_blank.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -52,6 +53,7 @@
     ball: Ball,
     bus_card: BusCard,
     product_prompt: ProductPrompt,
+    product_blank: ProductBlank,
   };
 
   player_state.subscribe((value: PlayerState) => {

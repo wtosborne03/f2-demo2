@@ -59,6 +59,7 @@
   let timer_stamp: Date = get(player_state).timer_stamp;
   let timer_duration = get(player_state).timer_duration;
   let interval: NodeJS.Timeout;
+  let color: string;
   onMount(() => {
     if (timer_duration > 0) {
       interval = setInterval(updateTimer, 1000);
@@ -71,6 +72,7 @@
     score = value.score;
     name = value.name;
     admin = value.admin;
+    color = value.color;
 
     timer_stamp = value.timer_stamp;
     timer_duration = value.timer_duration;
@@ -94,44 +96,42 @@
 
 <Toast />
 <!-- App Shell -->
-<div id="toolbar-wrap" class="z-20">
-  <div id="toolbar" class="z-20">
-    <!-- App Bar -->
-    <AppBar
-      gridColumns="grid-cols-3"
-      slotDefault="place-self-center"
-      slotTrail="place-content-end"
+{#if name != ""}
+  <div id="toolbar-wrap" class="z-20">
+    <div
+      id="toolbar"
+      class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4"
+      style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"
     >
-      <svelte:fragment slot="lead">
-        <strong class="text-xl uppercase">JG</strong>
-      </svelte:fragment>
+      <!-- App Bar -->
+      <div class="h-10 flex flex-col justify-center items-center">
+        {#if admin}
+          <span class="text-md">[admin]</span>
+          <strong class="text-xl uppercase -mt-1">👑</strong>
+        {:else}
+          <strong class="text-xl uppercase">👤</strong>
+        {/if}
+      </div>
       <span class="text-xl flex flex-col justify-center items-center gap-0">
         {name}
-        {#if admin}
-          <span class="text-sm">[admin]</span>
-        {/if}
       </span>
 
-      <svelte:fragment slot="trail">
-        <span class="text-xl flex flex-row items-center justify-center gap-2">
-          {score}
-          <img class="w-8 h-8" src={doubloon} alt="coin" />
-        </span>
-      </svelte:fragment>
-
-      <!-- Countdown Bar -->
-    </AppBar>
-    {#if timer_duration > 0}
-      <div class="w-screen bg-gray-200 h-2 col-span-3 bottom-0">
-        <div
-          class="bg-blue-500 h-full"
-          style="width: {(100 * time_left) / timer_duration}%;
-            transition: width 0.1s linear;"
-        ></div>
-      </div>
-    {/if}
+      <span class="text-xl flex flex-row items-center justify-center gap-2">
+        {score}
+        <img class="w-8 h-8" src={doubloon} alt="coin" />
+      </span>
+    </div>
   </div>
-</div>
+  {#if timer_duration > 0}
+    <div class="w-screen h-screen fixed opacity-20 col-span-3 bottom-0 -z-10">
+      <div
+        class="bg-blue-500 h-full"
+        style="width: {(100 * time_left) / timer_duration}%;
+            transition: width 0.1s linear;"
+      ></div>
+    </div>
+  {/if}
+{/if}
 
 <!-- Page Route Content -->
 <div class="grow">
