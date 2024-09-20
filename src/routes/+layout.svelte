@@ -97,9 +97,8 @@
 <Toast />
 <!-- App Shell -->
 {#if name != ""}
-  <div id="toolbar-wrap" class="z-20">
+  <div class="z-20 block">
     <div
-      id="toolbar"
       class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4"
       style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"
     >
