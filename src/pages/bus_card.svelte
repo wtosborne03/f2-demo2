@@ -122,6 +122,12 @@
       m_data.drinking ? 4500 : 3000,
     );
     setTimeout(() => {
+      sendMessage({
+        type: "game",
+        data: {
+          type: "fail",
+        },
+      });
       failed = true;
     }, 1500);
   };
