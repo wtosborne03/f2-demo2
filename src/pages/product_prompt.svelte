@@ -25,7 +25,7 @@
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
   <aside
-    class="alert variant-ghost text-center fixed m-4 top-20 flex flex-col justify-center items-center"
+    class="alert variant-ghost text-center m-4 flex flex-col justify-center items-center"
   >
     <!-- Icon -->
     <!-- Message -->
