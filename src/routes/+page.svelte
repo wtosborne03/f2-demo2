@@ -27,6 +27,7 @@
   import BusCard from "../pages/bus_card.svelte";
   import ProductPrompt from "../pages/product_prompt.svelte";
   import ProductBlank from "../pages/product_blank.svelte";
+  import ShakeConfirm from "../pages/shake_confirm.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -54,6 +55,7 @@
     bus_card: BusCard,
     product_prompt: ProductPrompt,
     product_blank: ProductBlank,
+    shake_confirm: ShakeConfirm,
   };
 
   player_state.subscribe((value: PlayerState) => {
