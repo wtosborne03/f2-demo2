@@ -9,9 +9,13 @@
 
   function checkMotionPermission() {
     return new Promise((resolve, reject) => {
-      function handleMotion(event: Event) {
-        window.removeEventListener("devicemotion", handleMotion);
-        resolve("granted");
+      function handleMotion(event: DeviceMotionEvent) {
+        if (event.acceleration?.x) {
+          window.removeEventListener("devicemotion", handleMotion);
+          resolve("granted");
+        } else {
+          resolve("not-determined");
+        }
       }
 
       window.addEventListener("devicemotion", handleMotion);
@@ -25,6 +29,7 @@
   }
 
   async function checkMotion() {
+    console.log(typeof DeviceMotionEvent);
     if (typeof DeviceMotionEvent !== "undefined") {
       const permissionState = await checkMotionPermission();
       if (permissionState === "granted") {
