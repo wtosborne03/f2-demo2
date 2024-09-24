@@ -94,7 +94,7 @@
         Math.pow(acceleration.x || 0, 2) + Math.pow(acceleration.y || 0, 2),
       );
       totalShakingDistance += distanceMoved;
-      sendProgress(event.acceleration?.z || 0);
+      sendProgress(event.accelerationIncludingGravity?.z || 0);
     }
   }
 </script>
