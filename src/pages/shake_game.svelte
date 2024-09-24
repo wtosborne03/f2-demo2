@@ -63,7 +63,10 @@
       type: "game",
       data: {
         type: "progress",
-        data: progress,
+        data: {
+          progress: progress,
+          motion: motion,
+        },
       },
     });
   };
@@ -79,10 +82,9 @@
         Math.pow(currentPosition.y - initialPosition.y, 2),
     );
     totalShakingDistance += distanceMoved;
-    if (totalShakingDistance > lastShakingDistance + 2000) {
-      lastShakingDistance = totalShakingDistance;
-      sendProgress(totalShakingDistance);
-    }
+
+    sendProgress(currentPosition.y * 0.05);
+
     initialPosition = currentPosition; // Update initial position to current position
   }
 
