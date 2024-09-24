@@ -1,5 +1,7 @@
 <script lang="ts">
   import { sendMessage } from "$lib";
+  import goodMonkey from "$lib/assets/icons/goodMonkey.jpeg";
+  import badMonkey from "$lib/assets/icons/evilMonkey.jpeg";
   function steal() {
     sendMessage({
       type: "game",
@@ -26,23 +28,23 @@
   <h1 class="mb-2">Dilemma</h1>
   <dl class="list-dl">
     <div>
-      <span class="badge bg-primary-500">🌈</span>
+      <span class="badge bg-primary-500">🦍</span>
       <span class="flex-auto">
-        <dt>Keep Low</dt>
+        <dt>Share</dt>
         <dd>Keep a few bananas, and sell them at the market.</dd>
       </span>
     </div>
     <div>
       <span class="badge bg-primary-500">🥷</span>
       <span class="flex-auto">
-        <dt>STEAL</dt>
+        <dt>Steal</dt>
         <dd>Steal and kill all other monkeys, recieving 2000 doubloons.</dd>
       </span>
     </div>
     <div>
       <span class="badge bg-primary-500">ℹ</span>
       <span class="flex-auto">
-        <dt>STEAL</dt>
+        <dt>Be Warned!</dt>
         <dd>
           More than one monkey STEALING will result in mutually assured
           destruction.
@@ -50,14 +52,26 @@
       </span>
     </div>
   </dl>
-  <button
-    style="width: 100%; font-size: 1.5rem;"
-    class="btn variant-filled m-2 p-2 text-xl"
-    on:click={keep}>Keep a few 🌈</button
+  <div
+    class="flex flex-row justify-center gap-4 mt-6 text-center text-xl font-bold underline"
   >
-  <button
-    style="width: 100%; font-size: 1.5rem;"
-    class="btn variant-filled m-2 p-2 text-xl"
-    on:click={steal}>STEAL 🥷</button
-  >
+    <div class="w-1/2 text-green-200">
+      Share
+      <img
+        class="rounded-xl hover:brightness-90 hover:cursor-pointer"
+        src={goodMonkey}
+        alt="monkey"
+        on:click={keep}
+      />
+    </div>
+    <div class="w-1/2 text-red-200">
+      Steal
+      <img
+        class="rounded-xl hover:brightness-90 hover:cursor-pointer"
+        src={badMonkey}
+        alt="monkey"
+        on:click={steal}
+      />
+    </div>
+  </div>
 </div>

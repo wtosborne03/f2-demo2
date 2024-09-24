@@ -62,7 +62,7 @@
   let color: string;
   onMount(() => {
     if (timer_duration > 0) {
-      interval = setInterval(updateTimer, 1000);
+      interval = setInterval(updateTimer, 500);
       time_left = timer_duration;
     }
   });
@@ -74,13 +74,15 @@
     admin = value.admin;
     color = value.color;
 
+    const oldTimer = timer_duration;
+
     timer_stamp = value.timer_stamp;
     timer_duration = value.timer_duration;
 
     // Reset the interval when new values are received
     clearInterval(interval);
-    if (timer_duration > 0) {
-      interval = setInterval(updateTimer, 1000);
+    if (oldTimer !== timer_duration) {
+      interval = setInterval(updateTimer, 500);
       time_left = timer_duration;
     }
   });

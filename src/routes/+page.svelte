@@ -28,6 +28,7 @@
   import ProductPrompt from "../pages/product_prompt.svelte";
   import ProductBlank from "../pages/product_blank.svelte";
   import ShakeConfirm from "../pages/shake_confirm.svelte";
+  import ShakeGame from "../pages/shake_game.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -56,6 +57,7 @@
     product_prompt: ProductPrompt,
     product_blank: ProductBlank,
     shake_confirm: ShakeConfirm,
+    shake_game: ShakeGame,
   };
 
   player_state.subscribe((value: PlayerState) => {

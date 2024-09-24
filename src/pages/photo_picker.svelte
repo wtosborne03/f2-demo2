@@ -54,6 +54,6 @@
   <button
     type="button"
     class="btn variant-filled text-2xl"
-    on:click={submit_answer}>Vote for Photo {s_data.photo_index + 1}</button
+    on:click={submit_answer}>Vote for Photo</button
   >
 </div>
