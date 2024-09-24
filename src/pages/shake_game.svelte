@@ -1,6 +1,6 @@
 <script lang="ts">
   import { sendMessage } from "$lib";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { draggable } from "@neodrag/svelte";
   import type { DragEventData } from "@neodrag/svelte";
   import type { PlayerState } from "../types/player_state";
@@ -97,6 +97,9 @@
       sendProgress(pos);
     }
   }
+  onDestroy(() => {
+    window.removeEventListener("devicemotion", handleMotion);
+  });
 </script>
 
 <div class="container h-full mx-auto flex flex-col justify-center items-center">
