@@ -7,14 +7,13 @@
   import { player_state } from "../stores/player_state";
   import { get } from "svelte/store";
 
-  let initialZ = 0;
+  let pos = 0;
 
   function checkMotionPermission() {
     return new Promise((resolve, reject) => {
       function handleMotion(event: DeviceMotionEvent) {
         if (event.acceleration?.z) {
           window.removeEventListener("devicemotion", handleMotion);
-          initialZ = event.accelerationIncludingGravity?.z!;
           resolve("granted");
         } else {
           resolve("not-determined");
@@ -94,7 +93,8 @@
         Math.pow(acceleration.x || 0, 2) + Math.pow(acceleration.y || 0, 2),
       );
       totalShakingDistance += distanceMoved;
-      sendProgress(event.acceleration?.z || 0);
+      pos += event.acceleration?.z || 0;
+      sendProgress(pos);
     }
   }
 </script>
