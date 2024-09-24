@@ -91,10 +91,7 @@
         Math.pow(acceleration.x || 0, 2) + Math.pow(acceleration.y || 0, 2),
       );
       totalShakingDistance += distanceMoved;
-      if (totalShakingDistance > lastShakingDistance + 1000) {
-        lastShakingDistance = totalShakingDistance;
-        sendProgress(totalShakingDistance);
-      }
+      sendProgress(event.acceleration?.y || 0);
     }
   }
 </script>
