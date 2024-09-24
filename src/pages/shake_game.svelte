@@ -94,7 +94,7 @@
       );
       totalShakingDistance += distanceMoved;
       pos -= event.acceleration?.y || 0;
-      sendProgress(pos);
+      sendProgress(event.acceleration?.y || 0);
     }
   }
   onDestroy(() => {
