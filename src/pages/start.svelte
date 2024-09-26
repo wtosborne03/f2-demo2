@@ -2,6 +2,7 @@
   import { fade } from "svelte/transition";
   import { joinRoom } from "$lib/index";
   import { browser } from "$app/environment";
+  import logo from "$lib/assets/icons/logo.png";
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
@@ -10,9 +11,9 @@
 <div class="container h-full mx-auto flex justify-center items-center">
   <div class="space-y-10 text-center flex flex-col items-center">
     <!-- Animated Logo -->
-    <figure>
+    <figure class="flex flex-col items-center h-72">
       <section class="img-bg" />
-      <h3 class="h3">John Game</h3>
+      <img src={logo} alt="logo" class="object-contain h-full" />
     </figure>
     <!-- / -->
 

@@ -39,5 +39,17 @@ interface ProductPromptData {
     category: string,
 }
 
+interface matchPerson {
+    name: string,
+    age: number,
+    job: string,
+    description: string,
+    sketch: string,
+}
 
-export type { ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+interface matchData {
+    matches: { [player: string]: matchPerson },
+}
+
+
+export type { matchData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };

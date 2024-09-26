@@ -29,6 +29,8 @@
   import ProductBlank from "../pages/product_blank.svelte";
   import ShakeConfirm from "../pages/shake_confirm.svelte";
   import ShakeGame from "../pages/shake_game.svelte";
+  import SketchMatch from "../pages/sketch_match.svelte";
+  import Match from "../pages/match.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -58,6 +60,8 @@
     product_blank: ProductBlank,
     shake_confirm: ShakeConfirm,
     shake_game: ShakeGame,
+    sketch_match: SketchMatch,
+    match: Match,
   };
 
   player_state.subscribe((value: PlayerState) => {
