@@ -6,6 +6,8 @@ export type CardData = {
 	title?: string;
 	description?: string;
 	image?: string;
+	age?: number;
+	job?: string;
 };
 
 export type SwipeEventData = {

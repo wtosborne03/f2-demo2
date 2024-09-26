@@ -1,8 +1,8 @@
 <script>
   import { onMount } from "svelte";
 
-  export let width = 300;
-  export let height = 300;
+  export let width = 240;
+  export let height = 320;
   export let color = "#333";
   export let background = "#fff";
 
@@ -16,6 +16,9 @@
   onMount(() => {
     context = canvas.getContext("2d");
     context.lineWidth = 3;
+
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
     handleSize();
   });
@@ -85,3 +88,10 @@
     });
   }}
 />
+
+<style>
+  #draw-canvas {
+    user-select: none;
+    touch-action: none;
+  }
+</style>

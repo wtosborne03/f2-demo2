@@ -21,32 +21,11 @@
       </button>
     {/each}
   </div>
-
-  <button
-    on:click={() => {
-      dispatch("color", { color: background });
-      paletteColor = background;
-    }}
-    style:background
-  >
-    <span class="visually-hidden"> </span>
-  </button>
-
-  <svg style:color={paletteColor} viewBox="-50 -50 100 100">
-    <g
-      fill="currentColor"
-      stroke="currentColor"
-      stroke-width="0"
-      stroke-linecap="round"
-    >
-      <path d="M -38 12 a 38 38 0 0 0 76 0 q 0 -28 -38 -62 -38 34 -38 62" />
-    </g>
-  </svg>
 </section>
 
 <style>
   section {
-    --size: 1.75rem;
+    --size: 1.2rem;
     padding: 0.25rem;
     display: flex;
     align-items: center;
