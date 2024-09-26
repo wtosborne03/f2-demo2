@@ -54,13 +54,16 @@
   };
 
   const handleSize = () => {
+    console.log(window.scrollY);
+
     const { top, left } = canvas.getBoundingClientRect();
-    t = top + window.scrollY;
+    t = top;
     l = left;
   };
 
   const handleTouchStart = (e) => {
     e.preventDefault();
+    handleSize();
     const { clientX, clientY } = e.touches[0];
     handleStart({
       offsetX: clientX - l,
@@ -78,7 +81,7 @@
   };
 </script>
 
-<svelte:window on:resize={handleSize} on:scrollend={handleSize} />
+<svelte:window on:resize={handleSize} on:scroll={handleSize} />
 
 <canvas
   id="draw-canvas"
