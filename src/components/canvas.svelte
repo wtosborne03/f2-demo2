@@ -39,6 +39,7 @@
   const handleEnd = () => {
     isDrawing = false;
   };
+
   const handleMove = ({ offsetX: x1, offsetY: y1 }) => {
     if (!isDrawing) return;
 
@@ -57,6 +58,24 @@
     t = top + window.scrollY;
     l = left;
   };
+
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    const { clientX, clientY } = e.touches[0];
+    handleStart({
+      offsetX: clientX - l,
+      offsetY: clientY - t,
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    e.preventDefault();
+    const { clientX, clientY } = e.touches[0];
+    handleMove({
+      offsetX: clientX - l,
+      offsetY: clientY - t,
+    });
+  };
 </script>
 
 <svelte:window on:resize={handleSize} on:scrollend={handleSize} />
@@ -68,25 +87,12 @@
   style:background
   bind:this={canvas}
   on:mousedown={handleStart}
-  on:touchstart={(e) => {
-    const { clientX, clientY } = e.touches[0];
-
-    handleStart({
-      offsetX: clientX - l,
-      offsetY: clientY - t,
-    });
-  }}
+  on:touchstart={handleTouchStart}
   on:mouseup={handleEnd}
   on:touchend={handleEnd}
   on:mouseleave={handleEnd}
   on:mousemove={handleMove}
-  on:touchmove={(e) => {
-    const { clientX, clientY } = e.touches[0];
-    handleMove({
-      offsetX: clientX - l,
-      offsetY: clientY - t,
-    });
-  }}
+  on:touchmove={handleTouchMove}
 />
 
 <style>
