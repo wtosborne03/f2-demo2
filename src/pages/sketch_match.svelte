@@ -49,55 +49,51 @@
   class="container h-full min-h-screen mx-auto flex justify-center items-center"
 >
   <form class=" flex flex-col justify-center items-center gap-4 my-12">
-    <label class="label w-full">
-      <span>Name</span>
-      <input
-        class="input w-full"
-        type="text"
-        bind:value={name}
-        placeholder="Input"
-      />
-    </label>
-    <label class="label w-full">
-      <span>Age</span>
+    <input
+      class="input w-full"
+      type="text"
+      bind:value={name}
+      maxlength="20"
+      placeholder="Name"
+    />
+    <div class="w-full flex flex-row justify-center gap-4 items-center">
+      Age:
       <input
         class="input w-full"
         type="number"
+        pattern="\d*"
+        max="1000"
+        placeholder={"40"}
         bind:value={age}
-        placeholder="Input"
       />
-    </label>
-    <label class="label w-full">
-      <span>Job</span>
-      <input
-        class="input w-full"
-        type="text"
-        bind:value={job}
-        placeholder="Input"
-      />
-    </label>
-    <label class="label w-full">
-      <span>description</span>
-      <input
-        class="input w-full"
-        type="text"
-        bind:value={description}
-        placeholder="Input"
-      />
-    </label>
-    <label class="label w-full flex flex-col items-center">
-      <span>Sketch</span>
+    </div>
 
-      <Canvas {color} {background} />
-      <Palette
-        {paletteColor}
-        {colors}
-        {background}
-        on:color={({ detail }) => {
-          color = detail.color;
-        }}
-      />
-    </label>
+    <input
+      class="input w-full"
+      type="text"
+      maxlength="30"
+      bind:value={job}
+      placeholder="Job"
+    />
+    <input
+      class="input w-full"
+      type="text"
+      maxlength="40"
+      bind:value={description}
+      placeholder="Description"
+    />
+
+    <span>Sketch</span>
+
+    <Canvas {color} {background} />
+    <Palette
+      {paletteColor}
+      {colors}
+      {background}
+      on:color={({ detail }) => {
+        color = detail.color;
+      }}
+    />
     <button class="btn variant-filled mb-24" on:click={submit_prompt}
       >Submit</button
     >
