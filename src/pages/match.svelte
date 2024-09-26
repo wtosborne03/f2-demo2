@@ -12,11 +12,12 @@
   let data = (index: number) => {
     const match_author = Object.keys(m_data.matches)[index];
     const match_person = m_data.matches[match_author];
+    console.log(match_person);
 
     return {
       title: match_person.name,
-      description: match_person.description,
-      image: match_person.sketch,
+      description: match_person["description"],
+      image: match_person["sketch"],
     };
   };
 </script>

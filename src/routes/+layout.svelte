@@ -30,10 +30,8 @@
       );
       const data = await response.json();
       const currentTime = new Date(data.dateTime); // Time in UTC
-      console.log("Current Timestamp:", currentTime.getTime()); // Timestamp in milliseconds
       return currentTime.getTime();
     } catch (error) {
-      console.error("Error fetching time:", error);
       return 0;
     }
   }
@@ -53,7 +51,6 @@
 
   remaining_time.subscribe((value) => {
     time_left = value;
-    console.log(time_left);
   });
 
   let timer_stamp: Date = get(player_state).timer_stamp;
