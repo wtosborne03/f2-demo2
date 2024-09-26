@@ -32,6 +32,7 @@
   "dependencies": {
     "@floating-ui/dom": "1.6.10",
     "@neodrag/svelte": "^2.0.6",
+    "@use-gesture/vanilla": "^10.3.1",
     "boxicons": "^2.1.4",
     "browser-image-compression": "^2.0.2",
     "compressorjs": "^1.2.1",
