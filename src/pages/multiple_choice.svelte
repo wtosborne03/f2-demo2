@@ -9,7 +9,6 @@
   m_data = get<PlayerState>(player_state).page_data;
 
   function submit_answer(index: number) {
-    console.log(index);
     sendMessage({
       type: "game",
       data: {

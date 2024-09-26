@@ -31,7 +31,6 @@
   }
 
   async function checkMotion() {
-    console.log(typeof DeviceMotionEvent);
     if (typeof DeviceMotionEvent !== "undefined") {
       const permissionState = await checkMotionPermission();
       if (permissionState === "granted") {

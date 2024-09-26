@@ -48,7 +48,7 @@ interface matchPerson {
 }
 
 interface matchData {
-    matches: { [player: string]: matchPerson },
+    matches: { [player: string]: { match: matchPerson, likes: number } },
 }
 
 

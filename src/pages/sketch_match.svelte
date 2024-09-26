@@ -83,7 +83,7 @@
         placeholder="Input"
       />
     </label>
-    <label class="label w-full">
+    <label class="label w-full flex flex-col items-center">
       <span>Sketch</span>
 
       <Canvas {color} {background} />
