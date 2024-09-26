@@ -45,7 +45,9 @@
   }
 </script>
 
-<div class="container h-full mx-auto flex justify-center items-center">
+<div
+  class="container h-full min-h-screen mx-auto flex justify-center items-center"
+>
   <form class=" flex flex-col justify-center items-center gap-4 my-12">
     <label class="label w-full">
       <span>Name</span>
@@ -96,6 +98,8 @@
         }}
       />
     </label>
-    <button class="btn variant-filled" on:click={submit_prompt}>Submit</button>
+    <button class="btn variant-filled mb-24" on:click={submit_prompt}
+      >Submit</button
+    >
   </form>
 </div>
