@@ -78,7 +78,7 @@
     <input
       class="input w-full"
       type="text"
-      maxlength="40"
+      maxlength="65"
       bind:value={description}
       placeholder="Description"
     />
