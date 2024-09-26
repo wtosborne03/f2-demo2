@@ -2,7 +2,7 @@
   import { sendMessage } from "$lib";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
-  import type { PromptData } from "../types/page_data";
+  import type { matchPerson, PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
 
   import Canvas from "../components/canvas.svelte";
@@ -26,17 +26,20 @@
     const image = (
       document.getElementById("draw-canvas") as HTMLCanvasElement
     ).toDataURL("image/jpeg");
+
+    const m_match: matchPerson = {
+      name: name,
+      age: age,
+      job: job,
+      description: description,
+      sketch: image,
+    };
+
     sendMessage({
       type: "game",
       data: {
         type: "answer",
-        data: {
-          name: name,
-          age: age,
-          job: job,
-          description: description,
-          sketch: image,
-        },
+        data: m_match,
       },
     });
   }
