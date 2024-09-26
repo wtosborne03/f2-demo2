@@ -100,6 +100,7 @@
 
 <style>
   #draw-canvas {
+    border-radius: 10px;
     user-select: none;
     touch-action: none;
   }
