@@ -51,6 +51,6 @@
   };
 </script>
 
-<div class="h-screen w-screen fixed top-0 left-0">
+<div class="h-full w-screen fixed top-0 left-0">
   <CardSwiper cardData={data} onSwipe={swipe} />
 </div>
