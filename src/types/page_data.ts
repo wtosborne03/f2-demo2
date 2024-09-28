@@ -51,5 +51,9 @@ interface matchData {
     matches: { [player: string]: { match: matchPerson, likes: number } },
 }
 
+interface photoVoteData {
+    photos: { [player: string]: string }
+}
 
-export type { matchData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+
+export type { matchData, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };

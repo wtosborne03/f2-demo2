@@ -31,6 +31,7 @@
   import ShakeGame from "../pages/shake_game.svelte";
   import SketchMatch from "../pages/sketch_match.svelte";
   import Match from "../pages/match.svelte";
+  import PhotoVote from "../pages/photo_vote.svelte";
   let page_value: string = "index";
 
   app_init();
@@ -62,6 +63,7 @@
     shake_game: ShakeGame,
     sketch_match: SketchMatch,
     match: Match,
+    photo_vote: PhotoVote,
   };
 
   player_state.subscribe((value: PlayerState) => {
