@@ -29,7 +29,7 @@
 </script>
 
 <div
-  class=" h-full flex flex-col justify-center items-center text-2xl text-center"
+  class=" h-full overflow-scroll flex flex-col justify-center items-center text-2xl text-center"
 >
   <div class="mb-4 flex">Pick the photo that you think represent you best.</div>
   <div class="w-full">
