@@ -105,7 +105,9 @@
 
 <div class="container h-full mx-auto flex flex-col justify-center items-center">
   {#if motion}
-    Shake your device to play 🫨
+    <div class="border-4 p-3" style:border-color={get(player_state).color}>
+      Shake your device to play 🫨
+    </div>
   {:else}
     Drag the duck around to Shake it
     <div
