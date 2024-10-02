@@ -2,7 +2,7 @@
   import { fade } from "svelte/transition";
   import { joinRoom } from "$lib/index";
   import { browser } from "$app/environment";
-  import logo from "$lib/assets/icons/logo.png";
+  import logo from "$lib/assets/icons/logo.webp";
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
