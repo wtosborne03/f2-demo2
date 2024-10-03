@@ -1,5 +1,6 @@
 import { writable } from "svelte/store";
 import type { PlayerState } from "../types/player_state";
+import { Avatar } from "@skeletonlabs/skeleton";
 
 export const player_state = writable<PlayerState>({
     name: "",
@@ -12,5 +13,11 @@ export const player_state = writable<PlayerState>({
     timer_duration: 0,
     index: 0,
     color: '',
+    team: '',
+    avatar: {
+        eyes: 0,
+        hair: 0,
+        mouth: 0,
+    }
 });
 

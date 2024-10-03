@@ -1,3 +1,9 @@
+
+interface Avatar {
+    eyes: number,
+    mouth: number,
+    hair: number,
+}
 interface PlayerState {
     name: string;
     score: number;
@@ -9,5 +15,7 @@ interface PlayerState {
     timer_duration: number;
     index: number;
     color: string;
+    team: string;
+    avatar: Avatar;
 }
-export type { PlayerState };
+export type { PlayerState, Avatar };

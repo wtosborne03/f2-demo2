@@ -24,8 +24,8 @@
 >
   {#each m_data.answers as answer}
     <button
-      style="width: 100%; font-size: 1.5rem;"
-      class="btn variant-filled m-2 p-2"
+      style="width: 100%; font-size: 1.5rem; white-space: normal; word-wrap: break-word;"
+      class="rounded-xl variant-filled m-2 p-2"
       on:click={() =>
         submit_answer(m_data.answers.findIndex((a) => a == answer))}
       >{answer}</button
