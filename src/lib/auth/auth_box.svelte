@@ -94,6 +94,7 @@
             class="input"
             maxlength="10"
             name="Name"
+            autofocus={false}
             bind:value={game_name}
           />
           <button class="btn variant-filled-primary" on:click={updateUser}
