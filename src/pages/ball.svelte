@@ -8,11 +8,9 @@
   import { player_state } from "../stores/player_state";
 
   let color = get<PlayerState>(player_state).color;
-  let bg_color = get<PlayerState>(player_state).page_data.color;
 
   player_state.subscribe((value: PlayerState) => {
     color = value.color;
-    bg_color = value.page_data.color;
   });
 
   let joystickContainer: HTMLElement;
@@ -58,6 +56,6 @@
   <div
     bind:this={joystickContainer}
     class=" w-60 h-60 opacity-100 border-8 fixed rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-    style="background-color: {color}; border-color: {bg_color}"
+    style="background-color: {color}; border-color: white;"
   ></div>
 </div>
