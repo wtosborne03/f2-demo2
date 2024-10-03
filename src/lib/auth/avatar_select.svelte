@@ -95,8 +95,8 @@
 </script>
 
 <div class="flex h-full flex-col justify-center items-center">
-  <button class="btn variant-filled mb-10" on:click={() => goto("/")}
-    >Back</button
+  <button class="btn variant-filled mb-10 mt-4" on:click={() => goto("/")}
+    ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >
   <div class="text-xl">Your Avatar</div>
 
