@@ -3,10 +3,57 @@
   import { joinRoom } from "$lib/index";
   import { browser } from "$app/environment";
   import logo from "$lib/assets/icons/logo.webp";
+  import {
+    Toast,
+    Drawer,
+    getDrawerStore,
+    initializeStores,
+  } from "@skeletonlabs/skeleton";
+  import { drawerSettings } from "$lib/drawer";
+  import { onMount } from "svelte";
+  import { get, writable } from "svelte/store";
+  import { supabase } from "../supabaseClient";
+  import { authStore } from "$lib/stores/authStore";
+  import { player_state } from "../stores/player_state";
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
+
+  const fetchName = async () => {
+    if (!$authStore.user) return;
+    const { error, data } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", $authStore.user?.id)
+      .single();
+    if (error) {
+      console.error(error);
+    } else {
+      name = data.game_name;
+    }
+  };
+
+  $authStore.user, fetchName();
+
+  const drawerStore = getDrawerStore();
+
+  const joinGame = async () => {
+    await fetchName();
+    joinRoom(roomCode.toUpperCase(), name);
+  };
 </script>
+
+<div class="w-full flex flex-row justify-end items-center">
+  <button
+    class="btn variant-filled"
+    on:click={() => drawerStore.open(drawerSettings)}
+    >{#if $authStore.user}
+      Account <i class="fa-solid fa-user ml-2"></i>
+    {:else}
+      Log In <i class="fa-solid fa-right-to-bracket ml-2"></i>
+    {/if}
+  </button>
+</div>
 
 <div class="container h-full mx-auto flex justify-center items-center">
   <div class="space-y-10 text-center flex flex-col items-center">
@@ -29,20 +76,19 @@
           bind:value={roomCode}
         />
       </label>
-      <label class="label"
-        ><span>Name</span>
-        <input
-          type="text"
-          class="input"
-          maxlength="10"
-          name="Name"
-          bind:value={name}
-        />
-      </label>
-      <button
-        class="btn variant-filled"
-        on:click={() => joinRoom(roomCode.toUpperCase(), name)}>Join</button
-      >
+      {#if !$authStore.user}
+        <label class="label"
+          ><span>Name</span>
+          <input
+            type="text"
+            class="input"
+            maxlength="10"
+            name="Name"
+            bind:value={name}
+          />
+        </label>
+      {/if}
+      <button class="btn variant-filled" on:click={joinGame}>Join</button>
     </div>
   </div>
 </div>

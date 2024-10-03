@@ -2,6 +2,7 @@
   import "$lib/index";
   import { setup_script, app_init, sendMessage } from "$lib/index";
   import { onMount } from "svelte";
+  import { get } from "svelte/store";
 
   import Start from "../pages/start.svelte";
   import Game from "../pages/game.svelte";
@@ -33,12 +34,13 @@
   import Match from "../pages/match.svelte";
   import PhotoVote from "../pages/photo_vote.svelte";
   let page_value: string = "index";
+  if (get(player_state).screen == "index") {
+    app_init();
 
-  app_init();
-
-  onMount(() => {
-    setup_script();
-  });
+    onMount(() => {
+      setup_script();
+    });
+  }
 
   const screens: { [key: string]: any } = {
     index: Start,

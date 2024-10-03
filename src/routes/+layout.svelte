@@ -1,9 +1,6 @@
 <script lang="ts">
   import { get, writable } from "svelte/store";
   import "../app.postcss";
-  import { AppShell, AppBar } from "@skeletonlabs/skeleton";
-  export const ssr = false;
-  import Corbado from "@corbado/web-js";
   import {
     Toast,
     Drawer,
@@ -11,7 +8,6 @@
     initializeStores,
   } from "@skeletonlabs/skeleton";
   import type { PlayerState } from "../types/player_state";
-  import type { DrawerSettings } from "@skeletonlabs/skeleton";
   import "./toolbar.svelte";
   import {
     computePosition,
@@ -25,9 +21,11 @@
   import { player_state } from "../stores/player_state";
   import doubloon from "$lib/assets/icons/doubloon.png";
   import { onMount, onDestroy } from "svelte";
+  import { supabase } from "../supabaseClient";
+  import { drawerSettings } from "$lib/drawer";
+  import AuthBox from "$lib/auth/auth_box.svelte";
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
-  let authElement: HTMLDivElement;
 
   async function getCurrentTimestamp() {
     try {
@@ -64,19 +62,6 @@
   let interval: NodeJS.Timeout;
   let color: string;
 
-  const startAuth = async () => {
-    await Corbado.load({
-      projectId: "pro-6537042889829743872",
-      darkMode: "off",
-      setShortSessionCookie: true, // Creates a cookie containing the Corbado short-session JWT
-    });
-    Corbado.mountAuthUI(authElement, {
-      onLoggedIn: () => {
-        // this is executed after login
-        // you can do whatever you want here, e.g. navigate to another page
-      },
-    });
-  };
   onMount(() => {
     if (timer_duration > 0) {
       interval = setInterval(updateTimer, 500);
@@ -104,17 +89,6 @@
     }
   });
 
-  const drawerSettings: DrawerSettings = {
-    id: "example-3",
-    // Provide your property overrides:
-    bgDrawer: "bg-purple-900 text-white",
-    bgBackdrop:
-      "bg-gradient-to-tr from-indigo-500/50 via-purple-500/50 to-pink-500/50",
-    width: "w-[280px] md:w-[480px]",
-    padding: "p-4",
-    rounded: "rounded-xl",
-  };
-
   // Start the timer update interval when the component mounts
   initializeStores();
   const drawerStore = getDrawerStore();
@@ -127,11 +101,10 @@
 
 <Toast />
 <Drawer>
-  <div class="p-4 text-center">Account</div>
-  <div bind:this={authElement}></div>
+  <AuthBox />
 </Drawer>
 <!-- App Shell -->
-{#if name != ""}
+{#if $player_state.screen != "index"}
   <div class="z-20 block">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <!-- svelte-ignore a11y-click-events-have-key-events -->

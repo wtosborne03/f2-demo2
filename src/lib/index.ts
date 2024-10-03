@@ -4,9 +4,11 @@ import RoomEnded from '../pages/room_ended.svelte';
 import Blank from '../pages/blank.svelte';
 import MultipleChoice from '../pages/multiple_choice.svelte';
 import { player_state } from '../stores/player_state';
-import type { PlayerState } from '../types/player_state';
+import { authStore } from './stores/authStore';
+import type { Avatar, PlayerState } from '../types/player_state';
 import { getToastStore, initializeStores, type ToastStore } from '@skeletonlabs/skeleton';
 import { get } from 'svelte/store';
+import { supabase } from '../supabaseClient';
 
 let ws: WebSocket;
 let toastStore: ToastStore;
@@ -31,6 +33,31 @@ function setup_script() {
     websocketSetup();
 }
 
+const joinedGameCallback = async () => {
+    if (get(authStore).user) {
+        console.log("joined game callback");
+
+        // if logged in, send avatar data
+        const { error, data } = await supabase.from('users').select('*').eq('id', get(authStore).user!.id).single();
+        if (error) {
+            console.error(error);
+            return;
+        }
+        console.log(data);
+        const avatar: Avatar = {
+            eyes: data.avatar_eyes || 0,
+            hair: data.avatar_hair || 0,
+            mouth: data.avatar_mouth || 0,
+        }
+        sendMessage({
+            type: "avatar_update",
+            data: {
+                avatar: avatar,
+            }
+        })
+    }
+}
+
 function websocketSetup() {
     ws = new WebSocket('wss://lil-feed.com/');
 
@@ -41,6 +68,10 @@ function websocketSetup() {
         console.log("Received:", e_data);
         console.log(e_data['type']);
         switch (e_data['type']) {
+            case "joinedRoom":
+                console.log("welc");
+                joinedGameCallback();
+                break;
             case "error":
                 toastStore.trigger({ message: e_data['message'] });
                 break;
