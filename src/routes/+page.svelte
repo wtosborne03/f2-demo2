@@ -27,7 +27,6 @@
   import Ball from "../pages/ball.svelte";
   import BusCard from "../pages/bus_card.svelte";
   import ProductPrompt from "../pages/product_prompt.svelte";
-  import ProductBlank from "../pages/product_blank.svelte";
   import ShakeConfirm from "../pages/shake_confirm.svelte";
   import ShakeGame from "../pages/shake_game.svelte";
   import SketchMatch from "../pages/sketch_match.svelte";
@@ -60,7 +59,6 @@
     ball: Ball,
     bus_card: BusCard,
     product_prompt: ProductPrompt,
-    product_blank: ProductBlank,
     shake_confirm: ShakeConfirm,
     shake_game: ShakeGame,
     sketch_match: SketchMatch,

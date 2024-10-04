@@ -143,6 +143,14 @@
         <img class="w-8 h-8" src={doubloon} alt="coin" />
       </span>
     </div>
+    {#if $player_state.team != ""}
+      <div
+        class="flex flex-row items-center text-lg font-semibold justify-between border-opacity-60 border-white p-2 h-10 border-b-2 mx-6"
+      >
+        <div class="opacity-60">Team:</div>
+        <div>{$player_state.team}</div>
+      </div>
+    {/if}
   </div>
   {#if timer_duration > 0}
     <div class="w-screen h-screen fixed opacity-20 col-span-3 bottom-0 -z-10">
