@@ -94,45 +94,54 @@
   onDestroy(() => {});
 </script>
 
-<div class="flex h-full flex-col justify-center items-center">
+<div class="px-16 flex h-full flex-col justify-center items-center">
   <button class="btn variant-filled mb-10 mt-4" on:click={() => goto("/")}
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >
-  <div class="text-xl">Your Avatar</div>
 
   <canvas id="canvas" width="100" height="100"></canvas>
-  <label class="label">
-    <span>Eyes</span>
-    <select class="select" bind:value={eyes_value}>
-      <option value="3">Normal Eyes</option>
-      <option value="1">Pretty Eyes</option>
-      <option value="2">Long Eyes</option>
-      <option value="0">Dead Eyes</option>
-      <option value="4">Robot Eyes</option>
-    </select>
-  </label>
-  <label class="label">
-    <span>Mouth</span>
-    <select class="select" bind:value={mouth_value}>
-      <option value="0">Normal Mouth</option>
-      <option value="1">Happy</option>
-      <option value="2">John</option>
-    </select>
-  </label>
-  <label class="label">
-    <span>Hair</span>
-    <select class="select" bind:value={hair_value}>
-      <option value="0">Hair 1</option>
-      <option value="1">Hair 2</option>
-      <option value="2">Hair 3</option>
-      <option value="3">Hair 4</option>
-      <option value="4">Hair 5</option>
-      <option value="5">Hair 6</option>
-      <option value="6">Hair 7</option>
-    </select>
-  </label>
-
-  <button class="btn variant-filled mt-2 mb-4" on:click={saveAvatar}
-    >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
+  <div
+    class="max-w-96 mt-4 text-start flex flex-col justify-center items-center"
   >
+    <label
+      class="label w-full flex flex-row justify-between items-center gap-3"
+    >
+      <span class="w-16">Eyes</span>
+      <select class="select" bind:value={eyes_value}>
+        <option value={3}>Normal Eyes</option>
+        <option value={1}>Pretty Eyes</option>
+        <option value={2}>Long Eyes</option>
+        <option value={0}>Dead Eyes</option>
+        <option value={4}>Robot Eyes</option>
+      </select>
+    </label>
+    <label
+      class="label w-full flex flex-row justify-between items-center gap-3"
+    >
+      <span class="w-16">Mouth</span>
+      <select class="select" bind:value={mouth_value}>
+        <option value={0}>Normal Mouth</option>
+        <option value={1}>Happy</option>
+        <option value={2}>John</option>
+      </select>
+    </label>
+    <label
+      class="label w-full flex flex-row justify-between items-center gap-3"
+    >
+      <span class="w-16">Hair</span>
+      <select class="select" bind:value={hair_value}>
+        <option value={0}>Hair 1</option>
+        <option value={1}>Hair 2</option>
+        <option value={2}>Hair 3</option>
+        <option value={3}>Hair 4</option>
+        <option value={4}>Hair 5</option>
+        <option value={5}>Hair 6</option>
+        <option value={6}>Hair 7</option>
+      </select>
+    </label>
+
+    <button class="btn variant-filled-primary mt-8 mb-4" on:click={saveAvatar}
+      >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
+    >
+  </div>
 </div>
