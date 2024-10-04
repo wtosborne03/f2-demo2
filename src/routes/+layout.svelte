@@ -24,6 +24,8 @@
   import { supabase } from "../supabaseClient";
   import { drawerSettings } from "$lib/drawer";
   import AuthBox from "$lib/auth/auth_box.svelte";
+  import { authStore } from "$lib/stores/authStore";
+  import Spinner from "../components/spinner.svelte";
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
@@ -147,7 +149,13 @@
 
 <!-- Page Route Content -->
 <div class="grow">
-  <slot />
+  {#if $authStore.loading}
+    <div class="flex justify-center items-center h-full">
+      <Spinner />
+    </div>
+  {:else}
+    <slot />
+  {/if}
 </div>
 
 <footer class="footer footer-center" style="height: 60px;"></footer>
