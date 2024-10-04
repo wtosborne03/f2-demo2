@@ -95,6 +95,10 @@
   initializeStores();
   const drawerStore = getDrawerStore();
 
+  let loading = true;
+
+  $: $authStore.loading, (loading = get(authStore).loading);
+
   // Clean up the interval when the component is destroyed
   onDestroy(() => {
     clearInterval(interval);
@@ -149,7 +153,7 @@
 
 <!-- Page Route Content -->
 <div class="grow">
-  {#if $authStore.loading}
+  {#if loading}
     <div class="flex justify-center items-center h-full">
       <Spinner />
     </div>
