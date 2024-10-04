@@ -87,6 +87,9 @@
     <div class="flex flex-col justify-between h-full items-center" autofocus>
       <div class="text-xl">{$authStore.user.email}</div>
       <div class="flex flex-col items-center justify-center gap-8">
+        <button class="btn variant-filled" on:click={customizeAvatar}
+          >Customize Avatar <span class="text-2xl ml-2">💇‍♀️</span></button
+        >
         <label class="label">
           <span>Game Name</span>
           <input
@@ -100,9 +103,6 @@
             >Save Name</button
           >
         </label>
-        <button class="btn variant-filled" on:click={customizeAvatar}
-          >Customize Avatar <span class="text-2xl ml-2">💇‍♀️</span></button
-        >
       </div>
       <button class="btn variant-filled-error" on:click={signOut}
         >Sign Out <i class="fa-solid fa-right-from-bracket ml-2"></i></button
