@@ -84,24 +84,40 @@
   class="p-8 text-center h-full flex flex-col justify-center items-center gap-4"
 >
   {#if $authStore.user}
-    <div class="flex flex-col justify-between h-full items-center" autofocus>
-      <div class="text-xl">{$authStore.user.email}</div>
-      <div class="flex flex-col items-center justify-center gap-8">
-        <button class="btn variant-filled" on:click={customizeAvatar}
+    <div class="flex flex-col justify-between h-full items-center text-xl">
+      <div class="text-lg">{$authStore.user.email}</div>
+      <div class="flex flex-col items-center justify-center gap-4">
+        <button
+          class="btn variant-filled w-full flex flex-row justify-between"
+          on:click={customizeAvatar}
           >Customize Avatar <span class="text-2xl ml-2">💇‍♀️</span></button
         >
-        <label class="label">
-          <span>Game Name</span>
-          <input
-            type="text"
-            class="input"
-            maxlength="10"
-            name="Name"
-            bind:value={game_name}
-          />
-          <button class="btn variant-filled-primary" on:click={updateUser}
-            >Save Name</button
+        <button
+          class="btn variant-filled w-full flex flex-row justify-between"
+          on:click={customizeAvatar}
+          disabled>Shop <span class="text-2xl ml-2">🛍️</span></button
+        >
+        <button
+          class="btn variant-filled w-full flex flex-row justify-between"
+          on:click={customizeAvatar}
+          disabled>Stats <span class="text-2xl ml-2">📊</span></button
+        >
+        <label class="label w-full">
+          <span class="text-base">Game Name</span>
+          <div
+            class="input-group input-group-divider grid-cols-[auto_1fr_auto]"
           >
+            <input
+              type="text"
+              class="input"
+              maxlength="10"
+              name="Name"
+              bind:value={game_name}
+            />
+            <button class="btn variant-filled-primary" on:click={updateUser}
+              >Save <i class="fa-solid fa-floppy-disk ml-2"></i></button
+            >
+          </div>
         </label>
       </div>
       <button class="btn variant-filled-error" on:click={signOut}
