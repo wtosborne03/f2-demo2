@@ -4,6 +4,7 @@
   import {
     Toast,
     Drawer,
+    Modal,
     getDrawerStore,
     initializeStores,
   } from "@skeletonlabs/skeleton";
@@ -105,6 +106,7 @@
   });
 </script>
 
+<Modal />
 <Toast />
 <Drawer>
   <AuthBox />
@@ -118,20 +120,22 @@
       on:click={() => {
         drawerStore.open(drawerSettings);
       }}
-      class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4"
+      class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4 hover:opacity-70 cursor-pointer"
       style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"
     >
       <!-- App Bar -->
       <div class="h-10 flex flex-col justify-center items-center">
-        {#if admin}
-          <span class="text-md">[admin]</span>
-          <strong class="text-xl uppercase -mt-1">👑</strong>
-        {:else}
-          <strong class="text-xl uppercase">👤</strong>
-        {/if}
+        <i class="fa-solid fa-bars text-3xl" />
       </div>
       <span class="text-xl flex flex-col justify-center items-center gap-0">
-        {name}
+        <div class="flex flex-col justify-center items-center h-10">
+          {name}
+          {#if admin}
+            <span class="text-xs -mt-2">
+              admin <strong class="text-lg uppercase -mt-1">👑</strong>
+            </span>
+          {/if}
+        </div>
       </span>
 
       <span class="text-xl flex flex-row items-center justify-center gap-2">
