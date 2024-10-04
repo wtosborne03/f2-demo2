@@ -24,20 +24,6 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <aside
-    class="alert variant-ghost text-center m-4 flex flex-col justify-center items-center"
-  >
-    <!-- Icon -->
-    <!-- Message -->
-    <div class="alert-message">
-      <p class="">You're employed at:</p>
-      <h3 class="h3">Company {m_data.team}</h3>
-    </div>
-    <!-- Actions -->
-    <div class="alert-actions">
-      Meet up with your coworkers to discuss synergy.
-    </div>
-  </aside>
   <div class="mb-2 p-4 text-center">
     Come up with a unique feature for your <b>{m_data.category}</b> product.
   </div>
