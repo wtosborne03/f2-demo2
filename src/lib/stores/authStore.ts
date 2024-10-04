@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { supabase } from '../../supabaseClient'; // Adjust the path as necessary
 import type { User } from '@supabase/supabase-js';
 
@@ -12,11 +12,12 @@ export const authStore = writable<{ session: any | null; user: User | null; load
 // Subscribe to Supabase auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
     console.log('Auth state changed:', event);
-    authStore.set({ session, user: session?.user || null, loading: false });
+    authStore.set({ session, user: session?.user || null, loading: get(authStore).loading });
 });
 
 // Initialize the store with the current session
 (async () => {
     const { data: { session } } = await supabase.auth.getSession();
+    console.log("LOAD");
     authStore.set({ session, user: session?.user || null, loading: false });
 })();
