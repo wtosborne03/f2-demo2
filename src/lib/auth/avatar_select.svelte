@@ -132,7 +132,7 @@
     </select>
   </label>
 
-  <button class="btn variant-filled mt-2" on:click={saveAvatar}
+  <button class="btn variant-filled mt-2 mb-4" on:click={saveAvatar}
     >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
   >
 </div>
