@@ -148,7 +148,9 @@
         class="flex flex-row items-center text-lg font-semibold justify-between border-opacity-60 border-white p-2 h-10 border-b-2 mx-6"
       >
         <div class="opacity-60">Team:</div>
-        <div>{$player_state.team}</div>
+        <div class="font-bold" style:color={$player_state.team}>
+          {$player_state.team}
+        </div>
       </div>
     {/if}
   </div>
