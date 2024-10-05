@@ -22,7 +22,7 @@ function playerEmote(event: Event) {
     sendMessage({
         type: "game",
         data: {
-            type: "playerEmote",
+            type: "emote",
         },
     });
 

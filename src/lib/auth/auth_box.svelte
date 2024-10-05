@@ -78,6 +78,15 @@
     await goto("/avatar", { replaceState: false });
     drawerStore.close();
   };
+
+  const goStats = async () => {
+    await goto("/stats", { replaceState: false });
+    drawerStore.close();
+  };
+  const goShop = async () => {
+    await goto("/shop", { replaceState: false });
+    drawerStore.close();
+  };
 </script>
 
 <div
@@ -94,13 +103,11 @@
         >
         <button
           class="btn variant-filled w-full flex flex-row justify-between"
-          on:click={customizeAvatar}
-          disabled>Shop <span class="text-2xl ml-2">🛍️</span></button
+          on:click={goShop}>Shop <span class="text-2xl ml-2">🛍️</span></button
         >
         <button
           class="btn variant-filled w-full flex flex-row justify-between"
-          on:click={customizeAvatar}
-          disabled>Stats <span class="text-2xl ml-2">📊</span></button
+          on:click={goStats}>Stats <span class="text-2xl ml-2">📊</span></button
         >
         <label class="label w-full">
           <span class="text-base">Game Name</span>
