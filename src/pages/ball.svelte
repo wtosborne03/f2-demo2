@@ -56,6 +56,11 @@
   <div
     bind:this={joystickContainer}
     class=" w-60 h-60 opacity-100 border-8 fixed rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-    style="background-color: {color}; border-color: white;"
+    style="background-color: {color}; border-color: {$player_state.team ===
+    'Black'
+      ? 'black'
+      : $player_state.team === 'White'
+        ? 'white'
+        : 'transparent'};"
   ></div>
 </div>
