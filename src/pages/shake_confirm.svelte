@@ -11,59 +11,38 @@
     });
   };
 
-  function supportsMotionControls(): boolean {
-    return "DeviceMotionEvent" in window;
-  }
-
-  async function hasMotionPermission(): Promise<boolean> {
-    if (!supportsMotionControls()) {
-      console.warn("Motion controls are not supported on this device.");
+  function checkMotionControlsStatus(): boolean | "needs permission" {
+    const supportsMotion = typeof DeviceMotionEvent !== "undefined";
+    const supportsOrientation = typeof DeviceOrientationEvent !== "undefined";
+    if (!supportsMotion && !supportsOrientation) {
       return false;
     }
-
-    // Check if the browser supports the permission API
-    if ("permissions" in navigator) {
-      try {
-        const permissionStatus = await navigator.permissions.query({
-          name: "accelerometer",
-        } as PermissionDescriptor);
-        if (permissionStatus.state === "granted") {
-          return true;
-        } else if (permissionStatus.state === "prompt") {
-          // The user will be prompted to grant permission
-          return new Promise((resolve) => {
-            window.addEventListener("devicemotion", () => resolve(true), {
-              once: true,
-            });
-          });
-        } else {
-          // Permission is denied
-          return false;
-        }
-      } catch (error) {
-        console.error("Error checking motion permission:", error);
-        return false;
-      }
-    } else {
-      // Fallback for browsers that do not support the permission API
-      // Assume permission is granted if the event is available
-      return true;
+    // Check if permission needs to be requested (iOS 13+)
+    const needsMotionPermission =
+      typeof (DeviceMotionEvent as any).requestPermission === "function";
+    const needsOrientationPermission =
+      typeof (DeviceOrientationEvent as any).requestPermission === "function";
+    if (needsMotionPermission || needsOrientationPermission) {
+      return "needs permission";
     }
+    return true;
   }
 
   onMount(() => {
-    if (typeof DeviceMotionEvent !== "undefined") {
-      checkMotionPermission().then((permissionState) => {
-        if (permissionState === "granted") {
-          confirm();
-        } else {
-          showButton = true;
-        }
-      });
+    const status = checkMotionControlsStatus();
+    if (status === "needs permission") {
+      showButton = true;
     } else {
       confirm();
     }
   });
+
+  const confirmMotion = async () => {
+    const motionPermission = await (
+      DeviceMotionEvent as any
+    ).requestPermission();
+    confirm();
+  };
 
   let showButton = false;
 </script>
