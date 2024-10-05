@@ -11,6 +11,20 @@
     });
   };
 
+  async function checkMotionPermissionStatus(): Promise<PermissionState> {
+    return new Promise((resolve) => {
+      const tempListener = (event: DeviceMotionEvent) => {
+        window.removeEventListener("devicemotion", tempListener);
+        resolve("granted");
+      };
+      window.addEventListener("devicemotion", tempListener);
+      setTimeout(() => {
+        window.removeEventListener("devicemotion", tempListener);
+        resolve("denied");
+      }, 100);
+    });
+  }
+
   function checkMotionControlsStatus(): boolean | "needs permission" {
     const supportsMotion = typeof DeviceMotionEvent !== "undefined";
     const supportsOrientation = typeof DeviceOrientationEvent !== "undefined";
@@ -28,10 +42,15 @@
     return true;
   }
 
-  onMount(() => {
+  onMount(async () => {
     const status = checkMotionControlsStatus();
     if (status === "needs permission") {
-      showButton = true;
+      const granted = await checkMotionPermissionStatus();
+      if (granted !== "granted") {
+        showButton = true;
+      } else {
+        confirm();
+      }
     } else {
       confirm();
     }
