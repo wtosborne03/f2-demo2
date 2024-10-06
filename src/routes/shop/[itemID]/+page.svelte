@@ -109,6 +109,7 @@
       <div class="text-lg">Description: {item.description}</div>
       <div class="text-lg">Price: ${item.price}</div>
       <form on:submit|preventDefault={handleSubmit}>
+        <div id="payment-request-button"></div>
         <div id="payment-element"></div>
         <button class="btn variant-filled w-full" type="submit">Buy</button>
       </form>
