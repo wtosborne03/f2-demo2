@@ -39,10 +39,11 @@
       <div class="h-52 gap-4 flex flex-row items-stretch justify-normal px-8">
         {#each shopItems[category] as item}
           <div
-            class="rounded-lg bg-slate-500 hover:bg-slate-600 cursor-pointer p-2 min-w-52 flex flex-col justify-between"
+            class="rounded-lg bg-slate-500 hover:bg-slate-600 cursor-pointer p-2 min-w-52 flex flex-col items-center justify-between"
             on:click={() => goto(`/shop/${item.id}`)}
           >
             <div class="text-xl">{item.name}</div>
+            <img src={item.thumbnail} alt="item" class="w-32 h-32" />
             <div class="text-lg">Price: ${item.price}</div>
           </div>
         {/each}
