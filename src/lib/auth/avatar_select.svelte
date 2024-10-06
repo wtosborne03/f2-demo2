@@ -9,6 +9,7 @@
   import { player_state } from "../../stores/player_state";
   import { sendMessage } from "$lib";
   import type { Avatar } from "../../types/player_state";
+  import AuthBox from "./auth_box.svelte";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
@@ -16,6 +17,14 @@
   let hair_input: rive.StateMachineInput | undefined;
 
   let toastStore = getToastStore();
+
+  let owned_items: { [key: string]: any } = {};
+
+  const categories: { [key: string]: string } = {
+    0: "Eyes",
+    1: "Hair",
+    2: "Mouth",
+  };
 
   onMount(() => {
     r = new rive.Rive({
@@ -31,6 +40,7 @@
         eyes_input = inputs.find((input) => input.name === "Eyes");
         mouth_input = inputs.find((input) => input.name === "Mouth");
         hair_input = inputs.find((input) => input.name === "Bodies");
+
         supabase
           .from("users")
           .select("*")
@@ -43,9 +53,47 @@
             hair_value = res.data["avatar_hair"] || 0;
             update();
           });
+
+        supabase
+          .from("owned")
+          .select(
+            `
+    item_id,
+    shop (
+      id,
+      name,
+      type,
+      value,
+      description,
+      thumbnail,
+      price
+    )
+  `,
+          )
+          .eq("user_id", $authStore.user!.id)
+          .then((res) => {
+            console.log(res.data);
+            if (!res.data) return;
+            owned_items = res.data.reduce((acc: any, currentItem) => {
+              console.log(currentItem);
+              const type = currentItem.shop.type;
+
+              // Initialize an empty array for each type if it doesn't exist
+              if (!acc[type]) {
+                acc[type] = [];
+              }
+
+              // Push the current item into the appropriate type group
+              acc[type].push(currentItem);
+
+              return acc;
+            }, {});
+          });
       },
     });
   });
+
+  let owned;
 
   let eyes_value = 3;
   let mouth_value = 0;
@@ -100,45 +148,37 @@
   >
 
   <canvas id="canvas" width="100" height="100"></canvas>
-  <div
-    class="max-w-96 mt-4 text-start flex flex-col justify-center items-center"
-  >
-    <label
-      class="label w-full flex flex-row justify-between items-center gap-3"
-    >
-      <span class="w-16">Eyes</span>
-      <select class="select" bind:value={eyes_value}>
-        <option value={3}>Normal Eyes</option>
-        <option value={1}>Pretty Eyes</option>
-        <option value={2}>Long Eyes</option>
-        <option value={0}>Dead Eyes</option>
-        <option value={4}>Robot Eyes</option>
-      </select>
-    </label>
-    <label
-      class="label w-full flex flex-row justify-between items-center gap-3"
-    >
-      <span class="w-16">Mouth</span>
-      <select class="select" bind:value={mouth_value}>
-        <option value={0}>Normal Mouth</option>
-        <option value={1}>Happy</option>
-        <option value={2}>John</option>
-      </select>
-    </label>
-    <label
-      class="label w-full flex flex-row justify-between items-center gap-3"
-    >
-      <span class="w-16">Hair</span>
-      <select class="select" bind:value={hair_value}>
-        <option value={0}>Hair 1</option>
-        <option value={1}>Hair 2</option>
-        <option value={2}>Hair 3</option>
-        <option value={3}>Hair 4</option>
-        <option value={4}>Hair 5</option>
-        <option value={5}>Hair 6</option>
-        <option value={6}>Hair 7</option>
-      </select>
-    </label>
+  <div class="w-screen px-4">
+    {#each Object.keys(owned_items) as category}
+      <span class="w-16">{categories[category]}</span>
+      <div class="flex overflow-x-scroll">
+        <div class="flex flex-nowrap lg:ml-40 md:ml-20 gap-3 h-20">
+          {#each owned_items[category] || [] as item}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div
+              class="h-full aspect-square rounded-md bg-slate-500 p-2 text-center hover:bg-slate-600 hover:cursor-pointer"
+              on:click={() => {
+                console.log(item);
+                switch (category) {
+                  case "0":
+                    eyes_value = item.shop.value;
+                    break;
+                  case "1":
+                    hair_value = item.shop.value;
+                    break;
+                  case "2":
+                    mouth_value = item.shop.value;
+                    break;
+                }
+              }}
+            >
+              {item.shop.name}
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/each}
 
     <button class="btn variant-filled-primary mt-8 mb-4" on:click={saveAvatar}
       >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
