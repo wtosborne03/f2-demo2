@@ -18,6 +18,7 @@
   let elements: any = null;
   let paymentRequest: any = null;
   let applepay = false;
+  let loading = true;
 
   onMount(async () => {
     console.log(itemID);
@@ -102,6 +103,7 @@
           const paymentElement = elements.create("payment");
           paymentElement.mount("#payment-element");
         }
+        loading = false;
       }
     }
   });
@@ -133,11 +135,16 @@
       <div class="text-xl">{item.name}</div>
       <div class="text-lg">Description: {item.description}</div>
       <div class="text-lg">Price: ${item.price}</div>
+
       <div id="payment-request-button" class="w-full"></div>
       {#if !applepay}
         <form on:submit|preventDefault={handleSubmit}>
           <div id="payment-element"></div>
-          <button class="btn variant-filled w-full" type="submit">Buy</button>
+          {#if loading}
+            <Spinner />
+          {:else}
+            <button class="btn variant-filled w-full" type="submit">Buy</button>
+          {/if}
         </form>
       {/if}
     </div>
