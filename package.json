@@ -38,6 +38,7 @@
     "@neodrag/svelte": "^2.0.6",
     "@react2svelte/image-gallery": "^1.0.1",
     "@rive-app/canvas": "^2.21.5",
+    "@stripe/stripe-js": "^4.7.0",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.4",
     "@types/siema": "^1.4.11",
