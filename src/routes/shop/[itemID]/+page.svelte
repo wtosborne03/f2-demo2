@@ -6,6 +6,7 @@
 
   import { page } from "$app/stores";
   import Spinner from "../../../components/spinner.svelte";
+  import { authStore } from "$lib/stores/authStore";
 
   $: console.log($page.params);
 
@@ -44,7 +45,11 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ amount: item.price * 100 }), // Amount in cents
+          body: JSON.stringify({
+            amount: item.price * 100,
+            shop_id: item.id,
+            user_id: $authStore.user!.id,
+          }), // Amount in cents
         },
       );
 
@@ -91,7 +96,7 @@
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: "https://your-website.com/confirmation",
+        return_url: "https://play.couchcup.tv/thankyou",
       },
     });
 

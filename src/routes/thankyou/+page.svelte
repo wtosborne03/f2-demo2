@@ -1,0 +1,15 @@
+<script lang="ts">
+  import { goto } from "$app/navigation";
+  import { supabase } from "../../supabaseClient";
+
+  import { authStore } from "$lib/stores/authStore";
+
+  const age = $authStore.user!.created_at;
+</script>
+
+<div class="px-16 flex h-full flex-col justify-center items-center">
+  <button class="btn variant-filled mb-10 mt-4" on:click={() => goto("/")}
+    ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
+  >
+  <div class="text-2xl mb-3">Thank you for you purchase!</div>
+</div>
