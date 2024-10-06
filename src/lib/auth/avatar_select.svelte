@@ -48,9 +48,9 @@
           .single()
           .then((res) => {
             console.log(res.data);
-            eyes_value = res.data["avatar_eyes"] || 0;
-            mouth_value = res.data["avatar_mouth"] || 0;
-            hair_value = res.data["avatar_hair"] || 0;
+            a_values["0"] = res.data["avatar_eyes"] || 0;
+            a_values["2"] = res.data["avatar_mouth"] || 0;
+            a_values["1"] = res.data["avatar_hair"] || 0;
             update();
           });
 
@@ -95,32 +95,34 @@
 
   let owned;
 
-  let eyes_value = 3;
-  let mouth_value = 0;
-  let hair_value = 0;
+  let a_values: { [key: string]: number } = {
+    "0": 3,
+    "1": 0,
+    "2": 0,
+  };
 
   const update = async () => {
-    if (eyes_input) eyes_input.value = eyes_value;
-    if (mouth_input) mouth_input.value = mouth_value;
-    if (hair_input) hair_input.value = hair_value;
+    if (eyes_input) eyes_input.value = a_values["0"];
+    if (mouth_input) mouth_input.value = a_values["2"];
+    if (hair_input) hair_input.value = a_values["1"];
   };
 
   const saveAvatar = async () => {
     const { error } = await supabase
       .from("users")
       .update({
-        avatar_eyes: eyes_value,
-        avatar_mouth: mouth_value,
-        avatar_hair: hair_value,
+        avatar_eyes: a_values["0"],
+        avatar_mouth: a_values["2"],
+        avatar_hair: a_values["1"],
       })
       .eq("id", $authStore.user?.id);
 
     if (!error) {
       if (get(player_state).screen != "index") {
         const avatar: Avatar = {
-          eyes: eyes_value || 0,
-          hair: hair_value || 0,
-          mouth: mouth_value || 0,
+          eyes: a_values["0"] || 0,
+          hair: a_values["1"] || 0,
+          mouth: a_values["2"] || 0,
         };
         sendMessage({
           type: "avatar_update",
@@ -135,9 +137,7 @@
     }
   };
 
-  $: eyes_value, update();
-  $: mouth_value, update();
-  $: hair_value, update();
+  $: a_values, update();
 
   onDestroy(() => {});
 </script>
@@ -157,31 +157,25 @@
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div
-              class="h-full aspect-square rounded-md bg-slate-500 p-2 text-center hover:bg-slate-600 hover:cursor-pointer"
+              class="h-full aspect-square rounded-md bg-slate-500 p-2 text-center hover:bg-slate-600 hover:cursor-pointer flex flex-col justify-start items-center"
               on:click={() => {
                 console.log(item);
-                switch (category) {
-                  case "0":
-                    eyes_value = item.shop.value;
-                    break;
-                  case "1":
-                    hair_value = item.shop.value;
-                    break;
-                  case "2":
-                    mouth_value = item.shop.value;
-                    break;
-                }
+                a_values[category] = item.shop.value;
               }}
             >
               {item.shop.name}
+              {#if a_values[category] == item.shop.value}
+                <i class="fa-solid fa-check ml-2" />
+              {/if}
             </div>
           {/each}
         </div>
       </div>
     {/each}
-
-    <button class="btn variant-filled-primary mt-8 mb-4" on:click={saveAvatar}
-      >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
-    >
+    <div class="flex flex-row justify-center">
+      <button class="btn variant-filled-primary mt-8 mb-4" on:click={saveAvatar}
+        >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
+      >
+    </div>
   </div>
 </div>

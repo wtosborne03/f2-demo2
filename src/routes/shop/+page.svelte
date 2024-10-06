@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { supabase } from "../../supabaseClient";
+  import { authStore } from "$lib/stores/authStore";
 
   let shopItems: { [key: string]: any } = {};
 
@@ -12,12 +13,18 @@
   };
 
   onMount(async () => {
-    const { data, error } = await supabase.from("shop").select("*");
+    const { data, error } = await supabase
+      .from("shop")
+      .select("*, owned (user_id)")
+      .eq("owned.user_id", $authStore.user!.id);
     if (error) {
       console.error(error);
     } else {
       console.log(data);
-      shopItems = Object.groupBy(data, ({ type }) => type);
+      shopItems = Object.groupBy(
+        data.filter((item) => item.owned.length == 0),
+        ({ type }) => type,
+      );
     }
   });
 </script>
