@@ -32,6 +32,7 @@
   import SketchMatch from "../pages/sketch_match.svelte";
   import Match from "../pages/match.svelte";
   import PhotoVote from "../pages/photo_vote.svelte";
+  import Continue from "../pages/continue.svelte";
   let page_value: string = "index";
   if (get(player_state).screen == "index") {
     app_init();
@@ -64,6 +65,7 @@
     sketch_match: SketchMatch,
     match: Match,
     photo_vote: PhotoVote,
+    continue: Continue,
   };
 
   player_state.subscribe((value: PlayerState) => {

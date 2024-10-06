@@ -8,6 +8,7 @@
   const categories: { [key: string]: string } = {
     0: "Eyes",
     1: "Hair",
+    2: "Mouth",
   };
 
   onMount(async () => {
@@ -27,11 +28,11 @@
   >
   {#each Object.keys(shopItems) as category}
     <div class="text-2xl mb-2 mt-6">{categories[category]}</div>
-    <div class="w-screen overflow-x-scroll">
-      <div class="h-52 gap-4 scroll-auto flex flex-row w-96">
+    <div class="w-screen overflow-x-scroll whitespace-nowrap">
+      <div class="h-52 gap-4 flex flex-row items-stretch justify-normal px-8">
         {#each shopItems[category] as item}
           <div
-            class="rounded-lg bg-slate-500 p-2 w-52 flex flex-col justify-between"
+            class="rounded-lg bg-slate-500 p-2 min-w-52 flex flex-col justify-between"
             on:click={() => goto(`/shop/${item.id}`)}
           >
             <div class="text-xl">{item.name}</div>
