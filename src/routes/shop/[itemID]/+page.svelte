@@ -16,6 +16,7 @@
   let stripe: any = null;
   let elements: any = null;
   let paymentRequest: any = null;
+  let applepay = false;
 
   onMount(async () => {
     console.log(itemID);
@@ -72,6 +73,7 @@
             paymentRequest: paymentRequest,
           });
           prButton.mount("#payment-request-button");
+          applepay = true;
         } else {
           // Fallback to other payment methods if Apple Pay is not available
           const paymentElement = elements.create("payment");
@@ -108,11 +110,13 @@
       <div class="text-xl">{item.name}</div>
       <div class="text-lg">Description: {item.description}</div>
       <div class="text-lg">Price: ${item.price}</div>
-      <form on:submit|preventDefault={handleSubmit}>
-        <div id="payment-request-button"></div>
-        <div id="payment-element"></div>
-        <button class="btn variant-filled w-full" type="submit">Buy</button>
-      </form>
+      <div id="payment-request-button" class="w-full"></div>
+      {#if !applepay}
+        <form on:submit|preventDefault={handleSubmit}>
+          <div id="payment-element"></div>
+          <button class="btn variant-filled w-full" type="submit">Buy</button>
+        </form>
+      {/if}
     </div>
   {:else}
     <div><Spinner /></div>
