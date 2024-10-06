@@ -131,8 +131,10 @@
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >
   {#if item}
-    <div class=" p-2 w-72 flex-grow flex flex-col items-center justify-between">
+    <div class=" p-2 flex-grow flex flex-col items-center justify-between">
       <div class="text-xl">{item.name}</div>
+
+      <img src={item.thumbnail} alt="item" class="h-1/3 w-auto my-2" />
       <div class="text-lg">Description: {item.description}</div>
       <div class="text-lg">Price: ${item.price}</div>
 
