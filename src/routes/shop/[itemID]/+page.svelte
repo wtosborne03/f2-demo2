@@ -74,6 +74,24 @@
         // Check if the payment request is available
         const result = await paymentRequest.canMakePayment();
         if (result) {
+          paymentRequest.on("paymentmethod", async (ev: any) => {
+            const { error: confirmError, paymentIntent } =
+              await stripe.confirmCardPayment(clientSecret, {
+                payment_method: ev.paymentMethod.id,
+              });
+
+            if (confirmError) {
+              ev.complete("fail");
+              console.error(confirmError);
+            } else {
+              ev.complete("success");
+              if (paymentIntent.status === "succeeded") {
+                // Handle successful payment
+                goto("/thankyou");
+              }
+            }
+          });
+
           const prButton = elements.create("paymentRequestButton", {
             paymentRequest: paymentRequest,
           });
