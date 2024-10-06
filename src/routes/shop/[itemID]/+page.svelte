@@ -15,6 +15,7 @@
   let clientSecret: string | null = null;
   let stripe: any = null;
   let elements: any = null;
+  let paymentRequest: any = null;
 
   onMount(async () => {
     console.log(itemID);
@@ -51,8 +52,31 @@
 
       if (stripe && clientSecret) {
         elements = stripe.elements({ clientSecret });
-        const paymentElement = elements.create("payment");
-        paymentElement.mount("#payment-element");
+
+        // Create a payment request
+        paymentRequest = stripe.paymentRequest({
+          country: "US",
+          currency: "usd",
+          total: {
+            label: item.name,
+            amount: item.price * 100, // Amount in cents
+          },
+          requestPayerName: true,
+          requestPayerEmail: true,
+        });
+
+        // Check if the payment request is available
+        const result = await paymentRequest.canMakePayment();
+        if (result) {
+          const prButton = elements.create("paymentRequestButton", {
+            paymentRequest: paymentRequest,
+          });
+          prButton.mount("#payment-request-button");
+        } else {
+          // Fallback to other payment methods if Apple Pay is not available
+          const paymentElement = elements.create("payment");
+          paymentElement.mount("#payment-element");
+        }
       }
     }
   });
