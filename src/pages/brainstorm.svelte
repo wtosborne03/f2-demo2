@@ -28,7 +28,7 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div class="mb-2 p-4">
+  <div class="mb-2 p-4 text-center">
     Think of some divisive debate topics. Submit as many as you want!
   </div>
   <form class="flex flex-col justify-center items-center">

@@ -80,7 +80,7 @@
     )
   `,
           )
-          .eq("user_id", $authStore.user!.id)
+          .eq("user_id", $authStore.user?.id)
           .then((res) => {
             console.log(res.data);
             if (!res.data) return;
@@ -154,6 +154,11 @@
   $: a_values, update();
   $: a_values["3"], emote_fire_input?.fire();
 
+  //get screen width
+  const canvas_width = window.innerWidth;
+  //get screen height
+  const canvas_height = window.innerHeight;
+
   onDestroy(() => {});
 </script>
 
@@ -161,8 +166,7 @@
   <button class="btn variant-filled mb-10 mt-4" on:click={() => goto("/")}
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >
-
-  <canvas id="canvas" width="100" height="100"></canvas>
+  <canvas id="canvas" width={100} height={100} class="-m-6"></canvas>
   <div class="w-screen px-4">
     {#each Object.keys(owned_items) as category}
       <span class="w-16">{categories[category]}</span>

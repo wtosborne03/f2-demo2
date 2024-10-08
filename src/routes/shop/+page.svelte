@@ -10,6 +10,7 @@
     0: "Eyes",
     1: "Hair",
     2: "Mouth",
+    3: "Emotes",
   };
 
   onMount(async () => {

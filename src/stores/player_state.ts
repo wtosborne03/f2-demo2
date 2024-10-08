@@ -18,6 +18,7 @@ export const player_state = writable<PlayerState>({
         eyes: 0,
         hair: 0,
         mouth: 0,
+        emote: 0,
     }
 });
 

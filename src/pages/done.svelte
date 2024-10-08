@@ -11,7 +11,7 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center text-center"
 >
   <h3>Give a good argument as to why players should support your side</h3>
   <button
