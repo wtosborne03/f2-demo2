@@ -3,6 +3,7 @@ interface Avatar {
     eyes: number,
     mouth: number,
     hair: number,
+    emote: number,
 }
 interface PlayerState {
     name: string;

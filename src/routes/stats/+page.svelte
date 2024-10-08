@@ -4,7 +4,7 @@
 
   import { authStore } from "$lib/stores/authStore";
 
-  const age = $authStore.user!.created_at;
+  const age = $authStore.user?.created_at;
 </script>
 
 <div class="px-16 flex h-full flex-col justify-center items-center">

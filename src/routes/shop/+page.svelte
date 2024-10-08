@@ -43,7 +43,7 @@
             on:click={() => goto(`/shop/${item.id}`)}
           >
             <div class="text-xl">{item.name}</div>
-            <img src={item.thumbnail} alt="item" class="w-32 h-32" />
+            <img src={item.thumbnail} alt="item" class="h-32 w-auto" />
             <div class="text-lg">Price: ${item.price}</div>
           </div>
         {/each}
