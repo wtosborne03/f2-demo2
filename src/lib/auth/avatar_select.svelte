@@ -9,21 +9,26 @@
   import { player_state } from "../../stores/player_state";
   import { sendMessage } from "$lib";
   import type { Avatar } from "../../types/player_state";
-  import AuthBox from "./auth_box.svelte";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
   let mouth_input: rive.StateMachineInput | undefined;
   let hair_input: rive.StateMachineInput | undefined;
+  let emote_input: rive.StateMachineInput | undefined;
+
+  let emote_fire_input: rive.StateMachineInput | undefined;
 
   let toastStore = getToastStore();
 
   let owned_items: { [key: string]: any } = {};
 
+  let loadedin = false;
+
   const categories: { [key: string]: string } = {
     0: "Eyes",
     1: "Hair",
     2: "Mouth",
+    3: "Emote",
   };
 
   onMount(() => {
@@ -40,6 +45,8 @@
         eyes_input = inputs.find((input) => input.name === "Eyes");
         mouth_input = inputs.find((input) => input.name === "Mouth");
         hair_input = inputs.find((input) => input.name === "Bodies");
+        emote_input = inputs.find((input) => input.name === "emote");
+        emote_fire_input = inputs.find((input) => input.name === "playEmote");
 
         supabase
           .from("users")
@@ -51,7 +58,10 @@
             a_values["0"] = res.data["avatar_eyes"] || 0;
             a_values["2"] = res.data["avatar_mouth"] || 0;
             a_values["1"] = res.data["avatar_hair"] || 0;
+            a_values["3"] = res.data["avatar_emote"] || 0;
             update();
+
+            loadedin = true;
           });
 
         supabase
@@ -99,12 +109,17 @@
     "0": 3,
     "1": 0,
     "2": 0,
+    "3": 0,
   };
 
   const update = async () => {
     if (eyes_input) eyes_input.value = a_values["0"];
     if (mouth_input) mouth_input.value = a_values["2"];
     if (hair_input) hair_input.value = a_values["1"];
+    if (emote_input) emote_input.value = a_values["3"];
+    if (loadedin) {
+      saveAvatar();
+    }
   };
 
   const saveAvatar = async () => {
@@ -114,6 +129,7 @@
         avatar_eyes: a_values["0"],
         avatar_mouth: a_values["2"],
         avatar_hair: a_values["1"],
+        avatar_emote: a_values["3"],
       })
       .eq("id", $authStore.user?.id);
 
@@ -123,6 +139,7 @@
           eyes: a_values["0"] || 0,
           hair: a_values["1"] || 0,
           mouth: a_values["2"] || 0,
+          emote: a_values["3"] || 0,
         };
         sendMessage({
           type: "avatar_update",
@@ -131,13 +148,11 @@
           },
         });
       }
-      toastStore.trigger({
-        message: "Avatar saved!",
-      });
     }
   };
 
   $: a_values, update();
+  $: a_values["3"], emote_fire_input?.fire();
 
   onDestroy(() => {});
 </script>
@@ -172,10 +187,5 @@
         </div>
       </div>
     {/each}
-    <div class="flex flex-row justify-center">
-      <button class="btn variant-filled-primary mt-8 mb-4" on:click={saveAvatar}
-        >Save Avatar<i class="fa-solid fa-floppy-disk ml-2"></i></button
-      >
-    </div>
   </div>
 </div>

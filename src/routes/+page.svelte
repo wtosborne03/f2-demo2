@@ -33,6 +33,8 @@
   import Match from "../pages/match.svelte";
   import PhotoVote from "../pages/photo_vote.svelte";
   import Continue from "../pages/continue.svelte";
+  import Brainstorm from "../pages/brainstorm.svelte";
+  import Done from "../pages/done.svelte";
   let page_value: string = "index";
   if (get(player_state).screen == "index") {
     app_init();
@@ -66,6 +68,8 @@
     match: Match,
     photo_vote: PhotoVote,
     continue: Continue,
+    brainstorm: Brainstorm,
+    done: Done,
   };
 
   player_state.subscribe((value: PlayerState) => {

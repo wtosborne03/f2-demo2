@@ -6,11 +6,8 @@ function playerEmote(event: Event) {
     if (event.target !== event.currentTarget) {
         return;
     }
-    gsap.fromTo(
+    gsap.to(
         "body",
-        {
-            backgroundColor: "rgb(36, 44, 70)",
-        },
         {
             duration: 0.15,
             backgroundColor: "rgb(48, 78, 79)",
