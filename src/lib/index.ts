@@ -48,6 +48,7 @@ const joinedGameCallback = async () => {
             eyes: data.avatar_eyes || 0,
             hair: data.avatar_hair || 0,
             mouth: data.avatar_mouth || 0,
+            emote: data.avatar_emote || 0,
         }
         sendMessage({
             type: "avatar_update",
