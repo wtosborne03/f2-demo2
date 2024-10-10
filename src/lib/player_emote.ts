@@ -7,7 +7,7 @@ function playerEmote(event: Event) {
         return;
     }
     gsap.to('body', {
-        scale: 0.9,
+        scale: 0.97,
         duration: 0.2,
     });
     gsap.to('body', {

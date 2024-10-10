@@ -65,6 +65,8 @@ function websocketSetup() {
     ws.onmessage = (event) => {
 
         let e_data = JSON.parse(event.data)
+        console.log(e_data);
+
         switch (e_data['type']) {
             case "joinedRoom":
                 joinedGameCallback();
