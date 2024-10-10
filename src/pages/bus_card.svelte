@@ -6,6 +6,7 @@
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
+  import Drink from "$lib/drink.svelte";
 
   let m_data: BusData;
   m_data = get<PlayerState>(player_state).page_data;
@@ -258,8 +259,7 @@
 >
   {#if failed}
     {#if m_data.drinking}
-      <h1 class="mb-4 text-center text-4xl">You Failed. Drink.</h1>
-      <span class="text-8xl mb-4">🍺</span>
+      <Drink prompt={"Drink."} />
       <button
         class="btn variant-filled"
         disabled={!canContinue}

@@ -49,7 +49,7 @@ const joinedGameCallback = async () => {
             hair: data.avatar_hair || 0,
             mouth: data.avatar_mouth || 0,
             emote: data.avatar_emote || 0,
-        }
+        };
         sendMessage({
             type: "avatar_update",
             data: {
@@ -65,12 +65,8 @@ function websocketSetup() {
     ws.onmessage = (event) => {
 
         let e_data = JSON.parse(event.data)
-
-        console.log("Received:", e_data);
-        console.log(e_data['type']);
         switch (e_data['type']) {
             case "joinedRoom":
-                console.log("welc");
                 joinedGameCallback();
                 break;
             case "error":
@@ -102,7 +98,7 @@ function joinRoom(code: string, name: string) {
     ws.send(
         JSON.stringify({
             type: "joinRoom",
-            data: { roomId: code, name: name },
+            data: { roomId: code, name: name, userID: get(authStore).user?.id },
         }),
     );
 
@@ -115,7 +111,7 @@ function reconnect() {
         ws.send(
             JSON.stringify({
                 type: "joinRoom",
-                data: { roomId: r_code, name: r_name },
+                data: { roomId: r_code, name: r_name, userID: get(authStore).user?.id },
             }),
         );
     }

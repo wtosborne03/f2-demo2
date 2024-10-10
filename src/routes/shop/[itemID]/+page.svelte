@@ -33,6 +33,11 @@
       console.log(data);
       item = data;
 
+      if (!$authStore.user) {
+        loading = false;
+        return;
+      }
+
       // Load Stripe
       stripe = await loadStripe(
         "pk_live_51OH7QBEaNbJFWzSSzsO1wsvWMFzITvS3qn195uDKwSiDQ6Y85Vm9yCMfzWMnpmcMTXhHWLalN3Xx49Bv7H4FyOzF00FHnrOF7v",
@@ -126,7 +131,7 @@
   }
 </script>
 
-<div class="px-16 flex h-full flex-col justify-center items-center">
+<div class="px-16 flex h-full flex-col justify-start items-center">
   <button class="btn variant-filled mb-4 mt-4" on:click={() => goto("/shop")}
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >

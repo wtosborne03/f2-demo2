@@ -54,5 +54,9 @@ interface photoVoteData {
     photos: { [player: string]: string }
 }
 
+interface DrinkingPrompt {
+    prompt: string,
+}
 
-export type { matchData, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+
+export type { matchData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };

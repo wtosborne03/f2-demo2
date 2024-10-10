@@ -14,23 +14,36 @@
   };
 
   onMount(async () => {
-    const { data, error } = await supabase
-      .from("shop")
-      .select("*, owned (user_id)")
-      .eq("owned.user_id", $authStore.user!.id);
-    if (error) {
-      console.error(error);
+    if (!$authStore.user) {
+      const { data, error } = await supabase
+        .from("shop")
+        .select("*, owned (user_id)");
+
+      if (error) {
+        console.error(error);
+      } else {
+        console.log(data);
+        shopItems = Object.groupBy(data, ({ type }) => type);
+      }
     } else {
-      console.log(data);
-      shopItems = Object.groupBy(
-        data.filter((item) => item.owned.length == 0),
-        ({ type }) => type,
-      );
+      const { data, error } = await supabase
+        .from("shop")
+        .select("*, owned (user_id)")
+        .eq("owned.user_id", $authStore.user!.id);
+      if (error) {
+        console.error(error);
+      } else {
+        console.log(data);
+        shopItems = Object.groupBy(
+          data.filter((item) => item.owned.length == 0),
+          ({ type }) => type,
+        );
+      }
     }
   });
 </script>
 
-<div class="px-16 flex h-full w-screen flex-col justify-center items-center">
+<div class="px-16 flex h-full w-screen flex-col justify-start items-center">
   <button class="btn variant-filled mb-4 mt-4" on:click={() => goto("/")}
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >

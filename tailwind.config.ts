@@ -24,6 +24,7 @@ export default {
 					},
 					{ name: "rocket", enhancements: true },
 					{ name: "sahara", enhancements: true },
+					{ name: "modern", enhancements: true },
 
 				],
 			},
