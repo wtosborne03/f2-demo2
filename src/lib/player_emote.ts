@@ -6,16 +6,16 @@ function playerEmote(event: Event) {
     if (event.target !== event.currentTarget) {
         return;
     }
-    gsap.to(
-        "body",
-        {
-            duration: 0.15,
-            backgroundColor: "rgb(48, 78, 79)",
-            repeat: 1,
-            yoyo: true,
-            ease: "power1.inOut",
-        },
-    );
+    gsap.to('body', {
+        scale: 0.9,
+        duration: 0.2,
+    });
+    gsap.to('body', {
+        scale: 1,
+        delay: 0.2,
+        duration: 0.2,
+    });
+
     sendMessage({
         type: "game",
         data: {
