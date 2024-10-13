@@ -37,6 +37,7 @@
   import Done from "../pages/done.svelte";
   import DrinkGame from "../pages/drink_game.svelte";
   import Drink from "../pages/drink.svelte";
+  import Roulette from "../pages/roulette.svelte";
   let page_value: string = "index";
   if (get(player_state).screen == "index") {
     app_init();
@@ -74,6 +75,7 @@
     done: Done,
     drink_game: DrinkGame,
     drink: Drink,
+    roulette: Roulette,
   };
 
   player_state.subscribe((value: PlayerState) => {
