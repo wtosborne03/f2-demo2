@@ -58,5 +58,9 @@ interface DrinkingPrompt {
     prompt: string,
 }
 
+interface RouletteData {
+    drinking: boolean,
+    players: string[],
+}
 
-export type { matchData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+export type { matchData, RouletteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
