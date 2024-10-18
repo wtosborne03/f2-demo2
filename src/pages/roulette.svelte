@@ -5,9 +5,12 @@
   import { getToastStore } from "@skeletonlabs/skeleton";
   import { sendMessage } from "$lib";
   import type { RouletteData } from "../types/page_data";
+  import { RangeSlider } from "@skeletonlabs/skeleton";
 
   let selectedPlayer = "";
   let selectedColor = "";
+  let drinks = 10;
+  let s_drinks = 1;
 
   let betAmount = 5;
   const m_data = get<PlayerState>(player_state).page_data as RouletteData;
@@ -48,31 +51,33 @@
 
 <div class="flex flex-col items-center mt-10">
   <h1 class="text-2xl font-bold mb-4">
-    {drinking ? "Give drinks out to a player" : "Steal Doubloons from a player"}
+    {drinking ? `Give out ${drinks} drinks` : "Steal Doubloons from a player"}
   </h1>
-  <div class="mb-4">
+  <div class="mb-10">
     <label for="betAmount" class="mr-2 text-center">Player:</label>
-    <select class="input" bind:value={selectedPlayer}>
-      {#each players as player}
-        <option value={player}>{player}</option>
-      {/each}
-    </select>
-  </div>
-
-  <div class="mb-4">
-    <label for="selectedColor" class="mr-2 text-center">Color:</label>
-    {#each colors as color}
+    {#each players as player}
       <button
         class="btn variant-filled-primary border-4 ml-2"
-        style:background-color={color}
-        style:opacity={selectedColor == color ? 1 : 0.5}
-        style:border-color={selectedColor == color ? "white" : "transparent"}
-        on:click={() => (selectedColor = color)}>{color}</button
+        on:click={() => (selectedPlayer = player)}>{player}</button
       >
     {/each}
   </div>
 
-  <div class="mb-10">
+  <RangeSlider
+    name="range-slider"
+    bind:value={s_drinks}
+    max={drinks}
+    min={1}
+    step={1}
+    ticked
+  >
+    <div class="flex justify-between items-center text-xl">
+      <div class="font-bold">Drinks:</div>
+      <div class="">{s_drinks} / {drinks}</div>
+    </div>
+  </RangeSlider>
+
+  <div class="mb-10 mt-10">
     <label for="selectedNumber" class="mr-2 text-center">Number:</label>
     <div class="flex flex-row flex-wrap gap-1 justify-center">
       {#each numbers as number}
@@ -90,23 +95,6 @@
       {/each}
     </div>
   </div>
-
-  {#if selectedPlayer !== "" && selectedColor !== ""}
-    <aside class="alert variant-ghost-warning mb-8">
-      {selectedPlayer} will take {selectedColor == "red"
-        ? drinking
-          ? "2"
-          : "200"
-        : selectedColor == "black"
-          ? drinking
-            ? "2"
-            : "200"
-          : drinking
-            ? "10"
-            : "1000"}
-      {drinking ? "drinks" : "doubloons stolen"} if you win
-    </aside>
-  {/if}
 
   <button
     on:click={placeBet}
