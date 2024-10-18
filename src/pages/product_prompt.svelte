@@ -25,7 +25,7 @@
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
   <div class="mb-2 p-4 text-center">
-    Come up with a unique feature for your <b>{m_data.category}</b> product.
+    Come up product ideas to help <b>{m_data.category}</b>.
   </div>
   <form class="flex flex-col justify-center items-center">
     <input
