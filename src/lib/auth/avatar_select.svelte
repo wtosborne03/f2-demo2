@@ -166,7 +166,7 @@
 </script>
 
 <div class="px-16 flex h-full flex-col justify-start items-center">
-  <button class="btn variant-filled mb-10 mt-4" on:click={() => goto("/")}
+  <button class="btn variant-filled mb-14 mt-4" on:click={() => goto("/")}
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >
   <canvas
