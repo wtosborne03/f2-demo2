@@ -159,7 +159,7 @@
   const rCanvas = async () => {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth / 1.5;
+    canvas.width = Math.max(window.innerWidth, window.innerHeight) / 5;
     canvas.height = canvas.width;
     await tick();
   };
@@ -173,7 +173,7 @@
     id="canvas"
     width={100}
     height={100}
-    class="-m-6"
+    class="-m-16"
     on:click={() => emote_fire_input?.fire()}
   ></canvas>
   <div class="w-screen px-4">
