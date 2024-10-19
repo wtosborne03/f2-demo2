@@ -7,9 +7,9 @@ body {
 
 body {
     background-color: #ffffff;
-    /* Adjust this to match your theme color */
+    /* Adjust this to match your theme color 
     padding-top: env(safe-area-inset-top);
-    /* Safe area for the notch */
+    /* Safe area for the notch 
     padding-bottom: env(safe-area-inset-bottom);
     /* Safe area for the bottom */
     box-sizing: border-box;
