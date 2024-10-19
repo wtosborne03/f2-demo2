@@ -15,51 +15,58 @@
   let betAmount = 5;
   const m_data = get<PlayerState>(player_state).page_data as RouletteData;
   const players = m_data.players;
+  const player_colors = m_data.player_colors;
+  let selectedPlayers: string[] = [];
   const drinking = m_data.drinking;
 
   const toastStore = getToastStore();
 
   const colors = ["red", "black"];
-  const numbers = [
-    { option: "0", style: { backgroundColor: "green", textColor: "black" } },
-    { option: "00", style: { backgroundColor: "green", textColor: "black" } },
-    { option: "1", style: { backgroundColor: "red", textColor: "black" } },
-    { option: "2", style: { backgroundColor: "black", textColor: "white" } },
-    { option: "3", style: { backgroundColor: "red", textColor: "black" } },
-    { option: "4", style: { backgroundColor: "black", textColor: "white" } },
-    { option: "5", style: { backgroundColor: "red", textColor: "black" } },
-    { option: "6", style: { backgroundColor: "black", textColor: "white" } },
-    { option: "7", style: { backgroundColor: "red", textColor: "black" } },
-    { option: "8", style: { backgroundColor: "black", textColor: "white" } },
-    { option: "9", style: { backgroundColor: "red", textColor: "black" } },
-    { option: "10", style: { backgroundColor: "black", textColor: "white" } },
-  ];
+  const numbers = m_data.options;
 
   function placeBet() {
+    drinks = drinks - s_drinks;
     sendMessage({
       type: "game",
       data: {
         type: "bet",
         data: {
+          drinks: s_drinks,
           color: selectedColor,
           player: selectedPlayer,
         },
+        done: drinks == 0 || selectedPlayers.length == players.length - 1,
       },
     });
+    selectedPlayers = [...selectedPlayers, selectedPlayer];
+    s_drinks = 1;
+    selectedPlayer = "";
+    selectedColor = "";
   }
 </script>
 
 <div class="flex flex-col items-center mt-10">
   <h1 class="text-2xl font-bold mb-4">
-    {drinking ? `Give out ${drinks} drinks` : "Steal Doubloons from a player"}
+    {drinking
+      ? `Give out ${drinks} drinks`
+      : `Steal ${drinks * 100} Doubloons from a player`}
   </h1>
   <div class="mb-10">
     <label for="betAmount" class="mr-2 text-center">Player:</label>
-    {#each players as player}
-      <button
-        class="btn variant-filled-primary border-4 ml-2"
-        on:click={() => (selectedPlayer = player)}>{player}</button
-      >
+    {#each players as player, index}
+      {#if !selectedPlayers.includes(player)}
+        <button
+          class="btn variant-filled-primary border-4 ml-2"
+          style:opacity={selectedPlayer == player ? 1 : 0.5}
+          style:border-color={selectedPlayer == player
+            ? "white"
+            : "transparent"}
+          style:text-color={selectedPlayer == player ? "white" : "black"}
+          style:text-shadow={"1px 1px 5px black"}
+          style:background-color={player_colors[index]}
+          on:click={() => (selectedPlayer = player)}>{player}</button
+        >
+      {/if}
     {/each}
   </div>
 
@@ -72,8 +79,12 @@
     ticked
   >
     <div class="flex justify-between items-center text-xl">
-      <div class="font-bold">Drinks:</div>
-      <div class="">{s_drinks} / {drinks}</div>
+      <div class="font-bold mr-2">{drinking ? "Drinks" : "Doubloons"}</div>
+      <div class="">
+        {drinking ? s_drinks : s_drinks * 100} / {drinking
+          ? drinks
+          : drinks * 100}
+      </div>
     </div>
   </RangeSlider>
 
