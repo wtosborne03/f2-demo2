@@ -50,9 +50,7 @@
   const remaining_time = writable(0); // Use a store for remaining_time
 
   const updateTimer = async () => {
-    remaining_time.set(
-      (new Date(timer_stamp).getTime() - (await getCurrentTimestamp())) / 1000,
-    );
+    remaining_time.set(get(remaining_time) - 0.5);
   };
   let time_left = 0;
 
@@ -72,6 +70,14 @@
     }
   });
 
+  async function fetchTimer() {
+    time_left = timer_duration;
+    remaining_time.set(
+      (new Date(timer_stamp).getTime() - (await getCurrentTimestamp())) / 1000,
+    );
+    interval = setInterval(updateTimer, 500);
+  }
+
   // Subscribe to player state store
   player_state.subscribe((value: PlayerState) => {
     score = value.score;
@@ -87,8 +93,7 @@
     // Reset the interval when new values are received
     clearInterval(interval);
     if (oldTimer !== timer_duration) {
-      interval = setInterval(updateTimer, 500);
-      time_left = timer_duration;
+      fetchTimer();
     }
   });
 
@@ -159,7 +164,7 @@
       <div
         class="bg-blue-500 h-full"
         style="width: {(100 * time_left) / timer_duration}%;
-            transition: width 0.1s linear;"
+            transition: width 0.5s linear;"
       ></div>
     </div>
   {/if}
