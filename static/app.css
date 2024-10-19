@@ -1,0 +1,23 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #ffffff;
+    /* Adjust this to match your theme color */
+    padding-top: env(safe-area-inset-top);
+    /* Safe area for the notch */
+    padding-bottom: env(safe-area-inset-bottom);
+    /* Safe area for the bottom */
+    box-sizing: border-box;
+}
+
+.h-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
