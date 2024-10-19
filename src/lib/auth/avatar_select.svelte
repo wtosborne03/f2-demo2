@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import * as rive from "@rive-app/canvas";
   import { goto } from "$app/navigation";
   import { supabase } from "../../supabaseClient";
@@ -32,6 +32,7 @@
   };
 
   onMount(() => {
+    rCanvas();
     r = new rive.Rive({
       src: "./avatar.riv",
       // OR the path to a discoverable and public Rive asset
@@ -152,21 +153,29 @@
   };
 
   $: a_values, update();
-  $: a_values["3"], emote_fire_input?.fire();
-
-  //get screen width
-  const canvas_width = window.innerWidth;
-  //get screen height
-  const canvas_height = window.innerHeight;
 
   onDestroy(() => {});
+
+  const rCanvas = async () => {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth / 1.5;
+    canvas.height = canvas.width;
+    await tick();
+  };
 </script>
 
 <div class="px-16 flex h-full flex-col justify-start items-center">
   <button class="btn variant-filled mb-10 mt-4" on:click={() => goto("/")}
     ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
   >
-  <canvas id="canvas" width={100} height={100} class="-m-6"></canvas>
+  <canvas
+    id="canvas"
+    width={100}
+    height={100}
+    class="-m-6"
+    on:click={() => emote_fire_input?.fire()}
+  ></canvas>
   <div class="w-screen px-4">
     {#each Object.keys(owned_items) as category}
       <span class="w-16">{categories[category]}</span>
