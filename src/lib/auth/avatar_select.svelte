@@ -9,19 +9,17 @@
   import { player_state } from "../../stores/player_state";
   import { sendMessage } from "$lib";
   import type { Avatar } from "../../types/player_state";
+  import Spinner from "../../components/spinner.svelte";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
   let mouth_input: rive.StateMachineInput | undefined;
   let hair_input: rive.StateMachineInput | undefined;
   let emote_input: rive.StateMachineInput | undefined;
-
   let emote_fire_input: rive.StateMachineInput | undefined;
 
   let toastStore = getToastStore();
-
   let owned_items: { [key: string]: any } = {};
-
   let loadedin = false;
 
   const categories: { [key: string]: string } = {
@@ -35,8 +33,6 @@
     rCanvas();
     r = new rive.Rive({
       src: "./avatar.riv",
-      // OR the path to a discoverable and public Rive asset
-      // src: '/public/example.riv',
       canvas: document.getElementById("canvas") as any,
       autoplay: true,
       stateMachines: "State Machine 1",
@@ -55,13 +51,11 @@
           .eq("id", $authStore.user?.id)
           .single()
           .then((res) => {
-            console.log(res.data);
             a_values["0"] = res.data["avatar_eyes"] || 0;
             a_values["2"] = res.data["avatar_mouth"] || 0;
             a_values["1"] = res.data["avatar_hair"] || 0;
             a_values["3"] = res.data["avatar_emote"] || 0;
             update();
-
             loadedin = true;
           });
 
@@ -83,20 +77,13 @@
           )
           .eq("user_id", $authStore.user?.id)
           .then((res) => {
-            console.log(res.data);
             if (!res.data) return;
             owned_items = res.data.reduce((acc: any, currentItem) => {
-              console.log(currentItem);
               const type = currentItem.shop.type;
-
-              // Initialize an empty array for each type if it doesn't exist
               if (!acc[type]) {
                 acc[type] = [];
               }
-
-              // Push the current item into the appropriate type group
               acc[type].push(currentItem);
-
               return acc;
             }, {});
           });
@@ -105,7 +92,6 @@
   });
 
   let owned;
-
   let a_values: { [key: string]: number } = {
     "0": 3,
     "1": 0,
@@ -165,40 +151,55 @@
   };
 </script>
 
-<div class="px-16 flex h-full flex-col justify-start items-center">
-  <button class="btn variant-filled mb-14 mt-4" on:click={() => goto("/")}
-    ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
+<div
+  class="flex flex-col items-center justify-start h-full px-4 sm:px-8 md:px-16"
+>
+  <button
+    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+    on:click={() => goto("/")}
   >
+    <i class="fa-solid fa-arrow-left mr-2"></i>Back
+  </button>
   <canvas
     id="canvas"
-    width={100}
-    height={100}
-    class="-m-16"
+    class="w-full max-w-xs mx-auto -m-16 -mt-4"
     on:click={() => emote_fire_input?.fire()}
   ></canvas>
-  <div class="w-screen px-4">
-    {#each Object.keys(owned_items) as category}
-      <span class="w-16">{categories[category]}</span>
-      <div class="flex overflow-x-scroll">
-        <div class="flex flex-nowrap lg:ml-40 md:ml-20 gap-3 h-20">
-          {#each owned_items[category] || [] as item}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div
-              class="h-full aspect-square rounded-md bg-slate-500 p-2 text-center hover:bg-slate-600 hover:cursor-pointer flex flex-col justify-start items-center"
-              on:click={() => {
-                console.log(item);
-                a_values[category] = item.shop.value;
-              }}
-            >
-              {item.shop.name}
-              {#if a_values[category] == item.shop.value}
-                <i class="fa-solid fa-check ml-2" />
-              {/if}
-            </div>
-          {/each}
+  {#if loadedin}
+    <div class="w-full mt-6">
+      {#each Object.keys(owned_items) as category}
+        <div class="">
+          <div class="w-full flex flex-row items-center">
+            <span class="text-lg font-semibold mb-2 block"
+              >{categories[category]}</span
+            ><span class="w-full bg-slate-400 h-1 m-3"></span>
+          </div>
+          <div class="flex overflow-x-auto space-x-4">
+            {#each owned_items[category] || [] as item}
+              <!-- svelte-ignore a11y-click-events-have-key-events -->
+              <!-- svelte-ignore a11y-no-static-element-interactions -->
+              <div
+                class={"flex-shrink-0 mb-6 p-2 w-20 h-20 rounded-md bg-slate-500 leading-5 bg-opacity-40 m-2 text-center text-white hover:bg-slate-600 hover:cursor-pointer flex flex-col justify-start items-center" +
+                  (a_values[category] == item.shop.value
+                    ? "p-0 border-4 border-white shadow-xl "
+                    : "shadow-md")}
+                on:click={() => {
+                  a_values[category] = item.shop.value;
+                }}
+              >
+                {item.shop.name}
+                {#if a_values[category] == item.shop.value}
+                  <i class="fa-solid fa-check" />
+                {/if}
+              </div>
+            {/each}
+          </div>
         </div>
-      </div>
-    {/each}
-  </div>
+      {/each}
+    </div>
+  {:else}
+    <div class="w-full mt-6 flex flex-col justify-center items-center h-full">
+      <Spinner />
+    </div>
+  {/if}
 </div>

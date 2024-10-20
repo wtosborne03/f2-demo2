@@ -22,7 +22,6 @@
       if (error) {
         console.error(error);
       } else {
-        console.log(data);
         shopItems = Object.groupBy(data, ({ type }) => type);
       }
     } else {
@@ -33,7 +32,6 @@
       if (error) {
         console.error(error);
       } else {
-        console.log(data);
         shopItems = Object.groupBy(
           data.filter((item) => item.owned.length == 0),
           ({ type }) => type,
@@ -43,22 +41,44 @@
   });
 </script>
 
-<div class="px-16 flex h-full w-screen flex-col justify-start items-center">
-  <button class="btn variant-filled mb-4 mt-4" on:click={() => goto("/")}
-    ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
+<div
+  class="px-8 py-4 max-w-screen-xl mx-auto flex flex-col items-center transition-all"
+>
+  <button
+    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+    on:click={() => goto("/")}
   >
+    <i class="fa-solid fa-arrow-left mr-2"></i>Back
+  </button>
   {#each Object.keys(shopItems) as category}
-    <div class="text-2xl mb-2 mt-6">{categories[category]}</div>
-    <div class="w-screen overflow-x-scroll whitespace-nowrap">
-      <div class="h-52 gap-4 flex flex-row items-stretch justify-normal px-8">
+    <div class="text-3xl font-bold mb-4 mt-6 w-full flex flex-row items-center">
+      <span class="w-full bg-slate-400 h-1 m-3"></span>{categories[
+        category
+      ]}<span class="w-full bg-slate-400 h-1 m-3"></span>
+    </div>
+    <div class="w-full overflow-x-auto whitespace-nowrap">
+      <div class="flex space-x-4">
         {#each shopItems[category] as item}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
-            class="rounded-lg bg-slate-500 hover:bg-slate-600 cursor-pointer p-2 min-w-52 flex flex-col items-center justify-between"
+            class="transition-all rounded-lg shadow-xl cursor-pointer p-4 min-w-52 flex flex-col items-center justify-between relative"
             on:click={() => goto(`/shop/${item.id}`)}
           >
-            <div class="text-xl">{item.name}</div>
-            <img src={item.thumbnail} alt="item" class="h-32 w-auto" />
-            <div class="text-lg">Price: ${item.price}</div>
+            <div
+              class="absolute transition-all duration-500 w-full h-full rounded-xl inset-0 bg-gradient-to-tr from-purple-600 to-blue-600 hover:from-slate-600 hover:to-blue-600 opacity-35"
+            ></div>
+            <div
+              class="z-10 pointer-events-none w-full h-full flex flex-col items-center justify-between"
+            >
+              <div class="text-xl font-semibold mb-2">{item.name}</div>
+              <img
+                src={item.thumbnail}
+                alt="item"
+                class="h-32 w-auto object-cover mb-2"
+              />
+              <div class="text-lg text-gray-200">Price: ${item.price}</div>
+            </div>
           </div>
         {/each}
       </div>
