@@ -132,9 +132,12 @@
 </script>
 
 <div class="px-16 flex h-full flex-col justify-start items-center">
-  <button class="btn variant-filled mb-4 mt-4" on:click={() => goto("/shop")}
-    ><i class="fa-solid fa-arrow-left mr-2"></i>Back</button
+  <button
+    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+    on:click={() => goto("/shop")}
   >
+    <i class="fa-solid fa-arrow-left mr-2"></i>Back
+  </button>
   {#if item}
     <div class=" p-2 flex-grow flex flex-col items-center justify-between">
       <div class="text-xl">{item.name}</div>
