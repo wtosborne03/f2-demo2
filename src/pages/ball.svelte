@@ -34,22 +34,40 @@
       mouseClickButton: "ALL",
       hideContextMenu: false,
     },
-    ({ x, y, leveledX, leveledY, distance, angle }) => submit_control(x, y),
+    ({ x, y, leveledX, leveledY, distance, angle }) => {
+      joystickData.x = x;
+      joystickData.y = y;
+    },
   );
 
   let guess = "";
 
-  function submit_control(x: number, y: number) {
+  // Define the tick rate (e.g., 30 times per second)
+  const TICK_RATE = 1000 / 30; // 30 Hz
+
+  // Store the latest joystick data
+  const joystickData = { x: 0, y: 0 };
+
+  // Function to send the joystick data at the tick rate
+  function sendJoystickData() {
     sendMessage({
       type: "game",
       data: {
         type: "control",
-        x: x,
-        y: y,
+        x: joystickData.x,
+        y: joystickData.y,
       },
     });
   }
-  onDestroy(() => staticJoystick.destroy());
+
+  // Set interval to send joystick data at the tick rate
+  const intervalId = setInterval(sendJoystickData, TICK_RATE);
+
+  // Clear interval on component destroy
+  onDestroy(() => {
+    clearInterval(intervalId);
+    staticJoystick.destroy();
+  });
 </script>
 
 <div class="h-full w-full joy-bg fixed top-0 left-0">
