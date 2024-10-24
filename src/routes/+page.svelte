@@ -38,6 +38,11 @@
   import DrinkGame from "../pages/drink_game.svelte";
   import Drink from "../pages/drink.svelte";
   import Roulette from "../pages/roulette.svelte";
+  import SpyPrompt from "../pages/spy_prompt.svelte";
+  import RegularPrompt from "../pages/regular_prompt.svelte";
+  import SpyVote from "../pages/spy_vote.svelte";
+  import Spy from "../pages/spy.svelte";
+
   let page_value: string = "index";
   if (get(player_state).screen == "index") {
     app_init();
@@ -76,6 +81,10 @@
     drink_game: DrinkGame,
     drink: Drink,
     roulette: Roulette,
+    spy_prompt: SpyPrompt,
+    regular_prompt: RegularPrompt,
+    spy_vote: SpyVote,
+    spy: Spy,
   };
 
   player_state.subscribe((value: PlayerState) => {

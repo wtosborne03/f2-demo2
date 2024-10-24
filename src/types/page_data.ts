@@ -65,4 +65,10 @@ interface RouletteData {
     options: any,
 }
 
-export type { matchData, RouletteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+interface SpyVoteData {
+    option_by: string[];
+    options: string[];
+}
+
+
+export type { matchData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
