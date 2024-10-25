@@ -17,10 +17,6 @@
   import { player_state } from "../stores/player_state";
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
-  const sp = new URLSearchParams(window.location.search);
-  if (sp.get("code") != null) {
-    roomCode = sp.get("code") || "";
-  }
   let name = (browser && localStorage.getItem("name")) || "";
 
   const fetchName = async () => {
@@ -36,6 +32,13 @@
       name = data.game_name;
     }
   };
+
+  onMount(() => {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("code") != null) {
+      roomCode = sp.get("code") || "";
+    }
+  });
 
   $authStore.user, fetchName();
 
