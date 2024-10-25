@@ -31,14 +31,16 @@
       <span class="badge bg-primary-500">🦍</span>
       <span class="flex-auto">
         <dt>Share</dt>
-        <dd>Keep a few bananas, and sell them at the market.</dd>
+        <dd>
+          Keep a few bananas, and sell them at the market for 1000 doubloons.
+        </dd>
       </span>
     </div>
     <div>
       <span class="badge bg-primary-500">🥷</span>
       <span class="flex-auto">
         <dt>Steal</dt>
-        <dd>Steal and kill all other monkeys, recieving 2000 doubloons.</dd>
+        <dd>Steal and kill all other monkeys, recieving 1500 doubloons.</dd>
       </span>
     </div>
     <div>
