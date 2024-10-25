@@ -35,7 +35,7 @@
     <!-- Actions -->
   </aside>
   <div class="text-xl text-center">Survival Scenario</div>
-  <form class="flex flex-col justify-center items-center">
+  <form class="flex flex-col justify-center items-center w-full">
     <div class="flex flex-row justify-start items-center w-full">
       <textarea
         class="textarea mt-2 w-full"
