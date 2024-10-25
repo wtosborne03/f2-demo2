@@ -22,7 +22,7 @@
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
   <div class="text-lg text-center">Think of a way out 🤔</div>
-  <form class="flex flex-col justify-center items-center">
+  <form class="flex flex-col justify-center items-center w-full">
     <div class="flex flex-row justify-start items-center w-full">
       <textarea
         class="textarea mt-10 w-full"

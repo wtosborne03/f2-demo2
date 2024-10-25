@@ -26,7 +26,7 @@
 >
   <div>Fill in the Blank:</div>
   <div class="mb-2 p-4">{m_data.question}</div>
-  <form class="flex flex-col justify-center items-center">
+  <form class="flex flex-col justify-center items-center w-full">
     <input
       class="input w-full"
       type="text"
