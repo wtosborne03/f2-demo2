@@ -77,6 +77,9 @@ function websocketSetup() {
             case "state":
                 updateState(e_data['state']);
                 break;
+            case "ping":
+                sendMessage({ type: "pong" });
+                break;
             case "roomDestroyed":
                 let p_player = get(player_state);
                 p_player.screen = "room_ended";
