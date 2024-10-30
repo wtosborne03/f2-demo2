@@ -22,6 +22,8 @@ let screens: Record<string, any> = {
 let r_code = "";
 let r_name = "";
 
+let playing = false;
+
 // setup toast store on app initialization
 function app_init() {
     toastStore = getToastStore();
@@ -36,7 +38,7 @@ function setup_script() {
 const joinedGameCallback = async () => {
     if (get(authStore).user) {
         console.log("joined game callback");
-
+        playing = true;
         // if logged in, send avatar data
         const { error, data } = await supabase.from('users').select('*').eq('id', get(authStore).user!.id).single();
         if (error) {
@@ -78,10 +80,14 @@ function websocketSetup() {
                 updateState(e_data['state']);
                 break;
             case "ping":
-                sendMessage({ type: "pong" });
+                ws.send(
+                    JSON.stringify({
+                        type: "pong",
+                    }))
                 break;
             case "roomDestroyed":
                 let p_player = get(player_state);
+                playing = false;
                 p_player.screen = "room_ended";
                 player_state.set(p_player);
                 break;
@@ -113,12 +119,14 @@ function reconnect() {
     websocketSetup();
 
     ws.onopen = () => {
-        ws.send(
-            JSON.stringify({
-                type: "joinRoom",
-                data: { roomId: r_code, name: r_name, userID: get(authStore).user?.id },
-            }),
-        );
+        if (playing) {
+            ws.send(
+                JSON.stringify({
+                    type: "joinRoom",
+                    data: { roomId: r_code, name: r_name, userID: get(authStore).user?.id },
+                }),
+            );
+        }
     }
 }
 
