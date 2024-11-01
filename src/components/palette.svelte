@@ -2,7 +2,7 @@
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let colors = ["#000000", "#ffffff", "#d7c44c", "#4fa9cc", "#3f8d27"];
+  export let colors = ["#d7c44c", "#d7c44c", "#4fa9cc", "#3f8d27"];
 
   export let paletteColor;
   export let background = "#fff";

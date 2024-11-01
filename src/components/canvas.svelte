@@ -15,9 +15,9 @@
 
   onMount(() => {
     width = Math.min(window.innerWidth - 50, 500);
-    height = width * 1.2;
+    height = width * 1.3;
     context = canvas.getContext("2d");
-    context.lineWidth = 20;
+    context.lineWidth = 1;
 
     context.fillStyle = "white";
     context.fillRect(0, 0, canvas.width, canvas.height);

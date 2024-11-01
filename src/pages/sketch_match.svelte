@@ -8,7 +8,14 @@
   import Canvas from "../components/canvas.svelte";
   import Palette from "../components/palette.svelte";
 
-  const colors = ["#000000", "#ffffff", "#d7c44c", "#4fa9cc", "#3f8d27"];
+  const colors = [
+    "#d7c44c",
+    "#000000",
+    "#ffffff",
+    "#d7c44c",
+    "#4fa9cc",
+    "#3f8d27",
+  ];
   const background = "#fff";
 
   let color = colors[0];
@@ -25,7 +32,7 @@
   function submit_prompt() {
     const image = (
       document.getElementById("draw-canvas") as HTMLCanvasElement
-    ).toDataURL("image/jpeg");
+    ).toDataURL("image/png");
 
     const m_match: matchPerson = {
       name: name,
