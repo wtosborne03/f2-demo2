@@ -14,8 +14,10 @@
   let t, l;
 
   onMount(() => {
+    width = Math.min(window.innerWidth - 50, 500);
+    height = width * 1.2;
     context = canvas.getContext("2d");
-    context.lineWidth = 3;
+    context.lineWidth = 20;
 
     context.fillStyle = "white";
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -44,6 +46,7 @@
     if (!isDrawing) return;
 
     const { x, y } = start;
+    context.lineWidth = 6;
     context.beginPath();
     context.moveTo(x, y);
     context.lineTo(x1, y1);
@@ -100,7 +103,7 @@
 
 <style>
   #draw-canvas {
-    border-radius: 10px;
+    border-radius: 30px;
     user-select: none;
     touch-action: none;
   }

@@ -2,7 +2,7 @@
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let colors = ["#d58141", "#d7c44c", "#4fa9cc", "#3f8d27"];
+  export let colors = ["#000000", "#ffffff", "#d7c44c", "#4fa9cc", "#3f8d27"];
 
   export let paletteColor;
   export let background = "#fff";
@@ -25,11 +25,11 @@
 
 <style>
   section {
-    --size: 1.2rem;
-    padding: 0.25rem;
+    --size: 2.4rem;
+    padding: 0.4rem;
     display: flex;
     align-items: center;
-    gap: 0 1rem;
+    gap: 8rem;
   }
 
   section > div {
@@ -42,7 +42,7 @@
 
   div {
     display: flex;
-    gap: 0 0.5rem;
+    gap: 0 1rem;
     align-items: center;
     overflow-x: auto;
   }
