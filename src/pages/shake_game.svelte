@@ -89,7 +89,7 @@
 
     totalShakingDistance += distanceMoved;
 
-    sendProgress(velocity || 0);
+    sendProgress(currentPosition.y * 0.05);
 
     initialPosition = currentPosition; // Update initial position to current position
     lastDragTime = currentTime; // Update last drag time
@@ -107,7 +107,7 @@
 
       totalShakingDistance += distanceMoved;
       pos -= event.acceleration?.y || 0;
-      sendProgress(velocity || 0);
+      sendProgress(event.acceleration?.y || 0);
 
       lastMotionTime = currentTime; // Update last motion time
     }
