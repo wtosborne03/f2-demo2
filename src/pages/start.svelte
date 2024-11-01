@@ -37,6 +37,9 @@
     const sp = new URLSearchParams(window.location.search);
     if (sp.get("code") != null) {
       roomCode = sp.get("code") || "";
+      if (get(authStore).user != null) {
+        joinGame();
+      }
     }
   });
 
