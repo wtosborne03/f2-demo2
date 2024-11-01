@@ -213,14 +213,18 @@
 
     const chosen_space = (event.currentTarget as HTMLButtonElement).value;
     if (chosen_space == "outside") {
-      if (isCardOutsideOrInBetween(cards[2], cards[0], cards[1]) == "outside") {
+      if (
+        isCardOutsideOrInBetween(cards[2], cards[0], cards[1]) == "outside" ||
+        isCardOutsideOrInBetween(cards[2], cards[0], cards[1]) == "equal"
+      ) {
         progressRound();
       } else {
         failRound();
       }
     } else if (chosen_space == "between") {
       if (
-        isCardOutsideOrInBetween(cards[2], cards[0], cards[1]) == "inBetween"
+        isCardOutsideOrInBetween(cards[2], cards[0], cards[1]) == "inBetween" ||
+        isCardOutsideOrInBetween(cards[2], cards[0], cards[1]) == "equal"
       ) {
         progressRound();
       } else {
