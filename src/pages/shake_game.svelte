@@ -47,6 +47,8 @@
   let initialPosition = { x: 0, y: 0 };
   let lastShakingDistance = 0;
   let totalShakingDistance = 0;
+  let lastDragTime = 0;
+  let lastMotionTime = 0;
 
   onMount(() => {
     checkMotion().then((value) => {
@@ -72,6 +74,7 @@
 
   function onDragStart(data: DragEventData) {
     initialPosition = { x: data.offsetX, y: data.offsetY };
+    lastDragTime = Date.now();
   }
 
   function onDrag(data: DragEventData) {
@@ -80,11 +83,16 @@
       Math.pow(currentPosition.x - initialPosition.x, 2) +
         Math.pow(currentPosition.y - initialPosition.y, 2),
     );
+    const currentTime = Date.now();
+    const timeDifference = currentTime - lastDragTime;
+    const velocity = distanceMoved / timeDifference;
+
     totalShakingDistance += distanceMoved;
 
-    sendProgress(currentPosition.y * 0.05);
+    sendProgress(velocity || 0);
 
     initialPosition = currentPosition; // Update initial position to current position
+    lastDragTime = currentTime; // Update last drag time
   }
 
   function handleMotion(event: DeviceMotionEvent) {
@@ -93,11 +101,18 @@
       const distanceMoved = Math.sqrt(
         Math.pow(acceleration.x || 0, 2) + Math.pow(acceleration.y || 0, 2),
       );
+      const currentTime = Date.now();
+      const timeDifference = currentTime - lastMotionTime;
+      const velocity = distanceMoved / timeDifference;
+
       totalShakingDistance += distanceMoved;
       pos -= event.acceleration?.y || 0;
-      sendProgress(event.acceleration?.y || 0);
+      sendProgress(velocity || 0);
+
+      lastMotionTime = currentTime; // Update last motion time
     }
   }
+
   onDestroy(() => {
     window.removeEventListener("devicemotion", handleMotion);
   });

@@ -2,6 +2,11 @@
   import { sendMessage } from "$lib";
   import goodMonkey from "$lib/assets/icons/goodMonkey.jpeg";
   import badMonkey from "$lib/assets/icons/evilMonkey.jpeg";
+  import { get } from "svelte/store";
+  import { player_state } from "../stores/player_state";
+  import type { PlayerState } from "../types/player_state";
+
+  let points = get<PlayerState>(player_state).page_data.points;
   function steal() {
     sendMessage({
       type: "game",
@@ -32,7 +37,7 @@
       <span class="flex-auto">
         <dt>Share</dt>
         <dd>
-          Keep a few bananas, and sell them at the market for 1000 doubloons.
+          Keep a few bananas, and sell them at the market for {points} doubloons.
         </dd>
       </span>
     </div>
@@ -40,7 +45,7 @@
       <span class="badge bg-primary-500">🥷</span>
       <span class="flex-auto">
         <dt>Steal</dt>
-        <dd>Steal and kill all other monkeys, recieving 1500 doubloons.</dd>
+        <dd>Steal and kill all other monkeys, recieving 2000 doubloons.</dd>
       </span>
     </div>
     <div>

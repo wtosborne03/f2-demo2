@@ -9,6 +9,10 @@ interface PromptData {
     question: string;
 }
 
+interface DilemmaData {
+    points: number;
+}
+
 interface InstructionData {
     instruction: string;
 }
@@ -71,4 +75,4 @@ interface SpyVoteData {
 }
 
 
-export type { matchData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+export type { matchData, DilemmaData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
