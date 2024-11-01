@@ -8,7 +8,7 @@
   import Canvas from "../components/canvas.svelte";
   import Palette from "../components/palette.svelte";
 
-  const colors = ["#d58141", "#d7c44c", "#4fa9cc", "#3f8d27"];
+  const colors = ["#000000", "#ffffff", "#d7c44c", "#4fa9cc", "#3f8d27"];
   const background = "#fff";
 
   let color = colors[0];
