@@ -141,9 +141,13 @@
         </div>
       </span>
 
-      <span class="text-xl flex flex-row items-center justify-center gap-2">
-        {score}
-        <img class="w-8 h-8" src={doubloon} alt="coin" />
+      <span
+        class="text-2xl flex flex-row items-center justify-center gap-2 h-10"
+      >
+        <div class="text-center" style="padding-top: 2px;">
+          {score.toString().padStart(5, "0")}
+        </div>
+        <img class="object-contain w-full h-full" src={doubloon} alt="coin" />
       </span>
     </div>
     {#if $player_state.team != ""}
