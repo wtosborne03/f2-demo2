@@ -42,6 +42,8 @@
   import RegularPrompt from "../pages/regular_prompt.svelte";
   import SpyVote from "../pages/spy_vote.svelte";
   import Spy from "../pages/spy.svelte";
+  import Personal from "../pages/personal.svelte";
+  import Bomb from "../pages/bomb.svelte";
 
   let page_value: string = "index";
   if (get(player_state).screen == "index") {
@@ -85,6 +87,8 @@
     regular_prompt: RegularPrompt,
     spy_vote: SpyVote,
     spy: Spy,
+    personal: Personal,
+    bomb: Bomb,
   };
 
   player_state.subscribe((value: PlayerState) => {

@@ -32,11 +32,9 @@
 
   async function getCurrentTimestamp() {
     try {
-      const response = await fetch(
-        "https://timeapi.io/api/Time/current/zone?timeZone=UTC",
-      );
+      const response = await fetch("http://worldtimeapi.org/api/timezone/UTC");
       const data = await response.json();
-      const currentTime = new Date(data.dateTime); // Time in UTC
+      const currentTime = new Date(data.datetime); // Time in UTC
       return currentTime.getTime();
     } catch (error) {
       return 0;
