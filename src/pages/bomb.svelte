@@ -180,7 +180,12 @@
         boom.setPosition(pointer.x, pointer.y);
         boom.setVisible(true);
         boom.play("kaboom-boom");
-        console.log("Whacked!");
+        sendMessage({
+          type: "game",
+          data: {
+            type: "explode",
+          },
+        });
       }
     });
   }

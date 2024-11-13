@@ -142,4 +142,8 @@ function updateState(state: PlayerState) {
     player_state.set(state);
 }
 
-export { joinRoom, setup_script, app_init, sendMessage }
+function getName() {
+    return r_name;
+}
+
+export { joinRoom, setup_script, app_init, sendMessage, getName }
