@@ -80,6 +80,7 @@
         <input
           type="text"
           class="input"
+          id="p_code"
           style="text-transform:uppercase"
           name="Room Code"
           maxlength="4"
@@ -92,13 +93,16 @@
           <input
             type="text"
             class="input"
+            id="p_name"
             maxlength="10"
             name="Name"
             bind:value={name}
           />
         </label>
       {/if}
-      <button class="btn variant-filled" on:click={joinGame}>Join</button>
+      <button class="btn variant-filled" id="joinButton" on:click={joinGame}
+        >Join</button
+      >
     </div>
   </div>
 </div>

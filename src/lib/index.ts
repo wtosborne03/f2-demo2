@@ -9,6 +9,7 @@ import type { Avatar, PlayerState } from '../types/player_state';
 import { getToastStore, initializeStores, type ToastStore } from '@skeletonlabs/skeleton';
 import { get } from 'svelte/store';
 import { supabase } from '../supabaseClient';
+import { v4 as uuidv4 } from 'uuid';
 
 let ws: WebSocket;
 let toastStore: ToastStore;
@@ -23,6 +24,7 @@ let r_code = "";
 let r_name = "";
 
 let playing = false;
+let pendingResponses = new Map();
 
 // setup toast store on app initialization
 function app_init() {
@@ -69,28 +71,29 @@ function websocketSetup() {
         let e_data = JSON.parse(event.data)
         console.log(e_data);
 
-        switch (e_data['type']) {
-            case "joinedRoom":
-                joinedGameCallback();
-                break;
-            case "error":
-                toastStore.trigger({ message: e_data['message'] });
-                break;
-            case "state":
-                updateState(e_data['state']);
-                break;
-            case "ping":
-                ws.send(
-                    JSON.stringify({
-                        type: "pong",
-                    }))
-                break;
-            case "roomDestroyed":
-                let p_player = get(player_state);
-                playing = false;
-                p_player.screen = "room_ended";
-                player_state.set(p_player);
-                break;
+        if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
+            const { resolve } = pendingResponses.get(e_data.requestId);
+            resolve(e_data);  // Resolve the specific promise
+            pendingResponses.delete(e_data.requestId);  // Clean up
+        } else {
+
+            switch (e_data['type']) {
+                case "joinedRoom":
+                    joinedGameCallback();
+                    break;
+                case "error":
+                    toastStore.trigger({ message: e_data['message'] });
+                    break;
+                case "state":
+                    updateState(e_data['state']);
+                    break;
+                case "roomDestroyed":
+                    let p_player = get(player_state);
+                    playing = false;
+                    p_player.screen = "room_ended";
+                    player_state.set(p_player);
+                    break;
+            }
         }
 
     }
@@ -99,7 +102,26 @@ function websocketSetup() {
     }
 }
 
+/***  Function to send a message and wait for a specific response */
+function sendMessageAndWaitForResponse(message: any) {
+    const requestId = uuidv4(); // Generate a unique ID for this request
+    message.requestId = requestId;
 
+    return new Promise((resolve, reject) => {
+        pendingResponses.set(requestId, { resolve, reject });
+        ws.send(JSON.stringify(message));
+    });
+}
+
+async function getTime() {
+    try {
+        const response: any = await sendMessageAndWaitForResponse({ type: "getTime" });
+        console.log("Time response:", response);
+        return response['time'];
+    } catch (error) {
+        console.error("Failed to get time:", error);
+    }
+}
 
 function joinRoom(code: string, name: string) {
     localStorage.setItem("name", name);
@@ -146,4 +168,4 @@ function getName() {
     return r_name;
 }
 
-export { joinRoom, setup_script, app_init, sendMessage, getName }
+export { joinRoom, setup_script, app_init, sendMessage, getName, getTime }
