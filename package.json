@@ -58,6 +58,7 @@
     "sharp": "^0.33.5",
     "siema": "^1.5.1",
     "svelte-playing-cards": "^2.2.0",
+    "uuid": "^11.0.3",
     "webp-converter-browser": "^1.0.4"
   }
 }

@@ -27,19 +27,9 @@
   import AuthBox from "$lib/auth/auth_box.svelte";
   import { authStore } from "$lib/stores/authStore";
   import Spinner from "../components/spinner.svelte";
+  import { getTime, sendMessage } from "$lib";
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
-
-  async function getCurrentTimestamp() {
-    try {
-      const response = await fetch("http://worldtimeapi.org/api/timezone/UTC");
-      const data = await response.json();
-      const currentTime = new Date(data.datetime); // Time in UTC
-      return currentTime.getTime();
-    } catch (error) {
-      return 0;
-    }
-  }
 
   let score = 0;
   let name = "";
@@ -71,7 +61,7 @@
   async function fetchTimer() {
     time_left = timer_duration;
     remaining_time.set(
-      (new Date(timer_stamp).getTime() - (await getCurrentTimestamp())) / 1000,
+      (new Date(timer_stamp).getTime() - (await getTime())) / 1000,
     );
     interval = setInterval(updateTimer, 500);
   }
