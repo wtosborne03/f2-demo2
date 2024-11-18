@@ -193,10 +193,11 @@ function joinRoom(code: string, name: string) {
     r_code = code;
     r_name = name;
 
-    sendMessage({
+    ws?.send(JSON.stringify({
         type: "joinRoom",
         data: { roomId: code, name, userID: get(authStore).user?.id },
-    });
+    }));
+
 }
 
 // Update player state
