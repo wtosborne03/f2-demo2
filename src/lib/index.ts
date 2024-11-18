@@ -11,7 +11,7 @@ import { get } from 'svelte/store';
 import { supabase } from '../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
-let ws: WebSocket;
+let ws: WebSocket | null = null;
 let toastStore: ToastStore;
 let screens: Record<string, any> = {
     "start": Game,
@@ -24,30 +24,35 @@ let r_code = "";
 let r_name = "";
 
 let playing = false;
+let retryCount = 0;
+const maxRetries = 10;
+let heartbeatInterval: any | undefined;
 let pendingResponses = new Map();
 
-// setup toast store on app initialization
+// Setup toast store on app initialization
 function app_init() {
     toastStore = getToastStore();
 }
 
-// setup websocket when app mounts
+// Setup WebSocket when app mounts
 function setup_script() {
-    //document.addEventListener('visibilitychange', reconnect);
     websocketSetup();
 }
 
+// Joined game callback
 const joinedGameCallback = async () => {
-    if (get(authStore).user) {
-        console.log("joined game callback");
+    const user = get(authStore).user;
+    if (user) {
+        console.log("Joined game callback");
         playing = true;
-        // if logged in, send avatar data
-        const { error, data } = await supabase.from('users').select('*').eq('id', get(authStore).user!.id).single();
+
+        // Fetch avatar data and send it
+        const { error, data } = await supabase.from('users').select('*').eq('id', user.id).single();
         if (error) {
             console.error(error);
             return;
         }
-        console.log(data);
+
         const avatar: Avatar = {
             eyes: data.avatar_eyes || 0,
             hair: data.avatar_hair || 0,
@@ -56,63 +61,155 @@ const joinedGameCallback = async () => {
         };
         sendMessage({
             type: "avatar_update",
-            data: {
-                avatar: avatar,
-            }
-        })
+            data: { avatar },
+        });
     }
-}
+};
 
+// WebSocket setup with error handling and reconnection
 function websocketSetup() {
+    if (ws) {
+        ws.onmessage = null;
+        ws.onclose = null;
+        ws.onerror = null;
+    }
+
     ws = new WebSocket('wss://lil-feed.com/');
 
-    ws.onmessage = (event) => {
+    ws.onmessage = handleMessage;
+    ws.onclose = handleWebSocketClose;
+    ws.onerror = handleWebSocketError;
 
-        let e_data = JSON.parse(event.data)
-        console.log(e_data);
-
-        if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
-            const { resolve } = pendingResponses.get(e_data.requestId);
-            resolve(e_data);  // Resolve the specific promise
-            pendingResponses.delete(e_data.requestId);  // Clean up
-        } else {
-
-            switch (e_data['type']) {
-                case "joinedRoom":
-                    joinedGameCallback();
-                    break;
-                case "error":
-                    toastStore.trigger({ message: e_data['message'] });
-                    break;
-                case "state":
-                    updateState(e_data['state']);
-                    break;
-                case "roomDestroyed":
-                    let p_player = get(player_state);
-                    playing = false;
-                    p_player.screen = "room_ended";
-                    player_state.set(p_player);
-                    break;
-            }
+    ws.onopen = () => {
+        retryCount = 0; // Reset retry count on successful connection
+        startHeartbeat();
+        if (playing) {
+            joinRoom(r_code, r_name); // Rejoin the room
         }
+    };
+}
 
-    }
-    ws.onclose = () => {
-        setTimeout(reconnect, 1000);
+// Handle WebSocket messages
+function handleMessage(event: MessageEvent) {
+    const e_data = JSON.parse(event.data);
+    console.log(e_data);
+
+    if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
+        const { resolve } = pendingResponses.get(e_data.requestId);
+        resolve(e_data); // Resolve the specific promise
+        pendingResponses.delete(e_data.requestId); // Clean up
+    } else {
+        switch (e_data['type']) {
+            case "joinedRoom":
+                joinedGameCallback();
+                break;
+            case "error":
+                toastStore.trigger({ message: e_data['message'] });
+                break;
+            case "state":
+                updateState(e_data['state']);
+                break;
+            case "roomDestroyed":
+                let p_player = get(player_state);
+                playing = false;
+                p_player.screen = "room_ended";
+                player_state.set(p_player);
+                break;
+        }
     }
 }
 
-/***  Function to send a message and wait for a specific response */
+// Handle WebSocket close
+function handleWebSocketClose(event: CloseEvent) {
+    console.warn("WebSocket closed:", event.reason);
+    clearInterval(heartbeatInterval);
+    reconnect();
+}
+
+// Handle WebSocket errors
+function handleWebSocketError(event: Event) {
+    console.error("WebSocket error:", event);
+}
+
+// Reconnect with exponential backoff
+function reconnect() {
+    if (retryCount >= maxRetries) {
+        console.error("Max retries reached. Stopping reconnection attempts.");
+        toastStore.trigger({ message: "Failed to reconnect to server. Please refresh." });
+        return;
+    }
+
+    setTimeout(() => {
+        console.log(`Reconnecting... Attempt ${retryCount + 1}`);
+        websocketSetup();
+        retryCount++;
+    }, Math.min(1000 * Math.pow(2, retryCount), 30000)); // Exponential backoff, capped at 30 seconds
+}
+
+// Start a heartbeat to keep the connection alive
+function startHeartbeat() {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = setInterval(() => {
+        if (ws?.readyState === WebSocket.OPEN) {
+            sendMessage({ type: "heartbeat" });
+        }
+    }, 30000); // Send a heartbeat every 30 seconds
+}
+
+// Send a message and wait for a response
 function sendMessageAndWaitForResponse(message: any) {
     const requestId = uuidv4(); // Generate a unique ID for this request
     message.requestId = requestId;
 
     return new Promise((resolve, reject) => {
         pendingResponses.set(requestId, { resolve, reject });
-        ws.send(JSON.stringify(message));
+
+        if (ws?.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(message));
+        } else {
+            reject(new Error("WebSocket is not open. Message not sent."));
+        }
     });
 }
 
+// Send a message
+function sendMessage(message: any) {
+    if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "sendToHost", data: { message } }));
+    } else {
+        console.error("WebSocket is not open. Message not sent.");
+    }
+}
+
+// Join a room
+function joinRoom(code: string, name: string) {
+    if (!code || !name) {
+        console.error("Invalid room code or name.");
+        return;
+    }
+
+    localStorage.setItem("name", name);
+    localStorage.setItem("code", code);
+    r_code = code;
+    r_name = name;
+
+    sendMessage({
+        type: "joinRoom",
+        data: { roomId: code, name, userID: get(authStore).user?.id },
+    });
+}
+
+// Update player state
+function updateState(state: PlayerState) {
+    player_state.set(state);
+}
+
+// Get the user's name
+function getName() {
+    return r_name;
+}
+
+// Get server time
 async function getTime() {
     try {
         const response: any = await sendMessageAndWaitForResponse({ type: "getTime" });
@@ -123,49 +220,4 @@ async function getTime() {
     }
 }
 
-function joinRoom(code: string, name: string) {
-    localStorage.setItem("name", name);
-    localStorage.setItem("code", code);
-    r_code = code;
-    r_name = name;
-    ws.send(
-        JSON.stringify({
-            type: "joinRoom",
-            data: { roomId: code, name: name, userID: get(authStore).user?.id },
-        }),
-    );
-
-}
-
-function reconnect() {
-    websocketSetup();
-
-    ws.onopen = () => {
-        if (playing) {
-            ws.send(
-                JSON.stringify({
-                    type: "joinRoom",
-                    data: { roomId: r_code, name: r_name, userID: get(authStore).user?.id },
-                }),
-            );
-        }
-    }
-}
-
-function sendMessage(message: any) {
-    ws.send(
-        JSON.stringify({
-            type: "sendToHost",
-            data: { message: message },
-        }),);
-}
-
-function updateState(state: PlayerState) {
-    player_state.set(state);
-}
-
-function getName() {
-    return r_name;
-}
-
-export { joinRoom, setup_script, app_init, sendMessage, getName, getTime }
+export { joinRoom, setup_script, app_init, sendMessage, getName, getTime };
