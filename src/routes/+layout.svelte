@@ -1,4 +1,5 @@
 <script lang="ts">
+  export const ssr = false;
   import { get, writable } from "svelte/store";
   import "../app.postcss";
   import {
@@ -7,9 +8,11 @@
     Modal,
     getDrawerStore,
     initializeStores,
+    getToastStore,
   } from "@skeletonlabs/skeleton";
   import type { PlayerState } from "../types/player_state";
   import "./toolbar.svelte";
+  import { app_init, setup_script } from "$lib/index";
   import {
     computePosition,
     autoUpdate,
@@ -25,77 +28,89 @@
   import { supabase } from "../supabaseClient";
   import { drawerSettings } from "$lib/drawer";
   import AuthBox from "$lib/auth/auth_box.svelte";
-  import { authStore } from "$lib/stores/authStore";
   import Spinner from "../components/spinner.svelte";
   import { getTime, sendMessage } from "$lib";
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
-  let score = 0;
-  let name = "";
-  let admin = false;
+  $: score = $player_state.score;
+  $: name = $player_state.name;
+  $: admin = $player_state.admin;
+  $: screen = $player_state.screen;
+  $: team = $player_state.team;
+  $: timer_stamp = $player_state.timer_stamp;
+  $: timer_duration = $player_state.timer_duration;
+  $: color = $player_state.color;
 
   const remaining_time = writable(0); // Use a store for remaining_time
 
-  const updateTimer = async () => {
-    remaining_time.set(get(remaining_time) - 0.5);
-  };
-  let time_left = 0;
-
-  remaining_time.subscribe((value) => {
-    time_left = value;
-  });
-
-  let timer_stamp: Date = get(player_state).timer_stamp;
-  let timer_duration = get(player_state).timer_duration;
   let interval: NodeJS.Timeout;
-  let color: string;
 
-  onMount(() => {
-    if (timer_duration > 0) {
-      interval = setInterval(updateTimer, 500);
-      time_left = timer_duration;
-    }
-  });
+  initializeStores();
 
-  async function fetchTimer() {
-    time_left = timer_duration;
-    remaining_time.set(
-      (new Date(timer_stamp).getTime() - (await getTime())) / 1000,
-    );
+  const toast = getToastStore();
+
+  const updateTimer = () => {
+    remaining_time.update((current) => current - 0.5);
+  };
+
+  const fetchTimer = () => {
+    clearInterval(interval);
+    remaining_time.set((new Date(timer_stamp).getTime() - Date.now()) / 1000);
     interval = setInterval(updateTimer, 500);
+  };
+
+  $: if (timer_duration > 0) {
+    fetchTimer();
+  } else {
+    clearInterval(interval);
   }
 
-  // Subscribe to player state store
-  player_state.subscribe((value: PlayerState) => {
-    score = value.score;
-    name = value.name;
-    admin = value.admin;
-    color = value.color;
-
-    const oldTimer = timer_duration;
-
-    timer_stamp = value.timer_stamp;
-    timer_duration = value.timer_duration;
-
-    // Reset the interval when new values are received
-    clearInterval(interval);
-    if (oldTimer !== timer_duration) {
-      fetchTimer();
+  onMount(() => {
+    if ($player_state.screen == "index") {
+      setup_script();
     }
+    player_state.subscribe((value: PlayerState) => {
+      console.log("screen: " + value.screen);
+      toast.trigger({
+        message: "screen: " + value.screen,
+      });
+    });
   });
 
-  // Start the timer update interval when the component mounts
+  onDestroy(() => {
+    clearInterval(interval);
+    storePopup.set(null);
+  });
+
   initializeStores();
   const drawerStore = getDrawerStore();
 
-  let loading = true;
+  let loading = false;
+  onMount(() => {
+    const report_error = (msg: string = "unknown error") => {
+      toast.trigger({
+        message: `Unhandled error: ${msg}`,
+      });
+    };
 
-  $: $authStore.loading, (loading = get(authStore).loading);
+    const handle_rejection = (e: PromiseRejectionEvent) => {
+      e.preventDefault();
+      report_error(e?.reason);
+    };
 
-  // Clean up the interval when the component is destroyed
-  onDestroy(() => {
-    clearInterval(interval);
+    const handle_error = (e: ErrorEvent) => {
+      e.preventDefault();
+      report_error(e?.message);
+    };
+
+    window.addEventListener("unhandledrejection", handle_rejection);
+    window.addEventListener("error", handle_error);
+
+    return () => {
+      window.removeEventListener("unhandledrejection", handle_rejection);
+      window.removeEventListener("error", handle_error);
+    };
   });
 </script>
 
@@ -105,7 +120,7 @@
   <AuthBox />
 </Drawer>
 <!-- App Shell -->
-{#if $player_state.screen != "index"}
+{#if screen != "index"}
   <div class="z-20 block">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -140,13 +155,13 @@
         <img class="object-contain w-8 h-8" src={doubloon} alt="coin" />
       </span>
     </div>
-    {#if $player_state.team != ""}
+    {#if team != ""}
       <div
         class="flex flex-row items-center text-lg font-semibold justify-between border-opacity-60 border-white p-2 h-10 border-b-2 mx-6"
       >
         <div class="opacity-60">Team:</div>
-        <div class="font-bold" style:color={$player_state.team}>
-          {$player_state.team}
+        <div class="font-bold" style:color={team}>
+          {team}
         </div>
       </div>
     {/if}
@@ -155,7 +170,7 @@
     <div class="w-screen h-screen fixed opacity-20 col-span-3 bottom-0 -z-10">
       <div
         class="bg-blue-500 h-full"
-        style="width: {(100 * time_left) / timer_duration}%;
+        style="width: {(100 * $remaining_time) / timer_duration}%;
             transition: width 0.5s linear;"
       ></div>
     </div>

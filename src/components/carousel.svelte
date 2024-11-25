@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
   import Siema from "siema";
-  import { onMount, createEventDispatcher } from "svelte";
+  import { browser } from "$app/environment";
+  import { onMount, createEventDispatcher, onDestroy } from "svelte";
 
   export let perPage = 3;
   export let loop = true;
@@ -16,9 +17,9 @@
   export let rtl = false;
   let currentIndex = startIndex;
 
-  let siema;
-  let controller;
-  let timer;
+  let siema: any;
+  let controller: Siema;
+  let timer: any;
   const dispatch = createEventDispatcher();
 
   $: pips = controller ? controller.innerElements : [];
@@ -67,7 +68,7 @@
     controller.next();
   }
 
-  export function go(index) {
+  export function go(index: number) {
     controller.goTo(index);
   }
 
@@ -81,7 +82,7 @@
     }
   }
 
-  function handleChange(event) {
+  function handleChange() {
     currentIndex = controller.currentSlide;
     dispatch("change", {
       currentSlide: controller.currentSlide,
@@ -96,7 +97,7 @@
     }
 
     if (condition) {
-      node.addEventListener("click", handleReset);
+      node.addEventListener("click", handleReset, { passive: true });
     }
 
     return {
@@ -105,6 +106,9 @@
       },
     };
   }
+  onDestroy(() => {
+    controller.destroy();
+  });
 </script>
 
 <div class="carousel">

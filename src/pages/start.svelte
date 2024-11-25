@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { fade } from "svelte/transition";
   import { joinRoom } from "$lib/index";
   import { browser } from "$app/environment";
@@ -14,13 +14,27 @@
   import { get, writable } from "svelte/store";
   import { supabase } from "../supabaseClient";
   import { authStore } from "$lib/stores/authStore";
-  import { player_state } from "../stores/player_state";
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
 
+  const updateName = async (new_name: string) => {
+    const { error } = await supabase
+      .from("users")
+      .update({ game_name: new_name })
+      .eq("id", $authStore.user?.id);
+    if (error) {
+      console.error(error);
+    }
+  };
+
   const fetchName = async () => {
-    if (!$authStore.user) return;
+    if ($authStore.user === null) {
+      return;
+    }
+    console.log($authStore.user?.id);
+
+    // if user has logged in
     const { error, data } = await supabase
       .from("users")
       .select("*")
@@ -29,26 +43,35 @@
     if (error) {
       console.error(error);
     } else {
-      name = data.game_name;
+      console.log(data);
+      if (data.game_name === null && name !== "") {
+        updateName(name);
+      }
+      if (data.game_name !== null) {
+        name = data.game_name;
+        localStorage.setItem("name", name);
+      }
     }
   };
+
+  authStore.subscribe((store) => {
+    console.log(store);
+    if (store.loading) {
+      return;
+    }
+    fetchName();
+  });
 
   onMount(() => {
     const sp = new URLSearchParams(window.location.search);
     if (sp.get("code") != null) {
       roomCode = sp.get("code") || "";
-      if (get(authStore).user != null) {
-        joinGame();
-      }
     }
   });
-
-  $authStore.user, fetchName();
 
   const drawerStore = getDrawerStore();
 
   const joinGame = async () => {
-    await fetchName();
     joinRoom(roomCode.toUpperCase(), name);
   };
 </script>
@@ -87,19 +110,17 @@
           bind:value={roomCode}
         />
       </label>
-      {#if !$authStore.user}
-        <label class="label"
-          ><span>Name</span>
-          <input
-            type="text"
-            class="input"
-            id="p_name"
-            maxlength="10"
-            name="Name"
-            bind:value={name}
-          />
-        </label>
-      {/if}
+      <label class="label"
+        ><span>Name</span>
+        <input
+          type="text"
+          class="input"
+          id="p_name"
+          maxlength="10"
+          name="Name"
+          bind:value={name}
+        />
+      </label>
       <button class="btn variant-filled" id="joinButton" on:click={joinGame}
         >Join</button
       >
