@@ -1,6 +1,5 @@
 <script lang="ts">
   import "$lib/index";
-  import { setup_script, app_init, sendMessage } from "$lib/index";
   import { onMount } from "svelte";
   import { get } from "svelte/store";
 
@@ -44,16 +43,8 @@
   import Spy from "../pages/spy.svelte";
   import Personal from "../pages/personal.svelte";
   import Bomb from "../pages/bomb.svelte";
-
-  let page_value: string = "index";
-  if (get(player_state).screen == "index") {
-    app_init();
-
-    onMount(() => {
-      setup_script();
-    });
-  }
-
+  import { app_init } from "$lib/index";
+  import ErrorBoundary from "$lib/components/error_boundary.svelte";
   const screens: { [key: string]: any } = {
     index: Start,
     blank: Blank,
@@ -90,21 +81,17 @@
     personal: Personal,
     bomb: Bomb,
   };
-
-  player_state.subscribe((value: PlayerState) => {
-    page_value = value.screen;
-  });
-
+  app_init();
   /** Plays a background animation/emote */
 </script>
 
-{#key page_value}
+{#key $player_state.screen}
   <div
     id="main-background"
     class="w-full h-full p-3"
     out:blur={{ duration: 200 }}
     in:blur={{ delay: 200, duration: 200 }}
   >
-    <svelte:component this={screens[page_value]} />
+    <svelte:component this={screens[$player_state.screen]} />
   </div>
 {/key}

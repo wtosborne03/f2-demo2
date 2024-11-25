@@ -9,6 +9,7 @@
   import { sendMessage } from "$lib";
   import { player_state } from "../../stores/player_state";
   import type { PlayerState } from "../../types/player_state";
+  import GoogleSignInButton from "$lib/components/GoogleSignInButton.svelte";
 
   const drawerStore = getDrawerStore();
   const toastStore = getToastStore();
@@ -36,44 +37,6 @@
     }
   };
 
-  let game_name = "";
-
-  onMount(async () => {
-    if (!$authStore.user) return;
-    const { data, error } = await supabase
-      .from("users")
-      .select("game_name")
-      .eq("id", $authStore.user?.id)
-      .single();
-    if (error) {
-      console.error("Error fetching user:", error.message);
-    } else {
-      game_name = data.game_name;
-    }
-  });
-
-  const updateUser = async () => {
-    if (!$authStore.user) return;
-    const { error } = await supabase
-      .from("users")
-      .update({ game_name })
-      .eq("id", $authStore.user?.id);
-    if (error) {
-      console.error("Error updating user:", error.message);
-    } else {
-      if (get(player_state).screen != "index") {
-        toastStore.trigger({
-          message: "Name saved! (Reload page to see changes)",
-        });
-      } else {
-        player_state.set({ ...get(player_state), name: game_name });
-        toastStore.trigger({
-          message: "Name saved!",
-        });
-      }
-    }
-  };
-
   const customizeAvatar = async () => {
     await goto("/avatar", { replaceState: false });
     drawerStore.close();
@@ -93,9 +56,13 @@
   class="p-8 text-center h-full flex flex-col justify-center items-center gap-4"
 >
   {#if $authStore.user}
-    <div class="flex flex-col justify-between h-full items-center text-xl">
+    <div
+      class="flex flex-col justify-between h-full items-center text-xl w-full"
+    >
       <div class="text-lg">{$authStore.user.email}</div>
-      <div class="flex flex-col items-center justify-center gap-4">
+      <div
+        class="flex flex-col items-center justify-start gap-4 w-full h-full py-10"
+      >
         <button
           class="btn variant-filled w-full flex flex-row justify-between"
           on:click={customizeAvatar}
@@ -109,32 +76,13 @@
           class="btn variant-filled w-full flex flex-row justify-between"
           on:click={goStats}>Stats <span class="text-2xl ml-2">📊</span></button
         >
-        <label class="label w-full">
-          <span class="text-base">Game Name</span>
-          <div
-            class="input-group input-group-divider grid-cols-[auto_1fr_auto]"
-          >
-            <input
-              type="text"
-              class="input"
-              maxlength="10"
-              name="Name"
-              bind:value={game_name}
-            />
-            <button class="btn variant-filled-primary" on:click={updateUser}
-              >Save <i class="fa-solid fa-floppy-disk ml-2"></i></button
-            >
-          </div>
-        </label>
       </div>
-      <button class="btn variant-filled-error" on:click={signOut}
+      <button class="btn variant-filled-error w-full" on:click={signOut}
         >Sign Out <i class="fa-solid fa-right-from-bracket ml-2"></i></button
       >
     </div>
   {:else}
     <div class="text-xl">Sign In</div>
-    <button class="btn variant-filled-primary" on:click={loginWithGoogle}
-      >Sign in with Google <i class="fa-brands fa-google ml-2"></i></button
-    >
+    <GoogleSignInButton onClick={loginWithGoogle} />
   {/if}
 </div>

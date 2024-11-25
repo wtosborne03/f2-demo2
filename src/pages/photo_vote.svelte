@@ -5,8 +5,7 @@
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import Icon from "@iconify/svelte";
-  import Carousel from "../components/carousel.svelte";
-  import { browser } from "$app/environment";
+  import Carousel from "svelte-carousel";
 
   let s_data: photoVoteData;
   s_data = get<PlayerState>(player_state).page_data;
@@ -18,11 +17,13 @@
   }
 
   function submit_answer() {
+    console.log(p_index);
+    console.log(Object.keys(s_data.photos)[p_index]);
     sendMessage({
       type: "game",
       data: {
         type: "vote",
-        data: Object.keys(s_data.photos)[p_index],
+        data: Object.keys(s_data.photos)[p_index] || "No Photo",
       },
     });
   }
@@ -33,7 +34,7 @@
 >
   <div class="mb-4 flex">Pick the photo that you think represent you best.</div>
   <div class="w-full">
-    <Carousel perPage={1} autoplay={0} on:change={handleCarouselChange}>
+    <Carousel autoplay={0} on:change={handleCarouselChange}>
       {#each Object.keys(s_data.photos) as photo}
         <img
           src={s_data.photos[photo]}

@@ -55,7 +55,7 @@ interface matchData {
 }
 
 interface photoVoteData {
-    photos: { [player: string]: string }
+    photos: any
 }
 
 interface DrinkingPrompt {

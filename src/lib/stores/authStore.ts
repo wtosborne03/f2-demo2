@@ -9,15 +9,28 @@ export const authStore = writable<{ session: any | null; user: User | null; load
     loading: true
 });
 
+// Initialize the store with the current session
+(async () => {
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+            console.error('Error fetching session:', error);
+            authStore.set({ session: null, user: null, loading: false });
+            return;
+        }
+        authStore.set({ session, user: session?.user || null, loading: false });
+    } catch (err) {
+        console.error('Unexpected error initializing session:', err);
+        authStore.set({ session: null, user: null, loading: false });
+    }
+})();
+
 // Subscribe to Supabase auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
     console.log('Auth state changed:', event);
-    authStore.set({ session, user: session?.user || null, loading: get(authStore).loading });
+    authStore.update(store => ({
+        session,
+        user: session?.user || null,
+        loading: store.loading
+    }));
 });
-
-// Initialize the store with the current session
-(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log("LOAD");
-    authStore.set({ session, user: session?.user || null, loading: false });
-})();

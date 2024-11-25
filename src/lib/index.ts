@@ -92,7 +92,6 @@ function websocketSetup() {
 // Handle WebSocket messages
 function handleMessage(event: MessageEvent) {
     const e_data = JSON.parse(event.data);
-    console.log(e_data);
 
     if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
         const { resolve } = pendingResponses.get(e_data.requestId);
@@ -202,7 +201,11 @@ function joinRoom(code: string, name: string) {
 
 // Update player state
 function updateState(state: PlayerState) {
-    player_state.set(state);
+    try {
+        player_state.set(state);
+    } catch (error) {
+        console.error("Failed to update player state:", error);
+    }
 }
 
 // Get the user's name
@@ -214,7 +217,6 @@ function getName() {
 async function getTime() {
     try {
         const response: any = await sendMessageAndWaitForResponse({ type: "getTime" });
-        console.log("Time response:", response);
         return response['time'];
     } catch (error) {
         console.error("Failed to get time:", error);
