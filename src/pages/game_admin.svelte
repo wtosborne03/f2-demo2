@@ -6,8 +6,10 @@
     RangeSlider,
     getDrawerStore,
     getModalStore,
+    Tab,
   } from "@skeletonlabs/skeleton";
   import type { ModalSettings } from "@skeletonlabs/skeleton";
+  import { TabGroup } from "@skeletonlabs/skeleton";
   import type { adminStartData } from "../types/page_data";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
@@ -40,6 +42,7 @@
   function startGame() {
     sendMessage({ type: "start_game" });
   }
+  let tabSet: number = 0;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -51,27 +54,71 @@
   <button class="btn variant-filled" on:click={promptForStart}
     >Start Game <i class=""></i></button
   >
-  <h3 class="mt-12">Settings</h3>
-  <div class="p-4 border-2 border-white rounded-xl">
-    <div class="flex flex-row justify-between items-center">
-      <div class="mr-4">Drinking Game:</div>
-      <SlideToggle name="slide" bind:checked={s_data.settings.drinking} />
-    </div>
-    <div class="flex flex-row justify-between items-center mt-4">
-      <div class="mr-4">Subtitles:</div>
-      <SlideToggle name="slide" bind:checked={s_data.settings.subtitles} />
-    </div>
-    <div class="flex flex-row justify-between items-center mt-4">
-      <div class="mr-4">Music Volume:</div>
-      <RangeSlider
-        name="range-slider"
-        bind:value={s_data.settings.music_volume}
-        max={0.5}
-        step={0.1}
-        ticked
-      ></RangeSlider>
-    </div>
+
+  <div class="container max-w-96">
+    <h3 class="mt-16 mb-2 pl-2">Settings</h3>
+    <ul>
+      <li
+        class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
+      >
+        <div class="mr-4 italic text-gray-200 font-bold">Drinking Game 🍺</div>
+        <SlideToggle name="slide" bind:checked={s_data.settings.drinking} />
+      </li>
+
+      <li
+        class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
+      >
+        <div class="mr-4 italic text-gray-200 font-bold">Family Mode 👦🏼</div>
+        <SlideToggle name="slide" bind:checked={s_data.settings.family} />
+      </li>
+
+      <!-- Game End Condition Settings -->
+      <li class="mt-2 p-4 rounded-lg bg-slate-600 bg-opacity-40">
+        <TabGroup justify="justify-start">
+          <div class="text-center italic text-gray-200 pt-2 font-bold mr-3">
+            Game End 🏁
+          </div>
+          <Tab bind:group={s_data.settings.endCondition} name="tab1" value={0}>
+            Rounds
+          </Tab>
+          <Tab bind:group={s_data.settings.endCondition} name="tab2" value={1}
+            >Doubloons</Tab
+          >
+          <!-- Tab Panels --->
+          <svelte:fragment slot="panel">
+            {#if s_data.settings.endCondition === 0}
+              <div class="flex flex-row justify-between items-center">
+                <input
+                  id="rounds"
+                  type="number"
+                  class="border border-gray-300 text-black rounded-md p-2 w-full"
+                  min="10"
+                  max="100"
+                  step="1"
+                  bind:value={s_data.settings.rounds}
+                />
+                <span class="ml-2 w-64">Game Rounds</span>
+              </div>
+            {:else if s_data.settings.endCondition === 1}
+              <div class="flex flex-row justify-between items-center">
+                <input
+                  id="points"
+                  type="number"
+                  class="border border-gray-300 text-black rounded-md p-2 w-full"
+                  min="5000"
+                  max="100000"
+                  step="1000"
+                  bind:value={s_data.settings.doubloons}
+                />
+                <span class="ml-2 w-64">Doubloons To Win</span>
+              </div>
+            {/if}
+          </svelte:fragment>
+        </TabGroup>
+      </li>
+    </ul>
   </div>
+
   {#if $authStore.user}
     <div class=""></div>
   {:else}

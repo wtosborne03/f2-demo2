@@ -1,7 +1,9 @@
 interface settings {
     drinking: boolean;
-    music_volume: number;
-    subtitles: boolean;
+    endCondition: number;
+    rounds: number;
+    doubloons: number;
+    family: boolean;
 }
 
 export type { settings }
