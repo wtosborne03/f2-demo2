@@ -10,6 +10,7 @@
   import { player_state } from "../../stores/player_state";
   import type { PlayerState } from "../../types/player_state";
   import GoogleSignInButton from "$lib/components/GoogleSignInButton.svelte";
+  import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
 
   const drawerStore = getDrawerStore();
   const toastStore = getToastStore();
@@ -26,6 +27,20 @@
   const loginWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      console.error("Error signing in with Google:", error.message);
+    } else {
+      console.log("User signed in with Google:", data);
+    }
+  };
+
+  const loginWithSpotify = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "spotify",
       options: {
         redirectTo: window.location.origin,
       },
@@ -84,5 +99,6 @@
   {:else}
     <div class="text-xl">Sign In</div>
     <GoogleSignInButton onClick={loginWithGoogle} />
+    <SpotifySignInButton onClick={loginWithSpotify} />
   {/if}
 </div>

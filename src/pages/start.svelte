@@ -32,7 +32,6 @@
     if ($authStore.user === null) {
       return;
     }
-    console.log($authStore.user?.id);
 
     // if user has logged in
     const { error, data } = await supabase
@@ -43,7 +42,6 @@
     if (error) {
       console.error(error);
     } else {
-      console.log(data);
       if (data.game_name === null && name !== "") {
         updateName(name);
       }
@@ -55,7 +53,6 @@
   };
 
   authStore.subscribe((store) => {
-    console.log(store);
     if (store.loading) {
       return;
     }
