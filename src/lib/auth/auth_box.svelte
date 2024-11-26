@@ -73,7 +73,7 @@
 <div
   class="p-8 text-center h-full flex flex-col justify-center items-center gap-4"
 >
-  {#if $authStore.user}
+  {#if $authStore.user && $authStore.session}
     <div
       class="flex flex-col justify-between h-full items-center text-xl w-full"
     >
