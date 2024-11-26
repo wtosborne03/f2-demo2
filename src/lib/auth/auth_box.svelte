@@ -29,7 +29,7 @@
 
   const loginWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: "linkedin_oidc",
       options: {
         redirectTo: window.location.origin,
       },
