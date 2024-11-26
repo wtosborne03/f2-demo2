@@ -29,21 +29,7 @@
 
   const loginWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "linkedin_oidc",
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    if (error) {
-      console.error("Error signing in with Google:", error.message);
-    } else {
-      console.log("User signed in with Google:", data);
-    }
-  };
-
-  const loginWithSpotify = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "spotify",
+      provider: "google",
       options: {
         redirectTo: window.location.origin,
       },
@@ -73,7 +59,7 @@
 <div
   class="p-8 text-center h-full flex flex-col justify-center items-center gap-4"
 >
-  {#if $authStore.user && $authStore.session}
+  {#if $authStore.user}
     <div
       class="flex flex-col justify-between h-full items-center text-xl w-full"
     >
@@ -102,6 +88,5 @@
   {:else}
     <div class="text-xl">Sign In</div>
     <GoogleSignInButton onClick={loginWithGoogle} />
-    <SpotifySignInButton onClick={loginWithSpotify} />
   {/if}
 </div>
