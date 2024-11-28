@@ -12,7 +12,7 @@
   } from "@skeletonlabs/skeleton";
   import type { PlayerState } from "../types/player_state";
   import "./toolbar.svelte";
-  import { app_init, setup_script } from "$lib/index";
+  import { setup_script } from "$lib/index";
   import {
     computePosition,
     autoUpdate,
@@ -54,9 +54,10 @@
     remaining_time.update((current) => current - 0.5);
   };
 
-  const fetchTimer = () => {
+  const fetchTimer = async () => {
     clearInterval(interval);
-    remaining_time.set((new Date(timer_stamp).getTime() - Date.now()) / 1000);
+    const t_time = await getTime();
+    remaining_time.set((new Date(timer_stamp).getTime() - t_time) / 1000);
     interval = setInterval(updateTimer, 500);
   };
 

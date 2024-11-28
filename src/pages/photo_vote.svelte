@@ -13,7 +13,8 @@
   let p_index = 0;
 
   function handleCarouselChange(event: any) {
-    p_index = event.detail.currentSlide;
+    console.log(event);
+    p_index = event.detail;
   }
 
   function submit_answer() {
@@ -34,7 +35,7 @@
 >
   <div class="mb-4 flex">Pick the photo that you think represent you best.</div>
   <div class="w-full">
-    <Carousel autoplay={0} on:change={handleCarouselChange}>
+    <Carousel autoplay={0} on:pageChange={handleCarouselChange}>
       {#each Object.keys(s_data.photos) as photo}
         <img
           src={s_data.photos[photo]}
