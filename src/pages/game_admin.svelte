@@ -61,28 +61,28 @@
       <li
         class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
       >
-        <div class="mr-4 italic text-gray-200 font-bold">Drinking Game 🍺</div>
+        <div class="mr-4 text-gray-200 font-bold">Drinking Game 🍺</div>
         <SlideToggle name="slide" bind:checked={s_data.settings.drinking} />
       </li>
 
       <li
         class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
       >
-        <div class="mr-4 italic text-gray-200 font-bold">Family Mode 👦🏼</div>
+        <div class="mr-4 text-gray-200 font-bold">Family Mode 👦🏼</div>
         <SlideToggle name="slide" bind:checked={s_data.settings.family} />
       </li>
 
       <!-- Game End Condition Settings -->
       <li class="mt-2 p-4 rounded-lg bg-slate-600 bg-opacity-40">
         <TabGroup justify="justify-start">
-          <div class="text-center italic text-gray-200 pt-2 font-bold mr-3">
+          <div class="text-center text-gray-200 pt-2 font-bold mr-3">
             Game End 🏁
           </div>
           <Tab bind:group={s_data.settings.endCondition} name="tab1" value={0}>
-            Rounds
+            <span class="italic"> Rounds </span>
           </Tab>
-          <Tab bind:group={s_data.settings.endCondition} name="tab2" value={1}
-            >Doubloons</Tab
+          <Tab bind:group={s_data.settings.endCondition} name="tab2" value={1}>
+            <span class="italic"> Doubloons</span></Tab
           >
           <!-- Tab Panels --->
           <svelte:fragment slot="panel">
