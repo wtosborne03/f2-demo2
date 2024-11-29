@@ -10,6 +10,8 @@
   let loading = true;
   let prompt_count = 0;
   let game_count = 0;
+  let doubloons = 0;
+  let drinks = 0;
 
   // Load User Stats
   const loadStats = async () => {
@@ -20,6 +22,11 @@
 
     prompt_count = prompts.data!.length;
     game_count = games.data!.length;
+
+    for (const game of games.data!) {
+      doubloons += game.doubloons;
+      drinks += game.drinks;
+    }
     loading = false;
   };
 
@@ -52,6 +59,17 @@
         <tr>
           <th>Games Played</th>
           <td>{game_count}</td>
+        </tr>
+        <tr>
+          <th
+            >Doubloons <i class="fa-solid text-yellow-500 fa-coins ml-2"
+            ></i></th
+          >
+          <td>{doubloons}</td>
+        </tr>
+        <tr>
+          <th>Drinks 🍺</th>
+          <td>{drinks}</td>
         </tr>
         <tr>
           <th>Wins</th>
