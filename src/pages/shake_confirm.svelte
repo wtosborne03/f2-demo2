@@ -67,7 +67,6 @@
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">
-  Checking...
   {#if showButton}
     <button class="btn variant-filled" on:click={confirmMotion}
       >Use Motion Controls</button
