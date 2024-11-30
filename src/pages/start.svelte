@@ -69,6 +69,12 @@
   const drawerStore = getDrawerStore();
 
   const joinGame = async () => {
+    if ($authStore.user === null) {
+      //not logged in
+    } else {
+      //logged in, update the db name!
+      updateName(name);
+    }
     joinRoom(roomCode.toUpperCase(), name);
   };
 </script>
