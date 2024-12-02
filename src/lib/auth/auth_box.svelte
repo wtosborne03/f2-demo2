@@ -45,9 +45,6 @@
   const loginWithApple = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
-      options: {
-        redirectTo: window.location.origin,
-      },
     });
     if (error) {
       console.error("Error signing in with Apple:", error.message);
