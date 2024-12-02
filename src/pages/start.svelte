@@ -69,6 +69,7 @@
   const drawerStore = getDrawerStore();
 
   const joinGame = async () => {
+    name = name.substring(0, 10);
     if ($authStore.user === null) {
       //not logged in
     } else {
