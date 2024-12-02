@@ -11,6 +11,7 @@
   import type { PlayerState } from "../../types/player_state";
   import GoogleSignInButton from "$lib/components/GoogleSignInButton.svelte";
   import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
+  import AppleSignInButton from "$lib/components/AppleSignInButton.svelte";
 
   const drawerStore = getDrawerStore();
   const toastStore = getToastStore();
@@ -41,6 +42,20 @@
     }
   };
 
+  const loginWithApple = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      console.error("Error signing in with Apple:", error.message);
+    } else {
+      console.log("User signed in with Apple:", data);
+    }
+  };
+
   const customizeAvatar = async () => {
     await goto("/avatar", { replaceState: false });
     drawerStore.close();
@@ -57,7 +72,7 @@
 </script>
 
 <div
-  class="p-8 text-center h-full flex flex-col justify-center items-center gap-4"
+  class="py-8 px-3 text-center h-full flex flex-col justify-center items-center gap-4"
 >
   {#if $authStore.user}
     <div
@@ -88,5 +103,6 @@
   {:else}
     <div class="text-xl">Sign In</div>
     <GoogleSignInButton onClick={loginWithGoogle} />
+    <AppleSignInButton onClick={loginWithApple} />
   {/if}
 </div>

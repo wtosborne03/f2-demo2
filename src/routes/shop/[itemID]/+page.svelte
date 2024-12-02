@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { supabase } from "../../../supabaseClient";
   import { loadStripe } from "@stripe/stripe-js";
 
@@ -20,7 +20,9 @@
   let applepay = false;
   let loading = true;
 
-  onMount(async () => {
+  let isMounted = false;
+
+  const loadItem = async () => {
     console.log(itemID);
     const { data, error } = await supabase
       .from("shop")
@@ -52,7 +54,6 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: item.price * 100,
             shop_id: item.id,
             user_id: $authStore.user!.id,
           }), // Amount in cents
@@ -97,6 +98,9 @@
               }
             }
           });
+          if (!isMounted) {
+            return;
+          }
 
           const prButton = elements.create("paymentRequestButton", {
             paymentRequest: paymentRequest,
@@ -111,6 +115,15 @@
         loading = false;
       }
     }
+  };
+
+  onMount(() => {
+    loadItem();
+    isMounted = true;
+
+    return () => {
+      isMounted = false;
+    };
   });
 
   async function handleSubmit() {
