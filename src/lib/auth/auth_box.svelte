@@ -45,9 +45,6 @@
   const loginWithApple = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
-      options: {
-        redirectTo: "https://play.couchcup.tv/auth/callback",
-      },
     });
     if (error) {
       console.error("Error signing in with Apple:", error.message);
