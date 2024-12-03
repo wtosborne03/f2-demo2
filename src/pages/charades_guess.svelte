@@ -1,9 +1,5 @@
 <script lang="ts">
   import { sendMessage } from "$lib";
-  import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
-  import type { ListPromptData, PromptData } from "../types/page_data";
-  import { player_state } from "../stores/player_state";
 
   let guess = "";
 
@@ -21,19 +17,19 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div class="text-lg text-center">Think of a way out 🤔</div>
+  <div class="text-lg text-center">What do you think you just saw?</div>
   <form class="flex flex-col justify-center items-center w-full">
     <div class="flex flex-row justify-start items-center w-full">
-      <textarea
+      <input
+        type="text"
         class="textarea mt-10 w-full"
-        maxlength="78"
-        rows="4"
-        placeholder="Survival Attempt"
+        maxlength="30"
+        placeholder="guess"
         bind:value={guess}
       />
     </div>
     <button class="btn variant-filled mt-12" on:click={submit_prompt}
-      >Submit</button
+      >Guess</button
     >
   </form>
 </div>

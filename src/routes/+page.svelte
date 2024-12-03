@@ -45,6 +45,9 @@
   import Bomb from "../pages/bomb.svelte";
   import { app_init } from "$lib/index";
   import ErrorBoundary from "$lib/components/error_boundary.svelte";
+  import CharadesConfirm from "../pages/charades_confirm.svelte";
+  import CharadesGuess from "../pages/charades_guess.svelte";
+  import CharadesAct from "../pages/charades_act.svelte";
   const screens: { [key: string]: any } = {
     index: Start,
     blank: Blank,
@@ -80,6 +83,9 @@
     spy: Spy,
     personal: Personal,
     bomb: Bomb,
+    charades_confirm: CharadesConfirm,
+    charades_guess: CharadesGuess,
+    charades_act: CharadesAct,
   };
   app_init();
   /** Plays a background animation/emote */

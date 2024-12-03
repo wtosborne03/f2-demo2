@@ -78,6 +78,10 @@ interface BombData {
     has_bomb: boolean;
 }
 
+interface CharadesData {
+    prompt: string;
+}
 
 
-export type { matchData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+
+export type { matchData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
