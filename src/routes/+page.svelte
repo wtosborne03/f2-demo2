@@ -48,6 +48,7 @@
   import CharadesConfirm from "../pages/charades_confirm.svelte";
   import CharadesGuess from "../pages/charades_guess.svelte";
   import CharadesAct from "../pages/charades_act.svelte";
+  import CharadesResults from "../pages/charades_results.svelte";
   const screens: { [key: string]: any } = {
     index: Start,
     blank: Blank,
@@ -86,6 +87,7 @@
     charades_confirm: CharadesConfirm,
     charades_guess: CharadesGuess,
     charades_act: CharadesAct,
+    charades_results: CharadesResults,
   };
   app_init();
   /** Plays a background animation/emote */
