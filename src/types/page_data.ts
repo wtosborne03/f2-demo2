@@ -82,6 +82,12 @@ interface CharadesData {
     prompt: string;
 }
 
+interface CharadesResultsData {
+    guess: string;
+    comment: string;
+    score: number;
+}
 
 
-export type { matchData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+
+export type { matchData, CharadesResultsData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
