@@ -20,6 +20,7 @@
       paypal = (await loadScript({
         clientId:
           "AU0DljOTuf53hsjxETEQoboU_2b5X9vynte27S_fNXNZIznu2pSxXaNcpEQHpLo8RGsAsA4fdaYF5OcF",
+        enableFunding: "applepay",
         components: ["buttons", "applepay"],
       })) as any;
     } catch (error) {
