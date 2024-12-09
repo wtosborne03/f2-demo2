@@ -19,8 +19,7 @@
     try {
       paypal = (await loadScript({
         clientId:
-          "Acfu1Ze8Sb6jyT_VvjJtnsrRRwCAt6GEZgVWJS8CD--vbVneWjzB3zn0cp2QAx6cZt19TD4GFSrHqbe9",
-        components: "applepay",
+          "AU0DljOTuf53hsjxETEQoboU_2b5X9vynte27S_fNXNZIznu2pSxXaNcpEQHpLo8RGsAsA4fdaYF5OcF",
       })) as any;
     } catch (error) {
       console.error("failed to load the PayPal JS SDK script", error);
