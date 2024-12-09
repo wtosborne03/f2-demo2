@@ -6,20 +6,23 @@
   import { page } from "$app/stores";
   import Spinner from "../../../components/spinner.svelte";
   import { authStore } from "$lib/stores/authStore";
-  import { loadScript, type PayPalNamespace} from "@paypal/paypal-js"
+  import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 
   const itemID = $page.params.itemID;
 
   let item: any = null;
   let loading = true;
 
-  let paypal: PayPalNamespace !;
+  let paypal: PayPalNamespace;
 
   const loadItem = async () => {
     try {
-        paypal = await loadScript({ clientId: "AU0DljOTuf53hsjxETEQoboU_2b5X9vynte27S_fNXNZIznu2pSxXaNcpEQHpLo8RGsAsA4fdaYF5OcF" }) as any;
+      paypal = (await loadScript({
+        clientId:
+          "AU0DljOTuf53hsjxETEQoboU_2b5X9vynte27S_fNXNZIznu2pSxXaNcpEQHpLo8RGsAsA4fdaYF5OcF",
+      })) as any;
     } catch (error) {
-        console.error("failed to load the PayPal JS SDK script", error);
+      console.error("failed to load the PayPal JS SDK script", error);
     }
     const { data, error } = await supabase
       .from("shop")
@@ -42,19 +45,18 @@
     try {
       paypal.Buttons!({
         createOrder: async (data, actions) => {
-          const res = await fetch("https://lil-feed.com/create-payment-intent",
+          const res = await fetch(
+            "https://lil-feed.com/create-payment-intent",
             {
-              method: 
-              "POST",
+              method: "POST",
               headers: {
-
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 user_id: "",
-                shop_id: ""
-              })
-            }
+                shop_id: "",
+              }),
+            },
           );
           const order = await res.json();
           return order.id;
@@ -68,11 +70,12 @@
           console.error("PayPal Checkout Error:", err);
         },
       }).render("#paypal-button-container");
+    } catch (error) {
+      console.error(error);
     }
   };
 
   onMount(() => {
-    
     loadItem();
   });
 </script>
