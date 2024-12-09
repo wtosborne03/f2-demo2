@@ -162,7 +162,7 @@
   </button>
   <canvas
     id="canvas"
-    class="w-full max-w-xs mx-auto -m-16 -mt-4"
+    class="w-full max-w-xs mx-auto"
     on:click={() => emote_fire_input?.fire()}
   ></canvas>
   {#if loadedin}
