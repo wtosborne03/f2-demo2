@@ -40,6 +40,7 @@
     "@lottiefiles/dotlottie-svelte": "^0.3.23",
     "@lottiefiles/svelte-lottie-player": "^0.3.1",
     "@neodrag/svelte": "^2.0.6",
+    "@paypal/paypal-js": "^8.1.2",
     "@react2svelte/image-gallery": "^1.0.1",
     "@rive-app/canvas": "^2.21.5",
     "@sentry/sveltekit": "^8.41.0",
