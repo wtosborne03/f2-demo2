@@ -95,13 +95,9 @@
         <div class="text-lg">Description: {item.description}</div>
         <div class="text-lg">Price: ${item.price}</div>
       </div>
-
-      <div id="paypal-button-container" class="w-full mt-4"></div>
-      {#if loading}
-        <Spinner />
-      {/if}
     </div>
   {:else}
     <div><Spinner /></div>
   {/if}
+  <div id="paypal-button-container" class="w-full mt-4"></div>
 </div>
