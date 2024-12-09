@@ -53,8 +53,8 @@
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                user_id: "",
-                shop_id: "",
+                user_id: $authStore.user?.id,
+                shop_id: itemID,
               }),
             },
           );
