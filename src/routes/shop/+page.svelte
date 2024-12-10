@@ -44,12 +44,14 @@
 <div
   class="px-0 py-4 max-w-screen-xl mx-auto flex flex-col items-center transition-all"
 >
-  <button
-    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto mx-8"
-    on:click={() => goto("/")}
-  >
-    <i class="fa-solid fa-arrow-left mr-2"></i>Back
-  </button>
+  <div class="px-8">
+    <button
+      class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+      on:click={() => goto("/")}
+    >
+      <i class="fa-solid fa-arrow-left mr-2"></i>Back
+    </button>
+  </div>
   {#each Object.keys(shopItems) as category}
     <div class="text-3xl font-bold mb-4 mt-6 w-full flex flex-row items-center">
       <span class="w-full bg-slate-400 h-1 m-3"></span>{categories[
