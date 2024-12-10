@@ -75,7 +75,7 @@
     <div
       class="flex flex-col justify-between h-full items-center text-xl w-full"
     >
-      <div class="text-lg w-12">{$authStore.user.email}</div>
+      <div class="text-lg break-words">{$authStore.user.email}</div>
       <div
         class="flex flex-col items-center justify-start gap-4 w-full h-full py-10"
       >
