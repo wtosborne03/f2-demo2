@@ -45,7 +45,7 @@
   class="px-0 py-4 max-w-screen-xl mx-auto flex flex-col items-center transition-all"
 >
   <button
-    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto mx-8"
     on:click={() => goto("/")}
   >
     <i class="fa-solid fa-arrow-left mr-2"></i>Back
@@ -57,7 +57,7 @@
       ]}<span class="w-full bg-slate-400 h-1 m-3"></span>
     </div>
     <div class="w-full overflow-x-auto whitespace-nowrap">
-      <div class="flex space-x-4">
+      <div class="flex space-x-4 mx-4">
         {#each shopItems[category] as item}
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
