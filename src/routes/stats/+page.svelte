@@ -6,15 +6,17 @@
   import Spinner from "../../components/spinner.svelte";
   import { onMount } from "svelte";
 
-  const age = $authStore.user!.created_at;
+  let age = "";
   let loading = true;
   let prompt_count = 0;
   let game_count = 0;
   let doubloons = 0;
   let drinks = 0;
+  let wins = 0;
 
   // Load User Stats
   const loadStats = async () => {
+    age = $authStore.user?.created_at;
     const [prompts, games] = await Promise.all([
       supabase.from("prompts").select("*").eq("user", $authStore.user?.id),
       supabase.from("games_played").select("*").eq("user", $authStore.user?.id),
@@ -26,6 +28,9 @@
     for (const game of games.data!) {
       doubloons += game.doubloons;
       drinks += game.drinks;
+      if (game.won) {
+        wins++;
+      }
     }
     loading = false;
   };
@@ -43,7 +48,7 @@
     <i class="fa-solid fa-arrow-left mr-2"></i>Back
   </button>
   <div class="text-2xl mb-3">Stats</div>
-  {#if loading}
+  {#if loading || $authStore.session === null}
     <Spinner />
   {:else}
     <table class="table w-full">
@@ -73,7 +78,7 @@
         </tr>
         <tr>
           <th>Wins</th>
-          <td>0</td>
+          <td>{wins}</td>
         </tr>
         <tr> </tr></tbody
       >
