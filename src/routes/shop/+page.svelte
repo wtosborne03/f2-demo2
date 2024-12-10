@@ -42,7 +42,7 @@
 </script>
 
 <div
-  class="px-8 py-4 max-w-screen-xl mx-auto flex flex-col items-center transition-all"
+  class="px-0 py-4 max-w-screen-xl mx-auto flex flex-col items-center transition-all"
 >
   <button
     class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
