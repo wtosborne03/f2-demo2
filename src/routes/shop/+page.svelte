@@ -46,7 +46,7 @@
 >
   <div class="px-8">
     <button
-      class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+      class="btn variant-filled mb-6 mt-4 w-full"
       on:click={() => goto("/")}
     >
       <i class="fa-solid fa-arrow-left mr-2"></i>Back
@@ -64,7 +64,7 @@
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
-            class="transition-all rounded-lg shadow-xl cursor-pointer p-4 min-w-52 flex flex-col items-center justify-between relative"
+            class="transition-all rounded-lg shadow-xl cursor-pointer p-2 min-w-52 flex flex-col items-center justify-between relative"
             on:click={() => goto(`/shop/${item.id}`)}
           >
             <div
@@ -73,11 +73,11 @@
             <div
               class="z-10 pointer-events-none w-full h-full flex flex-col items-center justify-between"
             >
-              <div class="text-xl font-semibold mb-2">{item.name}</div>
+              <div class="text-xl font-semibold mb-1">{item.name}</div>
               <img
                 src={item.thumbnail}
                 alt="item"
-                class="h-32 w-auto object-cover mb-2"
+                class="h-32 w-auto object-cover mb-1"
               />
               <div class="text-lg text-gray-200">Price: ${item.price}</div>
             </div>
