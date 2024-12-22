@@ -29,10 +29,6 @@ const maxRetries = 10;
 let heartbeatInterval: any | undefined;
 let pendingResponses = new Map();
 
-// Add message queue and processing flag
-let messageQueue: any[] = [];
-let isProcessingMessage = false;
-
 // Setup toast store on app initialization
 function app_init() {
     toastStore = getToastStore();
@@ -99,20 +95,18 @@ function handleMessage(event: MessageEvent) {
 
     if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
         const { resolve } = pendingResponses.get(e_data.requestId);
-        resolve(e_data);
-        pendingResponses.delete(e_data.requestId);
+        resolve(e_data); // Resolve the specific promise
+        pendingResponses.delete(e_data.requestId); // Clean up
     } else {
-        switch (e_data.type) {
+        switch (e_data['type']) {
             case "joinedRoom":
                 joinedGameCallback();
                 break;
             case "error":
-                toastStore.trigger({ message: e_data.message });
-                console.error("WebSocket error:", e_data.message);
+                toastStore.trigger({ message: e_data['message'] });
                 break;
             case "state":
-                messageQueue.push(e_data);
-                processMessageQueue();
+                updateState(e_data['state']);
                 break;
             case "roomDestroyed":
                 let p_player = get(player_state);
@@ -226,34 +220,6 @@ async function getTime() {
         return response['time'];
     } catch (error) {
         console.error("Failed to get time:", error);
-    }
-}
-
-// Add state validation
-function validateStateMessage(message: any) {
-    return message?.state?.screen && screens[message.state.screen];
-}
-
-// Process messages sequentially
-async function processMessageQueue() {
-    if (isProcessingMessage || messageQueue.length === 0) return;
-
-    isProcessingMessage = true;
-    const message = messageQueue.shift();
-
-    try {
-        if (validateStateMessage(message)) {
-            // Ensure store is updated in next tick
-            await Promise.resolve();
-            player_state.set(message.state);
-        }
-    } catch (err) {
-        console.error('Error processing state:', err);
-    } finally {
-        isProcessingMessage = false;
-        if (messageQueue.length > 0) {
-            processMessageQueue();
-        }
     }
 }
 
