@@ -29,7 +29,6 @@ const maxRetries = 10;
 let heartbeatInterval: any | undefined;
 let pendingResponses = new Map();
 
-<<<<<<< HEAD
 // Add message queue and processing flag
 let messageQueue: any[] = [];
 let isProcessingMessage = false;
@@ -42,8 +41,6 @@ let isReconnecting = false;
 const HEARTBEAT_INTERVAL = 15000; // 15 seconds
 const HEARTBEAT_TIMEOUT = 5000;   // 5 seconds
 
-=======
->>>>>>> origin/main
 // Setup toast store on app initialization
 function app_init() {
     toastStore = getToastStore();
@@ -79,7 +76,6 @@ const joinedGameCallback = async () => {
             data: { avatar },
         });
     }
-<<<<<<< HEAD
 }
 
 // Enhance WebSocket setup
@@ -173,59 +169,6 @@ function handleMessage(event: MessageEvent) {
         }
     } catch (err) {
         console.error('Message handling error:', err);
-=======
-};
-
-// WebSocket setup with error handling and reconnection
-function websocketSetup() {
-    if (ws) {
-        ws.onmessage = null;
-        ws.onclose = null;
-        ws.onerror = null;
-    }
-
-    ws = new WebSocket('wss://lil-feed.com:5004/');
-
-    ws.onmessage = handleMessage;
-    ws.onclose = handleWebSocketClose;
-    ws.onerror = handleWebSocketError;
-
-    ws.onopen = () => {
-        retryCount = 0; // Reset retry count on successful connection
-        startHeartbeat();
-        if (playing) {
-            joinRoom(r_code, r_name); // Rejoin the room
-        }
-    };
-}
-
-// Handle WebSocket messages
-function handleMessage(event: MessageEvent) {
-    const e_data = JSON.parse(event.data);
-
-    if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
-        const { resolve } = pendingResponses.get(e_data.requestId);
-        resolve(e_data); // Resolve the specific promise
-        pendingResponses.delete(e_data.requestId); // Clean up
-    } else {
-        switch (e_data['type']) {
-            case "joinedRoom":
-                joinedGameCallback();
-                break;
-            case "error":
-                toastStore.trigger({ message: e_data['message'] });
-                break;
-            case "state":
-                updateState(e_data['state']);
-                break;
-            case "roomDestroyed":
-                let p_player = get(player_state);
-                playing = false;
-                p_player.screen = "room_ended";
-                player_state.set(p_player);
-                break;
-        }
->>>>>>> origin/main
     }
 }
 
@@ -241,7 +184,6 @@ function handleWebSocketError(event: Event) {
     console.error("WebSocket error:", event);
 }
 
-<<<<<<< HEAD
 // Enhanced sendMessageAndWaitForResponse with timeout
 function sendMessageAndWaitForResponse(message: any, timeoutMs: number = 5000) {
     const requestId = uuidv4();
@@ -256,51 +198,13 @@ function sendMessageAndWaitForResponse(message: any, timeoutMs: number = 5000) {
         }, timeoutMs);
 
         pendingResponses.set(requestId, { resolve, reject, timeout });
-=======
-// Reconnect with exponential backoff
-function reconnect() {
-    if (retryCount >= maxRetries) {
-        console.error("Max retries reached. Stopping reconnection attempts.");
-        toastStore.trigger({ message: "Failed to reconnect to server. Please refresh." });
-        return;
-    }
-
-    setTimeout(() => {
-        console.log(`Reconnecting... Attempt ${retryCount + 1}`);
-        websocketSetup();
-        retryCount++;
-    }, Math.min(1000 * Math.pow(2, retryCount), 30000)); // Exponential backoff, capped at 30 seconds
-}
-
-// Start a heartbeat to keep the connection alive
-function startHeartbeat() {
-    clearInterval(heartbeatInterval);
-    heartbeatInterval = setInterval(() => {
-        if (ws?.readyState === WebSocket.OPEN) {
-            sendMessage({ type: "heartbeat" });
-        }
-    }, 30000); // Send a heartbeat every 30 seconds
-}
-
-// Send a message and wait for a response
-function sendMessageAndWaitForResponse(message: any) {
-    const requestId = uuidv4(); // Generate a unique ID for this request
-    message.requestId = requestId;
-
-    return new Promise((resolve, reject) => {
-        pendingResponses.set(requestId, { resolve, reject });
->>>>>>> origin/main
 
         if (ws?.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(message));
         } else {
-<<<<<<< HEAD
             clearTimeout(timeout);
             pendingResponses.delete(requestId);
             reject(new Error("WebSocket is not open"));
-=======
-            reject(new Error("WebSocket is not open. Message not sent."));
->>>>>>> origin/main
         }
     });
 }
@@ -357,7 +261,6 @@ async function getTime() {
     }
 }
 
-<<<<<<< HEAD
 // Add state validation
 function validateStateMessage(message: any) {
     return message?.state?.screen && screens[message.state.screen];
@@ -408,6 +311,4 @@ function reconnect() {
     }, backoffTime);
 }
 
-=======
->>>>>>> origin/main
 export { joinRoom, setup_script, app_init, sendMessage, getName, getTime };
