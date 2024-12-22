@@ -33,14 +33,6 @@ let pendingResponses = new Map();
 let messageQueue: any[] = [];
 let isProcessingMessage = false;
 
-// Add connection state tracking
-let isConnected = false;
-let isReconnecting = false;
-
-// Add constants
-const HEARTBEAT_INTERVAL = 15000; // 15 seconds
-const HEARTBEAT_TIMEOUT = 5000;   // 5 seconds
-
 // Setup toast store on app initialization
 function app_init() {
     toastStore = getToastStore();
@@ -76,99 +68,59 @@ const joinedGameCallback = async () => {
             data: { avatar },
         });
     }
-}
+};
 
-// Enhance WebSocket setup
+// WebSocket setup with error handling and reconnection
 function websocketSetup() {
     if (ws) {
-        clearInterval(heartbeatInterval);  // Clear existing heartbeat
         ws.onmessage = null;
         ws.onclose = null;
         ws.onerror = null;
-        ws.close();
     }
 
-    try {
-        ws = new WebSocket('wss://lil-feed.com:5004/');
+    ws = new WebSocket('wss://lil-feed.com:5004/');
 
-        ws.onmessage = handleMessage;
-        ws.onclose = handleWebSocketClose;
-        ws.onerror = handleWebSocketError;
+    ws.onmessage = handleMessage;
+    ws.onclose = handleWebSocketClose;
+    ws.onerror = handleWebSocketError;
 
-        ws.onopen = () => {
-            isConnected = true;
-            isReconnecting = false;
-            retryCount = 0;
-            startHeartbeat();
-            if (playing) {
-                joinRoom(r_code, r_name);
-            }
-        };
-    } catch (err) {
-        console.error('WebSocket setup failed:', err);
-        handleWebSocketError(new Event('error'));
-    }
-}
-
-// Add heartbeat function
-function startHeartbeat() {
-    clearInterval(heartbeatInterval);
-
-    heartbeatInterval = setInterval(async () => {
-        if (!isConnected || !ws) return;
-
-        try {
-            await sendMessageAndWaitForResponse({ type: "getTime" }, HEARTBEAT_TIMEOUT);
-        } catch (error) {
-            console.warn("Heartbeat failed:", error);
-            handleWebSocketClose(new CloseEvent('close', { reason: 'Heartbeat timeout' }));
+    ws.onopen = () => {
+        retryCount = 0; // Reset retry count on successful connection
+        startHeartbeat();
+        if (playing) {
+            joinRoom(r_code, r_name); // Rejoin the room
         }
-    }, HEARTBEAT_INTERVAL);
+    };
 }
 
-// Enhance message queue processing
+// Handle WebSocket messages
 function handleMessage(event: MessageEvent) {
-    try {
-        const e_data = JSON.parse(event.data);
+    const e_data = JSON.parse(event.data);
 
-        // Add message validation
-        if (!e_data || !e_data.type) {
-            console.error('Invalid message format:', e_data);
-            return;
+    if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
+        const { resolve } = pendingResponses.get(e_data.requestId);
+        resolve(e_data);
+        pendingResponses.delete(e_data.requestId);
+    } else {
+        switch (e_data.type) {
+            case "joinedRoom":
+                joinedGameCallback();
+                break;
+            case "error":
+                toastStore.trigger({ message: e_data.message });
+                console.error("WebSocket error:", e_data.message);
+                break;
+            case "state":
+                messageQueue.push(e_data);
+                processMessageQueue();
+                break;
+            case "roomDestroyed":
+                let p_player = get(player_state);
+                playing = false;
+                p_player.screen = "room_ended";
+                player_state.set(p_player);
+                break;
         }
-
-        if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
-            const { resolve, timeout } = pendingResponses.get(e_data.requestId);
-            clearTimeout(timeout);
-            resolve(e_data);
-            pendingResponses.delete(e_data.requestId);
-        } else {
-            switch (e_data.type) {
-                case "joinedRoom":
-                    joinedGameCallback();
-                    break;
-                case "error":
-                    toastStore.trigger({ message: e_data.message });
-                    console.error("WebSocket error:", e_data.message);
-                    break;
-                case "state":
-                    if (messageQueue.length > 50) {
-                        messageQueue.length = 0; // Clear queue if too many pending messages
-                        console.warn('Message queue cleared due to overflow');
-                    }
-                    messageQueue.push(e_data);
-                    processMessageQueue();
-                    break;
-                case "roomDestroyed":
-                    let p_player = get(player_state);
-                    playing = false;
-                    p_player.screen = "room_ended";
-                    player_state.set(p_player);
-                    break;
-            }
-        }
-    } catch (err) {
-        console.error('Message handling error:', err);
     }
 }
 
@@ -184,27 +136,43 @@ function handleWebSocketError(event: Event) {
     console.error("WebSocket error:", event);
 }
 
-// Enhanced sendMessageAndWaitForResponse with timeout
-function sendMessageAndWaitForResponse(message: any, timeoutMs: number = 5000) {
-    const requestId = uuidv4();
+// Reconnect with exponential backoff
+function reconnect() {
+    if (retryCount >= maxRetries) {
+        console.error("Max retries reached. Stopping reconnection attempts.");
+        toastStore.trigger({ message: "Failed to reconnect to server. Please refresh." });
+        return;
+    }
+
+    setTimeout(() => {
+        console.log(`Reconnecting... Attempt ${retryCount + 1}`);
+        websocketSetup();
+        retryCount++;
+    }, Math.min(1000 * Math.pow(2, retryCount), 30000)); // Exponential backoff, capped at 30 seconds
+}
+
+// Start a heartbeat to keep the connection alive
+function startHeartbeat() {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = setInterval(() => {
+        if (ws?.readyState === WebSocket.OPEN) {
+            sendMessage({ type: "heartbeat" });
+        }
+    }, 30000); // Send a heartbeat every 30 seconds
+}
+
+// Send a message and wait for a response
+function sendMessageAndWaitForResponse(message: any) {
+    const requestId = uuidv4(); // Generate a unique ID for this request
     message.requestId = requestId;
 
     return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-            if (pendingResponses.has(requestId)) {
-                pendingResponses.delete(requestId);
-                reject(new Error('Response timeout'));
-            }
-        }, timeoutMs);
-
-        pendingResponses.set(requestId, { resolve, reject, timeout });
+        pendingResponses.set(requestId, { resolve, reject });
 
         if (ws?.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(message));
         } else {
-            clearTimeout(timeout);
-            pendingResponses.delete(requestId);
-            reject(new Error("WebSocket is not open"));
+            reject(new Error("WebSocket is not open. Message not sent."));
         }
     });
 }
@@ -287,28 +255,6 @@ async function processMessageQueue() {
             processMessageQueue();
         }
     }
-}
-
-// Enhance reconnect logic
-function reconnect() {
-    if (isReconnecting || retryCount >= maxRetries) {
-        if (retryCount >= maxRetries) {
-            console.error("Max retries reached");
-            toastStore.trigger({ message: "Connection lost. Please refresh the page." });
-        }
-        return;
-    }
-
-    isReconnecting = true;
-    const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 30000);
-
-    setTimeout(() => {
-        if (!isConnected) {
-            console.log(`Reconnecting... Attempt ${retryCount + 1}`);
-            websocketSetup();
-            retryCount++;
-        }
-    }, backoffTime);
 }
 
 export { joinRoom, setup_script, app_init, sendMessage, getName, getTime };
