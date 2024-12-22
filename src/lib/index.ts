@@ -74,7 +74,7 @@ function websocketSetup() {
         ws.onerror = null;
     }
 
-    ws = new WebSocket('wss://lil-feed.com:5004/');
+    ws = new WebSocket('wss://lil-feed.com/');
 
     ws.onmessage = handleMessage;
     ws.onclose = handleWebSocketClose;

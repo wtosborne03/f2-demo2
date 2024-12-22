@@ -47,7 +47,7 @@
 
       // Create Payment Intent
       const response = await fetch(
-        "https://lil-feed.com/create-payment-intent",
+        "https://lil-feed.com:5004/create-payment-intent",
         {
           method: "POST",
           headers: {
