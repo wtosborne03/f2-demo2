@@ -26,8 +26,10 @@ let r_name = "";
 let playing = false;
 let retryCount = 0;
 const maxRetries = 10;
-let heartbeatInterval: any | undefined;
+
 let pendingResponses = new Map();
+let reconnectInterval: any;
+
 
 // Setup toast store on app initialization
 function app_init() {
@@ -81,8 +83,7 @@ function websocketSetup() {
     ws.onerror = handleWebSocketError;
 
     ws.onopen = () => {
-        retryCount = 0; // Reset retry count on successful connection
-        startHeartbeat();
+        clearInterval(reconnectInterval);
         if (playing) {
             joinRoom(r_code, r_name); // Rejoin the room
         }
@@ -120,8 +121,6 @@ function handleMessage(event: MessageEvent) {
 
 // Handle WebSocket close
 function handleWebSocketClose(event: CloseEvent) {
-    console.warn("WebSocket closed:", event.reason);
-    clearInterval(heartbeatInterval);
     reconnect();
 }
 
@@ -132,27 +131,12 @@ function handleWebSocketError(event: Event) {
 
 // Reconnect with exponential backoff
 function reconnect() {
-    if (retryCount >= maxRetries) {
-        console.error("Max retries reached. Stopping reconnection attempts.");
-        toastStore.trigger({ message: "Failed to reconnect to server. Please refresh." });
-        return;
-    }
-
-    setTimeout(() => {
+    retryCount = 0;
+    reconnectInterval = setTimeout(() => {
+        retryCount++;
         console.log(`Reconnecting... Attempt ${retryCount + 1}`);
         websocketSetup();
-        retryCount++;
-    }, Math.min(1000 * Math.pow(2, retryCount), 30000)); // Exponential backoff, capped at 30 seconds
-}
-
-// Start a heartbeat to keep the connection alive
-function startHeartbeat() {
-    clearInterval(heartbeatInterval);
-    heartbeatInterval = setInterval(() => {
-        if (ws?.readyState === WebSocket.OPEN) {
-            sendMessage({ type: "heartbeat" });
-        }
-    }, 30000); // Send a heartbeat every 30 seconds
+    }, 1000); // Exponential backoff, capped at 1 second
 }
 
 // Send a message and wait for a response
