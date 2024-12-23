@@ -70,7 +70,7 @@
             >Doubloons <i class="fa-solid text-yellow-500 fa-coins ml-2"
             ></i></th
           >
-          <td>{doubloons}</td>
+          <td>{doubloons.toLocaleString()}</td>
         </tr>
         <tr>
           <th>Drinks 🍺</th>
