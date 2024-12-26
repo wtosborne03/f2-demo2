@@ -88,6 +88,10 @@ interface CharadesResultsData {
     score: number;
 }
 
+interface DoodleData {
+    prompt: string;
+}
 
 
-export type { matchData, CharadesResultsData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+
+export type { matchData, DoodleData, CharadesResultsData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };

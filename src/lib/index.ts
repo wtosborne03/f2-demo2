@@ -7,7 +7,7 @@ import { player_state } from '../stores/player_state';
 import { authStore } from './stores/authStore';
 import type { Avatar, PlayerState } from '../types/player_state';
 import { getToastStore, initializeStores, type ToastStore } from '@skeletonlabs/skeleton';
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { supabase } from '../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,9 +27,14 @@ let playing = false;
 let retryCount = 0;
 const maxRetries = 10;
 
+export const conn_store = writable(false);
+
 let pendingResponses = new Map();
 let reconnectInterval: any;
-
+let pingInterval: any;
+const pingIntervalTime = 6 * 1000; // 30 seconds
+const pingTimeoutTime = 5 * 1000; // 10 seconds
+let pongTimeout: any;
 
 // Setup toast store on app initialization
 function app_init() {
@@ -83,7 +88,11 @@ function websocketSetup() {
     ws.onerror = handleWebSocketError;
 
     ws.onopen = () => {
+        conn_store.set(true);
         clearInterval(reconnectInterval);
+        clearInterval(pingInterval);
+        clearTimeout(pongTimeout);
+        pingInterval = setInterval(sendPing, pingIntervalTime);
         if (playing) {
             joinRoom(r_code, r_name); // Rejoin the room
         }
@@ -93,6 +102,10 @@ function websocketSetup() {
 // Handle WebSocket messages
 function handleMessage(event: MessageEvent) {
     const e_data = JSON.parse(event.data);
+
+    if (e_data.type === "pong") {
+        clearTimeout(pongTimeout);
+    }
 
     if (e_data.requestId && pendingResponses.has(e_data.requestId)) {
         const { resolve } = pendingResponses.get(e_data.requestId);
@@ -121,6 +134,8 @@ function handleMessage(event: MessageEvent) {
 
 // Handle WebSocket close
 function handleWebSocketClose(event: CloseEvent) {
+    conn_store.set(false);
+    clearInterval(pingInterval);
     reconnect();
 }
 
@@ -204,6 +219,17 @@ async function getTime() {
         return response['time'];
     } catch (error) {
         console.error("Failed to get time:", error);
+    }
+}
+
+// Send a ping message
+function sendPing() {
+    if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "ping" }));
+        pongTimeout = setTimeout(() => {
+            console.error("Pong not received in time, closing WebSocket.");
+            handleWebSocketClose(new CloseEvent("close", { code: 1006, reason: "Pong not received" }));
+        }, pingTimeoutTime);
     }
 }
 
