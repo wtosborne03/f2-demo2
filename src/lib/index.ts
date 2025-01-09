@@ -81,7 +81,7 @@ function websocketSetup() {
         ws.onerror = null;
     }
 
-    ws = new WebSocket('wss://lil-feed.com/');
+    ws = new WebSocket('wss://api.couchcup.tv');
 
     ws.onmessage = handleMessage;
     ws.onclose = handleWebSocketClose;

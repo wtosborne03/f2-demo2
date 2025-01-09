@@ -51,6 +51,8 @@
   import CharadesResults from "../pages/charades_results.svelte";
   import DoodleDraw from "../pages/doodle_draw.svelte";
   import Spinner from "../components/spinner.svelte";
+  import KnowPrompt from "../pages/know_prompt.svelte";
+  import KnowGuess from "../pages/know_guess.svelte";
   const screens: { [key: string]: any } = {
     index: Start,
     blank: Blank,
@@ -91,6 +93,8 @@
     charades_act: CharadesAct,
     charades_results: CharadesResults,
     doodle_draw: DoodleDraw,
+    know_prompt: KnowPrompt,
+    know_guess: KnowGuess,
   };
   app_init();
   /** Plays a background animation/emote */
