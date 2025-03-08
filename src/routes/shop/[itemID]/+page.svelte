@@ -47,7 +47,7 @@
 
       // Create Payment Intent
       const response = await fetch(
-        "https://api.couchcup.tv:5004/create-payment-intent",
+        "https://api.couchcup.tv/create-payment-intent",
         {
           method: "POST",
           headers: {

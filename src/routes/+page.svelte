@@ -25,7 +25,6 @@
   import ListGuess from "../pages/list_guess.svelte";
   import Ball from "../pages/ball.svelte";
   import BusCard from "../pages/bus_card.svelte";
-  import ProductPrompt from "../pages/product_prompt.svelte";
   import ShakeConfirm from "../pages/shake_confirm.svelte";
   import ShakeGame from "../pages/shake_game.svelte";
   import SketchMatch from "../pages/sketch_match.svelte";
@@ -53,6 +52,7 @@
   import Spinner from "../components/spinner.svelte";
   import KnowPrompt from "../pages/know_prompt.svelte";
   import KnowGuess from "../pages/know_guess.svelte";
+  import ProductName from "../pages/product_name.svelte";
   const screens: { [key: string]: any } = {
     index: Start,
     blank: Blank,
@@ -70,7 +70,7 @@
     list_guess: ListGuess,
     ball: Ball,
     bus_card: BusCard,
-    product_prompt: ProductPrompt,
+    product_prompt: ProductName,
     shake_confirm: ShakeConfirm,
     shake_game: ShakeGame,
     sketch_match: SketchMatch,

@@ -14,8 +14,9 @@
     sendMessage({
       type: "game",
       data: {
-        type: "answer",
-        answer: answer_text,
+        type: "product",
+        part: "name",
+        data: answer_text,
       },
     });
   }
@@ -24,14 +25,12 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div class="mb-2 p-4 text-center">
-    Come with <b>{m_data.category}</b> product ideas
-  </div>
+  <div class="mb-2 p-4 text-center">Come up with a name for your product</div>
   <form class="flex flex-col justify-center items-center w-full">
     <input
       class="input w-full"
       type="text"
-      maxlength="50"
+      maxlength="20"
       bind:value={answer_text}
       on:submit={submit_prompt}
     />

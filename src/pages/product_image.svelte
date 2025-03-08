@@ -2,7 +2,7 @@
   import { sendMessage } from "$lib";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
-  import type { DoodleData, matchPerson, PromptData } from "../types/page_data";
+  import type { ProductPromptData, PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
 
   import Canvas from "../components/canvas.svelte";
@@ -14,7 +14,7 @@
   let color = colors[0];
   const paletteColor = color;
 
-  let m_data: DoodleData;
+  let m_data: ProductPromptData;
   m_data = get<PlayerState>(player_state).page_data;
 
   function submit_prompt() {
@@ -25,7 +25,8 @@
     sendMessage({
       type: "game",
       data: {
-        type: "answer",
+        type: "product",
+        part: "image",
         data: image,
       },
     });
@@ -33,9 +34,9 @@
 </script>
 
 <div
-  class="container h-full min-h-screen mx-auto flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <div class="text-2xl mb-3">Drawing Prompt: {m_data.prompt}</div>
+  <div class="mb-2 p-4 text-center">Draw an image of your product</div>
   <form class=" flex flex-col justify-center items-center gap-4 my-12">
     <Canvas square {color} {background} />
     <Palette

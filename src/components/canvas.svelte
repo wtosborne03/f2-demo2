@@ -5,6 +5,7 @@
   export let height = 320;
   export let color = "#333";
   export let background = "#fff";
+  export let square = false;
 
   let canvas;
   let context;
@@ -15,7 +16,7 @@
 
   onMount(() => {
     width = Math.min(window.innerWidth - 50, 500);
-    height = width * 1.3;
+    height = square ? width : width * 1.3;
     context = canvas.getContext("2d");
     context.lineWidth = 1;
 
