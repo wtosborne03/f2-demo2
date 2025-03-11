@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { v4 as uuidv4 } from 'uuid';
-import { joinedGameCallback, roomEnded, updateState } from './gameService';
+import { joinedGameCallback, joinRoom, roomEnded, updateState, getPlaying, reJoinRoom } from './gameService';
 import { getToastStore, type ToastStore } from '@skeletonlabs/skeleton';
 
 export const conn_store = writable(false);
@@ -35,6 +35,10 @@ export function websocketSetup() {
         clearInterval(pingInterval);
         clearTimeout(pongTimeout);
         pingInterval = setInterval(sendPing, pingIntervalTime);
+        if (getPlaying()) {
+            reJoinRoom();
+        }
+
     };
 }
 

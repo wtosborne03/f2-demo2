@@ -31,6 +31,13 @@ export function joinRoom(code: string, name: string) {
     });
 }
 
+export function reJoinRoom() {
+    sendRawMessage({
+        type: "joinRoom",
+        data: { roomId: r_code, name: r_name, userID: get(authStore).user?.id },
+    });
+}
+
 /**
  * Callback function during game join, initializes player state.
  * @returns 
@@ -81,6 +88,10 @@ export function roomEnded() {
 
 export function getName() {
     return r_name;
+}
+
+export function getPlaying() {
+    return playing;
 }
 
 /**
