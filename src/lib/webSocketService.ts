@@ -117,7 +117,10 @@ export function sendMessageAndWaitForResponse(message: any) {
  */
 export function sendMessage(message: any) {
     if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "sendToHost", data: { message } }));
+        //ws.send(JSON.stringify({ type: "sendToHost", data: { message } }));
+
+        // use predefined string format to send faster
+        ws.send("SEND" + JSON.stringify(message));
     } else {
         console.error("WebSocket is not open. Message not sent.");
     }
