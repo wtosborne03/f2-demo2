@@ -6,11 +6,13 @@
   import { blur } from "svelte/transition";
   import Spinner from "$lib/components/spinner.svelte";
   import { browser } from "$app/environment";
+  import { getToastStore } from "@skeletonlabs/skeleton";
 
   // Properly typed dynamic imports
   const screens: Record<string, any> = import.meta.glob("../pages/*.svelte");
 
   let Component: typeof SvelteComponent | null = null;
+  const toastStore = getToastStore();
 
   async function loadComponent(): Promise<void> {
     const path = `../pages/${$player_state.screen}.svelte`;
@@ -33,7 +35,7 @@
 
   $: $player_state.screen, loadComponent(); // Auto-update when screen changes
   if (browser) {
-    websocketSetup();
+    websocketSetup(toastStore);
   }
 </script>
 

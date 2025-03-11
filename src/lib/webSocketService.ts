@@ -5,18 +5,21 @@ import { getToastStore, type ToastStore } from '@skeletonlabs/skeleton';
 
 export const conn_store = writable(false);
 
+const pingIntervalTime = 6 * 1000; // 30 seconds
+const pingTimeoutTime = 5 * 1000; // 10 seconds
+
 let ws: WebSocket | null = null;
 let pendingResponses = new Map();
 let reconnectInterval: any;
 let pingInterval: any;
-const pingIntervalTime = 6 * 1000; // 30 seconds
-const pingTimeoutTime = 5 * 1000; // 10 seconds
 let pongTimeout: any;
-
 let toastStore: ToastStore;
 
-export function websocketSetup() {
-    toastStore = getToastStore();
+// initialize websocket, pass ui store
+export function websocketSetup(toast_store?: ToastStore) {
+    if (toast_store) {
+        toastStore = toast_store;
+    }
     ws = new WebSocket('wss://api.couchcup.tv');
 
     ws.onmessage = handleMessage;
@@ -37,9 +40,7 @@ export function websocketSetup() {
 }
 
 
-
-
-
+//message router
 function handleMessage(event: MessageEvent) {
     const e_data = JSON.parse(event.data);
 
