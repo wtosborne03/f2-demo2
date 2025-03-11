@@ -12,7 +12,7 @@
     blobToWebP,
     arrayBufferToWebP,
   } from "webp-converter-browser";
-  import Spinner from "../components/spinner.svelte";
+  import Spinner from "$lib/components/spinner.svelte";
 
   let m_data: PromptData;
   m_data = get<PlayerState>(player_state).page_data;
