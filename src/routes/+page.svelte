@@ -1,9 +1,11 @@
 <script lang="ts">
+  export const ssr = false; // Disable SSR for this component
   import type { SvelteComponent } from "svelte";
   import { conn_store, websocketSetup } from "$lib/webSocketService";
   import { player_state } from "../stores/player_state";
   import { blur } from "svelte/transition";
   import Spinner from "$lib/components/spinner.svelte";
+  import { browser } from "$app/environment";
 
   // Properly typed dynamic imports
   const screens: Record<string, any> = import.meta.glob("../pages/*.svelte");
@@ -30,8 +32,9 @@
   }
 
   $: $player_state.screen, loadComponent(); // Auto-update when screen changes
-
-  websocketSetup();
+  if (browser) {
+    websocketSetup();
+  }
 </script>
 
 {#key $player_state.screen}
