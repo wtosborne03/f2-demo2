@@ -1,9 +1,8 @@
 // paymentService.ts
 import { loadStripe } from "@stripe/stripe-js";
 import { supabase } from "$lib/config/supabaseClient";
-import { PUBLIC_PAYMENT_URL, PUBLIC_STRIPE_KEY } from "$env/static/public";
 import type { Database, Tables } from "../../../database.types";
-const stripePromise = loadStripe(PUBLIC_STRIPE_KEY);
+const stripePromise = loadStripe("pk_live_51OH7QBEaNbJFWzSSzsO1wsvWMFzITvS3qn195uDKwSiDQ6Y85Vm9yCMfzWMnpmcMTXhHWLalN3Xx49Bv7H4FyOzF00FHnrOF7v");
 
 export const loadItem = async (itemID: string) => {
     const { data, error } = await supabase
@@ -27,7 +26,7 @@ export const loadItem = async (itemID: string) => {
  * @returns - The client secret for the payment intent
  */
 export const createPaymentIntent = async (shopId: string, userId: string): Promise<string> => {
-    const response = await fetch(PUBLIC_PAYMENT_URL, {
+    const response = await fetch("https://api.couchcup.tv/create-payment-intent", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
