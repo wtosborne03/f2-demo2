@@ -63,6 +63,7 @@
 
   const joinGame = async () => {
     name = name.substring(0, 10);
+    name = name.trim();
     if ($authStore.user === null) {
       //not logged in
     } else {
