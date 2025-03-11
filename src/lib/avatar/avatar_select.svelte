@@ -2,14 +2,14 @@
   import { onDestroy, onMount, tick } from "svelte";
   import * as rive from "@rive-app/canvas";
   import { goto } from "$app/navigation";
-  import { supabase } from "../../supabaseClient";
-  import { authStore } from "$lib/stores/authStore";
+  import { supabase } from "../config/supabaseClient";
+  import { authStore } from "../../stores/authStore";
   import { getToastStore } from "@skeletonlabs/skeleton";
   import { get } from "svelte/store";
   import { player_state } from "../../stores/player_state";
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import type { Avatar } from "../../types/player_state";
-  import Spinner from "../../components/spinner.svelte";
+  import Spinner from "$lib/components/spinner.svelte";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
@@ -78,7 +78,7 @@
           .eq("user_id", $authStore.user?.id)
           .then((res) => {
             if (!res.data) return;
-            owned_items = res.data.reduce((acc: any, currentItem) => {
+            owned_items = res.data.reduce((acc: any, currentItem: any) => {
               const type = currentItem.shop.type;
               if (!acc[type]) {
                 acc[type] = [];

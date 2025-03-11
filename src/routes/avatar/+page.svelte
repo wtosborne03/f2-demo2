@@ -1,5 +1,5 @@
 <script>
-  import AvatarSelect from "$lib/auth/avatar_select.svelte";
+  import AvatarSelect from "$lib/avatar/avatar_select.svelte";
 </script>
 
 <AvatarSelect />

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   function confirm() {
     sendMessage({
       type: "game",

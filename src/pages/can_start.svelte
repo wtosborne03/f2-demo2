@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { sendMessage } from "$lib/index";
-  import { playerEmote } from "$lib/player_emote";
+  import { sendMessage } from "$lib/webSocketService";
+  import { playerEmote } from "$lib/avatar/player_emote";
   import {
     SlideToggle,
-    RangeSlider,
     getDrawerStore,
     getModalStore,
     Tab,
@@ -14,8 +13,8 @@
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
-  import { authStore } from "$lib/stores/authStore";
-  import { drawerSettings } from "$lib/drawer";
+  import { authStore } from "../stores/authStore";
+  import { drawerSettings } from "$lib/config/drawer";
 
   let s_data: adminStartData;
   s_data = get<PlayerState>(player_state).page_data;

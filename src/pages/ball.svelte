@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import { onDestroy, onMount } from "svelte";
   import JoystickController from "joystick-controller";
   import { get } from "svelte/store";

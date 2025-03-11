@@ -1,10 +1,5 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { supabase } from "../../supabaseClient";
-
-  import { authStore } from "$lib/stores/authStore";
-
-  const age = $authStore.user!.created_at;
 </script>
 
 <div class="px-16 flex h-full flex-col justify-start items-center">

@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import { supabase } from '../../supabaseClient'; // Adjust the path as necessary
+import { supabase } from '../lib/config/supabaseClient'; // Adjust the path as necessary
 import type { User } from '@supabase/supabase-js';
 
 // Create a writable store to keep track of the authentication state

@@ -1,6 +1,6 @@
 
 import gsap from "gsap";
-import { sendMessage } from "$lib";
+import { sendMessage } from "$lib/webSocketService";
 
 function playerEmote(event: Event) {
     if (event.target !== event.currentTarget) {

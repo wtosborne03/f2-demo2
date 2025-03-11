@@ -1,16 +1,10 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { get, writable, type Updater } from "svelte/store";
-  import { supabase } from "../../supabaseClient";
-  import { authStore } from "$lib/stores/authStore";
-  import AvatarSelect from "./avatar_select.svelte";
+  import { supabase } from "../config/supabaseClient";
+  import { authStore } from "../../stores/authStore";
   import { goto } from "$app/navigation";
   import { getDrawerStore, getToastStore } from "@skeletonlabs/skeleton";
-  import { sendMessage } from "$lib";
-  import { player_state } from "../../stores/player_state";
-  import type { PlayerState } from "../../types/player_state";
+
   import GoogleSignInButton from "$lib/components/GoogleSignInButton.svelte";
-  import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
   import AppleSignInButton from "$lib/components/AppleSignInButton.svelte";
 
   const drawerStore = getDrawerStore();

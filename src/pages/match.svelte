@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import type { matchData, PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
-  import CardSwiper from "$lib/CardSwiper/CardSwiper.svelte";
+  import CardSwiper from "$lib/components/CardSwiper/CardSwiper.svelte";
+  import type { CardData, Direction } from "$lib/components/CardSwiper";
 
   let m_data: matchData;
   m_data = get<PlayerState>(player_state).page_data;

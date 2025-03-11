@@ -4,7 +4,7 @@
   export const ssr = false;
   import { onMount } from "svelte";
   import doubloon from "$lib/assets/icons/doubloon.png";
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
 
   let game: Phaser.Game;
 

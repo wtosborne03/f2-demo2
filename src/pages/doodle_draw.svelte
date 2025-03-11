@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import type { DoodleData, matchPerson, PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
 
-  import Canvas from "../components/canvas.svelte";
-  import Palette from "../components/palette.svelte";
+  import Canvas from "../lib/components/canvas.svelte";
+  import Palette from "$lib/components/palette.svelte";
 
   const colors = ["#000000", "#ffffff"];
   const background = "#fff";

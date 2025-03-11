@@ -1,12 +1,12 @@
 <script lang="ts">
-  import Drink from "$lib/drink.svelte";
+  import Drink from "$lib/components/drink.svelte";
   import { get } from "svelte/store";
   import { player_state } from "../stores/player_state";
   import type { DrinkingPrompt } from "../types/page_data";
 
   const m_data = $player_state.page_data as DrinkingPrompt;
 
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import type { PlayerState } from "../types/player_state";
   function confirm() {
     sendMessage({

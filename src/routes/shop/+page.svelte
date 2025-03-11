@@ -1,8 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import { supabase } from "../../supabaseClient";
-  import { authStore } from "$lib/stores/authStore";
+  import { supabase } from "../../lib/config/supabaseClient";
+  import { authStore } from "../../stores/authStore";
 
   let shopItems: { [key: string]: any } = {};
 
@@ -14,29 +14,19 @@
   };
 
   onMount(async () => {
-    if (!$authStore.user) {
-      const { data, error } = await supabase
-        .from("shop")
-        .select("*, owned (user_id)");
+    const query = supabase.from("shop").select("*, owned (user_id)");
 
-      if (error) {
-        console.error(error);
-      } else {
-        shopItems = Object.groupBy(data, ({ type }) => type);
-      }
+    const { data, error } = $authStore.user
+      ? await query.eq("owned.user_id", $authStore.user!.id)
+      : await query;
+
+    if (error) {
+      console.error(error);
     } else {
-      const { data, error } = await supabase
-        .from("shop")
-        .select("*, owned (user_id)")
-        .eq("owned.user_id", $authStore.user!.id);
-      if (error) {
-        console.error(error);
-      } else {
-        shopItems = Object.groupBy(
-          data.filter((item) => item.owned.length == 0),
-          ({ type }) => type,
-        );
-      }
+      shopItems = Object.groupBy(
+        $authStore.user ? data.filter((item) => item.owned.length == 0) : data,
+        ({ type }) => type,
+      );
     }
   });
 </script>

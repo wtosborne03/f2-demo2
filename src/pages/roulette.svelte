@@ -3,7 +3,8 @@
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { getToastStore } from "@skeletonlabs/skeleton";
-  import { getName, sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
+  import { getName } from "$lib/gameService";
   import type { RouletteData } from "../types/page_data";
   import { RangeSlider } from "@skeletonlabs/skeleton";
 

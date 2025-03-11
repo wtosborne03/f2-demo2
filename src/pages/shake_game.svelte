@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import { onDestroy, onMount } from "svelte";
   import { draggable } from "@neodrag/svelte";
   import type { DragEventData } from "@neodrag/svelte";

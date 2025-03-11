@@ -1,5 +1,5 @@
 <script>
-  import { playerEmote } from "$lib/player_emote";
+  import { playerEmote } from "$lib/avatar/player_emote";
 </script>
 
 <div

@@ -1,9 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { supabase } from "../../supabaseClient";
-
-  import { authStore } from "$lib/stores/authStore";
-  import Spinner from "../../components/spinner.svelte";
+  import { supabase } from "../../lib/config/supabaseClient";
+  import { authStore } from "../../stores/authStore";
+  import Spinner from "$lib/components/spinner.svelte";
   import { onMount } from "svelte";
 
   let age = "";
@@ -14,24 +13,32 @@
   let drinks = 0;
   let wins = 0;
 
-  // Load User Stats
+  // Load and Aggregate User Stats
   const loadStats = async () => {
-    age = $authStore.user?.created_at;
-    const [prompts, games] = await Promise.all([
-      supabase.from("prompts").select("*").eq("user", $authStore.user?.id),
-      supabase.from("games_played").select("*").eq("user", $authStore.user?.id),
-    ]);
+    const userId = $authStore.user?.id;
+    if (!userId) return;
 
-    prompt_count = prompts.data!.length;
-    game_count = games.data!.length;
+    age = $authStore.user!.created_at;
 
-    for (const game of games.data!) {
+    const { data: prompts } = await supabase
+      .from("prompts")
+      .select("*")
+      .eq("user", userId);
+
+    const { data: games } = await supabase
+      .from("games_played")
+      .select("*")
+      .eq("user", userId);
+
+    prompt_count = prompts?.length || 0;
+    game_count = games?.length || 0;
+
+    games?.forEach((game) => {
       doubloons += game.doubloons;
       drinks += game.drinks;
-      if (game.won) {
-        wins++;
-      }
-    }
+      if (game.won) wins++;
+    });
+
     loading = false;
   };
 
@@ -80,8 +87,7 @@
           <th>Wins</th>
           <td>{wins}</td>
         </tr>
-        <tr> </tr></tbody
-      >
+      </tbody>
     </table>
   {/if}
 </div>

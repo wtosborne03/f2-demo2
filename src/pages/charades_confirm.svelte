@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";

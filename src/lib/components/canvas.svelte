@@ -1,23 +1,23 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
 
-  export let width = 240;
-  export let height = 320;
-  export let color = "#333";
-  export let background = "#fff";
-  export let square = false;
+  export let width: number = 240;
+  export let height: number = 320;
+  export let color: string = "#333";
+  export let background: string = "#fff";
+  export let square: boolean = false;
 
-  let canvas;
-  let context;
-  let isDrawing;
-  let start;
+  let canvas: HTMLCanvasElement;
+  let context: CanvasRenderingContext2D;
+  let isDrawing: boolean = false;
+  let start: { x: number; y: number };
 
-  let t, l;
+  let t: number, l: number;
 
   onMount(() => {
     width = Math.min(window.innerWidth - 50, 500);
     height = square ? width : width * 1.3;
-    context = canvas.getContext("2d");
+    context = canvas.getContext("2d")!;
     context.lineWidth = 1;
 
     context.fillStyle = "white";
@@ -30,7 +30,7 @@
     context.strokeStyle = color;
   }
 
-  const handleStart = ({ offsetX: x, offsetY: y }) => {
+  const handleStart = ({ offsetX: x, offsetY: y }: any) => {
     if (color === background) {
       context.clearRect(0, 0, width, height);
     } else {
@@ -43,7 +43,7 @@
     isDrawing = false;
   };
 
-  const handleMove = ({ offsetX: x1, offsetY: y1 }) => {
+  const handleMove = ({ offsetX: x1, offsetY: y1 }: any) => {
     if (!isDrawing) return;
 
     const { x, y } = start;
@@ -65,23 +65,23 @@
     l = left;
   };
 
-  const handleTouchStart = (e) => {
+  const handleTouchStart = (e: TouchEvent) => {
     e.preventDefault();
     handleSize();
     const { clientX, clientY } = e.touches[0];
     handleStart({
       offsetX: clientX - l,
       offsetY: clientY - t,
-    });
+    } as MouseEvent);
   };
 
-  const handleTouchMove = (e) => {
+  const handleTouchMove = (e: TouchEvent) => {
     e.preventDefault();
     const { clientX, clientY } = e.touches[0];
     handleMove({
       offsetX: clientX - l,
       offsetY: clientY - t,
-    });
+    } as MouseEvent);
   };
 </script>
 

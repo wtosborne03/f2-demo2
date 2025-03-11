@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Card from "../components/card.svelte";
-  import { sendMessage } from "$lib"; // Assuming you have some WebSocket or API communication
+  import Card from "$lib/components/card.svelte";
+  import { sendMessage } from "$lib/webSocketService"; // Assuming you have some WebSocket or API communication
   import type { BusData } from "../types/page_data";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
-  import Drink from "$lib/drink.svelte";
+  import Drink from "$lib/components/drink.svelte";
 
   let m_data: BusData;
   m_data = get<PlayerState>(player_state).page_data;

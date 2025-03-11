@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import goodMonkey from "$lib/assets/icons/goodMonkey.jpeg";
   import badMonkey from "$lib/assets/icons/evilMonkey.jpeg";
   import { get } from "svelte/store";

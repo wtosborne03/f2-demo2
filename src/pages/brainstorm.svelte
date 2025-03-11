@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { sendMessage } from "$lib";
+  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import type { PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
-  import Spinner from "../components/spinner.svelte";
+  import Spinner from "$lib/components/spinner.svelte";
 
   let answer_text = "";
   let loading = false;

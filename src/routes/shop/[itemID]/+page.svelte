@@ -1,144 +1,83 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onDestroy, onMount } from "svelte";
-  import { supabase } from "../../../supabaseClient";
-  import { loadStripe } from "@stripe/stripe-js";
-
   import { page } from "$app/stores";
-  import Spinner from "../../../components/spinner.svelte";
-  import { authStore } from "$lib/stores/authStore";
-
-  $: console.log($page.params);
+  import Spinner from "$lib/components/spinner.svelte";
+  import { authStore } from "../../../stores/authStore";
+  import {
+    loadItem,
+    createPaymentIntent,
+    initializeStripe,
+    handlePayment,
+  } from "./paymentService";
+  import type { Tables } from "../../../database.types";
 
   const itemID = $page.params.itemID;
 
-  let item: any = null;
-  let clientSecret: string | null = null;
+  let item: Tables<"shop">;
   let stripe: any = null;
   let elements: any = null;
-  let paymentRequest: any = null;
   let applepay = false;
   let loading = true;
 
-  let isMounted = false;
+  const loadPayment = async () => {
+    try {
+      // load shop item / stripe
+      item = (await loadItem(itemID))!;
+      const clientSecret = await createPaymentIntent(
+        item.id.toString(),
+        $authStore.user!.id,
+      );
+      const { stripe, elements, paymentRequest, canMakePayment } =
+        await initializeStripe(clientSecret, item);
 
-  const loadItem = async () => {
-    console.log(itemID);
-    const { data, error } = await supabase
-      .from("shop")
-      .select("*")
-      .eq("id", itemID)
-      .single();
-    if (error) {
-      console.error(error);
-    } else {
-      console.log(data);
-      item = data;
-
-      if (!$authStore.user) {
-        loading = false;
+      // fallback
+      if (!canMakePayment) {
+        const paymentElement = elements.create("payment");
+        paymentElement.mount("#payment-element");
         return;
       }
 
-      // Load Stripe
-      stripe = await loadStripe(
-        "pk_live_51OH7QBEaNbJFWzSSzsO1wsvWMFzITvS3qn195uDKwSiDQ6Y85Vm9yCMfzWMnpmcMTXhHWLalN3Xx49Bv7H4FyOzF00FHnrOF7v",
-      );
-
-      // Create Payment Intent
-      const response = await fetch(
-        "https://api.couchcup.tv/create-payment-intent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            shop_id: item.id,
-            user_id: $authStore.user!.id,
-          }), // Amount in cents
-        },
-      );
-
-      const { clientSecret: secret } = await response.json();
-      clientSecret = secret;
-
-      if (stripe && clientSecret) {
-        elements = stripe.elements({ clientSecret });
-
-        // Create a payment request
-        paymentRequest = stripe.paymentRequest({
-          country: "US",
-          currency: "usd",
-          total: {
-            label: item.name,
-            amount: item.price * 100, // Amount in cents
-          },
-          requestPayerName: true,
-          requestPayerEmail: true,
-        });
-
-        // Check if the payment request is available
-        const result = await paymentRequest.canMakePayment();
-        if (result) {
-          paymentRequest.on("paymentmethod", async (ev: any) => {
-            const { error: confirmError, paymentIntent } =
-              await stripe.confirmCardPayment(clientSecret, {
-                payment_method: ev.paymentMethod.id,
-              });
-
-            if (confirmError) {
-              ev.complete("fail");
-              console.error(confirmError);
-            } else {
-              ev.complete("success");
-              if (paymentIntent.status === "succeeded") {
-                // Handle successful payment
-                goto("/thankyou");
-              }
-            }
+      // Add a listener to handle the payment request
+      paymentRequest.on("paymentmethod", async (ev: any) => {
+        const { error: confirmError, paymentIntent } =
+          await stripe.confirmCardPayment(clientSecret, {
+            payment_method: ev.paymentMethod.id,
           });
-          if (!isMounted) {
-            return;
-          }
 
-          const prButton = elements.create("paymentRequestButton", {
-            paymentRequest: paymentRequest,
-          });
-          prButton.mount("#payment-request-button");
-          applepay = true;
+        if (confirmError) {
+          ev.complete("fail");
+          console.error(confirmError);
         } else {
-          // Fallback to other payment methods if Apple Pay is not available
-          const paymentElement = elements.create("payment");
-          paymentElement.mount("#payment-element");
+          ev.complete("success");
+          if (paymentIntent.status === "succeeded") {
+            goto("/thankyou");
+          }
         }
-        loading = false;
-      }
+      });
+
+      // Mount apple/google pay button
+      const prButton = elements.create("paymentRequestButton", {
+        paymentRequest: paymentRequest,
+      });
+      prButton.mount("#payment-request-button");
+
+      applepay = true;
+    } catch (error) {
+      console.error("Error loading payment:", error);
+    } finally {
+      loading = false;
     }
   };
 
   onMount(() => {
-    loadItem();
-    isMounted = true;
-
-    return () => {
-      isMounted = false;
-    };
+    loadPayment();
   });
 
   async function handleSubmit() {
-    if (!stripe || !elements) {
-      return;
-    }
-
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: "https://play.couchcup.tv/thankyou",
-      },
-    });
-
-    if (error) {
+    try {
+      await handlePayment(stripe, elements);
+    } catch (error) {
       console.error(error);
     }
   }
@@ -152,7 +91,7 @@
     <i class="fa-solid fa-arrow-left mr-2"></i>Back
   </button>
   {#if item}
-    <div class=" p-2 flex-grow flex flex-col items-center justify-between">
+    <div class="p-2 flex-grow flex flex-col items-center justify-between">
       <div class="text-xl">{item.name}</div>
 
       <img src={item.thumbnail} alt="item" class="h-1/3 w-auto my-2" />
