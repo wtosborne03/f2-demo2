@@ -17,12 +17,6 @@ let toastStore: ToastStore;
 
 export function websocketSetup() {
     toastStore = getToastStore();
-    if (ws) {
-        ws.onmessage = null;
-        ws.onclose = null;
-        ws.onerror = null;
-    }
-
     ws = new WebSocket('wss://api.couchcup.tv');
 
     ws.onmessage = handleMessage;
@@ -41,6 +35,10 @@ export function websocketSetup() {
 
     };
 }
+
+
+
+
 
 function handleMessage(event: MessageEvent) {
     const e_data = JSON.parse(event.data);
@@ -78,18 +76,16 @@ function handleMessage(event: MessageEvent) {
 function handleWebSocketClose(event: CloseEvent) {
     conn_store.set(false);
     clearInterval(pingInterval);
-    reconnect();
+    websocketSetup();
 }
 
 function handleWebSocketError(event: Event) {
     console.error("WebSocket error:", event);
+    if (ws?.CLOSED) {
+        websocketSetup();
+    }
 }
 
-function reconnect() {
-    reconnectInterval = setTimeout(() => {
-        websocketSetup();
-    }, 1000);
-}
 
 /**
  * Send a message to the server and wait for a response.
