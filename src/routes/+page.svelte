@@ -34,9 +34,6 @@
   }
 
   $: $player_state.screen, loadComponent(); // Auto-update when screen changes
-  if (browser) {
-    websocketSetup(toastStore);
-  }
 </script>
 
 {#key $player_state.screen}
