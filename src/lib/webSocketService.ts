@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { v4 as uuidv4 } from 'uuid';
-import { joinedGameCallback, joinRoom, roomEnded, updateState, getPlaying, reJoinRoom } from './gameService';
+import { joinedGameCallback, joinRoom, roomEnded, updateState, getPlaying, reJoinRoom, getName } from './gameService';
 import { getToastStore, type ToastStore } from '@skeletonlabs/skeleton';
 
 export const conn_store = writable(false);
@@ -117,7 +117,7 @@ export function sendMessage(message: any) {
         //ws.send(JSON.stringify({ type: "sendToHost", data: { message } }));
 
         // use predefined string format to send faster
-        ws.send("SEND" + JSON.stringify(message));
+        ws.send("SEND" + getName().padEnd(14, ' ') + JSON.stringify(message));
     } else {
         console.error("WebSocket is not open. Message not sent.");
     }
