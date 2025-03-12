@@ -114,7 +114,6 @@ export function sendMessageAndWaitForResponse(message: any) {
  */
 export function sendMessage(message: any) {
     if (ws?.readyState === WebSocket.OPEN) {
-        //ws.send(JSON.stringify({ type: "sendToHost", data: { message } }));
 
         // use predefined string format to send faster
         ws.send("SEND" + getName().padEnd(14, ' ') + JSON.stringify(message));

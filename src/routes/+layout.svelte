@@ -3,7 +3,7 @@
   import "../app.postcss";
   import { onMount, onDestroy } from "svelte";
   import { player_state } from "../stores/player_state";
-  import { initializeStores } from "@skeletonlabs/skeleton";
+  import { getToastStore, initializeStores } from "@skeletonlabs/skeleton";
   import { storePopup } from "@skeletonlabs/skeleton";
   import {
     computePosition,
@@ -20,6 +20,8 @@
   import AuthBox from "$lib/auth/auth_box.svelte";
   import Spinner from "$lib/components/spinner.svelte";
   import { setupErrorHandling } from "$lib/util/error_handling";
+  import { browser } from "$app/environment";
+  import { websocketSetup } from "$lib/webSocketService";
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
@@ -30,10 +32,11 @@
 
   let loading = false;
   //let cleanupErrorHandling = setupErrorHandling();
+  const toastStore = getToastStore();
 
   onMount(() => {
-    if ($player_state.screen == "index") {
-      //websocketSetup();
+    if (browser) {
+      websocketSetup(toastStore);
     }
   });
 
