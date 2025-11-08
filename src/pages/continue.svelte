@@ -16,7 +16,7 @@
   <h3>Game Finished!</h3>
   <button
     style="width: 100%; font-size: 1.5rem;"
-    class="btn variant-filled m-2 p-2"
+    class="btn preset-filled m-2 p-2"
     on:click={confirm}>Restart Game ▶️</button
   >
 </div>

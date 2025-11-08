@@ -101,7 +101,7 @@
         color = detail.color;
       }}
     />
-    <button class="btn variant-filled mb-24" on:click={submit_prompt}
+    <button class="btn preset-filled mb-24" on:click={submit_prompt}
       >Submit</button
     >
   </form>

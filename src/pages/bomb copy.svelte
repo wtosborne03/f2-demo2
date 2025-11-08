@@ -41,7 +41,7 @@
         bind:value={sending_player}
         on:submit={send_bomb}
       />
-      <button class="btn variant-filled mt-12" on:click={send_bomb}>Send</button
+      <button class="btn preset-filled mt-12" on:click={send_bomb}>Send</button
       >
     </form>
   {/if}

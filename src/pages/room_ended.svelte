@@ -2,7 +2,7 @@
   The Game was Ended. 🕹️
   <br />
   <p>
-    <button class="btn variant-filled" on:click={() => window.location.reload()}
+    <button class="btn preset-filled" on:click={() => window.location.reload()}
       >Restart</button
     >
   </p>

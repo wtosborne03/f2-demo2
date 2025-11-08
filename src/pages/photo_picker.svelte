@@ -53,7 +53,7 @@
   </div>
   <button
     type="button"
-    class="btn variant-filled text-2xl"
+    class="btn preset-filled text-2xl"
     on:click={submit_answer}>Vote for Photo</button
   >
 </div>

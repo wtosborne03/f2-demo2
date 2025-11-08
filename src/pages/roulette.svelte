@@ -2,11 +2,10 @@
   import { player_state } from "../stores/player_state";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
-  import { getToastStore } from "@skeletonlabs/skeleton";
   import { sendMessage } from "$lib/webSocketService";
   import { getName } from "$lib/gameService";
   import type { RouletteData } from "../types/page_data";
-  import { RangeSlider } from "@skeletonlabs/skeleton";
+  import { Slider } from "@skeletonlabs/skeleton-svelte";
 
   let selected_challenge = "";
 
@@ -57,7 +56,7 @@
     if (selected_challenge === "") {
       toastStore.trigger({
         message: "Please select a challenge",
-        background: "variant-filled-error",
+        background: "preset-filled-error-500",
       });
       return;
     }
@@ -78,16 +77,16 @@
   <h1 class="text-4xl font-bold mb-8">Add a punishment to the Wheel</h1>
   {#each available_challenges as challenge}
     <button
-      class={"btn variant-filled w-full mb-4 text-xl font-medium text-wrap" +
+      class={"btn preset-filled w-full mb-4 text-xl font-medium text-wrap" +
         (selected_challenge === challenge
-          ? " variant-filled-primary outline-4 outline-white"
+          ? " preset-filled-primary-500 outline-4 outline-white"
           : "")}
       on:click={() => (selected_challenge = challenge)}
     >
       {challenge}
     </button>
   {/each}
-  <button class="btn variant-filled-secondary mt-8" on:click={placeBet}
+  <button class="btn preset-filled-secondary-500 mt-8" on:click={placeBet}
     >Choose Challenge 🔥</button
   >
 </div>

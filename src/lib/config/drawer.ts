@@ -1,4 +1,4 @@
-import type { DrawerSettings } from "@skeletonlabs/skeleton";
+import type { DrawerSettings } from "@skeletonlabs/skeleton-svelte";
 
 const drawerSettings: DrawerSettings = {
     id: "example-3",

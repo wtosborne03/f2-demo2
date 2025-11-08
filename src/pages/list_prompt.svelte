@@ -24,7 +24,7 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center overflow-scroll"
 >
-  <aside class="alert variant-filled-warning mb-4 text-2xl">
+  <aside class="alert preset-filled-warning-500 mb-4 text-2xl">
     <!-- Icon -->
     <!-- Message -->
     <div class="alert-message">
@@ -45,7 +45,7 @@
         bind:value={survival_prompt}
       />
     </div>
-    <button class="btn variant-filled mt-4" on:click={submit_prompt}
+    <button class="btn preset-filled mt-4" on:click={submit_prompt}
       >Submit</button
     >
   </form>

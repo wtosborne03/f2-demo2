@@ -2,23 +2,22 @@
   import { joinRoom } from "$lib/gameService";
   import { browser } from "$app/environment";
   import logo from "$lib/assets/icons/logo.webp";
-  import { getDrawerStore } from "@skeletonlabs/skeleton";
   import { drawerSettings } from "$lib/config/drawer";
   import { onMount } from "svelte";
-  import { supabase } from "../lib/config/supabaseClient";
   import { authStore } from "../stores/authStore";
+  import { authDialog } from "../stores/dialog";
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
 
   const updateName = async (new_name: string) => {
-    const { error } = await supabase
-      .from("users")
-      .update({ game_name: new_name })
-      .eq("id", $authStore.user?.id);
-    if (error) {
-      console.error(error);
-    }
+    // const { error } = await supabase
+    //   .from("users")
+    //   .update({ game_name: new_name })
+    //   .eq("id", $authStore.user?.id);
+    // if (error) {
+    //   console.error(error);
+    // }
   };
 
   const fetchName = async () => {
@@ -27,22 +26,22 @@
     }
 
     // if user has logged in
-    const { error, data } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", $authStore.user?.id)
-      .single();
-    if (error) {
-      console.error(error);
-    } else {
-      if (data.game_name === null && name !== "") {
-        updateName(name);
-      }
-      if (data.game_name !== null) {
-        name = data.game_name;
-        localStorage.setItem("name", name);
-      }
-    }
+    // const { error, data } = await supabase
+    //   .from("users")
+    //   .select("*")
+    //   .eq("id", $authStore.user?.id)
+    //   .single();
+    // if (error) {
+    //   console.error(error);
+    // } else {
+    //   if (data.game_name === null && name !== "") {
+    //     updateName(name);
+    //   }
+    //   if (data.game_name !== null) {
+    //     name = data.game_name;
+    //     localStorage.setItem("name", name);
+    //   }
+    // }
   };
 
   authStore.subscribe((store) => {
@@ -59,7 +58,7 @@
     }
   });
 
-  const drawerStore = getDrawerStore();
+  //const drawerStore = getDrawerStore();
 
   const joinGame = async () => {
     name = name.substring(0, 10);
@@ -76,8 +75,10 @@
 
 <div class="w-full flex flex-row justify-end items-center">
   <button
-    class="btn variant-filled"
-    on:click={() => drawerStore.open(drawerSettings)}
+    class="btn preset-filled"
+    on:click={() => {
+      authDialog.set(true);
+    }}
     >{#if $authStore.user}
       Account <i class="fa-solid fa-user ml-2"></i>
     {:else}
@@ -119,44 +120,9 @@
           bind:value={name}
         />
       </label>
-      <button class="btn variant-filled" id="joinButton" on:click={joinGame}
+      <button class="btn preset-filled" id="joinButton" on:click={joinGame}
         >Join</button
       >
     </div>
   </div>
 </div>
-
-<style lang="postcss">
-  figure {
-    @apply flex relative flex-col;
-  }
-  figure svg,
-  .img-bg {
-    @apply w-64 h-64 md:w-80 md:h-80;
-  }
-  .img-bg {
-    @apply absolute z-[-1] rounded-full blur-[50px] transition-all;
-    animation:
-      pulse 5s cubic-bezier(0, 0, 0, 0.5) infinite,
-      glow 5s linear infinite;
-  }
-  @keyframes glow {
-    0% {
-      @apply bg-primary-400/50;
-    }
-    33% {
-      @apply bg-secondary-400/50;
-    }
-    66% {
-      @apply bg-tertiary-400/50;
-    }
-    100% {
-      @apply bg-primary-400/50;
-    }
-  }
-  @keyframes pulse {
-    50% {
-      transform: scale(1.5);
-    }
-  }
-</style>

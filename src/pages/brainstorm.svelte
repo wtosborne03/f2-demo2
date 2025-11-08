@@ -40,7 +40,7 @@
       on:submit={submit_prompt}
     />
     <button
-      class="btn variant-filled mt-12"
+      class="btn preset-filled mt-12"
       on:click={submit_prompt}
       disabled={loading}
       >{#if loading}<Spinner />{:else}Submit{/if}</button

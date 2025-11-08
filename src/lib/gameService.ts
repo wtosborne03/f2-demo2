@@ -1,6 +1,5 @@
 import { player_state } from '../stores/player_state';
 import { authStore } from '../stores/authStore';
-import { supabase } from './config/supabaseClient';
 import { sendMessage, sendMessageAndWaitForResponse, sendRawMessage } from './webSocketService';
 import type { Avatar, PlayerState } from '../types/player_state';
 import { get } from 'svelte/store';
@@ -47,24 +46,24 @@ export const joinedGameCallback = async () => {
     if (user) {
         console.log("Joined game callback");
         playing = true;
-
+        return;
         // Fetch avatar data and send it
-        const { error, data } = await supabase.from('users').select('*').eq('id', user.id).single();
-        if (error) {
-            console.error(error);
-            return;
-        }
+        //const { error, data } = await supabase.from('users').select('*').eq('id', user.id).single();
+        // if (error) {
+        //     console.error(error);
+        //     return;
+        // }
 
-        const avatar: Avatar = {
-            eyes: data.avatar_eyes || 0,
-            hair: data.avatar_hair || 0,
-            mouth: data.avatar_mouth || 0,
-            emote: data.avatar_emote || 0,
-        };
-        sendMessage({
-            type: "avatar_update",
-            data: { avatar },
-        });
+        // const avatar: Avatar = {
+        //     eyes: data.avatar_eyes || 0,
+        //     hair: data.avatar_hair || 0,
+        //     mouth: data.avatar_mouth || 0,
+        //     emote: data.avatar_emote || 0,
+        // };
+        // sendMessage({
+        //     type: "avatar_update",
+        //     data: { avatar },
+        // });
     }
 };
 

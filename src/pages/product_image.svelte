@@ -48,7 +48,7 @@
       }}
     />
     <button
-      class="btn variant-filled mb-24 mt-12 px-10"
+      class="btn preset-filled mb-24 mt-12 px-10"
       on:click={submit_prompt}>Submit</button
     >
   </form>

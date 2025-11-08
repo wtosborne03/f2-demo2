@@ -1,6 +1,5 @@
 <script lang="ts">
   import { player_state } from "../../../stores/player_state";
-  import { getDrawerStore } from "@skeletonlabs/skeleton";
   import { drawerSettings } from "$lib/config/drawer";
   import doubloon from "$lib/assets/icons/doubloon.png";
 
@@ -10,7 +9,7 @@
   $: team = $player_state.team;
   $: color = $player_state.color;
 
-  const drawerStore = getDrawerStore();
+  // const drawerStore = getDrawerStore();
 </script>
 
 <div class="z-20 block">
@@ -18,7 +17,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     on:click={() => {
-      drawerStore.open(drawerSettings);
+      // drawerStore.open(drawerSettings);
     }}
     class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4 hover:opacity-70 cursor-pointer"
     style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"

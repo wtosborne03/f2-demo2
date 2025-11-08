@@ -16,7 +16,7 @@
   <h3 class="text-2xl mb-6">Act out your prompt</h3>
   <button
     style="font-size: 1.5rem;"
-    class="btn variant-filled-error m-2 p-4"
+    class="btn preset-filled-error-500 m-2 p-4"
     on:click={confirm}>I'm Done</button
   >
 </div>

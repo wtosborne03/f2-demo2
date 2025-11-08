@@ -36,7 +36,7 @@
 >
   <div class="px-8">
     <button
-      class="btn variant-filled mb-6 mt-4 w-full"
+      class="btn preset-filled mb-6 mt-4 w-full"
       on:click={() => goto("/")}
     >
       <i class="fa-solid fa-arrow-left mr-2"></i>Back

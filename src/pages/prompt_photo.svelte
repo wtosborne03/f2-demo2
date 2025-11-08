@@ -78,7 +78,7 @@
   {/if}
   <div>Select Photo:</div>
   <div class="mb-2 p-4">{m_data.question}</div>
-  <button class="btn variant-filled" on:click={() => fileinput.click()}
+  <button class="btn preset-filled" on:click={() => fileinput.click()}
     >Choose</button
   >
   <input

@@ -4,12 +4,12 @@
   import { goto } from "$app/navigation";
   import { supabase } from "../config/supabaseClient";
   import { authStore } from "../../stores/authStore";
-  import { getToastStore } from "@skeletonlabs/skeleton";
   import { get } from "svelte/store";
   import { player_state } from "../../stores/player_state";
   import { sendMessage } from "$lib/webSocketService";
   import type { Avatar } from "../../types/player_state";
   import Spinner from "$lib/components/spinner.svelte";
+  import Icon from "@iconify/svelte";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
@@ -155,7 +155,7 @@
   class="flex flex-col items-center justify-start h-full px-4 sm:px-8 md:px-16"
 >
   <button
-    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+    class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
     on:click={() => goto("/")}
   >
     <i class="fa-solid fa-arrow-left mr-2"></i>Back
@@ -189,7 +189,7 @@
               >
                 {item.shop.name}
                 {#if a_values[category] == item.shop.value}
-                  <i class="fa-solid fa-check" />
+                  <Icon icon="material-symbols:check" />
                 {/if}
               </div>
             {/each}

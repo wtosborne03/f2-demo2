@@ -2,8 +2,6 @@
   import { drawerSettings } from "$lib/config/drawer";
   import { playerEmote } from "$lib/avatar/player_emote";
   import { authStore } from "../stores/authStore";
-  import { getDrawerStore } from "@skeletonlabs/skeleton";
-
   const drawerStore = getDrawerStore();
 </script>
 

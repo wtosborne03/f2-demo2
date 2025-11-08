@@ -28,7 +28,7 @@
   </div>
   <button
     style="width: 100%; font-size: 1.5rem;"
-    class="btn variant-filled m-2 p-2"
+    class="btn preset-filled m-2 p-2"
     on:click={confirm}>Ready to Act 🤹‍♂️</button
   >
 </div>

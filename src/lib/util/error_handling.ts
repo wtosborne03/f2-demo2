@@ -1,5 +1,3 @@
-import { getToastStore } from "@skeletonlabs/skeleton";
-
 export const setupErrorHandling = () => {
     const toast = getToastStore();
 

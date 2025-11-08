@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 import type { PlayerState } from "../types/player_state";
-import { Avatar } from "@skeletonlabs/skeleton";
+import { Avatar } from "@skeletonlabs/skeleton-svelte";
 
 export const player_state = writable<PlayerState>({
     name: "",

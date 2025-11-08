@@ -49,7 +49,7 @@
   </div>
   <button
     type="button"
-    class="btn variant-filled text-2xl mt-4"
+    class="btn preset-filled text-2xl mt-4"
     on:click={submit_answer}>Vote for Photo</button
   >
 </div>

@@ -1,8 +1,7 @@
 import { writable } from 'svelte/store';
 import { v4 as uuidv4 } from 'uuid';
 import { joinedGameCallback, joinRoom, roomEnded, updateState, getPlaying, reJoinRoom, getName } from './gameService';
-import { getToastStore, type ToastStore } from '@skeletonlabs/skeleton';
-
+import { toaster } from './util/toaster';
 export const conn_store = writable(false);
 
 const pingIntervalTime = 6 * 1000; // 30 seconds
@@ -13,14 +12,13 @@ let pendingResponses = new Map();
 let reconnectInterval: any;
 let pingInterval: any;
 let pongTimeout: any;
-let toastStore: ToastStore;
+
+const wsUrl: string = import.meta.env.VITE_PUBLIC_WS_API_URL;
 
 // initialize websocket, pass ui store
-export function websocketSetup(toast_store?: ToastStore) {
-    if (toast_store) {
-        toastStore = toast_store;
-    }
-    ws = new WebSocket('wss://api.couchcup.tv');
+export function websocketSetup() {
+
+    ws = new WebSocket(wsUrl);
 
     ws.onmessage = handleMessage;
     ws.onclose = handleWebSocketClose;
@@ -62,7 +60,7 @@ function handleMessage(event: MessageEvent) {
             break;
         case "error":
             // Display error message
-            toastStore.trigger({ message: e_data['message'] });
+            toaster.error({ title: "Error", description: e_data['message'] });
             console.error("Error:", e_data['message']);
             break;
         case "state":

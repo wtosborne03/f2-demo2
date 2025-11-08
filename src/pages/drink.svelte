@@ -27,7 +27,7 @@
     <h3>Admin: Make sure that the players have completed their prompt.</h3>
     <button
       style="width: 100%; font-size: 1.5rem;"
-      class="btn variant-filled m-2 p-2"
+      class="btn preset-filled m-2 p-2"
       on:click={confirm}>Confirm 👍</button
     >
   </div>

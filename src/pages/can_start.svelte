@@ -2,13 +2,9 @@
   import { sendMessage } from "$lib/webSocketService";
   import { playerEmote } from "$lib/avatar/player_emote";
   import {
-    SlideToggle,
-    getDrawerStore,
-    getModalStore,
-    Tab,
-  } from "@skeletonlabs/skeleton";
-  import type { ModalSettings } from "@skeletonlabs/skeleton";
-  import { TabGroup } from "@skeletonlabs/skeleton";
+    Tab, Switch, Tabs } from "@skeletonlabs/skeleton-svelte";
+  import type { ModalSettings } from "@skeletonlabs/skeleton-svelte";
+  import { } from "@skeletonlabs/skeleton-svelte";
   import type { adminStartData } from "../types/page_data";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
@@ -50,7 +46,7 @@
   class="container h-full mx-auto flex flex-col justify-center items-center"
   on:click={playerEmote}
 >
-  <button class="btn variant-filled" on:click={promptForStart}
+  <button class="btn preset-filled" on:click={promptForStart}
     >Start Game <i class=""></i></button
   >
 
@@ -61,19 +57,19 @@
         class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
       >
         <div class="mr-4 text-gray-200 font-bold">Drinking Game 🍺</div>
-        <SlideToggle name="slide" bind:checked={s_data.settings.drinking} />
+        <Switch name="slide" bind:checked={s_data.settings.drinking} />
       </li>
 
       <li
         class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
       >
         <div class="mr-4 text-gray-200 font-bold">Family Mode 👦🏼</div>
-        <SlideToggle name="slide" bind:checked={s_data.settings.family} />
+        <Switch name="slide" bind:checked={s_data.settings.family} />
       </li>
 
       <!-- Game End Condition Settings -->
       <li class="mt-2 p-4 rounded-lg bg-slate-600 bg-opacity-40">
-        <TabGroup justify="justify-start">
+        <Tabs justify="justify-start">
           <div class="text-center text-gray-200 pt-2 font-bold mr-3">
             Game End 🏁
           </div>
@@ -113,7 +109,7 @@
               </div>
             {/if}
           </svelte:fragment>
-        </TabGroup>
+        </Tabs>
       </li>
     </ul>
   </div>

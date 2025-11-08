@@ -85,7 +85,7 @@
 
 <div class="px-16 flex h-full flex-col justify-start items-center">
   <button
-    class="btn variant-filled mb-6 mt-4 w-full sm:w-auto"
+    class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
     on:click={() => goto("/shop")}
   >
     <i class="fa-solid fa-arrow-left mr-2"></i>Back
@@ -107,7 +107,7 @@
           {#if loading}
             <Spinner />
           {:else}
-            <button class="btn variant-filled w-full" type="submit">Buy</button>
+            <button class="btn preset-filled w-full" type="submit">Buy</button>
           {/if}
         </form>
       {/if}

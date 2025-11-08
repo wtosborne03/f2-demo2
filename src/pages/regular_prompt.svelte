@@ -34,7 +34,7 @@
       bind:value={answer_text}
       on:submit={submit_prompt}
     />
-    <button class="btn variant-filled mt-12" on:click={submit_prompt}
+    <button class="btn preset-filled mt-12" on:click={submit_prompt}
       >Submit</button
     >
   </form>
