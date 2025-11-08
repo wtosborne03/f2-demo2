@@ -3,7 +3,7 @@
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import type { CharadesData, CharadesResultsData } from "../types/page_data";
-  import { Rating } from "@skeletonlabs/skeleton-svelte";
+  import { RatingGroup } from "@skeletonlabs/skeleton-svelte";
 
   let m_data: CharadesResultsData;
   m_data = get<PlayerState>(player_state).page_data;
@@ -15,15 +15,18 @@
   <div class="mb-2 p-4 text-2xl text-center">
     Your Guess: {m_data.guess}
   </div>
-  <Rating value={m_data.score} max={10}>
-    <svelte:fragment slot="empty"
-      ><i class="fa-regular fa-circle text-yellow-500"></i></svelte:fragment
-    >
-    <svelte:fragment slot="half">(icon)</svelte:fragment>
-    <svelte:fragment slot="full"
-      ><i class="fas fa-circle text-yellow-500"></i></svelte:fragment
-    >
-  </Rating>
+  <RatingGroup value={m_data.score} count={10}>
+    <RatingGroup.Control>
+      <RatingGroup.Context>
+        {#snippet children(ratingGroup)}
+          {#each ratingGroup().items as index (index)}
+            <RatingGroup.Item {index} />
+          {/each}
+        {/snippet}
+      </RatingGroup.Context>
+    </RatingGroup.Control>
+    <RatingGroup.HiddenInput />
+  </RatingGroup>
   <div class="text-3xl text-center w-full font-bold text-yellow-500">
     Score: {m_data.score}/10
   </div>

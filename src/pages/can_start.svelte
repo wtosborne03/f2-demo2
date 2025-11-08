@@ -1,37 +1,33 @@
 <script lang="ts">
   import { sendMessage } from "$lib/webSocketService";
   import { playerEmote } from "$lib/avatar/player_emote";
-  import {
-    Tab, Switch, Tabs } from "@skeletonlabs/skeleton-svelte";
-  import type { ModalSettings } from "@skeletonlabs/skeleton-svelte";
-  import { } from "@skeletonlabs/skeleton-svelte";
+  import { Tabs, Switch } from "@skeletonlabs/skeleton-svelte";
+  import {} from "@skeletonlabs/skeleton-svelte";
   import type { adminStartData } from "../types/page_data";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import { authStore } from "../stores/authStore";
   import { drawerSettings } from "$lib/config/drawer";
+  import { authDialog } from "../stores/dialog";
 
   let s_data: adminStartData;
   s_data = get<PlayerState>(player_state).page_data;
 
   $: s_data, sendMessage({ type: "settings", data: s_data.settings });
 
-  const drawerStore = getDrawerStore();
-  const modalStore = getModalStore();
-
   function promptForStart() {
-    const modal: ModalSettings = {
-      type: "confirm",
-      title: "Everybody In? 🤔",
-      body: "Once you start Couch Cup, new players cannot join. Are you sure you want to start?",
-      response: (r: boolean) => {
-        if (r) {
-          startGame();
-        }
-      },
-    };
-    modalStore.trigger(modal);
+    // const modal: ModalSettings = {
+    //   type: "confirm",
+    //   title: "Everybody In? 🤔",
+    //   body: "Once you start Couch Cup, new players cannot join. Are you sure you want to start?",
+    //   response: (r: boolean) => {
+    //     if (r) {
+    //       startGame();
+    //     }
+    //   },
+    // };
+    // modalStore.trigger(modal);
   }
 
   function startGame() {
@@ -56,59 +52,80 @@
       <li
         class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
       >
-        <div class="mr-4 text-gray-200 font-bold">Drinking Game 🍺</div>
-        <Switch name="slide" bind:checked={s_data.settings.drinking} />
+        <Switch
+          checked={s_data.settings.drinking}
+          onCheckedChange={(e) => {
+            s_data.settings.drinking = e.checked;
+          }}
+        >
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          <Switch.Label>Drinking Game 🍺</Switch.Label>
+          <Switch.HiddenInput />
+        </Switch>
       </li>
 
       <li
         class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
       >
-        <div class="mr-4 text-gray-200 font-bold">Family Mode 👦🏼</div>
-        <Switch name="slide" bind:checked={s_data.settings.family} />
+        <Switch
+          checked={s_data.settings.family}
+          onCheckedChange={(e) => {
+            s_data.settings.family = e.checked;
+          }}
+        >
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          <Switch.Label>Family Mode</Switch.Label>
+          <Switch.HiddenInput />
+        </Switch>
       </li>
 
       <!-- Game End Condition Settings -->
       <li class="mt-2 p-4 rounded-lg bg-slate-600 bg-opacity-40">
-        <Tabs justify="justify-start">
+        <Tabs>
           <div class="text-center text-gray-200 pt-2 font-bold mr-3">
             Game End 🏁
           </div>
-          <Tab bind:group={s_data.settings.endCondition} name="tab1" value={0}>
-            <span class="italic"> Rounds </span>
-          </Tab>
-          <Tab bind:group={s_data.settings.endCondition} name="tab2" value={1}>
-            <span class="italic"> Doubloons</span></Tab
-          >
+          <Tabs.List>
+            <Tabs.Trigger value="tab-rounds">
+              <span class="italic"> Rounds </span>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="tab-doubloons">
+              <span class="italic"> Doubloons</span></Tabs.Trigger
+            >
+          </Tabs.List>
           <!-- Tab Panels --->
-          <svelte:fragment slot="panel">
-            {#if s_data.settings.endCondition === 0}
-              <div class="flex flex-row justify-between items-center">
-                <input
-                  id="rounds"
-                  type="number"
-                  class="border border-gray-300 text-black rounded-md p-2 w-full"
-                  min="10"
-                  max="100"
-                  step="1"
-                  bind:value={s_data.settings.rounds}
-                />
-                <span class="ml-2 w-64">Game Rounds</span>
-              </div>
-            {:else if s_data.settings.endCondition === 1}
-              <div class="flex flex-row justify-between items-center">
-                <input
-                  id="points"
-                  type="number"
-                  class="border border-gray-300 text-black rounded-md p-2 w-full"
-                  min="5000"
-                  max="100000"
-                  step="1000"
-                  bind:value={s_data.settings.doubloons}
-                />
-                <span class="ml-2 w-64">Doubloons To Win</span>
-              </div>
-            {/if}
-          </svelte:fragment>
+          <Tabs.Content value="tab-rounds">
+            <div class="flex flex-row justify-between items-center">
+              <input
+                id="rounds"
+                type="number"
+                class="border border-gray-300 text-black rounded-md p-2 w-full"
+                min="10"
+                max="100"
+                step="1"
+                bind:value={s_data.settings.rounds}
+              />
+              <span class="ml-2 w-64">Game Rounds</span>
+            </div>
+          </Tabs.Content>
+          <Tabs.Content value="tab-doubloons">
+            <div class="flex flex-row justify-between items-center">
+              <input
+                id="points"
+                type="number"
+                class="border border-gray-300 text-black rounded-md p-2 w-full"
+                min="5000"
+                max="100000"
+                step="1000"
+                bind:value={s_data.settings.doubloons}
+              />
+              <span class="ml-2 w-64">Doubloons To Win</span>
+            </div>
+          </Tabs.Content>
         </Tabs>
       </li>
     </ul>
@@ -121,7 +138,7 @@
       (
       <span
         class="cursor-pointer text-blue-500 hover:text-blue-600"
-        on:click={() => drawerStore.open(drawerSettings)}>Sign In</span
+        on:click={() => authDialog.set(true)}>Sign In</span
       > to customize avatar.)
     </div>
   {/if}

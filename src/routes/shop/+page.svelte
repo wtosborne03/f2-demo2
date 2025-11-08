@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import { supabase } from "../../lib/config/supabaseClient";
   import { authStore } from "../../stores/authStore";
 
   let shopItems: { [key: string]: any } = {};
@@ -13,22 +12,22 @@
     3: "Emotes",
   };
 
-  onMount(async () => {
-    const query = supabase.from("shop").select("*, owned (user_id)");
+  // onMount(async () => {
+  //   const query = supabase.from("shop").select("*, owned (user_id)");
 
-    const { data, error } = $authStore.user
-      ? await query.eq("owned.user_id", $authStore.user!.id)
-      : await query;
+  //   const { data, error } = $authStore.user
+  //     ? await query.eq("owned.user_id", $authStore.user!.id)
+  //     : await query;
 
-    if (error) {
-      console.error(error);
-    } else {
-      shopItems = Object.groupBy(
-        $authStore.user ? data.filter((item) => item.owned.length == 0) : data,
-        ({ type }) => type,
-      );
-    }
-  });
+  //   if (error) {
+  //     console.error(error);
+  //   } else {
+  //     shopItems = Object.groupBy(
+  //       $authStore.user ? data.filter((item) => item.owned.length == 0) : data,
+  //       ({ type }) => type,
+  //     );
+  //   }
+  // });
 </script>
 
 <div

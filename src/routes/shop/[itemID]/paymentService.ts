@@ -1,22 +1,20 @@
 // paymentService.ts
 import { loadStripe } from "@stripe/stripe-js";
-import { supabase } from "$lib/config/supabaseClient";
-import type { Database, Tables } from "../../../database.types";
 const stripePromise = loadStripe("pk_live_51OH7QBEaNbJFWzSSzsO1wsvWMFzITvS3qn195uDKwSiDQ6Y85Vm9yCMfzWMnpmcMTXhHWLalN3Xx49Bv7H4FyOzF00FHnrOF7v");
 
 export const loadItem = async (itemID: string) => {
-    const { data, error } = await supabase
-        .from("shop")
-        .select("*")
-        .eq("id", itemID)
-        .single();
+    // const { data, error } = await supabase
+    //     .from("shop")
+    //     .select("*")
+    //     .eq("id", itemID)
+    //     .single();
 
-    if (error || data === null) {
-        console.error(error);
-        return undefined;
-    }
+    // if (error || data === null) {
+    //     console.error(error);
+    //     return undefined;
+    // }
 
-    return data;
+    // return data;
 };
 
 /**
@@ -46,7 +44,7 @@ export const createPaymentIntent = async (shopId: string, userId: string): Promi
  * @param clientSecret - The client secret from the payment intent
  * @param item - The item to be purchased
  */
-export const initializeStripe = async (clientSecret: string, item: Tables<'shop'>) => {
+export const initializeStripe = async (clientSecret: string, item: any) => {
     const stripe = await stripePromise;
 
     if (!stripe) {

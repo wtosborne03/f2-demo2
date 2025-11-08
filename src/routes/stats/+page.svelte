@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { supabase } from "../../lib/config/supabaseClient";
   import { authStore } from "../../stores/authStore";
   import Spinner from "$lib/components/spinner.svelte";
   import { onMount } from "svelte";
@@ -18,26 +17,26 @@
     const userId = $authStore.user?.id;
     if (!userId) return;
 
-    age = $authStore.user!.created_at;
+    // age = $authStore.user!.created_at;
 
-    const { data: prompts } = await supabase
-      .from("prompts")
-      .select("*")
-      .eq("user", userId);
+    // const { data: prompts } = await supabase
+    //   .from("prompts")
+    //   .select("*")
+    //   .eq("user", userId);
 
-    const { data: games } = await supabase
-      .from("games_played")
-      .select("*")
-      .eq("user", userId);
+    // const { data: games } = await supabase
+    //   .from("games_played")
+    //   .select("*")
+    //   .eq("user", userId);
 
-    prompt_count = prompts?.length || 0;
-    game_count = games?.length || 0;
+    // prompt_count = prompts?.length || 0;
+    // game_count = games?.length || 0;
 
-    games?.forEach((game) => {
-      doubloons += game.doubloons;
-      drinks += game.drinks;
-      if (game.won) wins++;
-    });
+    // games?.forEach((game) => {
+    //   doubloons += game.doubloons;
+    //   drinks += game.drinks;
+    //   if (game.won) wins++;
+    // });
 
     loading = false;
   };

@@ -10,11 +10,10 @@
     initializeStripe,
     handlePayment,
   } from "./paymentService";
-  import type { Tables } from "../../../database.types";
 
   const itemID = $page.params.itemID;
 
-  let item: Tables<"shop">;
+  let item: any;
   let stripe: any = null;
   let elements: any = null;
   let applepay = false;

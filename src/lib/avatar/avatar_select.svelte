@@ -2,7 +2,6 @@
   import { onDestroy, onMount, tick } from "svelte";
   import * as rive from "@rive-app/canvas";
   import { goto } from "$app/navigation";
-  import { supabase } from "../config/supabaseClient";
   import { authStore } from "../../stores/authStore";
   import { get } from "svelte/store";
   import { player_state } from "../../stores/player_state";
@@ -10,6 +9,7 @@
   import type { Avatar } from "../../types/player_state";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
+  import { toaster } from "$lib/util/toaster";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
@@ -18,7 +18,6 @@
   let emote_input: rive.StateMachineInput | undefined;
   let emote_fire_input: rive.StateMachineInput | undefined;
 
-  let toastStore = getToastStore();
   let owned_items: { [key: string]: any } = {};
   let loadedin = false;
 
@@ -45,48 +44,48 @@
         emote_input = inputs.find((input) => input.name === "emote");
         emote_fire_input = inputs.find((input) => input.name === "playEmote");
 
-        supabase
-          .from("users")
-          .select("*")
-          .eq("id", $authStore.user?.id)
-          .single()
-          .then((res) => {
-            a_values["0"] = res.data["avatar_eyes"] || 0;
-            a_values["2"] = res.data["avatar_mouth"] || 0;
-            a_values["1"] = res.data["avatar_hair"] || 0;
-            a_values["3"] = res.data["avatar_emote"] || 0;
-            update();
-            loadedin = true;
-          });
+        //       supabase
+        //         .from("users")
+        //         .select("*")
+        //         .eq("id", $authStore.user?.id)
+        //         .single()
+        //         .then((res) => {
+        //           a_values["0"] = res.data["avatar_eyes"] || 0;
+        //           a_values["2"] = res.data["avatar_mouth"] || 0;
+        //           a_values["1"] = res.data["avatar_hair"] || 0;
+        //           a_values["3"] = res.data["avatar_emote"] || 0;
+        //           update();
+        //           loadedin = true;
+        //         });
 
-        supabase
-          .from("owned")
-          .select(
-            `
-    item_id,
-    shop (
-      id,
-      name,
-      type,
-      value,
-      description,
-      thumbnail,
-      price
-    )
-  `,
-          )
-          .eq("user_id", $authStore.user?.id)
-          .then((res) => {
-            if (!res.data) return;
-            owned_items = res.data.reduce((acc: any, currentItem: any) => {
-              const type = currentItem.shop.type;
-              if (!acc[type]) {
-                acc[type] = [];
-              }
-              acc[type].push(currentItem);
-              return acc;
-            }, {});
-          });
+        //       supabase
+        //         .from("owned")
+        //         .select(
+        //           `
+        //   item_id,
+        //   shop (
+        //     id,
+        //     name,
+        //     type,
+        //     value,
+        //     description,
+        //     thumbnail,
+        //     price
+        //   )
+        // `,
+        //         )
+        //         .eq("user_id", $authStore.user?.id)
+        //         .then((res) => {
+        //           if (!res.data) return;
+        //           owned_items = res.data.reduce((acc: any, currentItem: any) => {
+        //             const type = currentItem.shop.type;
+        //             if (!acc[type]) {
+        //               acc[type] = [];
+        //             }
+        //             acc[type].push(currentItem);
+        //             return acc;
+        //           }, {});
+        //         });
       },
     });
   });
@@ -110,15 +109,16 @@
   };
 
   const saveAvatar = async () => {
-    const { error } = await supabase
-      .from("users")
-      .update({
-        avatar_eyes: a_values["0"],
-        avatar_mouth: a_values["2"],
-        avatar_hair: a_values["1"],
-        avatar_emote: a_values["3"],
-      })
-      .eq("id", $authStore.user?.id);
+    const error = null;
+    // const { error } = await supabase
+    //   .from("users")
+    //   .update({
+    //     avatar_eyes: a_values["0"],
+    //     avatar_mouth: a_values["2"],
+    //     avatar_hair: a_values["1"],
+    //     avatar_emote: a_values["3"],
+    //   })
+    //   .eq("id", $authStore.user?.id);
 
     if (!error) {
       if (get(player_state).screen != "index") {
