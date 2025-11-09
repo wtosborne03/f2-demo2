@@ -1,8 +1,11 @@
 <script lang="ts">
   import { drawerSettings } from "$lib/config/drawer";
   import { playerEmote } from "$lib/avatar/player_emote";
-  import { authStore } from "../stores/authStore";
-  const drawerStore = getDrawerStore();
+  import { authDialog } from "../stores/dialog";
+  import { authClient } from "../stores/authStore";
+
+  const { useSession } = authClient;
+  const session = useSession();
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -13,14 +16,14 @@
 >
   <div class="text-xl">Joined Game 👍</div>
 
-  {#if $authStore.user}
+  {#if $session.data?.user}
     <div class=""></div>
   {:else}
     <div class="mt-16 opacity-75">
       (
       <span
         class="cursor-pointer text-blue-500 hover:text-blue-600"
-        on:click={() => drawerStore.open(drawerSettings)}>Sign In</span
+        on:click={() => authDialog.set(true)}>Sign In</span
       > to customize avatar.)
     </div>
   {/if}

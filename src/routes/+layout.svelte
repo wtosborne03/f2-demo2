@@ -49,12 +49,24 @@
 
 <Toast.Group {toaster}>
   {#snippet children(toast)}
-    <Toast {toast}>
-      <Toast.Message>
-        <Toast.Title>{toast.title}</Toast.Title>
-        <Toast.Description>{toast.description}</Toast.Description>
+    <Toast
+      {toast}
+      class="app-toast pointer-events-auto w-full max-w-sm md:max-w-md shadow-xl rounded-lg p-3 flex items-start gap-3"
+      style={`background-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-950); 
+      border-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-500);`}
+    >
+      <Toast.Message class="flex-1">
+        <Toast.Title class="text-sm font-semibold">
+          {toast.title}
+        </Toast.Title>
+        <Toast.Description class="text-xs mt-1">
+          {toast.description}
+        </Toast.Description>
       </Toast.Message>
-      <Toast.CloseTrigger />
+      <Toast.CloseTrigger
+        class="ml-2 focus:outline-none"
+        style={`color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-600);`}
+      />
     </Toast>
   {/snippet}
 </Toast.Group>
@@ -70,7 +82,7 @@
     />
     <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start">
       <Dialog.Content
-        class="h-screen card bg-surface-100-900 w-sm p-4 space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:translate-x-full"
+        class="h-screen card bg-surface-100-900 w-2/3 md:w-md p-4 space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:translate-x-full"
       >
         <AuthBox />
       </Dialog.Content>

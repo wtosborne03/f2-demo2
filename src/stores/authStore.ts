@@ -12,7 +12,7 @@ export const authStore = writable<{ session: any | null; user: any | null; loadi
 
 export const authClient = createAuthClient({
     baseURL: import.meta.env.VITE_PUBLIC_API_URL,
+    fetchOptions: { credentials: 'include' },
     plugins: [
-        magicLinkClient(),
     ]
 });

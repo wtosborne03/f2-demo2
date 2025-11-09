@@ -4,6 +4,7 @@
   import { authClient } from "../../stores/authStore";
   import Icon from "@iconify/svelte";
   import { toaster } from "$lib/util/toaster";
+  import GoogleSignInButton from "../components/GoogleSignInButton.svelte";
 
   const { signIn, signUp, signOut } = authClient;
 
@@ -29,19 +30,6 @@
       });
       return;
     }
-
-    const { data, error } = await signIn.magicLink({ email });
-    if (error) {
-      toaster.error({
-        title: "Login Failed",
-        description: error.message,
-      });
-    } else {
-      toaster.success({
-        title: "Login Email Sent",
-        description: "Please check your email to complete login.",
-      });
-    }
   };
 
   const customizeAvatar = async () => {
@@ -52,6 +40,33 @@
   const goStats = async () => {
     await goto("/stats", { replaceState: false });
     // drawerStore.close();
+  };
+
+  // Attempt multiple sign-in flows for Google depending on available client methods.
+  const signInWithGoogle = async () => {
+    try {
+      const redirectTo = `${window.location.origin}/`; // or specify a path like '/auth-complete'
+      const { data, error } = await signIn.social({
+        provider: "google",
+        callbackURL: redirectTo,
+      });
+      if (error) {
+        toaster.error({
+          title: "Google Sign-In Failed",
+          description: error.message,
+        });
+        return;
+      }
+      // some clients return an url to redirect the browser to — handle that explicitly
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      toaster.error({
+        title: "Google Sign-In Failed",
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
   };
   const goShop = async () => {
     await goto("/shop", { replaceState: false });
@@ -113,6 +128,14 @@
         aria-disabled={!isEmailValid}
         >Send Login Link <Icon font-size="1.75rem" icon="mdi:sign-in-variant" />
       </button>
+    </div>
+    <div class="w-full my-2 flex items-center justify-center">
+      <div class="h-px bg-gray-200 w-full"></div>
+      <div class="px-3 text-gray-500">or</div>
+      <div class="h-px bg-gray-200 w-full"></div>
+    </div>
+    <div class="w-full">
+      <GoogleSignInButton onClick={signInWithGoogle} />
     </div>
   {/if}
 </div>

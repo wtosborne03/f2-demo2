@@ -4,8 +4,10 @@
   import logo from "$lib/assets/icons/logo.webp";
   import { drawerSettings } from "$lib/config/drawer";
   import { onMount } from "svelte";
-  import { authStore } from "../stores/authStore";
+  import { authClient } from "../stores/authStore";
   import { authDialog } from "../stores/dialog";
+
+  const session = authClient.useSession();
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
@@ -21,7 +23,7 @@
   };
 
   const fetchName = async () => {
-    if ($authStore.user === null) {
+    if ($session.data?.user === null) {
       return;
     }
 
@@ -44,12 +46,12 @@
     // }
   };
 
-  authStore.subscribe((store) => {
-    if (store.loading) {
-      return;
-    }
-    fetchName();
-  });
+  // authStore.subscribe((store) => {
+  //   if (store.loading) {
+  //     return;
+  //   }
+  //   fetchName();
+  // });
 
   onMount(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -63,7 +65,7 @@
   const joinGame = async () => {
     name = name.substring(0, 10);
     name = name.trim();
-    if ($authStore.user === null) {
+    if ($session.data?.user === null) {
       //not logged in
     } else {
       //logged in, update the db name!
@@ -79,7 +81,7 @@
     on:click={() => {
       authDialog.set(true);
     }}
-    >{#if $authStore.user}
+    >{#if $session.data?.user}
       Account <i class="fa-solid fa-user ml-2"></i>
     {:else}
       Log In <i class="fa-solid fa-right-to-bracket ml-2"></i>
