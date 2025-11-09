@@ -6,12 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
-    plugins: [tailwindcss(), sentrySvelteKit({
-        sourceMapsUploadOptions: {
-            org: "couchcup",
-            project: "javascript-sveltekit"
-        }
-    }), sveltekit(), Icons({ compiler: 'svelte' })],
+    plugins: [tailwindcss(), sveltekit(), Icons({ compiler: 'svelte' })],
     build: {
         sourcemap: true
     },
