@@ -1,12 +1,13 @@
 import { player_state } from '../stores/player_state';
-import { authStore } from '../stores/authStore';
 import { sendMessage, sendMessageAndWaitForResponse, sendRawMessage } from './webSocketService';
 import type { Avatar, PlayerState } from '../types/player_state';
 import { get } from 'svelte/store';
+import { authClient } from '../stores/authStore';
 
 let r_code = "";
 let r_name = "";
 let playing = false;
+const session = authClient.useSession();
 
 /**
  * Join a room with the given code and name.
@@ -26,14 +27,14 @@ export function joinRoom(code: string, name: string) {
     r_name = name;
     sendRawMessage({
         type: "joinRoom",
-        data: { roomId: code, name, userID: get(authStore).user?.id },
+        data: { roomId: code, name, userID: session.get().data?.user?.id },
     });
 }
 
 export function reJoinRoom() {
     sendRawMessage({
         type: "joinRoom",
-        data: { roomId: r_code, name: r_name, userID: get(authStore).user?.id },
+        data: { roomId: r_code, name: r_name },
     });
 }
 
@@ -42,8 +43,8 @@ export function reJoinRoom() {
  * @returns 
  */
 export const joinedGameCallback = async () => {
-    const { user } = get(authStore);
-    if (user) {
+    //const { user } = get(authStore);
+    if (session.get().data?.user) {
         console.log("Joined game callback");
         playing = true;
         return;

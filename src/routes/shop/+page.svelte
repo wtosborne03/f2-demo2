@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import { authStore } from "../../stores/authStore";
 
   let shopItems: { [key: string]: any } = {};
 

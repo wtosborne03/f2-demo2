@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { authStore } from "../../stores/authStore";
   import { goto } from "$app/navigation";
   import { authClient } from "../../stores/authStore";
   import Icon from "@iconify/svelte";
   import { toaster } from "$lib/util/toaster";
   import GoogleSignInButton from "../components/GoogleSignInButton.svelte";
 
-  const { signIn, signUp, signOut } = authClient;
+  const { signIn, signUp, signOut, useSession } = authClient;
+  const session = useSession();
 
   let passkeyEmail = "";
 
@@ -77,11 +77,11 @@
 <div
   class="py-8 px-3 text-center h-full flex flex-col justify-center items-center gap-4"
 >
-  {#if $authStore.user}
+  {#if $session.data?.user}
     <div
       class="flex flex-col justify-between h-full items-center text-xl w-full"
     >
-      <div class="text-lg wrap-break-word">{$authStore.user.email}</div>
+      <div class="text-lg wrap-break-word">{$session.data?.user?.email}</div>
       <div
         class="flex flex-col items-center justify-start gap-4 w-full h-full py-10"
       >
@@ -106,34 +106,6 @@
       >
     </div>
   {:else}
-    <input
-      type="email"
-      bind:value={passkeyEmail}
-      placeholder="Email"
-      class="input w-full p-4"
-      aria-invalid={!isEmailValid}
-    />
-    <div class="h-2 flex items-center justify-center">
-      {#if passkeyEmail && !isEmailValid}
-        <div class="text-sm text-red-600 text-left w-full">
-          Please enter a valid email address.
-        </div>
-      {/if}
-    </div>
-    <div class="flex flex-col gap-2 w-full">
-      <button
-        class="btn preset-filled w-full p-4"
-        on:click={login}
-        disabled={!isEmailValid}
-        aria-disabled={!isEmailValid}
-        >Send Login Link <Icon font-size="1.75rem" icon="mdi:sign-in-variant" />
-      </button>
-    </div>
-    <div class="w-full my-2 flex items-center justify-center">
-      <div class="h-px bg-gray-200 w-full"></div>
-      <div class="px-3 text-gray-500">or</div>
-      <div class="h-px bg-gray-200 w-full"></div>
-    </div>
     <div class="w-full">
       <GoogleSignInButton onClick={signInWithGoogle} />
     </div>

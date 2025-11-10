@@ -7,9 +7,11 @@
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
-  import { authStore } from "../stores/authStore";
   import { drawerSettings } from "$lib/config/drawer";
   import { authDialog } from "../stores/dialog";
+  import { authClient } from "../stores/authStore";
+
+  const session = authClient.useSession();
 
   let s_data: adminStartData;
   s_data = get<PlayerState>(player_state).page_data;
@@ -28,6 +30,7 @@
     //   },
     // };
     // modalStore.trigger(modal);
+    startGame();
   }
 
   function startGame() {
@@ -131,7 +134,7 @@
     </ul>
   </div>
 
-  {#if $authStore.user}
+  {#if $session.data?.user}
     <div class=""></div>
   {:else}
     <div class="mt-16 opacity-75">
