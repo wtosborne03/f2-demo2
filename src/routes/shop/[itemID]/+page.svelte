@@ -3,7 +3,6 @@
   import { onDestroy, onMount } from "svelte";
   import { page } from "$app/stores";
   import Spinner from "$lib/components/spinner.svelte";
-  import { authStore } from "../../../stores/authStore";
   import {
     loadItem,
     createPaymentIntent,
@@ -20,53 +19,48 @@
   let loading = true;
 
   const loadPayment = async () => {
-    try {
-      // load shop item / stripe
-      item = (await loadItem(itemID))!;
-      const clientSecret = await createPaymentIntent(
-        item.id.toString(),
-        $authStore.user!.id,
-      );
-      const { stripe, elements, paymentRequest, canMakePayment } =
-        await initializeStripe(clientSecret, item);
-
-      // fallback
-      if (!canMakePayment) {
-        const paymentElement = elements.create("payment");
-        paymentElement.mount("#payment-element");
-        return;
-      }
-
-      // Add a listener to handle the payment request
-      paymentRequest.on("paymentmethod", async (ev: any) => {
-        const { error: confirmError, paymentIntent } =
-          await stripe.confirmCardPayment(clientSecret, {
-            payment_method: ev.paymentMethod.id,
-          });
-
-        if (confirmError) {
-          ev.complete("fail");
-          console.error(confirmError);
-        } else {
-          ev.complete("success");
-          if (paymentIntent.status === "succeeded") {
-            goto("/thankyou");
-          }
-        }
-      });
-
-      // Mount apple/google pay button
-      const prButton = elements.create("paymentRequestButton", {
-        paymentRequest: paymentRequest,
-      });
-      prButton.mount("#payment-request-button");
-
-      applepay = true;
-    } catch (error) {
-      console.error("Error loading payment:", error);
-    } finally {
-      loading = false;
-    }
+    // try {
+    //   // // load shop item / stripe
+    // item = (await loadItem(itemID))!;
+    // const clientSecret = await createPaymentIntent(
+    //   item.id.toString(),
+    //   $authStore.user!.id,
+    // );
+    // const { stripe, elements, paymentRequest, canMakePayment } =
+    //   await initializeStripe(clientSecret, item);
+    // fallback
+    //   if (!canMakePayment) {
+    //     const paymentElement = elements.create("payment");
+    //     paymentElement.mount("#payment-element");
+    //     return;
+    //   }
+    //   // Add a listener to handle the payment request
+    //   paymentRequest.on("paymentmethod", async (ev: any) => {
+    //     const { error: confirmError, paymentIntent } =
+    //       await stripe.confirmCardPayment(clientSecret, {
+    //         payment_method: ev.paymentMethod.id,
+    //       });
+    //     if (confirmError) {
+    //       ev.complete("fail");
+    //       console.error(confirmError);
+    //     } else {
+    //       ev.complete("success");
+    //       if (paymentIntent.status === "succeeded") {
+    //         goto("/thankyou");
+    //       }
+    //     }
+    //   });
+    //   // Mount apple/google pay button
+    //   const prButton = elements.create("paymentRequestButton", {
+    //     paymentRequest: paymentRequest,
+    //   });
+    //   prButton.mount("#payment-request-button");
+    //   applepay = true;
+    // } catch (error) {
+    //   console.error("Error loading payment:", error);
+    // } finally {
+    //   loading = false;
+    // }
   };
 
   onMount(() => {

@@ -2,7 +2,6 @@
   import { onDestroy, onMount, tick } from "svelte";
   import * as rive from "@rive-app/canvas";
   import { goto } from "$app/navigation";
-  import { authStore } from "../../stores/authStore";
   import { get } from "svelte/store";
   import { player_state } from "../../stores/player_state";
   import { sendMessage } from "$lib/webSocketService";

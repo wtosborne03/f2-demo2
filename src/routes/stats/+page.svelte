@@ -1,8 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { authStore } from "../../stores/authStore";
   import Spinner from "$lib/components/spinner.svelte";
   import { onMount } from "svelte";
+  import { authClient } from "../../stores/authStore";
 
   let age = "";
   let loading = true;
@@ -12,10 +12,12 @@
   let drinks = 0;
   let wins = 0;
 
+  const session = authClient.useSession();
+
   // Load and Aggregate User Stats
   const loadStats = async () => {
-    const userId = $authStore.user?.id;
-    if (!userId) return;
+    // const userId = $authStore.user?.id;
+    // if (!userId) return;
 
     // age = $authStore.user!.created_at;
 
@@ -54,7 +56,7 @@
     <i class="fa-solid fa-arrow-left mr-2"></i>Back
   </button>
   <div class="text-2xl mb-3">Stats</div>
-  {#if loading || $authStore.session === null}
+  {#if loading || !$session.data?.user}
     <Spinner />
   {:else}
     <table class="table w-full">
