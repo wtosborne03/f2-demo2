@@ -9,58 +9,64 @@
     initializeStripe,
     handlePayment,
   } from "./paymentService";
+  import { apiClient } from "$lib/backend/axios";
+  import type { Paths } from "$lib/backend/api";
 
-  const itemID = $page.params.itemID;
+  const itemID = Number($page.params.itemID) || 0;
 
-  let item: any;
+  const thumnailPrefix =
+    import.meta.env.VITE_PUBLIC_API_URL + "/static/thumbnails";
+
+  let item: Paths.GetShopItemsById.Responses.$200 | null = null;
   let stripe: any = null;
   let elements: any = null;
   let applepay = false;
   let loading = true;
 
   const loadPayment = async () => {
-    // try {
-    //   // // load shop item / stripe
-    // item = (await loadItem(itemID))!;
-    // const clientSecret = await createPaymentIntent(
-    //   item.id.toString(),
-    //   $authStore.user!.id,
-    // );
-    // const { stripe, elements, paymentRequest, canMakePayment } =
-    //   await initializeStripe(clientSecret, item);
-    // fallback
-    //   if (!canMakePayment) {
-    //     const paymentElement = elements.create("payment");
-    //     paymentElement.mount("#payment-element");
-    //     return;
-    //   }
-    //   // Add a listener to handle the payment request
-    //   paymentRequest.on("paymentmethod", async (ev: any) => {
-    //     const { error: confirmError, paymentIntent } =
-    //       await stripe.confirmCardPayment(clientSecret, {
-    //         payment_method: ev.paymentMethod.id,
-    //       });
-    //     if (confirmError) {
-    //       ev.complete("fail");
-    //       console.error(confirmError);
-    //     } else {
-    //       ev.complete("success");
-    //       if (paymentIntent.status === "succeeded") {
-    //         goto("/thankyou");
-    //       }
-    //     }
-    //   });
-    //   // Mount apple/google pay button
-    //   const prButton = elements.create("paymentRequestButton", {
-    //     paymentRequest: paymentRequest,
-    //   });
-    //   prButton.mount("#payment-request-button");
-    //   applepay = true;
-    // } catch (error) {
-    //   console.error("Error loading payment:", error);
-    // } finally {
-    //   loading = false;
-    // }
+    const client = await apiClient;
+    const { data: shopItem } = await client!.getShopItemsById(itemID);
+    item = shopItem;
+
+    try {
+      // // load shop item / stripe
+      const clientSecret = await client!
+        ["postShopCreate-payment-intent"]({}, { shop_id: itemID })
+        .then((res) => res.data.clientSecret);
+      const { stripe, elements, paymentRequest, canMakePayment } =
+        await initializeStripe(clientSecret, item);
+      if (!canMakePayment) {
+        const paymentElement = elements.create("payment");
+        paymentElement.mount("#payment-element");
+        return;
+      }
+      // Add a listener to handle the payment request
+      paymentRequest.on("paymentmethod", async (ev: any) => {
+        const { error: confirmError, paymentIntent } =
+          await stripe.confirmCardPayment(clientSecret, {
+            payment_method: ev.paymentMethod.id,
+          });
+        if (confirmError) {
+          ev.complete("fail");
+          console.error(confirmError);
+        } else {
+          ev.complete("success");
+          if (paymentIntent.status === "succeeded") {
+            goto("/thankyou");
+          }
+        }
+      });
+      // Mount apple/google pay button
+      const prButton = elements.create("paymentRequestButton", {
+        paymentRequest: paymentRequest,
+      });
+      prButton.mount("#payment-request-button");
+      applepay = true;
+    } catch (error) {
+      console.error("Error loading payment:", error);
+    } finally {
+      loading = false;
+    }
   };
 
   onMount(() => {
@@ -87,7 +93,11 @@
     <div class="p-2 flex-grow flex flex-col items-center justify-between">
       <div class="text-xl">{item.name}</div>
 
-      <img src={item.thumbnail} alt="item" class="h-1/3 w-auto my-2" />
+      <img
+        src={`${thumnailPrefix}/${item.thumbnail}`}
+        alt="item"
+        class="h-1/3 w-auto my-2"
+      />
       <div>
         <div class="text-lg">Description: {item.description}</div>
         <div class="text-lg">Price: ${item.price}</div>

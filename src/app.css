@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
-@import "@skeletonlabs/skeleton";
 
-@import "@skeletonlabs/skeleton/themes/modern";
+@import '@skeletonlabs/skeleton';
+/* [!code ++] */
+@import '@skeletonlabs/skeleton-svelte';
+/* [!code ++] */
+@import '@skeletonlabs/skeleton/themes/modern';
+/* [!code ++] */
+
+/* make font size bigger for app */
+[data-theme="modern"] {
+    --skeleton-font-size-base: 1.5rem;
+    --skeleton-font-size-lg: 1.75rem;
+    --skeleton-font-size-sm: 1.25rem;
+    --text-scaling: 1.25;
+}
 
 html,
 body {

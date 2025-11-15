@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "types": "bunx openapicmd typegen https://api.couchcup.tv/openapi/json > src/lib/backend/api.d.ts"
   },
   "devDependencies": {
     "@corbado/types": "3.1.0",
@@ -50,6 +51,7 @@
     "@tailwindcss/vite": "^4.1.16",
     "@types/siema": "^1.4.11",
     "@use-gesture/vanilla": "^10.3.1",
+    "axios": "1.13.2",
     "better-auth": "^1.3.34",
     "boxicons": "^2.1.4",
     "browser-image-compression": "^2.0.2",
@@ -59,6 +61,7 @@
     "joystick-controller": "^1.1.1",
     "matter-js": "^0.20.0",
     "nipplejs": "^0.10.2",
+    "openapi-client-axios": "^7.8.0",
     "phaser": "^3.86.0",
     "planck-js": "1.3.0",
     "sharp": "0.34.4",

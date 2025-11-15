@@ -1,8 +1,12 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { apiClient } from "$lib/backend/axios";
   import { onMount } from "svelte";
 
   let shopItems: { [key: string]: any } = {};
+
+  const thumnailPrefix =
+    import.meta.env.VITE_PUBLIC_API_URL + "/static/thumbnails";
 
   const categories: { [key: string]: string } = {
     0: "Eyes",
@@ -11,22 +15,12 @@
     3: "Emotes",
   };
 
-  // onMount(async () => {
-  //   const query = supabase.from("shop").select("*, owned (user_id)");
-
-  //   const { data, error } = $authStore.user
-  //     ? await query.eq("owned.user_id", $authStore.user!.id)
-  //     : await query;
-
-  //   if (error) {
-  //     console.error(error);
-  //   } else {
-  //     shopItems = Object.groupBy(
-  //       $authStore.user ? data.filter((item) => item.owned.length == 0) : data,
-  //       ({ type }) => type,
-  //     );
-  //   }
-  // });
+  onMount(async () => {
+    const client = await apiClient;
+    const { data } = await client!.getShopItems();
+    const items = data.filter((item) => !item.owned);
+    shopItems = Object.groupBy(items, ({ type }) => type);
+  });
 </script>
 
 <div
@@ -63,7 +57,7 @@
             >
               <div class="text-xl font-semibold mb-1">{item.name}</div>
               <img
-                src={item.thumbnail}
+                src={`${thumnailPrefix}/${item.thumbnail}`}
                 alt="item"
                 class="h-32 w-auto object-cover mb-1"
               />

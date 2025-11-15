@@ -51,8 +51,8 @@
   {#snippet children(toast)}
     <Toast
       {toast}
-      class="app-toast pointer-events-auto w-full max-w-sm md:max-w-md shadow-xl rounded-lg p-3 flex items-start gap-3"
-      style={`background-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-950); 
+      class="app-toast pointer-events-auto w-full max-w-sm md:max-w-md shadow-xl rounded-lg p-3 text-white flex items-start gap-3"
+      style={`background-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-950);
       border-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-500);`}
     >
       <Toast.Message class="flex-1">
@@ -82,7 +82,7 @@
     />
     <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start">
       <Dialog.Content
-        class="h-screen card bg-surface-100-900 w-2/3 md:w-md p-4 space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
+        class="h-screen card bg-surface-100-900 w-2/3 md:w-md space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
       >
         <AuthBox />
       </Dialog.Content>

@@ -9,6 +9,7 @@
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
   import { toaster } from "$lib/util/toaster";
+  import { apiClient } from "$lib/backend/axios";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
@@ -34,7 +35,7 @@
       canvas: document.getElementById("canvas") as any,
       autoplay: true,
       stateMachines: "State Machine 1",
-      onLoad: () => {
+      onLoad: async () => {
         r.resizeDrawingSurfaceToCanvas();
         const inputs = r.stateMachineInputs("State Machine 1");
         eyes_input = inputs.find((input) => input.name === "Eyes");
@@ -42,49 +43,18 @@
         hair_input = inputs.find((input) => input.name === "Bodies");
         emote_input = inputs.find((input) => input.name === "emote");
         emote_fire_input = inputs.find((input) => input.name === "playEmote");
+        const client = await apiClient;
+        const { data } = await client!.getUsersMe();
+        a_values["0"] = data.avatar_eyes || 0;
+        a_values["2"] = data.avatar_mouth || 0;
+        a_values["1"] = data.avatar_hair || 0;
+        a_values["3"] = data.avatar_emote || 0;
+        update();
+        loadedin = true;
 
-        //       supabase
-        //         .from("users")
-        //         .select("*")
-        //         .eq("id", $authStore.user?.id)
-        //         .single()
-        //         .then((res) => {
-        //           a_values["0"] = res.data["avatar_eyes"] || 0;
-        //           a_values["2"] = res.data["avatar_mouth"] || 0;
-        //           a_values["1"] = res.data["avatar_hair"] || 0;
-        //           a_values["3"] = res.data["avatar_emote"] || 0;
-        //           update();
-        //           loadedin = true;
-        //         });
-
-        //       supabase
-        //         .from("owned")
-        //         .select(
-        //           `
-        //   item_id,
-        //   shop (
-        //     id,
-        //     name,
-        //     type,
-        //     value,
-        //     description,
-        //     thumbnail,
-        //     price
-        //   )
-        // `,
-        //         )
-        //         .eq("user_id", $authStore.user?.id)
-        //         .then((res) => {
-        //           if (!res.data) return;
-        //           owned_items = res.data.reduce((acc: any, currentItem: any) => {
-        //             const type = currentItem.shop.type;
-        //             if (!acc[type]) {
-        //               acc[type] = [];
-        //             }
-        //             acc[type].push(currentItem);
-        //             return acc;
-        //           }, {});
-        //         });
+        const { data: ownedData } = await client!.getUsersOwned();
+        owned_items = ownedData;
+        console.log(ownedData);
       },
     });
   });
@@ -109,17 +79,14 @@
 
   const saveAvatar = async () => {
     const error = null;
-    // const { error } = await supabase
-    //   .from("users")
-    //   .update({
-    //     avatar_eyes: a_values["0"],
-    //     avatar_mouth: a_values["2"],
-    //     avatar_hair: a_values["1"],
-    //     avatar_emote: a_values["3"],
-    //   })
-    //   .eq("id", $authStore.user?.id);
-
-    if (!error) {
+    const client = await apiClient;
+    try {
+      await client!.putUsersAvatar(null, {
+        avatar_eyes: a_values["0"],
+        avatar_hair: a_values["1"],
+        avatar_mouth: a_values["2"],
+        avatar_emote: a_values["3"],
+      });
       if (get(player_state).screen != "index") {
         const avatar: Avatar = {
           eyes: a_values["0"] || 0,
@@ -134,7 +101,7 @@
           },
         });
       }
-    }
+    } catch (e) {}
   };
 
   $: a_values, update();

@@ -2,6 +2,8 @@
   import { player_state } from "../../../stores/player_state";
   import { drawerSettings } from "$lib/config/drawer";
   import doubloon from "$lib/assets/icons/doubloon.png";
+  import { authDialog } from "../../../stores/dialog";
+  import Icon from "@iconify/svelte";
 
   $: name = $player_state.name;
   $: admin = $player_state.admin;
@@ -17,14 +19,14 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     on:click={() => {
-      // drawerStore.open(drawerSettings);
+      authDialog.set(true);
     }}
     class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4 hover:opacity-70 cursor-pointer"
     style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"
   >
     <!-- App Bar -->
     <div class="h-10 flex flex-col justify-center items-start w-20">
-      <i class="fa-solid fa-bars text-3xl" />
+      <Icon icon="material-symbols:menu-rounded" font-size="3rem" />
     </div>
     <span class="text-xl flex flex-col justify-center items-center gap-0">
       <div class="flex flex-col justify-center items-center h-10">
@@ -38,7 +40,7 @@
     </span>
 
     <span
-      class="text-xl flex flex-row items-center justify-center gap-1 w-20 h-10"
+      class="text-xl flex flex-row items-center justify-center gap-2 w-20 h-10 pr-8"
     >
       <div class="text-center" style="padding-top: 3px;">
         {score.toString().padStart(5, "0")}

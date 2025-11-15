@@ -11,7 +11,7 @@
     xmlns="http://www.w3.org/2000/svg"
     width="22px"
     fill="#fff"
-    class="inline mr-3"
+    class="inline mr-3 scale-200"
     viewBox="0 0 512 512"
   >
     <path
@@ -45,5 +45,5 @@
       data-original="#eb4132"
     />
   </svg>
-  <span class="w-44 tracking-normal"> Continue with Google</span>
+  <span class=" tracking-normal"> Continue with Google</span>
 </button>

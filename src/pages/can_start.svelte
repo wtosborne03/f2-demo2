@@ -50,10 +50,10 @@
   >
 
   <div class="container max-w-96">
-    <h3 class="mt-16 mb-2 pl-2">Settings</h3>
+    <h3 class="mt-16 mb-2 pl-2 text-lg">Settings</h3>
     <ul>
       <li
-        class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
+        class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800 bg-opacity-40"
       >
         <Switch
           checked={s_data.settings.drinking}
@@ -70,7 +70,7 @@
       </li>
 
       <li
-        class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-600 bg-opacity-40"
+        class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800"
       >
         <Switch
           checked={s_data.settings.family}
@@ -87,18 +87,19 @@
       </li>
 
       <!-- Game End Condition Settings -->
-      <li class="mt-2 p-4 rounded-lg bg-slate-600 bg-opacity-40">
-        <Tabs>
-          <div class="text-center text-gray-200 pt-2 font-bold mr-3">
+      <li class="mt-2 p-4 rounded-lg bg-slate-800 bg-opacity-40">
+        <Tabs defaultValue="tab-rounds">
+          <div class="text-center text-gray-200 font-bold mr-3 mb-6">
             Game End 🏁
           </div>
           <Tabs.List>
-            <Tabs.Trigger value="tab-rounds">
+            <Tabs.Trigger class="flex-1" value="tab-rounds">
               <span class="italic"> Rounds </span>
             </Tabs.Trigger>
-            <Tabs.Trigger value="tab-doubloons">
+            <Tabs.Trigger class="flex-1" value="tab-doubloons">
               <span class="italic"> Doubloons</span></Tabs.Trigger
             >
+            <Tabs.Indicator />
           </Tabs.List>
           <!-- Tab Panels --->
           <Tabs.Content value="tab-rounds">
@@ -106,7 +107,7 @@
               <input
                 id="rounds"
                 type="number"
-                class="border border-gray-300 text-black rounded-md p-2 w-full"
+                class="border m-2 p-2 rounded-md w-full"
                 min="10"
                 max="100"
                 step="1"
@@ -120,7 +121,7 @@
               <input
                 id="points"
                 type="number"
-                class="border border-gray-300 text-black rounded-md p-2 w-full"
+                class="border m-2 p-2 rounded-md w-full"
                 min="5000"
                 max="100000"
                 step="1000"

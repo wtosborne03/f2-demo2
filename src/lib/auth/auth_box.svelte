@@ -4,42 +4,19 @@
   import Icon from "@iconify/svelte";
   import { toaster } from "$lib/util/toaster";
   import GoogleSignInButton from "../components/GoogleSignInButton.svelte";
+  import { authDialog } from "../../stores/dialog";
 
   const { signIn, signUp, signOut, useSession } = authClient;
   const session = useSession();
 
-  let passkeyEmail = "";
-
-  // Simple email validation helper
-  const validateEmail = (email: string) => {
-    const e = (email || "").trim();
-    // Basic RFC-ish simple check: something@something.tld
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-  };
-
-  // reactive validity flag for UI (updates when passkeyEmail changes)
-  let isEmailValid = false;
-  $: isEmailValid = validateEmail(passkeyEmail);
-
-  const login = async () => {
-    const email = (passkeyEmail || "").trim();
-    if (!email || !validateEmail(email)) {
-      toaster.error({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
-      });
-      return;
-    }
-  };
-
   const customizeAvatar = async () => {
     await goto("/avatar", { replaceState: false });
-    //drawerStore.close();
+    authDialog.set(false);
   };
 
   const goStats = async () => {
     await goto("/stats", { replaceState: false });
-    // drawerStore.close();
+    authDialog.set(false);
   };
 
   // Attempt multiple sign-in flows for Google depending on available client methods.
@@ -70,7 +47,7 @@
   };
   const goShop = async () => {
     await goto("/shop", { replaceState: false });
-    // drawerStore.close();
+    authDialog.set(false);
   };
 </script>
 
@@ -100,13 +77,13 @@
         >
       </div>
       <button
-        class="btn preset-filled-error-500 w-full"
+        class="btn preset-filled-error-100-900 w-full"
         on:click={() => signOut()}
-        >Sign Out <i class="fa-solid fa-right-from-bracket ml-2"></i></button
+        >Sign Out <Icon icon="mdi:sign-out-variant" font-size="2rem" /></button
       >
     </div>
   {:else}
-    <div class="w-full">
+    <div class="px-2">
       <GoogleSignInButton onClick={signInWithGoogle} />
     </div>
   {/if}
