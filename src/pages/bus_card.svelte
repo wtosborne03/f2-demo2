@@ -265,7 +265,7 @@
     {#if m_data.drinking}
       <Drink prompt={"Drink."} />
       <button
-        class="btn preset-filled"
+        class="btn preset-filled-surface-500"
         disabled={!canContinue}
         on:click={startGame}>I have drank. Give me a new deck.</button
       >
@@ -273,7 +273,7 @@
       <h1 class="mb-4 text-center text-4xl">You Failed. Try Again</h1>
       <span class="text-8xl mb-4">🃏</span>
       <button
-        class="btn preset-filled"
+        class="btn preset-filled-surface-500"
         disabled={!canContinue}
         on:click={startGame}>Give me a new deck.</button
       >
@@ -301,33 +301,77 @@
     {#if round_progress === -1}
       <div></div>
     {:else if round_progress === 0}
-      <div class=" font-bold underline">
-        <button value="red" class="bg-red-600" on:click={chooseColor}
-          >Red</button
+      <div class="btn-group font-bold">
+        <button
+          type="button"
+          value="red"
+          class="btn preset-filled bg-red-600 text-white"
+          on:click={chooseColor}>Red</button
         >
-        <button value="black" class="bg-black" on:click={chooseColor}
-          >Black</button
+        <button
+          value="black"
+          type="button"
+          class="btn preset-filled bg-black text-white"
+          on:click={chooseColor}>Black</button
         >
       </div>
     {:else if round_progress === 1}
-      <div class=" preset-filled-primary-500 font-bold underline">
-        <button value="lower" on:click={choosePosition}>Lower</button>
-        <button value="same" on:click={choosePosition}>Same</button>
-        <button value="higher" on:click={choosePosition}>Higher</button>
+      <div class="btn-group font-bold">
+        <button
+          value="lower"
+          type="button"
+          class="btn preset-filled-primary-500"
+          on:click={choosePosition}>Lower</button
+        >
+        <button
+          value="same"
+          type="button"
+          class="btn preset-filled-primary-500"
+          on:click={choosePosition}>Same</button
+        >
+        <button
+          value="higher"
+          type="button"
+          class="btn preset-filled-primary-500"
+          on:click={choosePosition}>Higher</button
+        >
       </div>
     {:else if round_progress === 2}
-      <div class=" preset-filled font-bold underline">
-        <button value="outside" on:click={chooseSpace}>Outside </button>
-        <button value="between" on:click={chooseSpace}>In Between</button>
+      <div class="btn-group font-bold">
+        <button
+          value="outside"
+          class="btn preset-filled-secondary-500"
+          on:click={chooseSpace}
+          >Outside
+        </button>
+        <button
+          value="between"
+          class="btn preset-filled-secondary-500"
+          on:click={chooseSpace}>In Between</button
+        >
       </div>
     {:else if round_progress === 3}
-      <div
-        class="-vertical preset-filled-primary-500 font-bold underline"
-      >
-        <button value="spade" on:click={chooseSuite}>Spade ♠️</button>
-        <button value="hearts" on:click={chooseSuite}>Hearts ♥️</button>
-        <button value="diamonds" on:click={chooseSuite}>Diamonds ♦️</button>
-        <button value="clubs" on:click={chooseSuite}>Clubs ♣️</button>
+      <div class="btn-group-vertical font-bold">
+        <button
+          value="spade"
+          class="btn preset-filled-tertiary-500"
+          on:click={chooseSuite}>Spade ♠️</button
+        >
+        <button
+          value="hearts"
+          class="btn preset-filled-tertiary-500"
+          on:click={chooseSuite}>Hearts ♥️</button
+        >
+        <button
+          value="diamonds"
+          class="btn preset-filled-tertiary-500"
+          on:click={chooseSuite}>Diamonds ♦️</button
+        >
+        <button
+          value="clubs"
+          class="btn preset-filled-tertiary-500"
+          on:click={chooseSuite}>Clubs ♣️</button
+        >
       </div>
     {:else if round_progress === 4}
       <div class=" font-bold underline">You rode the bus! 🚌</div>

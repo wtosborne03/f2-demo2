@@ -65,15 +65,23 @@
         <button
           class="btn preset-filled w-full flex flex-row justify-between"
           on:click={customizeAvatar}
-          >Customize Avatar <span class="text-2xl ml-2">💇‍♀️</span></button
+          >Customize Avatar <Icon
+            icon="pixelarticons:avatar"
+            font-size="2rem"
+          /></button
         >
         <button
           class="btn preset-filled w-full flex flex-row justify-between"
-          on:click={goShop}>Shop <span class="text-2xl ml-2">🛍️</span></button
+          on:click={goShop}
+          >Shop <Icon
+            icon="material-symbols:shop-two-outline"
+            font-size="2rem"
+          /></button
         >
         <button
           class="btn preset-filled w-full flex flex-row justify-between"
-          on:click={goStats}>Stats <span class="text-2xl ml-2">📊</span></button
+          on:click={goStats}
+          >Stats <Icon icon="gridicons:stats" font-size="2rem" /></button
         >
       </div>
       <button

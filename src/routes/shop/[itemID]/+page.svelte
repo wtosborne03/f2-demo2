@@ -3,12 +3,7 @@
   import { onDestroy, onMount } from "svelte";
   import { page } from "$app/stores";
   import Spinner from "$lib/components/spinner.svelte";
-  import {
-    loadItem,
-    createPaymentIntent,
-    initializeStripe,
-    handlePayment,
-  } from "./paymentService";
+  import { initializeStripe, handlePayment } from "./paymentService";
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
 
@@ -82,40 +77,64 @@
   }
 </script>
 
-<div class="px-16 flex h-full flex-col justify-start items-center">
-  <button
-    class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
-    on:click={() => goto("/shop")}
+<div
+  class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white"
+>
+  <!-- Header -->
+  <header
+    class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-purple-500/20"
   >
-    <i class="fa-solid fa-arrow-left mr-2"></i>Back
-  </button>
-  {#if item}
-    <div class="p-2 flex-grow flex flex-col items-center justify-between">
-      <div class="text-xl">{item.name}</div>
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <button class="btn preset-filled" on:click={() => goto("/shop")}>
+        <i class="fa-solid fa-arrow-left mr-2"></i>Back
+      </button>
 
-      <img
-        src={`${thumnailPrefix}/${item.thumbnail}`}
-        alt="item"
-        class="h-1/3 w-auto my-2"
-      />
-      <div>
-        <div class="text-lg">Description: {item.description}</div>
-        <div class="text-lg">Price: ${item.price}</div>
-      </div>
+      <h1 class="text-3xl font-bold text-white">{item?.name || "Shop Item"}</h1>
 
-      <div id="payment-request-button" class="w-full"></div>
-      {#if !applepay}
-        <form on:submit|preventDefault={handleSubmit}>
-          <div id="payment-element"></div>
-          {#if loading}
-            <Spinner />
-          {:else}
-            <button class="btn preset-filled w-full" type="submit">Buy</button>
-          {/if}
-        </form>
-      {/if}
+      <div class="w-32"></div>
+      <!-- Spacer for centering -->
     </div>
-  {:else}
-    <div><Spinner /></div>
-  {/if}
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    {#if item}
+      <div class="flex flex-col items-center justify-center min-h-[60vh]">
+        <img
+          src={`${thumnailPrefix}/${item.thumbnail}`}
+          alt="item"
+          class="h-48 w-auto mb-6 rounded-lg shadow-lg"
+        />
+
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-bold mb-2">{item.name}</h2>
+          <p class="text-lg text-gray-300 mb-2">{item.description}</p>
+          <p class="text-xl font-semibold text-purple-400">
+            ${item.price.toFixed(2)}
+          </p>
+        </div>
+
+        <div class="w-full max-w-md">
+          <div id="payment-request-button" class="mb-4"></div>
+          {#if !applepay}
+            <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+              <div id="payment-element"></div>
+              {#if loading}
+                <div class="flex justify-center">
+                  <Spinner />
+                </div>
+              {:else}
+                <button class="btn preset-filled w-full" type="submit"
+                  >Buy Now</button
+                >
+              {/if}
+            </form>
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <div class="flex justify-center items-center min-h-[60vh]">
+        <Spinner />
+      </div>
+    {/if}
+  </main>
 </div>

@@ -17,6 +17,7 @@ declare namespace Paths {
                 description?: string;
                 thumbnail?: string;
                 price: number;
+                salePrice?: number;
                 owned: boolean;
             }[];
         }
@@ -37,6 +38,7 @@ declare namespace Paths {
                 description?: string;
                 thumbnail?: string;
                 price: number;
+                salePrice?: number;
                 owned: boolean;
             }
             export interface $404 {

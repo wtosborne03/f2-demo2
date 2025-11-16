@@ -2,42 +2,6 @@
 import { loadStripe } from "@stripe/stripe-js";
 const stripePromise = loadStripe("pk_live_51OH7QBEaNbJFWzSSzsO1wsvWMFzITvS3qn195uDKwSiDQ6Y85Vm9yCMfzWMnpmcMTXhHWLalN3Xx49Bv7H4FyOzF00FHnrOF7v");
 
-export const loadItem = async (itemID: string) => {
-    // const { data, error } = await supabase
-    //     .from("shop")
-    //     .select("*")
-    //     .eq("id", itemID)
-    //     .single();
-
-    // if (error || data === null) {
-    //     console.error(error);
-    //     return undefined;
-    // }
-
-    // return data;
-};
-
-/**
- * Create a payment intent for the shop item
- * @param shopId - The ID of the shop item
- * @param userId - The ID of the user making the payment
- * @returns - The client secret for the payment intent
- */
-export const createPaymentIntent = async (shopId: string, userId: string): Promise<string> => {
-    const response = await fetch("https://api.couchcup.tv/create-payment-intent", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            shop_id: shopId,
-            user_id: userId,
-        }),
-    });
-
-    const { clientSecret } = await response.json();
-    return clientSecret;
-};
 
 /**
  * Initialize Stripe and Elements
