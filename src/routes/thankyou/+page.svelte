@@ -7,7 +7,7 @@
     class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
     on:click={() => goto("/")}
   >
-    <i class="fa-solid fa-arrow-left mr-2"></i>Back
+    <Icon icon="lets-icons:back" font-size="2rem" />
   </button>
   <div class="text-2xl mb-3">Thank you for you purchase!</div>
 </div>

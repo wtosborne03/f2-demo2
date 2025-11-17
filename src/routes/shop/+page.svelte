@@ -4,6 +4,7 @@
   import { onMount } from "svelte";
   import ShopItemCard from "$lib/components/ShopItemCard.svelte";
   import Spinner from "$lib/components/spinner.svelte";
+  import Icon from "@iconify/svelte";
 
   let shopItems: { [key: string]: any } = {};
   let allItems: any[] = [];
@@ -42,13 +43,13 @@
     class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-purple-500/20"
   >
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <button class="btn preset-filled" on:click={() => goto("/")}>
-        <i class="fa-solid fa-arrow-left mr-2"></i>Back
+      <button class="btn preset-filled w-14" on:click={() => goto("/")}>
+        <Icon icon="lets-icons:back" font-size="2rem" />
       </button>
 
       <h1 class="text-3xl font-bold text-white">Shop</h1>
 
-      <div class="w-32"></div>
+      <div class="w-14"></div>
       <!-- Spacer for centering -->
     </div>
 

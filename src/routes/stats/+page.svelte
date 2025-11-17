@@ -5,6 +5,7 @@
   import { authClient } from "../../stores/authStore";
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
+  import Icon from "@iconify/svelte";
   const session = authClient.useSession();
 
   let stats: Paths.GetUsersStats.Responses.$200 | null = null;
@@ -29,7 +30,7 @@
     class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
     on:click={() => goto("/")}
   >
-    <i class="fa-solid fa-arrow-left mr-2"></i>Back
+    <Icon icon="lets-icons:back" font-size="2rem" />
   </button>
   <div class="text-2xl mb-3">Stats</div>
   {#if !stats}

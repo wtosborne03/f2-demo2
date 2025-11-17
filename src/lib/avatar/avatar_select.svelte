@@ -124,7 +124,7 @@
     class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
     on:click={() => goto("/")}
   >
-    <i class="fa-solid fa-arrow-left mr-2"></i>Back
+    <Icon icon="lets-icons:back" font-size="2rem" />
   </button>
   <canvas
     id="canvas"

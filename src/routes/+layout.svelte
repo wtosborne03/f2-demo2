@@ -22,6 +22,7 @@
   import { websocketSetup } from "$lib/webSocketService";
   import { toaster } from "$lib/util/toaster";
   import { authDialog } from "../stores/dialog";
+  import { page } from "$app/state";
 
   let dialogOpen = false;
   const unsubDialog = authDialog.subscribe((v) => (dialogOpen = v));
@@ -90,7 +91,7 @@
   </Portal>
 </Dialog>
 
-{#if screen != "index"}
+{#if page.url.pathname === "/" && screen != "index"}
   <AppBar />
   {#if timer_duration > 0}
     <BgTimer />

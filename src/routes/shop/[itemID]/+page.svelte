@@ -6,6 +6,7 @@
   import { initializeStripe, handlePayment } from "./paymentService";
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
+  import Icon from "@iconify/svelte";
 
   const itemID = Number($page.params.itemID) || 0;
 
@@ -85,13 +86,13 @@
     class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-purple-500/20"
   >
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <button class="btn preset-filled" on:click={() => goto("/shop")}>
-        <i class="fa-solid fa-arrow-left mr-2"></i>Back
+      <button class="btn preset-filled w-14" on:click={() => goto("/shop")}>
+        <Icon icon="lets-icons:back" font-size="2rem" />
       </button>
 
-      <h1 class="text-3xl font-bold text-white">{item?.name || "Shop Item"}</h1>
+      <h1 class="text-xl font-bold text-white">{item?.name || "Shop Item"}</h1>
 
-      <div class="w-32"></div>
+      <div class="w-14"></div>
       <!-- Spacer for centering -->
     </div>
   </header>
