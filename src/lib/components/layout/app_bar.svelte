@@ -2,7 +2,7 @@
   import { player_state } from "../../../stores/player_state";
   import { drawerSettings } from "$lib/config/drawer";
   import doubloon from "$lib/assets/icons/doubloon.png";
-  import { authDialog } from "../../../stores/dialog";
+  import { sideBarOpen } from "../../../stores/sidebar";
   import Icon from "@iconify/svelte";
 
   $: name = $player_state.name;
@@ -19,7 +19,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     on:click={() => {
-      authDialog.set(true);
+      sideBarOpen.set(true);
     }}
     class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4 hover:opacity-70 cursor-pointer"
     style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"

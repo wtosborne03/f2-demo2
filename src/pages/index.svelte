@@ -5,53 +5,28 @@
   import { drawerSettings } from "$lib/config/drawer";
   import { onMount } from "svelte";
   import { authClient } from "../stores/authStore";
-  import { authDialog } from "../stores/dialog";
+  import { sideBarOpen } from "../stores/sidebar";
+  import { apiClient } from "$lib/backend/axios";
 
   const session = authClient.useSession();
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
   let name = (browser && localStorage.getItem("name")) || "";
 
-  const updateName = async (new_name: string) => {
-    // const { error } = await supabase
-    //   .from("users")
-    //   .update({ game_name: new_name })
-    //   .eq("id", $authStore.user?.id);
-    // if (error) {
-    //   console.error(error);
-    // }
-  };
-
-  const fetchName = async () => {
-    if ($session.data?.user === null) {
-      return;
+  session.subscribe((s) => {
+    if (s.data?.user.name) {
+      name = s.data.user.name;
     }
+  });
 
-    // if user has logged in
-    // const { error, data } = await supabase
-    //   .from("users")
-    //   .select("*")
-    //   .eq("id", $authStore.user?.id)
-    //   .single();
-    // if (error) {
-    //   console.error(error);
-    // } else {
-    //   if (data.game_name === null && name !== "") {
-    //     updateName(name);
-    //   }
-    //   if (data.game_name !== null) {
-    //     name = data.game_name;
-    //     localStorage.setItem("name", name);
-    //   }
-    // }
+  const updateName = async (new_name: string) => {
+    try {
+      const client = await apiClient;
+      await client!.putUsersName({}, { name: new_name });
+    } catch (error) {
+      console.error("Failed to update name:", error);
+    }
   };
-
-  // authStore.subscribe((store) => {
-  //   if (store.loading) {
-  //     return;
-  //   }
-  //   fetchName();
-  // });
 
   onMount(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -60,15 +35,11 @@
     }
   });
 
-  //const drawerStore = getDrawerStore();
-
   const joinGame = async () => {
     name = name.substring(0, 10);
     name = name.trim();
     if ($session.data?.user === null) {
-      //not logged in
     } else {
-      //logged in, update the db name!
       updateName(name);
     }
     joinRoom(roomCode.toUpperCase(), name);
@@ -79,7 +50,7 @@
   <button
     class="btn preset-filled"
     on:click={() => {
-      authDialog.set(true);
+      sideBarOpen.set(true);
     }}
     >{#if $session.data?.user}
       Account <i class="fa-solid fa-user ml-2"></i>

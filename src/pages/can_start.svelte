@@ -8,7 +8,7 @@
   import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import { drawerSettings } from "$lib/config/drawer";
-  import { authDialog } from "../stores/dialog";
+  import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
 
   const session = authClient.useSession();
@@ -142,7 +142,7 @@
       (
       <span
         class="cursor-pointer text-blue-500 hover:text-blue-600"
-        on:click={() => authDialog.set(true)}>Sign In</span
+        on:click={() => sideBarOpen.set(true)}>Sign In</span
       > to customize avatar.)
     </div>
   {/if}

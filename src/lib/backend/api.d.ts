@@ -7,6 +7,33 @@ import type {
 } from 'openapi-client-axios';
 
 declare namespace Paths {
+    namespace GetGameByIdPrompts {
+        namespace Parameters {
+            export type Id = string;
+            export type Type = number;
+        }
+        export interface PathParameters {
+            id: Parameters.Id;
+        }
+        export interface QueryParameters {
+            type?: Parameters.Type;
+        }
+        namespace Responses {
+            export type $200 = {
+                id: number;
+                content: string;
+                createdAt: number;
+                game: number;
+                minigame: number;
+                prompt?: string;
+                type: number;
+                user?: string;
+                votes?: number;
+                userId?: string;
+                gameName?: string;
+            }[];
+        }
+    }
     namespace GetShopItems {
         namespace Responses {
             export type $200 = {
@@ -105,6 +132,70 @@ declare namespace Paths {
             }
         }
     }
+    namespace PostGameByIdPrompt {
+        namespace Parameters {
+            export type Id = string;
+        }
+        export interface PathParameters {
+            id: Parameters.Id;
+        }
+        export interface RequestBody {
+            content: string;
+            type: number;
+            minigameId: number;
+            userId?: string;
+            prompt?: string;
+            votes?: number;
+        }
+        namespace Responses {
+            export interface $200 {
+                success: boolean;
+            }
+            export interface $500 {
+                error: string;
+            }
+        }
+    }
+    namespace PostGameByIdStats {
+        namespace Parameters {
+            export type Id = string;
+        }
+        export interface PathParameters {
+            id: Parameters.Id;
+        }
+        export interface RequestBody {
+            players: {
+                userId: string;
+                score: number;
+                drinks: number;
+                name: string;
+            }[];
+            winningPlayers: string[];
+        }
+        namespace Responses {
+            export interface $200 {
+                success: boolean;
+            }
+            export interface $404 {
+                error: string;
+            }
+        }
+    }
+    namespace PostGameStart {
+        export interface RequestBody {
+            players: {
+                userId: string;
+            }[];
+        }
+        namespace Responses {
+            export interface $200 {
+                gameId: number;
+            }
+            export interface $500 {
+                error: string;
+            }
+        }
+    }
     namespace PostShopCreatePaymentIntent {
         export interface RequestBody {
             shop_id: number;
@@ -118,6 +209,25 @@ declare namespace Paths {
             }
             export interface $401 {
                 error: string;
+            }
+            export interface $404 {
+                error: string;
+            }
+        }
+    }
+    namespace PutGameByIdRounds {
+        namespace Parameters {
+            export type Id = string;
+        }
+        export interface PathParameters {
+            id: Parameters.Id;
+        }
+        export interface RequestBody {
+            rounds: number;
+        }
+        namespace Responses {
+            export interface $200 {
+                success: boolean;
             }
             export interface $404 {
                 error: string;
@@ -147,6 +257,19 @@ declare namespace Paths {
                 avatar_mouth?: number | null;
                 dollars: number;
                 game_name?: string | null;
+            }
+            export interface $404 {
+                message: string;
+            }
+        }
+    }
+    namespace PutUsersName {
+        export interface RequestBody {
+            name: string;
+        }
+        namespace Responses {
+            export interface $200 {
+                success: boolean;
             }
             export interface $404 {
                 message: string;
@@ -190,6 +313,14 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PutUsersAvatar.Responses.$200>
   /**
+   * putUsersName - Update user name
+   */
+  'putUsersName'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.PutUsersName.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PutUsersName.Responses.$200>
+  /**
    * getShopItems - Get all shop items with ownership status
    */
   'getShopItems'(
@@ -221,6 +352,46 @@ export interface OperationMethods {
     data?: Paths.PostShopCreatePaymentIntent.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PostShopCreatePaymentIntent.Responses.$200>
+  /**
+   * postGameStart - Start a new game
+   */
+  'postGameStart'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.PostGameStart.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostGameStart.Responses.$200>
+  /**
+   * putGameByIdRounds - Update game rounds
+   */
+  'putGameByIdRounds'(
+    parameters?: Parameters<Paths.PutGameByIdRounds.PathParameters> | null,
+    data?: Paths.PutGameByIdRounds.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PutGameByIdRounds.Responses.$200>
+  /**
+   * getGameByIdPrompts - Get previous prompts for a game
+   */
+  'getGameByIdPrompts'(
+    parameters?: Parameters<Paths.GetGameByIdPrompts.QueryParameters & Paths.GetGameByIdPrompts.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetGameByIdPrompts.Responses.$200>
+  /**
+   * postGameByIdStats - Upload game stats
+   */
+  'postGameByIdStats'(
+    parameters?: Parameters<Paths.PostGameByIdStats.PathParameters> | null,
+    data?: Paths.PostGameByIdStats.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostGameByIdStats.Responses.$200>
+  /**
+   * postGameByIdPrompt - Upload a prompt
+   */
+  'postGameByIdPrompt'(
+    parameters?: Parameters<Paths.PostGameByIdPrompt.PathParameters> | null,
+    data?: Paths.PostGameByIdPrompt.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostGameByIdPrompt.Responses.$200>
   /**
    * allApiAuth*
    */
@@ -344,6 +515,16 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PutUsersAvatar.Responses.$200>
   }
+  ['/users/name']: {
+    /**
+     * putUsersName - Update user name
+     */
+    'put'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: Paths.PutUsersName.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PutUsersName.Responses.$200>
+  }
   ['/shop/items']: {
     /**
      * getShopItems - Get all shop items with ownership status
@@ -383,6 +564,56 @@ export interface PathsDictionary {
       data?: Paths.PostShopCreatePaymentIntent.RequestBody,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PostShopCreatePaymentIntent.Responses.$200>
+  }
+  ['/game/start']: {
+    /**
+     * postGameStart - Start a new game
+     */
+    'post'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: Paths.PostGameStart.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostGameStart.Responses.$200>
+  }
+  ['/game/{id}/rounds']: {
+    /**
+     * putGameByIdRounds - Update game rounds
+     */
+    'put'(
+      parameters?: Parameters<Paths.PutGameByIdRounds.PathParameters> | null,
+      data?: Paths.PutGameByIdRounds.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PutGameByIdRounds.Responses.$200>
+  }
+  ['/game/{id}/prompts']: {
+    /**
+     * getGameByIdPrompts - Get previous prompts for a game
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetGameByIdPrompts.QueryParameters & Paths.GetGameByIdPrompts.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetGameByIdPrompts.Responses.$200>
+  }
+  ['/game/{id}/stats']: {
+    /**
+     * postGameByIdStats - Upload game stats
+     */
+    'post'(
+      parameters?: Parameters<Paths.PostGameByIdStats.PathParameters> | null,
+      data?: Paths.PostGameByIdStats.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostGameByIdStats.Responses.$200>
+  }
+  ['/game/{id}/prompt']: {
+    /**
+     * postGameByIdPrompt - Upload a prompt
+     */
+    'post'(
+      parameters?: Parameters<Paths.PostGameByIdPrompt.PathParameters> | null,
+      data?: Paths.PostGameByIdPrompt.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostGameByIdPrompt.Responses.$200>
   }
   ['/api/auth/*']: {
     /**

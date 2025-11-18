@@ -1,7 +1,7 @@
 <script lang="ts">
   import { drawerSettings } from "$lib/config/drawer";
   import { playerEmote } from "$lib/avatar/player_emote";
-  import { authDialog } from "../stores/dialog";
+  import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
 
   const { useSession } = authClient;
@@ -23,7 +23,7 @@
       (
       <span
         class="cursor-pointer text-blue-500 hover:text-blue-600"
-        on:click={() => authDialog.set(true)}>Sign In</span
+        on:click={() => sideBarOpen.set(true)}>Sign In</span
       > to customize avatar.)
     </div>
   {/if}

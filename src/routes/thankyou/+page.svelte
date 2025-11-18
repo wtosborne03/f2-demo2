@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import Icon from "@iconify/svelte";
 </script>
 
 <div class="px-16 flex h-full flex-col justify-start items-center">

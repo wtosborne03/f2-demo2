@@ -3,20 +3,20 @@
   import { authClient } from "../../stores/authStore";
   import Icon from "@iconify/svelte";
   import { toaster } from "$lib/util/toaster";
-  import GoogleSignInButton from "../components/GoogleSignInButton.svelte";
-  import { authDialog } from "../../stores/dialog";
+  import GoogleSignInButton from "./GoogleSignInButton.svelte";
+  import { sideBarOpen } from "../../stores/sidebar";
 
   const { signIn, signUp, signOut, useSession } = authClient;
   const session = useSession();
 
   const customizeAvatar = async () => {
     await goto("/avatar", { replaceState: false });
-    authDialog.set(false);
+    sideBarOpen.set(false);
   };
 
   const goStats = async () => {
     await goto("/stats", { replaceState: false });
-    authDialog.set(false);
+    sideBarOpen.set(false);
   };
 
   // Attempt multiple sign-in flows for Google depending on available client methods.
@@ -47,7 +47,7 @@
   };
   const goShop = async () => {
     await goto("/shop", { replaceState: false });
-    authDialog.set(false);
+    sideBarOpen.set(false);
   };
 </script>
 

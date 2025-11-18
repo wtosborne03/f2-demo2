@@ -15,17 +15,17 @@
   import BgTimer from "$lib/components/layout/bg_timer.svelte";
   import Footer from "$lib/components/layout/footer.svelte";
   import { Dialog, Portal, Toast } from "@skeletonlabs/skeleton-svelte";
-  import AuthBox from "$lib/auth/auth_box.svelte";
+  import AuthBox from "$lib/components/SideBar.svelte";
   import Spinner from "$lib/components/spinner.svelte";
   import { setupErrorHandling } from "$lib/util/error_handling";
   import { browser } from "$app/environment";
   import { websocketSetup } from "$lib/webSocketService";
   import { toaster } from "$lib/util/toaster";
-  import { authDialog } from "../stores/dialog";
+  import { sideBarOpen } from "../stores/sidebar";
   import { page } from "$app/state";
 
   let dialogOpen = false;
-  const unsubDialog = authDialog.subscribe((v) => (dialogOpen = v));
+  const unsubDialog = sideBarOpen.subscribe((v) => (dialogOpen = v));
 
   //storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
@@ -74,8 +74,8 @@
 
 <Dialog
   open={dialogOpen}
-  onFocusOutside={() => authDialog.set(false)}
-  onInteractOutside={() => authDialog.set(false)}
+  onFocusOutside={() => sideBarOpen.set(false)}
+  onInteractOutside={() => sideBarOpen.set(false)}
 >
   <Portal>
     <Dialog.Backdrop
@@ -83,7 +83,7 @@
     />
     <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start">
       <Dialog.Content
-        class="h-screen card bg-surface-100-900 w-2/3 md:w-md space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
+        class="h-[100svh] card bg-surface-100-900 w-2/3 md:w-md space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
       >
         <AuthBox />
       </Dialog.Content>
