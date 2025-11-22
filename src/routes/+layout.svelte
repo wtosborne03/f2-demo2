@@ -3,14 +3,6 @@
   import "../app.css";
   import { onMount, onDestroy } from "svelte";
   import { player_state } from "../stores/player_state";
-  import {
-    computePosition,
-    autoUpdate,
-    flip,
-    shift,
-    offset,
-    arrow,
-  } from "@floating-ui/dom";
   import AppBar from "$lib/components/layout/app_bar.svelte";
   import BgTimer from "$lib/components/layout/bg_timer.svelte";
   import Footer from "$lib/components/layout/footer.svelte";
@@ -30,7 +22,7 @@
   //storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
   $: screen = $player_state.screen;
-  $: timer_duration = $player_state.timer_duration;
+  $: timer_duration = $player_state.timerDuration;
 
   let loading = false;
   //let cleanupErrorHandling = setupErrorHandling();

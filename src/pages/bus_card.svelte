@@ -4,12 +4,11 @@
   import { sendMessage } from "$lib/webSocketService"; // Assuming you have some WebSocket or API communication
   import type { BusData } from "../types/page_data";
   import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import Drink from "$lib/components/drink.svelte";
 
   let m_data: BusData;
-  m_data = get<PlayerState>(player_state).page_data;
+  m_data = get(player_state).pageData;
 
   interface Card {
     color: "red" | "black";

@@ -1,16 +1,22 @@
 import { writable } from "svelte/store";
-import type { PlayerState } from "../types/player_state";
 import { Avatar } from "@skeletonlabs/skeleton-svelte";
+import type { PlayerState } from "$lib/wsapi/game";
 
-export const player_state = writable<PlayerState>({
+interface PlayerStateClient extends PlayerState {
+    pageData: any;
+}
+
+export const player_state = writable<PlayerStateClient>({
     name: "",
     score: 0,
     screen: "index",
-    page_data: {},
-    admin: false,
+    pageDataJson: "",
+    pageData: {},
+    isAdmin: false,
     drinks: 0,
-    timer_stamp: new Date(0),
-    timer_duration: 0,
+    isConnected: false,
+    timerStamp: new Date(0),
+    timerDuration: 0,
     index: 0,
     color: '',
     team: '',

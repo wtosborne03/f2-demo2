@@ -5,11 +5,12 @@
   import { get } from "svelte/store";
   import { player_state } from "../../stores/player_state";
   import { sendMessage } from "$lib/webSocketService";
-  import type { Avatar } from "../../types/player_state";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
   import { toaster } from "$lib/util/toaster";
   import { apiClient } from "$lib/backend/axios";
+  import type { Avatar } from "$lib/wsapi/game";
+  import { gameClient } from "$lib/gameService";
 
   let r: rive.Rive;
   let eyes_input: rive.StateMachineInput | undefined;
@@ -94,10 +95,12 @@
           mouth: a_values["2"] || 0,
           emote: a_values["3"] || 0,
         };
-        sendMessage({
-          type: "avatar_update",
-          data: {
-            avatar: avatar,
+        gameClient.sendPlayerInput({
+          payload: {
+            $case: "avatarUpdate",
+            avatarUpdate: {
+              avatar: avatar,
+            },
           },
         });
       }

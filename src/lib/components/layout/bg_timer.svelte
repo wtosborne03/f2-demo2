@@ -4,8 +4,8 @@
   import { getTime } from "$lib/gameService";
   import { onDestroy } from "svelte";
 
-  $: timer_stamp = $player_state.timer_stamp;
-  $: timer_duration = $player_state.timer_duration;
+  $: timer_stamp = $player_state.timerStamp;
+  $: timer_duration = $player_state.timerDuration;
 
   const remaining_time = writable(0);
 
@@ -20,7 +20,8 @@
   const fetchTimer = async () => {
     clearInterval(interval);
     const t_time = await getTime();
-    remaining_time.set((new Date(timer_stamp).getTime() - t_time) / 1000);
+    if (!timer_stamp) return;
+    remaining_time.set((timer_stamp.getTime() - t_time) / 1000);
     interval = setInterval(updateTimer, 500);
   };
 

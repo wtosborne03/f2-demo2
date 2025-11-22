@@ -1,15 +1,15 @@
-import { sendMessage } from "$lib/webSocketService";
+import { gameClient } from "$lib/gameService";
 
 function playerEmote(event: Event) {
     if (event.target !== event.currentTarget) {
         return;
     }
 
-    sendMessage({
-        type: "game",
-        data: {
-            type: "emote",
-        },
+    gameClient.sendPlayerInput({
+        payload: {
+            $case: 'emote',
+            emote: {}
+        }
     });
 
     // UI feedback: ephemeral animated badge appended to the clicked container

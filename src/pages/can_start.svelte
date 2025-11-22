@@ -5,18 +5,28 @@
   import {} from "@skeletonlabs/skeleton-svelte";
   import type { adminStartData } from "../types/page_data";
   import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
   import { player_state } from "../stores/player_state";
   import { drawerSettings } from "$lib/config/drawer";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
+  import { gameClient } from "$lib/gameService";
+  import type { AdminStartData } from "$lib/wsapi/game";
+  import type { settings } from "../types/settings";
 
   const session = authClient.useSession();
 
-  let s_data: adminStartData;
-  s_data = get<PlayerState>(player_state).page_data;
+  let s_data: settings;
+  s_data = get(player_state).pageData.settings;
 
-  $: s_data, sendMessage({ type: "settings", data: s_data.settings });
+  $: s_data,
+    gameClient.sendPlayerInput({
+      payload: {
+        $case: "adminStartData",
+        adminStartData: {
+          settings: s_data,
+        },
+      },
+    });
 
   function promptForStart() {
     // const modal: ModalSettings = {
@@ -34,7 +44,12 @@
   }
 
   function startGame() {
-    sendMessage({ type: "start_game" });
+    gameClient.sendPlayerInput({
+      payload: {
+        $case: "startGame",
+        startGame: {},
+      },
+    });
   }
   let tabSet: number = 0;
 </script>
@@ -56,9 +71,9 @@
         class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800 bg-opacity-40"
       >
         <Switch
-          checked={s_data.settings.drinking}
+          checked={s_data.drinking}
           onCheckedChange={(e) => {
-            s_data.settings.drinking = e.checked;
+            s_data.drinking = e.checked;
           }}
         >
           <Switch.Control>
@@ -73,9 +88,9 @@
         class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800"
       >
         <Switch
-          checked={s_data.settings.family}
+          checked={s_data.family}
           onCheckedChange={(e) => {
-            s_data.settings.family = e.checked;
+            s_data.family = e.checked;
           }}
         >
           <Switch.Control>
@@ -111,7 +126,7 @@
                 min="10"
                 max="100"
                 step="1"
-                bind:value={s_data.settings.rounds}
+                bind:value={s_data.rounds}
               />
               <span class="ml-2 w-64">Game Rounds</span>
             </div>
@@ -125,7 +140,7 @@
                 min="5000"
                 max="100000"
                 step="1000"
-                bind:value={s_data.settings.doubloons}
+                bind:value={s_data.doubloons}
               />
               <span class="ml-2 w-64">Doubloons To Win</span>
             </div>

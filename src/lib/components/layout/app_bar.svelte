@@ -6,7 +6,7 @@
   import Icon from "@iconify/svelte";
 
   $: name = $player_state.name;
-  $: admin = $player_state.admin;
+  $: admin = $player_state.isAdmin;
   $: score = $player_state.score;
   $: team = $player_state.team;
   $: color = $player_state.color;
@@ -43,7 +43,7 @@
       class="text-xl flex flex-row items-center justify-center gap-2 w-20 h-10 pr-8"
     >
       <div class="text-center" style="padding-top: 3px;">
-        {score.toString().padStart(5, "0")}
+        {score}
       </div>
       <img class="object-contain w-8 h-8" src={doubloon} alt="coin" />
     </span>
