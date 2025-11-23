@@ -3,7 +3,8 @@ import {
     type CreateRoomResponse, type JoinRoomResponse, type GetServerTimeResponse,
     type GameEvent, type RoomState, type PlayerState, type ConnectionChange,
     type ErrorResponse,
-    PlayerInput
+    PlayerInput,
+    JoinRoomRequest
 } from './game';
 
 type Role = 'HOST' | 'PLAYER';
@@ -308,10 +309,11 @@ export class GameClient {
     }
 
     // Player Methods
-    joinRoom(roomCode: string, playerName: string) {
+    joinRoom(roomCode: string, playerName: string, userId?: string) {
         this.lastRoomCode = roomCode;
         this.lastPlayerName = playerName;
-        this.send({ packet: { $case: 'joinRoom', joinRoom: { roomCode, playerName } } });
+        const packet: JoinRoomRequest = { roomCode, playerName, userId: userId ?? '' };
+        this.send({ packet: { $case: 'joinRoom', joinRoom: packet } });
     }
 
     leaveRoom(roomCode: string, playerToken?: string) {

@@ -220,6 +220,8 @@ export interface CreateRoomResponse {
 export interface JoinRoomRequest {
   roomCode: string;
   playerName: string;
+  /** For db */
+  userId: string;
 }
 
 export interface JoinRoomResponse {
@@ -262,6 +264,7 @@ export interface RoomState {
 
 export interface ConnectionChange {
   playerName: string;
+  userId: string;
   isConnected: boolean;
 }
 
@@ -2526,7 +2529,7 @@ export const CreateRoomResponse: MessageFns<CreateRoomResponse> = {
 };
 
 function createBaseJoinRoomRequest(): JoinRoomRequest {
-  return { roomCode: "", playerName: "" };
+  return { roomCode: "", playerName: "", userId: "" };
 }
 
 export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
@@ -2536,6 +2539,9 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
     }
     if (message.playerName !== "") {
       writer.uint32(18).string(message.playerName);
+    }
+    if (message.userId !== "") {
+      writer.uint32(26).string(message.userId);
     }
     return writer;
   },
@@ -2563,6 +2569,14 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
           message.playerName = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2576,6 +2590,7 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
     return {
       roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
       playerName: isSet(object.playerName) ? globalThis.String(object.playerName) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
     };
   },
 
@@ -2587,6 +2602,9 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
     if (message.playerName !== "") {
       obj.playerName = message.playerName;
     }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
     return obj;
   },
 
@@ -2597,6 +2615,7 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
     const message = createBaseJoinRoomRequest();
     message.roomCode = object.roomCode ?? "";
     message.playerName = object.playerName ?? "";
+    message.userId = object.userId ?? "";
     return message;
   },
 };
@@ -3119,7 +3138,7 @@ export const RoomState: MessageFns<RoomState> = {
 };
 
 function createBaseConnectionChange(): ConnectionChange {
-  return { playerName: "", isConnected: false };
+  return { playerName: "", userId: "", isConnected: false };
 }
 
 export const ConnectionChange: MessageFns<ConnectionChange> = {
@@ -3127,8 +3146,11 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
     if (message.playerName !== "") {
       writer.uint32(10).string(message.playerName);
     }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
     if (message.isConnected !== false) {
-      writer.uint32(16).bool(message.isConnected);
+      writer.uint32(24).bool(message.isConnected);
     }
     return writer;
   },
@@ -3149,7 +3171,15 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
             break;
           }
 
@@ -3168,6 +3198,7 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
   fromJSON(object: any): ConnectionChange {
     return {
       playerName: isSet(object.playerName) ? globalThis.String(object.playerName) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
       isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
     };
   },
@@ -3176,6 +3207,9 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
     const obj: any = {};
     if (message.playerName !== "") {
       obj.playerName = message.playerName;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
     }
     if (message.isConnected !== false) {
       obj.isConnected = message.isConnected;
@@ -3189,6 +3223,7 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
   fromPartial(object: DeepPartial<ConnectionChange>): ConnectionChange {
     const message = createBaseConnectionChange();
     message.playerName = object.playerName ?? "";
+    message.userId = object.userId ?? "";
     message.isConnected = object.isConnected ?? false;
     return message;
   },

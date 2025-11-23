@@ -48,7 +48,8 @@ export function joinRoom(code: string, name: string) {
     localStorage.setItem("code", code);
     r_code = code;
     r_name = name;
-    gameClient.joinRoom(code, name);
+    console.log("Joining room with user ID:", session.get().data?.user.id);
+    gameClient.joinRoom(code, name, session.get().data?.user.id);
     // send as protobuf client message (no wait)
     //sendMessageAndWaitForResponse({ type: 'joinRoom', data: { roomId: code, name, userID: session.get().data?.user?.id } }).catch(() => { });
 }
