@@ -1,5 +1,4 @@
 <script lang="ts">
-  export const ssr = false;
   import "../app.css";
   import { onMount, onDestroy } from "svelte";
   import { player_state } from "../stores/player_state";
