@@ -65,6 +65,7 @@ export interface WsClientPacket {
   /** Host Actions */
   { $case: "updatePlayer"; updatePlayer: UpdatePlayerStateRequest }
   | { $case: "setStage"; setStage: SetGameStageRequest }
+  | { $case: "sendMessage"; sendMessage: SendMessageRequest }
   | //
   /** Player Actions */
   { $case: "playerInput"; playerInput: SendPlayerInputRequest }
@@ -142,6 +143,8 @@ export interface PlayerInputPayload {
   | { $case: "emote"; emote: Emote }
   | { $case: "multipleChoice"; multipleChoice: MultipleChoice }
   | { $case: "restartGame"; restartGame: RestartGame }
+  | { $case: "promptTextData"; promptTextData: PromptTextData }
+  | { $case: "playerVoteData"; playerVoteData: PlayerVoteData }
   | undefined;
 }
 
@@ -171,6 +174,10 @@ export interface PromptData {
   question: string;
 }
 
+export interface PromptTextData {
+  answer: string;
+}
+
 export interface DilemmaData {
   points: number;
 }
@@ -181,6 +188,10 @@ export interface InstructionData {
 
 export interface VoteData {
   options: string[];
+}
+
+export interface PlayerVoteData {
+  answer: string;
 }
 
 export interface Settings {
@@ -277,6 +288,11 @@ export interface UpdatePlayerStateRequest_UpdatesEntry {
   value: PlayerState | undefined;
 }
 
+export interface SendMessageRequest {
+  targetPlayer: string;
+  message: string;
+}
+
 export interface SetGameStageRequest {
   roomCode: string;
   hostToken: string;
@@ -320,8 +336,11 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
       case "setStage":
         SetGameStageRequest.encode(message.packet.setStage, writer.uint32(50).fork()).join();
         break;
+      case "sendMessage":
+        SendMessageRequest.encode(message.packet.sendMessage, writer.uint32(58).fork()).join();
+        break;
       case "playerInput":
-        SendPlayerInputRequest.encode(message.packet.playerInput, writer.uint32(58).fork()).join();
+        SendPlayerInputRequest.encode(message.packet.playerInput, writer.uint32(66).fork()).join();
         break;
     }
     return writer;
@@ -390,6 +409,14 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
+          message.packet = { $case: "sendMessage", sendMessage: SendMessageRequest.decode(reader, reader.uint32()) };
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
           message.packet = {
             $case: "playerInput",
             playerInput: SendPlayerInputRequest.decode(reader, reader.uint32()),
@@ -419,9 +446,11 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
                 ? { $case: "updatePlayer", updatePlayer: UpdatePlayerStateRequest.fromJSON(object.updatePlayer) }
                 : isSet(object.setStage)
                   ? { $case: "setStage", setStage: SetGameStageRequest.fromJSON(object.setStage) }
-                  : isSet(object.playerInput)
-                    ? { $case: "playerInput", playerInput: SendPlayerInputRequest.fromJSON(object.playerInput) }
-                    : undefined,
+                  : isSet(object.sendMessage)
+                    ? { $case: "sendMessage", sendMessage: SendMessageRequest.fromJSON(object.sendMessage) }
+                    : isSet(object.playerInput)
+                      ? { $case: "playerInput", playerInput: SendPlayerInputRequest.fromJSON(object.playerInput) }
+                      : undefined,
     };
   },
 
@@ -439,6 +468,8 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
       obj.updatePlayer = UpdatePlayerStateRequest.toJSON(message.packet.updatePlayer);
     } else if (message.packet?.$case === "setStage") {
       obj.setStage = SetGameStageRequest.toJSON(message.packet.setStage);
+    } else if (message.packet?.$case === "sendMessage") {
+      obj.sendMessage = SendMessageRequest.toJSON(message.packet.sendMessage);
     } else if (message.packet?.$case === "playerInput") {
       obj.playerInput = SendPlayerInputRequest.toJSON(message.packet.playerInput);
     }
@@ -487,6 +518,15 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
       case "setStage": {
         if (object.packet?.setStage !== undefined && object.packet?.setStage !== null) {
           message.packet = { $case: "setStage", setStage: SetGameStageRequest.fromPartial(object.packet.setStage) };
+        }
+        break;
+      }
+      case "sendMessage": {
+        if (object.packet?.sendMessage !== undefined && object.packet?.sendMessage !== null) {
+          message.packet = {
+            $case: "sendMessage",
+            sendMessage: SendMessageRequest.fromPartial(object.packet.sendMessage),
+          };
         }
         break;
       }
@@ -1196,6 +1236,12 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
       case "restartGame":
         RestartGame.encode(message.payload.restartGame, writer.uint32(106).fork()).join();
         break;
+      case "promptTextData":
+        PromptTextData.encode(message.payload.promptTextData, writer.uint32(114).fork()).join();
+        break;
+      case "playerVoteData":
+        PlayerVoteData.encode(message.payload.playerVoteData, writer.uint32(122).fork()).join();
+        break;
     }
     return writer;
   },
@@ -1317,6 +1363,22 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
           message.payload = { $case: "restartGame", restartGame: RestartGame.decode(reader, reader.uint32()) };
           continue;
         }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.payload = { $case: "promptTextData", promptTextData: PromptTextData.decode(reader, reader.uint32()) };
+          continue;
+        }
+        case 15: {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.payload = { $case: "playerVoteData", playerVoteData: PlayerVoteData.decode(reader, reader.uint32()) };
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1354,7 +1416,11 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
                               ? { $case: "multipleChoice", multipleChoice: MultipleChoice.fromJSON(object.multipleChoice) }
                               : isSet(object.restartGame)
                                 ? { $case: "restartGame", restartGame: RestartGame.fromJSON(object.restartGame) }
-                                : undefined,
+                                : isSet(object.promptTextData)
+                                  ? { $case: "promptTextData", promptTextData: PromptTextData.fromJSON(object.promptTextData) }
+                                  : isSet(object.playerVoteData)
+                                    ? { $case: "playerVoteData", playerVoteData: PlayerVoteData.fromJSON(object.playerVoteData) }
+                                    : undefined,
     };
   },
 
@@ -1386,6 +1452,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
       obj.multipleChoice = MultipleChoice.toJSON(message.payload.multipleChoice);
     } else if (message.payload?.$case === "restartGame") {
       obj.restartGame = RestartGame.toJSON(message.payload.restartGame);
+    } else if (message.payload?.$case === "promptTextData") {
+      obj.promptTextData = PromptTextData.toJSON(message.payload.promptTextData);
+    } else if (message.payload?.$case === "playerVoteData") {
+      obj.playerVoteData = PlayerVoteData.toJSON(message.payload.playerVoteData);
     }
     return obj;
   },
@@ -1492,6 +1562,24 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
       case "restartGame": {
         if (object.payload?.restartGame !== undefined && object.payload?.restartGame !== null) {
           message.payload = { $case: "restartGame", restartGame: RestartGame.fromPartial(object.payload.restartGame) };
+        }
+        break;
+      }
+      case "promptTextData": {
+        if (object.payload?.promptTextData !== undefined && object.payload?.promptTextData !== null) {
+          message.payload = {
+            $case: "promptTextData",
+            promptTextData: PromptTextData.fromPartial(object.payload.promptTextData),
+          };
+        }
+        break;
+      }
+      case "playerVoteData": {
+        if (object.payload?.playerVoteData !== undefined && object.payload?.playerVoteData !== null) {
+          message.payload = {
+            $case: "playerVoteData",
+            playerVoteData: PlayerVoteData.fromPartial(object.payload.playerVoteData),
+          };
         }
         break;
       }
@@ -1844,6 +1932,64 @@ export const PromptData: MessageFns<PromptData> = {
   },
 };
 
+function createBasePromptTextData(): PromptTextData {
+  return { answer: "" };
+}
+
+export const PromptTextData: MessageFns<PromptTextData> = {
+  encode(message: PromptTextData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.answer !== "") {
+      writer.uint32(10).string(message.answer);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PromptTextData {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePromptTextData();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.answer = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PromptTextData {
+    return { answer: isSet(object.answer) ? globalThis.String(object.answer) : "" };
+  },
+
+  toJSON(message: PromptTextData): unknown {
+    const obj: any = {};
+    if (message.answer !== "") {
+      obj.answer = message.answer;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<PromptTextData>): PromptTextData {
+    return PromptTextData.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<PromptTextData>): PromptTextData {
+    const message = createBasePromptTextData();
+    message.answer = object.answer ?? "";
+    return message;
+  },
+};
+
 function createBaseDilemmaData(): DilemmaData {
   return { points: 0 };
 }
@@ -2016,6 +2162,64 @@ export const VoteData: MessageFns<VoteData> = {
   fromPartial(object: DeepPartial<VoteData>): VoteData {
     const message = createBaseVoteData();
     message.options = object.options?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBasePlayerVoteData(): PlayerVoteData {
+  return { answer: "" };
+}
+
+export const PlayerVoteData: MessageFns<PlayerVoteData> = {
+  encode(message: PlayerVoteData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.answer !== "") {
+      writer.uint32(10).string(message.answer);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PlayerVoteData {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePlayerVoteData();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.answer = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PlayerVoteData {
+    return { answer: isSet(object.answer) ? globalThis.String(object.answer) : "" };
+  },
+
+  toJSON(message: PlayerVoteData): unknown {
+    const obj: any = {};
+    if (message.answer !== "") {
+      obj.answer = message.answer;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<PlayerVoteData>): PlayerVoteData {
+    return PlayerVoteData.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<PlayerVoteData>): PlayerVoteData {
+    const message = createBasePlayerVoteData();
+    message.answer = object.answer ?? "";
     return message;
   },
 };
@@ -3385,6 +3589,82 @@ export const UpdatePlayerStateRequest_UpdatesEntry: MessageFns<UpdatePlayerState
     message.value = (object.value !== undefined && object.value !== null)
       ? PlayerState.fromPartial(object.value)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseSendMessageRequest(): SendMessageRequest {
+  return { targetPlayer: "", message: "" };
+}
+
+export const SendMessageRequest: MessageFns<SendMessageRequest> = {
+  encode(message: SendMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.targetPlayer !== "") {
+      writer.uint32(10).string(message.targetPlayer);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendMessageRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendMessageRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.targetPlayer = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SendMessageRequest {
+    return {
+      targetPlayer: isSet(object.targetPlayer) ? globalThis.String(object.targetPlayer) : "",
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: SendMessageRequest): unknown {
+    const obj: any = {};
+    if (message.targetPlayer !== "") {
+      obj.targetPlayer = message.targetPlayer;
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<SendMessageRequest>): SendMessageRequest {
+    return SendMessageRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<SendMessageRequest>): SendMessageRequest {
+    const message = createBaseSendMessageRequest();
+    message.targetPlayer = object.targetPlayer ?? "";
+    message.message = object.message ?? "";
     return message;
   },
 };

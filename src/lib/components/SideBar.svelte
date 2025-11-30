@@ -58,17 +58,14 @@
     <div
       class="flex flex-col justify-between h-full items-center text-xl w-full"
     >
-      <div class="text-lg wrap-break-word">{$session.data?.user?.email}</div>
+      <div class="text-sm wrap-anywhere">{$session.data?.user?.email}</div>
       <div
         class="flex flex-col items-center justify-start gap-4 w-full h-full py-10"
       >
         <button
           class="btn preset-filled w-full flex flex-row justify-between"
           on:click={customizeAvatar}
-          >Customize Avatar <Icon
-            icon="pixelarticons:avatar"
-            font-size="2rem"
-          /></button
+          >Avatar <Icon icon="pixelarticons:avatar" font-size="2rem" /></button
         >
         <button
           class="btn preset-filled w-full flex flex-row justify-between"

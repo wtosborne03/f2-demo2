@@ -4,16 +4,18 @@
   import type { PlayerState } from "../types/player_state";
   import type { VoteData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
+  import { gameClient } from "$lib/gameService";
 
   let m_data: VoteData;
-  m_data = get<PlayerState>(player_state).page_data;
+  m_data = get(player_state).pageData;
 
   function submit_answer(index: number) {
-    sendMessage({
-      type: "game",
-      data: {
-        type: "vote",
-        answer: m_data.options[index],
+    gameClient.sendPlayerInput({
+      payload: {
+        $case: "playerVoteData",
+        playerVoteData: {
+          answer: m_data.options[index],
+        },
       },
     });
   }

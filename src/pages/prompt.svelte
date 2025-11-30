@@ -4,20 +4,25 @@
   import type { PlayerState } from "../types/player_state";
   import type { PromptData } from "../types/page_data";
   import { player_state } from "../stores/player_state";
+  import { gameClient } from "$lib/gameService";
+  import type { PlayerInputPayload } from "$lib/wsapi/game";
 
   let m_data: PromptData;
-  m_data = get<PlayerState>(player_state).page_data;
+  m_data = get(player_state).pageData;
 
   let answer_text = "";
 
   function submit_prompt() {
-    sendMessage({
-      type: "game",
-      data: {
-        type: "answer",
-        answer: answer_text,
+    const payload: PlayerInputPayload = {
+      payload: {
+        $case: "promptTextData",
+        promptTextData: {
+          answer: answer_text,
+        },
       },
-    });
+    };
+    console.log("Submitting prompt:", payload);
+    gameClient.sendPlayerInput(payload);
   }
 </script>
 

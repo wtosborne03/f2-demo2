@@ -290,6 +290,7 @@ export class GameClient {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
             throw new Error('Socket not open');
         }
+        console.log('Sending packet:', packet);
         const bytes = WsClientPacket.encode(packet).finish();
         this.ws.send(bytes);
     }

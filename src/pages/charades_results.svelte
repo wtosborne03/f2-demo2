@@ -6,7 +6,7 @@
   import { RatingGroup } from "@skeletonlabs/skeleton-svelte";
 
   let m_data: CharadesResultsData;
-  m_data = get<PlayerState>(player_state).page_data;
+  m_data = get(player_state).pageData;
 </script>
 
 <div

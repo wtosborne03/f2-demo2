@@ -21,14 +21,16 @@
     on:click={() => {
       sideBarOpen.set(true);
     }}
-    class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between p-4 hover:opacity-70 cursor-pointer"
+    class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-70 cursor-pointer"
     style="border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"
   >
     <!-- App Bar -->
-    <div class="h-10 flex flex-col justify-center items-start w-20">
+    <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
       <Icon icon="material-symbols:menu-rounded" font-size="3rem" />
     </div>
-    <span class="text-xl flex flex-col justify-center items-center gap-0">
+    <span
+      class="text-xl flex flex-col justify-center items-center gap-0 absolute left-1/2 -translate-x-1/2"
+    >
       <div class="flex flex-col justify-center items-center h-10">
         {name}
         {#if admin}
@@ -40,12 +42,10 @@
     </span>
 
     <span
-      class="text-xl flex flex-row items-center justify-center gap-2 w-20 h-10 pr-8"
+      class="text-xl flex flex-row items-center justify-center gap-2 w-20 h-12 flex-none"
     >
-      <div class="text-center" style="padding-top: 3px;">
-        {score}
-      </div>
-      <img class="object-contain w-8 h-8" src={doubloon} alt="coin" />
+      {score}
+      <img class="object-contain w-auto h-full" src={doubloon} alt="coin" />
     </span>
   </div>
   {#if team != ""}

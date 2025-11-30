@@ -7,6 +7,7 @@
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
   import Icon from "@iconify/svelte";
+  import { getHue, getSecondaryHue } from "$lib/util/color";
 
   const itemID = Number($page.params.itemID) || 0;
 
@@ -79,7 +80,8 @@
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white"
+  class={`min-h-screen  text-white`}
+  style={`background: linear-gradient(30deg, ${getSecondaryHue(item?.id)}, transparent);`}
 >
   <!-- Header -->
   <header
@@ -103,15 +105,32 @@
         <img
           src={`${thumnailPrefix}/${item.thumbnail}`}
           alt="item"
-          class="h-48 w-auto mb-6 rounded-lg shadow-lg"
+          class="h-48 w-auto mb-6 rounded-lg"
         />
 
         <div class="text-center mb-8">
           <h2 class="text-2xl font-bold mb-2">{item.name}</h2>
           <p class="text-lg text-gray-300 mb-2">{item.description}</p>
-          <p class="text-xl font-semibold text-purple-400">
-            ${item.price.toFixed(2)}
-          </p>
+
+          {#if item.salePrice !== undefined && item.salePrice < item.price}
+            <div class="flex flex-row items-center justify-center space-x-3">
+              <p class="text-sm text-gray-400 line-through">
+                ${item.price.toFixed(2)}
+              </p>
+              <p class="text-xl font-semibold text-purple-400">
+                ${item.salePrice.toFixed(2)}
+              </p>
+              <span
+                class="inline-block bg-red-500 text-white text-xs px-2 py-1 rounded"
+              >
+                Sale
+              </span>
+            </div>
+          {:else}
+            <p class="text-xl font-semibold text-purple-400">
+              ${item.price.toFixed(2)}
+            </p>
+          {/if}
         </div>
 
         <div class="w-full max-w-md">
