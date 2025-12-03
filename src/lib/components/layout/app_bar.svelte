@@ -42,7 +42,7 @@
     </span>
 
     <span
-      class="text-xl flex flex-row items-center justify-center gap-2 w-20 h-12 flex-none"
+      class="text-xl flex flex-row items-center justify-end gap-2 w-20 h-12 flex-none"
     >
       {score}
       <img class="object-contain w-auto h-full" src={doubloon} alt="coin" />

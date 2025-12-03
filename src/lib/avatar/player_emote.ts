@@ -1,10 +1,24 @@
 import { gameClient } from "$lib/gameService";
 
+// per-container cooldown map to avoid spamming
+const lastEmoteAt = new WeakMap<HTMLElement, number>();
+const COOLDOWN_MS = 1000; // 1 second cooldown
+
 function playerEmote(event: Event) {
     if (event.target !== event.currentTarget) {
         return;
     }
 
+    const container = event.currentTarget as HTMLElement | null;
+    if (!container || typeof window === "undefined") return;
+
+    // cooldown: ignore if triggered too soon on the same container
+    const now = Date.now();
+    const last = lastEmoteAt.get(container) ?? 0;
+    if (now - last < COOLDOWN_MS) return;
+    lastEmoteAt.set(container, now);
+
+    // notify server immediately
     gameClient.sendPlayerInput({
         payload: {
             $case: 'emote',
@@ -13,30 +27,33 @@ function playerEmote(event: Event) {
     });
 
     // UI feedback: ephemeral animated badge appended to the clicked container
-    const container = event.currentTarget as HTMLElement | null;
-    if (!container || typeof window === "undefined") return;
 
-    // ensure container can position absolutely-positioned child
-    const prevInlinePos = container.style.position;
-    const computedPos = getComputedStyle(container).position;
-    if (computedPos === "static") {
-        container.style.position = "relative";
+    // derive client coordinates (supports MouseEvent and TouchEvent)
+    const ev = event as MouseEvent | TouchEvent;
+    let clientX = 0;
+    let clientY = 0;
+    if (ev instanceof MouseEvent) {
+        clientX = ev.clientX;
+        clientY = ev.clientY;
+    } else if (ev instanceof TouchEvent && ev.changedTouches && ev.changedTouches[0]) {
+        clientX = ev.changedTouches[0].clientX;
+        clientY = ev.changedTouches[0].clientY;
     }
 
-    // get tap/click position relative to container
-    const rect = container.getBoundingClientRect();
-    const x = (event as MouseEvent).clientX - rect.left;
-    const y = (event as MouseEvent).clientY - rect.top;
-
+    // fixed size simplifies centering math
+    const size = 56;
     const badge = document.createElement("div");
     badge.textContent = "🎉";
     Object.assign(badge.style, {
-        position: "absolute",
-        left: `${x}px`,
-        top: `${y}px`,
-        transform: "translate(-50%, -50%) scale(0.6)",
-        width: "56px",
-        height: "56px",
+        // anchor to viewport so container layout changes can't move the badge
+        position: "fixed",
+        left: `${clientX}px`,
+        top: `${clientY}px`,
+        // use consistent percentage-based centering in transform to avoid
+        // mixing units across keyframes (no px/percent interpolation)
+        transform: `translate(-50%, -50%) scale(0.6)`,
+        width: `${size}px`,
+        height: `${size}px`,
         display: "grid",
         placeItems: "center",
         borderRadius: "9999px",
@@ -44,20 +61,22 @@ function playerEmote(event: Event) {
         color: "white",
         pointerEvents: "none",
         zIndex: "9999",
-    });
+        willChange: "transform, opacity",
+    } as Partial<CSSStyleDeclaration>);
+    // append to body so badge remains stable even if container moves
+    document.body.appendChild(badge);
 
-    container.appendChild(badge);
-
-    // animate: pop at tap location, then float up and fade
+    // animate: keep position fixed (no translate movement that changes top/left)
+    // — only scale and opacity change. Use consistent translate(-50%,-50%) in
+    // all keyframes to avoid interpolation between different unit types.
     const animation = badge.animate(
         [
-            { transform: "translate(-50%, -50%) scale(0.6)", opacity: 0 },
-            { transform: "translate(-50%, -120%) scale(1.2)", opacity: 1, offset: 0.2 },
-            { transform: "translate(-50%, -150%) scale(1.0)", opacity: 1, offset: 0.3 },
-            { transform: "translate(-50%, -750%) scale(2.3)", opacity: 0, offset: 1 }, // float up by adjusting translateY
+            { transform: `translate(-50%, -50%) scale(0.6)`, opacity: 0 },
+            { transform: `translate(-50%, -50%) scale(1.2)`, opacity: 1, offset: 0.2 },
+            { transform: `translate(-50%, -50%) scale(2.3)`, opacity: 0, offset: 1 },
         ],
         {
-            duration: 4000,
+            duration: 2000,
             easing: "cubic-bezier(.2,.9,.2,1)",
             fill: "forwards",
         }
@@ -65,10 +84,7 @@ function playerEmote(event: Event) {
 
     animation.onfinish = () => {
         badge.remove();
-        // revert inline position if we set it here
-        if (computedPos === "static") {
-            container.style.position = prevInlinePos;
-        }
+        // nothing else to revert — we appended to body and didn't change container
     };
 }
 

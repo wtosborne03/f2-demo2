@@ -12,6 +12,7 @@
   import { gameClient } from "$lib/gameService";
   import type { AdminStartData } from "$lib/wsapi/game";
   import type { settings } from "../types/settings";
+  import Icon from "@iconify/svelte";
 
   const session = authClient.useSession();
 
@@ -60,12 +61,14 @@
   class="container h-full mx-auto flex flex-col justify-center items-center"
   on:click={playerEmote}
 >
-  <button class="btn preset-filled" on:click={promptForStart}
-    >Start Game <i class=""></i></button
+  <button
+    class="btn rounded-2xl text-white preset-filled-secondary-500 py-3"
+    on:click={promptForStart}
+    >Start Game <Icon icon="mdi:play" font-size="1.8rem" /></button
   >
 
   <div class="container max-w-96">
-    <h3 class="mt-16 mb-2 pl-2 text-lg">Settings</h3>
+    <h3 class="mt-8 mb-2 pl-2 text-lg">Settings</h3>
     <ul>
       <li
         class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800 bg-opacity-40"
@@ -104,12 +107,10 @@
       <!-- Game End Condition Settings -->
       <li class="mt-2 p-4 rounded-lg bg-slate-800 bg-opacity-40">
         <Tabs defaultValue="tab-rounds">
-          <div class="text-center text-gray-200 font-bold mr-3 mb-6">
-            Game End 🏁
-          </div>
-          <Tabs.List>
+          <div class="text-start text-gray-200 font-bold mb-4">Game End 🏁</div>
+          <Tabs.List class="h-10">
             <Tabs.Trigger class="flex-1" value="tab-rounds">
-              <span class="italic"> Rounds </span>
+              <span class="italic"> Rounds</span>
             </Tabs.Trigger>
             <Tabs.Trigger class="flex-1" value="tab-doubloons">
               <span class="italic"> Doubloons</span></Tabs.Trigger

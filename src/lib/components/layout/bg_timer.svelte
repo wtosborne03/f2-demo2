@@ -10,8 +10,9 @@
   const remaining_time = writable(0);
 
   let interval: NodeJS.Timeout;
-  let fetched = false; // did we fetch the server time offset for the current running timer?
-  let lastTimerStamp: number | null = null; // if the stamp changes, we should re-fetch offset
+  let fetching = false;
+  let prev_timer_stamp: Date | null = null;
+  let prev_timer_duration = 0;
 
   const updateTimer = () => {
     remaining_time.update((current) => current - 0.5);
@@ -20,34 +21,39 @@
   // Fetch the current time and set the remaining time
   // based on the timer stamp and duration
   const fetchTimer = async () => {
-    clearInterval(interval);
-    const t_time = await getTime();
-    if (!timer_stamp) return false;
-    remaining_time.set((timer_stamp.getTime() - t_time) / 1000);
-    interval = setInterval(updateTimer, 500);
-    return true;
+    // Avoid overlapping fetches
+    if (fetching) return;
+    fetching = true;
+    try {
+      clearInterval(interval);
+      const t_time = await getTime();
+      if (!timer_stamp) return;
+      remaining_time.set((timer_stamp.getTime() - t_time) / 1000);
+      interval = setInterval(updateTimer, 500);
+    } finally {
+      fetching = false;
+    }
   };
 
-  // Fetch the current time offset once when the timer starts.
-  // If the server restarts/updates the timer with a new stamp, re-fetch.
-  $: (async () => {
-    if (timer_duration > 0) {
-      const stampMs = timer_stamp ? timer_stamp.getTime() : null;
-      if (!fetched || (stampMs && lastTimerStamp !== stampMs)) {
-        const didSet = await fetchTimer();
-        if (didSet) {
-          fetched = true;
-          lastTimerStamp = stampMs;
-        }
-      }
-    } else {
-      // Timer not running: clear and reset fetched state
-      clearInterval(interval);
-      fetched = false;
-      lastTimerStamp = null;
-      remaining_time.set(0);
+  $: if (timer_duration > 0) {
+    // Only fetch when the timer stamp or duration changes
+    const stampChanged =
+      !!timer_stamp &&
+      (!prev_timer_stamp ||
+        timer_stamp.getTime() !== prev_timer_stamp.getTime());
+    const durationChanged = timer_duration !== prev_timer_duration;
+    if (stampChanged || durationChanged) {
+      prev_timer_stamp = timer_stamp ?? null;
+      prev_timer_duration = timer_duration;
+      console.log("Fetching timer...");
+      fetchTimer();
     }
-  })();
+  } else {
+    console.log("Clearing timer...");
+    prev_timer_stamp = null;
+    prev_timer_duration = 0;
+    clearInterval(interval);
+  }
 
   onDestroy(() => {
     clearInterval(interval);
@@ -56,8 +62,9 @@
 
 <div class="w-screen h-screen fixed opacity-20 col-span-3 bottom-0 -z-10">
   <div
-    class="bg-blue-500 h-full"
-    style="width: {(100 * $remaining_time) / timer_duration}%;
+    class="bg-blue-500 h-full text-white"
+    style="width: {($remaining_time - timer_duration) *
+      (100 / timer_duration)}%;
           transition: width 0.5s linear;"
   ></div>
 </div>

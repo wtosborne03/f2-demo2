@@ -145,6 +145,9 @@ export interface PlayerInputPayload {
   | { $case: "restartGame"; restartGame: RestartGame }
   | { $case: "promptTextData"; promptTextData: PromptTextData }
   | { $case: "playerVoteData"; playerVoteData: PlayerVoteData }
+  | { $case: "promptPhotoData"; promptPhotoData: PromptPhotoData }
+  | { $case: "votePhotoData"; votePhotoData: VotePhotoData }
+  | { $case: "photoReady"; photoReady: PhotoReady }
   | undefined;
 }
 
@@ -159,6 +162,17 @@ export interface JoystickData {
   y: number;
   /** e.g. holding a button while moving */
   isPressed: boolean;
+}
+
+export interface PhotoReady {
+}
+
+export interface PromptPhotoData {
+  photoUrl: string;
+}
+
+export interface VotePhotoData {
+  photoIndex: string;
 }
 
 export interface MultipleChoice {
@@ -1242,6 +1256,15 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
       case "playerVoteData":
         PlayerVoteData.encode(message.payload.playerVoteData, writer.uint32(122).fork()).join();
         break;
+      case "promptPhotoData":
+        PromptPhotoData.encode(message.payload.promptPhotoData, writer.uint32(130).fork()).join();
+        break;
+      case "votePhotoData":
+        VotePhotoData.encode(message.payload.votePhotoData, writer.uint32(138).fork()).join();
+        break;
+      case "photoReady":
+        PhotoReady.encode(message.payload.photoReady, writer.uint32(146).fork()).join();
+        break;
     }
     return writer;
   },
@@ -1379,6 +1402,33 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
           message.payload = { $case: "playerVoteData", playerVoteData: PlayerVoteData.decode(reader, reader.uint32()) };
           continue;
         }
+        case 16: {
+          if (tag !== 130) {
+            break;
+          }
+
+          message.payload = {
+            $case: "promptPhotoData",
+            promptPhotoData: PromptPhotoData.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
+        case 17: {
+          if (tag !== 138) {
+            break;
+          }
+
+          message.payload = { $case: "votePhotoData", votePhotoData: VotePhotoData.decode(reader, reader.uint32()) };
+          continue;
+        }
+        case 18: {
+          if (tag !== 146) {
+            break;
+          }
+
+          message.payload = { $case: "photoReady", photoReady: PhotoReady.decode(reader, reader.uint32()) };
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1420,7 +1470,13 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
                                   ? { $case: "promptTextData", promptTextData: PromptTextData.fromJSON(object.promptTextData) }
                                   : isSet(object.playerVoteData)
                                     ? { $case: "playerVoteData", playerVoteData: PlayerVoteData.fromJSON(object.playerVoteData) }
-                                    : undefined,
+                                    : isSet(object.promptPhotoData)
+                                      ? { $case: "promptPhotoData", promptPhotoData: PromptPhotoData.fromJSON(object.promptPhotoData) }
+                                      : isSet(object.votePhotoData)
+                                        ? { $case: "votePhotoData", votePhotoData: VotePhotoData.fromJSON(object.votePhotoData) }
+                                        : isSet(object.photoReady)
+                                          ? { $case: "photoReady", photoReady: PhotoReady.fromJSON(object.photoReady) }
+                                          : undefined,
     };
   },
 
@@ -1456,6 +1512,12 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
       obj.promptTextData = PromptTextData.toJSON(message.payload.promptTextData);
     } else if (message.payload?.$case === "playerVoteData") {
       obj.playerVoteData = PlayerVoteData.toJSON(message.payload.playerVoteData);
+    } else if (message.payload?.$case === "promptPhotoData") {
+      obj.promptPhotoData = PromptPhotoData.toJSON(message.payload.promptPhotoData);
+    } else if (message.payload?.$case === "votePhotoData") {
+      obj.votePhotoData = VotePhotoData.toJSON(message.payload.votePhotoData);
+    } else if (message.payload?.$case === "photoReady") {
+      obj.photoReady = PhotoReady.toJSON(message.payload.photoReady);
     }
     return obj;
   },
@@ -1580,6 +1642,30 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             $case: "playerVoteData",
             playerVoteData: PlayerVoteData.fromPartial(object.payload.playerVoteData),
           };
+        }
+        break;
+      }
+      case "promptPhotoData": {
+        if (object.payload?.promptPhotoData !== undefined && object.payload?.promptPhotoData !== null) {
+          message.payload = {
+            $case: "promptPhotoData",
+            promptPhotoData: PromptPhotoData.fromPartial(object.payload.promptPhotoData),
+          };
+        }
+        break;
+      }
+      case "votePhotoData": {
+        if (object.payload?.votePhotoData !== undefined && object.payload?.votePhotoData !== null) {
+          message.payload = {
+            $case: "votePhotoData",
+            votePhotoData: VotePhotoData.fromPartial(object.payload.votePhotoData),
+          };
+        }
+        break;
+      }
+      case "photoReady": {
+        if (object.payload?.photoReady !== undefined && object.payload?.photoReady !== null) {
+          message.payload = { $case: "photoReady", photoReady: PhotoReady.fromPartial(object.payload.photoReady) };
         }
         break;
       }
@@ -1736,6 +1822,165 @@ export const JoystickData: MessageFns<JoystickData> = {
     message.x = object.x ?? 0;
     message.y = object.y ?? 0;
     message.isPressed = object.isPressed ?? false;
+    return message;
+  },
+};
+
+function createBasePhotoReady(): PhotoReady {
+  return {};
+}
+
+export const PhotoReady: MessageFns<PhotoReady> = {
+  encode(_: PhotoReady, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PhotoReady {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePhotoReady();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): PhotoReady {
+    return {};
+  },
+
+  toJSON(_: PhotoReady): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<PhotoReady>): PhotoReady {
+    return PhotoReady.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<PhotoReady>): PhotoReady {
+    const message = createBasePhotoReady();
+    return message;
+  },
+};
+
+function createBasePromptPhotoData(): PromptPhotoData {
+  return { photoUrl: "" };
+}
+
+export const PromptPhotoData: MessageFns<PromptPhotoData> = {
+  encode(message: PromptPhotoData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.photoUrl !== "") {
+      writer.uint32(10).string(message.photoUrl);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PromptPhotoData {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePromptPhotoData();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.photoUrl = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PromptPhotoData {
+    return { photoUrl: isSet(object.photoUrl) ? globalThis.String(object.photoUrl) : "" };
+  },
+
+  toJSON(message: PromptPhotoData): unknown {
+    const obj: any = {};
+    if (message.photoUrl !== "") {
+      obj.photoUrl = message.photoUrl;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<PromptPhotoData>): PromptPhotoData {
+    return PromptPhotoData.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<PromptPhotoData>): PromptPhotoData {
+    const message = createBasePromptPhotoData();
+    message.photoUrl = object.photoUrl ?? "";
+    return message;
+  },
+};
+
+function createBaseVotePhotoData(): VotePhotoData {
+  return { photoIndex: "" };
+}
+
+export const VotePhotoData: MessageFns<VotePhotoData> = {
+  encode(message: VotePhotoData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.photoIndex !== "") {
+      writer.uint32(10).string(message.photoIndex);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VotePhotoData {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVotePhotoData();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.photoIndex = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VotePhotoData {
+    return { photoIndex: isSet(object.photoIndex) ? globalThis.String(object.photoIndex) : "" };
+  },
+
+  toJSON(message: VotePhotoData): unknown {
+    const obj: any = {};
+    if (message.photoIndex !== "") {
+      obj.photoIndex = message.photoIndex;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<VotePhotoData>): VotePhotoData {
+    return VotePhotoData.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<VotePhotoData>): VotePhotoData {
+    const message = createBaseVotePhotoData();
+    message.photoIndex = object.photoIndex ?? "";
     return message;
   },
 };

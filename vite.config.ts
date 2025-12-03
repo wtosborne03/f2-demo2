@@ -7,17 +7,17 @@ import fs from 'fs';
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
-    plugins: [tailwindcss(), sveltekit(), Icons({ compiler: 'svelte' })],
+    plugins: [sveltekit(), tailwindcss(), Icons({ compiler: 'svelte' })],
     build: {
         sourcemap: true
     },
     server: {
         host: true,
         port: 5173,
-        https: {
-            key: fs.readFileSync("./localhost+2-key.pem"),
-            cert: fs.readFileSync("./localhost+2.pem"),
-        }
+        // https: {
+        //     key: fs.readFileSync("./localhost+2-key.pem"),
+        //     cert: fs.readFileSync("./localhost+2.pem"),
+        // },
     },
     mode: 'development',
 });

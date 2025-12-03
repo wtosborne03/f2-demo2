@@ -4,14 +4,14 @@
 
 <button
   aria-label="Sign in with Google"
-  class="px-5 py-3 inline-flex items-center rounded-lg text-[#333] text-base tracking-wider font-semibold border-none outline-none shadow-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-50"
+  class="px-5 py-3 inline-flex items-center rounded-3xl overflow-clip text-md text-[#333] tracking-wider font-semibold border-none outline-none shadow-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-50"
   on:click={onClick}
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="22px"
     fill="#fff"
-    class="inline mr-3 scale-200"
+    class="inline mr-3 scale-200 py-2"
     viewBox="0 0 512 512"
   >
     <path
@@ -45,5 +45,5 @@
       data-original="#eb4132"
     />
   </svg>
-  <span class=" tracking-normal"> Continue with Google</span>
+  <span class="ml-3 tracking-normal">Continue with Google</span>
 </button>
