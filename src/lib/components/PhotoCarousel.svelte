@@ -62,44 +62,7 @@
   });
 
   // basic pointer drag support
-  let startX = 0;
-  let dragging = false;
-
-  function handlePointerDown(e: PointerEvent) {
-    if (!track) return;
-    dragging = true;
-    startX = e.clientX;
-    track.setPointerCapture(e.pointerId);
-    track.style.transition = "none";
-  }
-
-  function handlePointerMove(e: PointerEvent) {
-    if (!dragging || !track) return;
-    const dx = e.clientX - startX;
-    // Use the viewport width (one slide)
-    const viewportWidth = track.clientWidth;
-    const percent = (dx / viewportWidth) * 100;
-    track.style.transform = `translateX(${-currentIndex * 100 + percent}%)`;
-  }
-
-  function handlePointerUp(e: PointerEvent) {
-    if (!dragging || !track) return;
-    dragging = false;
-    track.releasePointerCapture((e as any).pointerId);
-    track.style.transition = "transform 300ms ease";
-    const dx = e.clientX - startX;
-
-    // Compare with one-viewport threshold so drag distance is measured per-slide
-    const viewportWidth = track.clientWidth;
-    if (Math.abs(dx) > viewportWidth * 0.18) {
-      // NOTE: dx < 0 means the pointer moved left. Make left swipe go back (previous).
-      if (dx < 0) prev();
-      else next();
-    } else {
-      // snap back
-      track.style.transform = `translateX(${-currentIndex * 100}%)`;
-    }
-  }
+  // (Swipe/drag handlers removed — carousel uses buttons and keyboard only)
 
   // keyboard left/right
   function handleKey(e: KeyboardEvent) {
@@ -115,15 +78,7 @@
   aria-label="Photo carousel"
   aria-roledescription="carousel"
 >
-  <div
-    class="carousel-track"
-    bind:this={track}
-    on:pointerdown={handlePointerDown}
-    on:pointermove={handlePointerMove}
-    on:pointerup={handlePointerUp}
-    on:lostpointercapture={handlePointerUp}
-    role="list"
-  >
+  <div class="carousel-track" bind:this={track} role="list">
     {#each items as item (item.id)}
       <div class="carousel-slide my-auto" role="listitem">
         <img

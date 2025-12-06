@@ -45,11 +45,9 @@
     if (stampChanged || durationChanged) {
       prev_timer_stamp = timer_stamp ?? null;
       prev_timer_duration = timer_duration;
-      console.log("Fetching timer...");
       fetchTimer();
     }
   } else {
-    console.log("Clearing timer...");
     prev_timer_stamp = null;
     prev_timer_duration = 0;
     clearInterval(interval);
@@ -63,8 +61,7 @@
 <div class="w-screen h-screen fixed opacity-20 col-span-3 bottom-0 -z-10">
   <div
     class="bg-blue-500 h-full text-white"
-    style="width: {($remaining_time - timer_duration) *
-      (100 / timer_duration)}%;
+    style="width: {$remaining_time * (100 / timer_duration)}%;
           transition: width 0.5s linear;"
   ></div>
 </div>
