@@ -25,7 +25,6 @@ gameClient.on("joinRoomResponse", (data) => {
 
 gameClient.on("playerUpdate", (data) => {
   if (!data) return;
-  console.log("Updating player state");
   updateState(data);
 });
 
