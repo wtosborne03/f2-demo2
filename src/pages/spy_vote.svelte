@@ -21,7 +21,7 @@
     }
 </script>
 
-<div class="container w-full block flex-col p-2 overflow-scroll">
+<div class="container w-full block flex-col p-2">
     <div class="flex flex-col justify-center items-center">
         <div class="mb-2 p-4 text-center">Who do you think is the SPY?</div>
         {#each m_data.options as answer, index}

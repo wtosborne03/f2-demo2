@@ -21,7 +21,7 @@
     }
 </script>
 
-<div class="container w-full block flex-col p-2 overflow-scroll">
+<div class="container w-full block flex-col p-2">
     <div class="flex flex-col justify-center items-center">
         <div class="mb-2 p-4 text-center">
             You're the spy. Vote on someone else to misdirect other players.
