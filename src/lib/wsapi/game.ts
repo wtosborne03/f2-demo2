@@ -55,21 +55,19 @@ export function gameStageToJSON(object: GameStage): string {
  */
 export interface WsClientPacket {
   packet?:
-  | //
-  /** Connection / Setup */
-  { $case: "createRoom"; createRoom: CreateRoomRequest }
-  | { $case: "joinRoom"; joinRoom: JoinRoomRequest }
-  | { $case: "leaveRoom"; leaveRoom: LeaveRoomRequest }
-  | { $case: "getTime"; getTime: GetServerTimeRequest }
-  | //
-  /** Host Actions */
-  { $case: "updatePlayer"; updatePlayer: UpdatePlayerStateRequest }
-  | { $case: "setStage"; setStage: SetGameStageRequest }
-  | { $case: "sendMessage"; sendMessage: SendMessageRequest }
-  | //
-  /** Player Actions */
-  { $case: "playerInput"; playerInput: SendPlayerInputRequest }
-  | undefined;
+    | //
+    /** Connection / Setup */
+    { $case: "createRoom"; createRoom: CreateRoomRequest }
+    | { $case: "joinRoom"; joinRoom: JoinRoomRequest }
+    | { $case: "leaveRoom"; leaveRoom: LeaveRoomRequest }
+    | { $case: "getTime"; getTime: GetServerTimeRequest } //
+    /** Host Actions */
+    | { $case: "updatePlayer"; updatePlayer: UpdatePlayerStateRequest }
+    | { $case: "setStage"; setStage: SetGameStageRequest }
+    | { $case: "sendMessage"; sendMessage: SendMessageRequest } //
+    /** Player Actions */
+    | { $case: "playerInput"; playerInput: SendPlayerInputRequest }
+    | undefined;
 }
 
 /**
@@ -78,19 +76,17 @@ export interface WsClientPacket {
  */
 export interface WsServerPacket {
   packet?:
-  | //
-  /** Responses to specific requests */
-  { $case: "createRoomResponse"; createRoomResponse: CreateRoomResponse }
-  | { $case: "joinRoomResponse"; joinRoomResponse: JoinRoomResponse }
-  | { $case: "getTimeResponse"; getTimeResponse: GetServerTimeResponse }
-  | //
-  /** Real-time Push Updates */
-  { $case: "gameEvent"; gameEvent: GameEvent }
-  | { $case: "playerInput"; playerInput: PlayerInput }
-  | //
-  /** Error handling */
-  { $case: "error"; error: ErrorResponse }
-  | undefined;
+    | //
+    /** Responses to specific requests */
+    { $case: "createRoomResponse"; createRoomResponse: CreateRoomResponse }
+    | { $case: "joinRoomResponse"; joinRoomResponse: JoinRoomResponse }
+    | { $case: "getTimeResponse"; getTimeResponse: GetServerTimeResponse } //
+    /** Real-time Push Updates */
+    | { $case: "gameEvent"; gameEvent: GameEvent }
+    | { $case: "playerInput"; playerInput: PlayerInput } //
+    /** Error handling */
+    | { $case: "error"; error: ErrorResponse }
+    | undefined;
 }
 
 export interface ErrorResponse {
@@ -116,9 +112,7 @@ export interface PlayerState {
   isAdmin: boolean;
   drinks: number;
   /** Timer info */
-  timerStamp:
-  | Date
-  | undefined;
+  timerStamp: Date | undefined;
   /** in seconds or milliseconds */
   timerDuration: number;
   index: number;
@@ -130,25 +124,27 @@ export interface PlayerState {
 
 export interface PlayerInputPayload {
   payload?:
-  | { $case: "questionData"; questionData: QuestionData }
-  | { $case: "promptData"; promptData: PromptData }
-  | { $case: "dilemmaData"; dilemmaData: DilemmaData }
-  | { $case: "instructionData"; instructionData: InstructionData }
-  | { $case: "voteData"; voteData: VoteData }
-  | { $case: "adminStartData"; adminStartData: AdminStartData }
-  | { $case: "photoPickerData"; photoPickerData: PhotoPickerData }
-  | { $case: "joystickData"; joystickData: JoystickData }
-  | { $case: "avatarUpdate"; avatarUpdate: AvatarUpdate }
-  | { $case: "startGame"; startGame: StartGame }
-  | { $case: "emote"; emote: Emote }
-  | { $case: "multipleChoice"; multipleChoice: MultipleChoice }
-  | { $case: "restartGame"; restartGame: RestartGame }
-  | { $case: "promptTextData"; promptTextData: PromptTextData }
-  | { $case: "playerVoteData"; playerVoteData: PlayerVoteData }
-  | { $case: "promptPhotoData"; promptPhotoData: PromptPhotoData }
-  | { $case: "votePhotoData"; votePhotoData: VotePhotoData }
-  | { $case: "photoReady"; photoReady: PhotoReady }
-  | undefined;
+    | { $case: "questionData"; questionData: QuestionData }
+    | { $case: "promptData"; promptData: PromptData }
+    | { $case: "dilemmaData"; dilemmaData: DilemmaData }
+    | { $case: "instructionData"; instructionData: InstructionData }
+    | { $case: "voteData"; voteData: VoteData }
+    | { $case: "adminStartData"; adminStartData: AdminStartData }
+    | { $case: "photoPickerData"; photoPickerData: PhotoPickerData }
+    | { $case: "joystickData"; joystickData: JoystickData }
+    | { $case: "avatarUpdate"; avatarUpdate: AvatarUpdate }
+    | { $case: "startGame"; startGame: StartGame }
+    | { $case: "emote"; emote: Emote }
+    | { $case: "multipleChoice"; multipleChoice: MultipleChoice }
+    | { $case: "restartGame"; restartGame: RestartGame }
+    | { $case: "promptTextData"; promptTextData: PromptTextData }
+    | { $case: "playerVoteData"; playerVoteData: PlayerVoteData }
+    | { $case: "promptPhotoData"; promptPhotoData: PromptPhotoData }
+    | { $case: "votePhotoData"; votePhotoData: VotePhotoData }
+    | { $case: "photoReady"; photoReady: PhotoReady }
+    | { $case: "confirm"; confirm: Confirm }
+    | { $case: "shakeProgress"; shakeProgress: ShakeProgress }
+    | undefined;
 }
 
 export interface AvatarUpdate {
@@ -164,8 +160,7 @@ export interface JoystickData {
   isPressed: boolean;
 }
 
-export interface PhotoReady {
-}
+export interface PhotoReady {}
 
 export interface PromptPhotoData {
   photoUrl: string;
@@ -173,6 +168,11 @@ export interface PromptPhotoData {
 
 export interface VotePhotoData {
   photoIndex: string;
+}
+
+export interface ShakeProgress {
+  progress: number;
+  motion: boolean;
 }
 
 export interface MultipleChoice {
@@ -187,6 +187,8 @@ export interface QuestionData {
 export interface PromptData {
   question: string;
 }
+
+export interface Confirm {}
 
 export interface PromptTextData {
   answer: string;
@@ -220,22 +222,18 @@ export interface AdminStartData {
   settings: Settings | undefined;
 }
 
-export interface StartGame {
-}
+export interface StartGame {}
 
-export interface Emote {
-}
+export interface Emote {}
 
-export interface RestartGame {
-}
+export interface RestartGame {}
 
 export interface PhotoPickerData {
   photoAmount: number;
   photoIndex: number;
 }
 
-export interface CreateRoomRequest {
-}
+export interface CreateRoomRequest {}
 
 export interface CreateRoomResponse {
   roomCode: string;
@@ -261,19 +259,21 @@ export interface GetServerTimeRequest {
 }
 
 export interface GetServerTimeResponse {
-  serverTime:
-  | Date
-  | undefined;
+  serverTime: Date | undefined;
   /** Echoed back */
   clientTimestamp: number;
 }
 
 /** Push Events */
 export interface GameEvent {
-  event?: { $case: "fullSync"; fullSync: RoomState } | { $case: "playerUpdate"; playerUpdate: PlayerState } | {
-    $case: "connectionChange";
-    connectionChange: ConnectionChange;
-  } | undefined;
+  event?:
+    | { $case: "fullSync"; fullSync: RoomState }
+    | { $case: "playerUpdate"; playerUpdate: PlayerState }
+    | {
+        $case: "connectionChange";
+        connectionChange: ConnectionChange;
+      }
+    | undefined;
 }
 
 export interface PlayerInput {
@@ -330,38 +330,66 @@ function createBaseWsClientPacket(): WsClientPacket {
 }
 
 export const WsClientPacket: MessageFns<WsClientPacket> = {
-  encode(message: WsClientPacket, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: WsClientPacket,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     switch (message.packet?.$case) {
       case "createRoom":
-        CreateRoomRequest.encode(message.packet.createRoom, writer.uint32(10).fork()).join();
+        CreateRoomRequest.encode(
+          message.packet.createRoom,
+          writer.uint32(10).fork(),
+        ).join();
         break;
       case "joinRoom":
-        JoinRoomRequest.encode(message.packet.joinRoom, writer.uint32(18).fork()).join();
+        JoinRoomRequest.encode(
+          message.packet.joinRoom,
+          writer.uint32(18).fork(),
+        ).join();
         break;
       case "leaveRoom":
-        LeaveRoomRequest.encode(message.packet.leaveRoom, writer.uint32(26).fork()).join();
+        LeaveRoomRequest.encode(
+          message.packet.leaveRoom,
+          writer.uint32(26).fork(),
+        ).join();
         break;
       case "getTime":
-        GetServerTimeRequest.encode(message.packet.getTime, writer.uint32(34).fork()).join();
+        GetServerTimeRequest.encode(
+          message.packet.getTime,
+          writer.uint32(34).fork(),
+        ).join();
         break;
       case "updatePlayer":
-        UpdatePlayerStateRequest.encode(message.packet.updatePlayer, writer.uint32(42).fork()).join();
+        UpdatePlayerStateRequest.encode(
+          message.packet.updatePlayer,
+          writer.uint32(42).fork(),
+        ).join();
         break;
       case "setStage":
-        SetGameStageRequest.encode(message.packet.setStage, writer.uint32(50).fork()).join();
+        SetGameStageRequest.encode(
+          message.packet.setStage,
+          writer.uint32(50).fork(),
+        ).join();
         break;
       case "sendMessage":
-        SendMessageRequest.encode(message.packet.sendMessage, writer.uint32(58).fork()).join();
+        SendMessageRequest.encode(
+          message.packet.sendMessage,
+          writer.uint32(58).fork(),
+        ).join();
         break;
       case "playerInput":
-        SendPlayerInputRequest.encode(message.packet.playerInput, writer.uint32(66).fork()).join();
+        SendPlayerInputRequest.encode(
+          message.packet.playerInput,
+          writer.uint32(66).fork(),
+        ).join();
         break;
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): WsClientPacket {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseWsClientPacket();
     while (reader.pos < end) {
@@ -372,7 +400,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
-          message.packet = { $case: "createRoom", createRoom: CreateRoomRequest.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "createRoom",
+            createRoom: CreateRoomRequest.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 2: {
@@ -380,7 +411,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
-          message.packet = { $case: "joinRoom", joinRoom: JoinRoomRequest.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "joinRoom",
+            joinRoom: JoinRoomRequest.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 3: {
@@ -388,7 +422,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
-          message.packet = { $case: "leaveRoom", leaveRoom: LeaveRoomRequest.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "leaveRoom",
+            leaveRoom: LeaveRoomRequest.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 4: {
@@ -396,7 +433,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
-          message.packet = { $case: "getTime", getTime: GetServerTimeRequest.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "getTime",
+            getTime: GetServerTimeRequest.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 5: {
@@ -406,7 +446,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
 
           message.packet = {
             $case: "updatePlayer",
-            updatePlayer: UpdatePlayerStateRequest.decode(reader, reader.uint32()),
+            updatePlayer: UpdatePlayerStateRequest.decode(
+              reader,
+              reader.uint32(),
+            ),
           };
           continue;
         }
@@ -415,7 +458,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
-          message.packet = { $case: "setStage", setStage: SetGameStageRequest.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "setStage",
+            setStage: SetGameStageRequest.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 7: {
@@ -423,7 +469,10 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
             break;
           }
 
-          message.packet = { $case: "sendMessage", sendMessage: SendMessageRequest.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "sendMessage",
+            sendMessage: SendMessageRequest.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 8: {
@@ -449,21 +498,51 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
   fromJSON(object: any): WsClientPacket {
     return {
       packet: isSet(object.createRoom)
-        ? { $case: "createRoom", createRoom: CreateRoomRequest.fromJSON(object.createRoom) }
+        ? {
+            $case: "createRoom",
+            createRoom: CreateRoomRequest.fromJSON(object.createRoom),
+          }
         : isSet(object.joinRoom)
-          ? { $case: "joinRoom", joinRoom: JoinRoomRequest.fromJSON(object.joinRoom) }
+          ? {
+              $case: "joinRoom",
+              joinRoom: JoinRoomRequest.fromJSON(object.joinRoom),
+            }
           : isSet(object.leaveRoom)
-            ? { $case: "leaveRoom", leaveRoom: LeaveRoomRequest.fromJSON(object.leaveRoom) }
+            ? {
+                $case: "leaveRoom",
+                leaveRoom: LeaveRoomRequest.fromJSON(object.leaveRoom),
+              }
             : isSet(object.getTime)
-              ? { $case: "getTime", getTime: GetServerTimeRequest.fromJSON(object.getTime) }
+              ? {
+                  $case: "getTime",
+                  getTime: GetServerTimeRequest.fromJSON(object.getTime),
+                }
               : isSet(object.updatePlayer)
-                ? { $case: "updatePlayer", updatePlayer: UpdatePlayerStateRequest.fromJSON(object.updatePlayer) }
+                ? {
+                    $case: "updatePlayer",
+                    updatePlayer: UpdatePlayerStateRequest.fromJSON(
+                      object.updatePlayer,
+                    ),
+                  }
                 : isSet(object.setStage)
-                  ? { $case: "setStage", setStage: SetGameStageRequest.fromJSON(object.setStage) }
+                  ? {
+                      $case: "setStage",
+                      setStage: SetGameStageRequest.fromJSON(object.setStage),
+                    }
                   : isSet(object.sendMessage)
-                    ? { $case: "sendMessage", sendMessage: SendMessageRequest.fromJSON(object.sendMessage) }
+                    ? {
+                        $case: "sendMessage",
+                        sendMessage: SendMessageRequest.fromJSON(
+                          object.sendMessage,
+                        ),
+                      }
                     : isSet(object.playerInput)
-                      ? { $case: "playerInput", playerInput: SendPlayerInputRequest.fromJSON(object.playerInput) }
+                      ? {
+                          $case: "playerInput",
+                          playerInput: SendPlayerInputRequest.fromJSON(
+                            object.playerInput,
+                          ),
+                        }
                       : undefined,
     };
   },
@@ -479,13 +558,17 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
     } else if (message.packet?.$case === "getTime") {
       obj.getTime = GetServerTimeRequest.toJSON(message.packet.getTime);
     } else if (message.packet?.$case === "updatePlayer") {
-      obj.updatePlayer = UpdatePlayerStateRequest.toJSON(message.packet.updatePlayer);
+      obj.updatePlayer = UpdatePlayerStateRequest.toJSON(
+        message.packet.updatePlayer,
+      );
     } else if (message.packet?.$case === "setStage") {
       obj.setStage = SetGameStageRequest.toJSON(message.packet.setStage);
     } else if (message.packet?.$case === "sendMessage") {
       obj.sendMessage = SendMessageRequest.toJSON(message.packet.sendMessage);
     } else if (message.packet?.$case === "playerInput") {
-      obj.playerInput = SendPlayerInputRequest.toJSON(message.packet.playerInput);
+      obj.playerInput = SendPlayerInputRequest.toJSON(
+        message.packet.playerInput,
+      );
     }
     return obj;
   },
@@ -497,58 +580,103 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
     const message = createBaseWsClientPacket();
     switch (object.packet?.$case) {
       case "createRoom": {
-        if (object.packet?.createRoom !== undefined && object.packet?.createRoom !== null) {
-          message.packet = { $case: "createRoom", createRoom: CreateRoomRequest.fromPartial(object.packet.createRoom) };
+        if (
+          object.packet?.createRoom !== undefined &&
+          object.packet?.createRoom !== null
+        ) {
+          message.packet = {
+            $case: "createRoom",
+            createRoom: CreateRoomRequest.fromPartial(object.packet.createRoom),
+          };
         }
         break;
       }
       case "joinRoom": {
-        if (object.packet?.joinRoom !== undefined && object.packet?.joinRoom !== null) {
-          message.packet = { $case: "joinRoom", joinRoom: JoinRoomRequest.fromPartial(object.packet.joinRoom) };
+        if (
+          object.packet?.joinRoom !== undefined &&
+          object.packet?.joinRoom !== null
+        ) {
+          message.packet = {
+            $case: "joinRoom",
+            joinRoom: JoinRoomRequest.fromPartial(object.packet.joinRoom),
+          };
         }
         break;
       }
       case "leaveRoom": {
-        if (object.packet?.leaveRoom !== undefined && object.packet?.leaveRoom !== null) {
-          message.packet = { $case: "leaveRoom", leaveRoom: LeaveRoomRequest.fromPartial(object.packet.leaveRoom) };
+        if (
+          object.packet?.leaveRoom !== undefined &&
+          object.packet?.leaveRoom !== null
+        ) {
+          message.packet = {
+            $case: "leaveRoom",
+            leaveRoom: LeaveRoomRequest.fromPartial(object.packet.leaveRoom),
+          };
         }
         break;
       }
       case "getTime": {
-        if (object.packet?.getTime !== undefined && object.packet?.getTime !== null) {
-          message.packet = { $case: "getTime", getTime: GetServerTimeRequest.fromPartial(object.packet.getTime) };
+        if (
+          object.packet?.getTime !== undefined &&
+          object.packet?.getTime !== null
+        ) {
+          message.packet = {
+            $case: "getTime",
+            getTime: GetServerTimeRequest.fromPartial(object.packet.getTime),
+          };
         }
         break;
       }
       case "updatePlayer": {
-        if (object.packet?.updatePlayer !== undefined && object.packet?.updatePlayer !== null) {
+        if (
+          object.packet?.updatePlayer !== undefined &&
+          object.packet?.updatePlayer !== null
+        ) {
           message.packet = {
             $case: "updatePlayer",
-            updatePlayer: UpdatePlayerStateRequest.fromPartial(object.packet.updatePlayer),
+            updatePlayer: UpdatePlayerStateRequest.fromPartial(
+              object.packet.updatePlayer,
+            ),
           };
         }
         break;
       }
       case "setStage": {
-        if (object.packet?.setStage !== undefined && object.packet?.setStage !== null) {
-          message.packet = { $case: "setStage", setStage: SetGameStageRequest.fromPartial(object.packet.setStage) };
+        if (
+          object.packet?.setStage !== undefined &&
+          object.packet?.setStage !== null
+        ) {
+          message.packet = {
+            $case: "setStage",
+            setStage: SetGameStageRequest.fromPartial(object.packet.setStage),
+          };
         }
         break;
       }
       case "sendMessage": {
-        if (object.packet?.sendMessage !== undefined && object.packet?.sendMessage !== null) {
+        if (
+          object.packet?.sendMessage !== undefined &&
+          object.packet?.sendMessage !== null
+        ) {
           message.packet = {
             $case: "sendMessage",
-            sendMessage: SendMessageRequest.fromPartial(object.packet.sendMessage),
+            sendMessage: SendMessageRequest.fromPartial(
+              object.packet.sendMessage,
+            ),
           };
         }
         break;
       }
       case "playerInput": {
-        if (object.packet?.playerInput !== undefined && object.packet?.playerInput !== null) {
+        if (
+          object.packet?.playerInput !== undefined &&
+          object.packet?.playerInput !== null
+        ) {
           message.packet = {
             $case: "playerInput",
-            playerInput: SendPlayerInputRequest.fromPartial(object.packet.playerInput),
+            playerInput: SendPlayerInputRequest.fromPartial(
+              object.packet.playerInput,
+            ),
           };
         }
         break;
@@ -563,32 +691,54 @@ function createBaseWsServerPacket(): WsServerPacket {
 }
 
 export const WsServerPacket: MessageFns<WsServerPacket> = {
-  encode(message: WsServerPacket, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: WsServerPacket,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     switch (message.packet?.$case) {
       case "createRoomResponse":
-        CreateRoomResponse.encode(message.packet.createRoomResponse, writer.uint32(10).fork()).join();
+        CreateRoomResponse.encode(
+          message.packet.createRoomResponse,
+          writer.uint32(10).fork(),
+        ).join();
         break;
       case "joinRoomResponse":
-        JoinRoomResponse.encode(message.packet.joinRoomResponse, writer.uint32(18).fork()).join();
+        JoinRoomResponse.encode(
+          message.packet.joinRoomResponse,
+          writer.uint32(18).fork(),
+        ).join();
         break;
       case "getTimeResponse":
-        GetServerTimeResponse.encode(message.packet.getTimeResponse, writer.uint32(26).fork()).join();
+        GetServerTimeResponse.encode(
+          message.packet.getTimeResponse,
+          writer.uint32(26).fork(),
+        ).join();
         break;
       case "gameEvent":
-        GameEvent.encode(message.packet.gameEvent, writer.uint32(34).fork()).join();
+        GameEvent.encode(
+          message.packet.gameEvent,
+          writer.uint32(34).fork(),
+        ).join();
         break;
       case "playerInput":
-        PlayerInput.encode(message.packet.playerInput, writer.uint32(42).fork()).join();
+        PlayerInput.encode(
+          message.packet.playerInput,
+          writer.uint32(42).fork(),
+        ).join();
         break;
       case "error":
-        ErrorResponse.encode(message.packet.error, writer.uint32(50).fork()).join();
+        ErrorResponse.encode(
+          message.packet.error,
+          writer.uint32(50).fork(),
+        ).join();
         break;
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): WsServerPacket {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseWsServerPacket();
     while (reader.pos < end) {
@@ -601,7 +751,10 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
 
           message.packet = {
             $case: "createRoomResponse",
-            createRoomResponse: CreateRoomResponse.decode(reader, reader.uint32()),
+            createRoomResponse: CreateRoomResponse.decode(
+              reader,
+              reader.uint32(),
+            ),
           };
           continue;
         }
@@ -623,7 +776,10 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
 
           message.packet = {
             $case: "getTimeResponse",
-            getTimeResponse: GetServerTimeResponse.decode(reader, reader.uint32()),
+            getTimeResponse: GetServerTimeResponse.decode(
+              reader,
+              reader.uint32(),
+            ),
           };
           continue;
         }
@@ -632,7 +788,10 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
             break;
           }
 
-          message.packet = { $case: "gameEvent", gameEvent: GameEvent.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "gameEvent",
+            gameEvent: GameEvent.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 5: {
@@ -640,7 +799,10 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
             break;
           }
 
-          message.packet = { $case: "playerInput", playerInput: PlayerInput.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "playerInput",
+            playerInput: PlayerInput.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 6: {
@@ -648,7 +810,10 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
             break;
           }
 
-          message.packet = { $case: "error", error: ErrorResponse.decode(reader, reader.uint32()) };
+          message.packet = {
+            $case: "error",
+            error: ErrorResponse.decode(reader, reader.uint32()),
+          };
           continue;
         }
       }
@@ -663,17 +828,41 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
   fromJSON(object: any): WsServerPacket {
     return {
       packet: isSet(object.createRoomResponse)
-        ? { $case: "createRoomResponse", createRoomResponse: CreateRoomResponse.fromJSON(object.createRoomResponse) }
+        ? {
+            $case: "createRoomResponse",
+            createRoomResponse: CreateRoomResponse.fromJSON(
+              object.createRoomResponse,
+            ),
+          }
         : isSet(object.joinRoomResponse)
-          ? { $case: "joinRoomResponse", joinRoomResponse: JoinRoomResponse.fromJSON(object.joinRoomResponse) }
+          ? {
+              $case: "joinRoomResponse",
+              joinRoomResponse: JoinRoomResponse.fromJSON(
+                object.joinRoomResponse,
+              ),
+            }
           : isSet(object.getTimeResponse)
-            ? { $case: "getTimeResponse", getTimeResponse: GetServerTimeResponse.fromJSON(object.getTimeResponse) }
+            ? {
+                $case: "getTimeResponse",
+                getTimeResponse: GetServerTimeResponse.fromJSON(
+                  object.getTimeResponse,
+                ),
+              }
             : isSet(object.gameEvent)
-              ? { $case: "gameEvent", gameEvent: GameEvent.fromJSON(object.gameEvent) }
+              ? {
+                  $case: "gameEvent",
+                  gameEvent: GameEvent.fromJSON(object.gameEvent),
+                }
               : isSet(object.playerInput)
-                ? { $case: "playerInput", playerInput: PlayerInput.fromJSON(object.playerInput) }
+                ? {
+                    $case: "playerInput",
+                    playerInput: PlayerInput.fromJSON(object.playerInput),
+                  }
                 : isSet(object.error)
-                  ? { $case: "error", error: ErrorResponse.fromJSON(object.error) }
+                  ? {
+                      $case: "error",
+                      error: ErrorResponse.fromJSON(object.error),
+                    }
                   : undefined,
     };
   },
@@ -681,11 +870,17 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
   toJSON(message: WsServerPacket): unknown {
     const obj: any = {};
     if (message.packet?.$case === "createRoomResponse") {
-      obj.createRoomResponse = CreateRoomResponse.toJSON(message.packet.createRoomResponse);
+      obj.createRoomResponse = CreateRoomResponse.toJSON(
+        message.packet.createRoomResponse,
+      );
     } else if (message.packet?.$case === "joinRoomResponse") {
-      obj.joinRoomResponse = JoinRoomResponse.toJSON(message.packet.joinRoomResponse);
+      obj.joinRoomResponse = JoinRoomResponse.toJSON(
+        message.packet.joinRoomResponse,
+      );
     } else if (message.packet?.$case === "getTimeResponse") {
-      obj.getTimeResponse = GetServerTimeResponse.toJSON(message.packet.getTimeResponse);
+      obj.getTimeResponse = GetServerTimeResponse.toJSON(
+        message.packet.getTimeResponse,
+      );
     } else if (message.packet?.$case === "gameEvent") {
       obj.gameEvent = GameEvent.toJSON(message.packet.gameEvent);
     } else if (message.packet?.$case === "playerInput") {
@@ -703,47 +898,80 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
     const message = createBaseWsServerPacket();
     switch (object.packet?.$case) {
       case "createRoomResponse": {
-        if (object.packet?.createRoomResponse !== undefined && object.packet?.createRoomResponse !== null) {
+        if (
+          object.packet?.createRoomResponse !== undefined &&
+          object.packet?.createRoomResponse !== null
+        ) {
           message.packet = {
             $case: "createRoomResponse",
-            createRoomResponse: CreateRoomResponse.fromPartial(object.packet.createRoomResponse),
+            createRoomResponse: CreateRoomResponse.fromPartial(
+              object.packet.createRoomResponse,
+            ),
           };
         }
         break;
       }
       case "joinRoomResponse": {
-        if (object.packet?.joinRoomResponse !== undefined && object.packet?.joinRoomResponse !== null) {
+        if (
+          object.packet?.joinRoomResponse !== undefined &&
+          object.packet?.joinRoomResponse !== null
+        ) {
           message.packet = {
             $case: "joinRoomResponse",
-            joinRoomResponse: JoinRoomResponse.fromPartial(object.packet.joinRoomResponse),
+            joinRoomResponse: JoinRoomResponse.fromPartial(
+              object.packet.joinRoomResponse,
+            ),
           };
         }
         break;
       }
       case "getTimeResponse": {
-        if (object.packet?.getTimeResponse !== undefined && object.packet?.getTimeResponse !== null) {
+        if (
+          object.packet?.getTimeResponse !== undefined &&
+          object.packet?.getTimeResponse !== null
+        ) {
           message.packet = {
             $case: "getTimeResponse",
-            getTimeResponse: GetServerTimeResponse.fromPartial(object.packet.getTimeResponse),
+            getTimeResponse: GetServerTimeResponse.fromPartial(
+              object.packet.getTimeResponse,
+            ),
           };
         }
         break;
       }
       case "gameEvent": {
-        if (object.packet?.gameEvent !== undefined && object.packet?.gameEvent !== null) {
-          message.packet = { $case: "gameEvent", gameEvent: GameEvent.fromPartial(object.packet.gameEvent) };
+        if (
+          object.packet?.gameEvent !== undefined &&
+          object.packet?.gameEvent !== null
+        ) {
+          message.packet = {
+            $case: "gameEvent",
+            gameEvent: GameEvent.fromPartial(object.packet.gameEvent),
+          };
         }
         break;
       }
       case "playerInput": {
-        if (object.packet?.playerInput !== undefined && object.packet?.playerInput !== null) {
-          message.packet = { $case: "playerInput", playerInput: PlayerInput.fromPartial(object.packet.playerInput) };
+        if (
+          object.packet?.playerInput !== undefined &&
+          object.packet?.playerInput !== null
+        ) {
+          message.packet = {
+            $case: "playerInput",
+            playerInput: PlayerInput.fromPartial(object.packet.playerInput),
+          };
         }
         break;
       }
       case "error": {
-        if (object.packet?.error !== undefined && object.packet?.error !== null) {
-          message.packet = { $case: "error", error: ErrorResponse.fromPartial(object.packet.error) };
+        if (
+          object.packet?.error !== undefined &&
+          object.packet?.error !== null
+        ) {
+          message.packet = {
+            $case: "error",
+            error: ErrorResponse.fromPartial(object.packet.error),
+          };
         }
         break;
       }
@@ -757,7 +985,10 @@ function createBaseErrorResponse(): ErrorResponse {
 }
 
 export const ErrorResponse: MessageFns<ErrorResponse> = {
-  encode(message: ErrorResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: ErrorResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
@@ -768,7 +999,8 @@ export const ErrorResponse: MessageFns<ErrorResponse> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): ErrorResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseErrorResponse();
     while (reader.pos < end) {
@@ -833,7 +1065,10 @@ function createBaseAvatar(): Avatar {
 }
 
 export const Avatar: MessageFns<Avatar> = {
-  encode(message: Avatar, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: Avatar,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.eyes !== 0) {
       writer.uint32(8).int32(message.eyes);
     }
@@ -850,7 +1085,8 @@ export const Avatar: MessageFns<Avatar> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): Avatar {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAvatar();
     while (reader.pos < end) {
@@ -955,7 +1191,10 @@ function createBasePlayerState(): PlayerState {
 }
 
 export const PlayerState: MessageFns<PlayerState> = {
-  encode(message: PlayerState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PlayerState,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
@@ -975,7 +1214,10 @@ export const PlayerState: MessageFns<PlayerState> = {
       writer.uint32(48).int32(message.drinks);
     }
     if (message.timerStamp !== undefined) {
-      Timestamp.encode(toTimestamp(message.timerStamp), writer.uint32(58).fork()).join();
+      Timestamp.encode(
+        toTimestamp(message.timerStamp),
+        writer.uint32(58).fork(),
+      ).join();
     }
     if (message.timerDuration !== 0) {
       writer.uint32(64).int32(message.timerDuration);
@@ -999,7 +1241,8 @@ export const PlayerState: MessageFns<PlayerState> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PlayerState {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePlayerState();
     while (reader.pos < end) {
@@ -1058,7 +1301,9 @@ export const PlayerState: MessageFns<PlayerState> = {
             break;
           }
 
-          message.timerStamp = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.timerStamp = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32()),
+          );
           continue;
         }
         case 8: {
@@ -1123,16 +1368,26 @@ export const PlayerState: MessageFns<PlayerState> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       score: isSet(object.score) ? globalThis.Number(object.score) : 0,
       screen: isSet(object.screen) ? globalThis.String(object.screen) : "",
-      pageDataJson: isSet(object.pageDataJson) ? globalThis.String(object.pageDataJson) : "",
-      isAdmin: isSet(object.isAdmin) ? globalThis.Boolean(object.isAdmin) : false,
+      pageDataJson: isSet(object.pageDataJson)
+        ? globalThis.String(object.pageDataJson)
+        : "",
+      isAdmin: isSet(object.isAdmin)
+        ? globalThis.Boolean(object.isAdmin)
+        : false,
       drinks: isSet(object.drinks) ? globalThis.Number(object.drinks) : 0,
-      timerStamp: isSet(object.timerStamp) ? fromJsonTimestamp(object.timerStamp) : undefined,
-      timerDuration: isSet(object.timerDuration) ? globalThis.Number(object.timerDuration) : 0,
+      timerStamp: isSet(object.timerStamp)
+        ? fromJsonTimestamp(object.timerStamp)
+        : undefined,
+      timerDuration: isSet(object.timerDuration)
+        ? globalThis.Number(object.timerDuration)
+        : 0,
       index: isSet(object.index) ? globalThis.Number(object.index) : 0,
       color: isSet(object.color) ? globalThis.String(object.color) : "",
       team: isSet(object.team) ? globalThis.String(object.team) : "",
       avatar: isSet(object.avatar) ? Avatar.fromJSON(object.avatar) : undefined,
-      isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
+      isConnected: isSet(object.isConnected)
+        ? globalThis.Boolean(object.isConnected)
+        : false,
     };
   },
 
@@ -1196,9 +1451,10 @@ export const PlayerState: MessageFns<PlayerState> = {
     message.index = object.index ?? 0;
     message.color = object.color ?? "";
     message.team = object.team ?? "";
-    message.avatar = (object.avatar !== undefined && object.avatar !== null)
-      ? Avatar.fromPartial(object.avatar)
-      : undefined;
+    message.avatar =
+      object.avatar !== undefined && object.avatar !== null
+        ? Avatar.fromPartial(object.avatar)
+        : undefined;
     message.isConnected = object.isConnected ?? false;
     return message;
   },
@@ -1209,68 +1465,138 @@ function createBasePlayerInputPayload(): PlayerInputPayload {
 }
 
 export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
-  encode(message: PlayerInputPayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PlayerInputPayload,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     switch (message.payload?.$case) {
       case "questionData":
-        QuestionData.encode(message.payload.questionData, writer.uint32(10).fork()).join();
+        QuestionData.encode(
+          message.payload.questionData,
+          writer.uint32(10).fork(),
+        ).join();
         break;
       case "promptData":
-        PromptData.encode(message.payload.promptData, writer.uint32(18).fork()).join();
+        PromptData.encode(
+          message.payload.promptData,
+          writer.uint32(18).fork(),
+        ).join();
         break;
       case "dilemmaData":
-        DilemmaData.encode(message.payload.dilemmaData, writer.uint32(26).fork()).join();
+        DilemmaData.encode(
+          message.payload.dilemmaData,
+          writer.uint32(26).fork(),
+        ).join();
         break;
       case "instructionData":
-        InstructionData.encode(message.payload.instructionData, writer.uint32(34).fork()).join();
+        InstructionData.encode(
+          message.payload.instructionData,
+          writer.uint32(34).fork(),
+        ).join();
         break;
       case "voteData":
-        VoteData.encode(message.payload.voteData, writer.uint32(42).fork()).join();
+        VoteData.encode(
+          message.payload.voteData,
+          writer.uint32(42).fork(),
+        ).join();
         break;
       case "adminStartData":
-        AdminStartData.encode(message.payload.adminStartData, writer.uint32(50).fork()).join();
+        AdminStartData.encode(
+          message.payload.adminStartData,
+          writer.uint32(50).fork(),
+        ).join();
         break;
       case "photoPickerData":
-        PhotoPickerData.encode(message.payload.photoPickerData, writer.uint32(58).fork()).join();
+        PhotoPickerData.encode(
+          message.payload.photoPickerData,
+          writer.uint32(58).fork(),
+        ).join();
         break;
       case "joystickData":
-        JoystickData.encode(message.payload.joystickData, writer.uint32(66).fork()).join();
+        JoystickData.encode(
+          message.payload.joystickData,
+          writer.uint32(66).fork(),
+        ).join();
         break;
       case "avatarUpdate":
-        AvatarUpdate.encode(message.payload.avatarUpdate, writer.uint32(74).fork()).join();
+        AvatarUpdate.encode(
+          message.payload.avatarUpdate,
+          writer.uint32(74).fork(),
+        ).join();
         break;
       case "startGame":
-        StartGame.encode(message.payload.startGame, writer.uint32(82).fork()).join();
+        StartGame.encode(
+          message.payload.startGame,
+          writer.uint32(82).fork(),
+        ).join();
         break;
       case "emote":
         Emote.encode(message.payload.emote, writer.uint32(90).fork()).join();
         break;
       case "multipleChoice":
-        MultipleChoice.encode(message.payload.multipleChoice, writer.uint32(98).fork()).join();
+        MultipleChoice.encode(
+          message.payload.multipleChoice,
+          writer.uint32(98).fork(),
+        ).join();
         break;
       case "restartGame":
-        RestartGame.encode(message.payload.restartGame, writer.uint32(106).fork()).join();
+        RestartGame.encode(
+          message.payload.restartGame,
+          writer.uint32(106).fork(),
+        ).join();
         break;
       case "promptTextData":
-        PromptTextData.encode(message.payload.promptTextData, writer.uint32(114).fork()).join();
+        PromptTextData.encode(
+          message.payload.promptTextData,
+          writer.uint32(114).fork(),
+        ).join();
         break;
       case "playerVoteData":
-        PlayerVoteData.encode(message.payload.playerVoteData, writer.uint32(122).fork()).join();
+        PlayerVoteData.encode(
+          message.payload.playerVoteData,
+          writer.uint32(122).fork(),
+        ).join();
         break;
       case "promptPhotoData":
-        PromptPhotoData.encode(message.payload.promptPhotoData, writer.uint32(130).fork()).join();
+        PromptPhotoData.encode(
+          message.payload.promptPhotoData,
+          writer.uint32(130).fork(),
+        ).join();
         break;
       case "votePhotoData":
-        VotePhotoData.encode(message.payload.votePhotoData, writer.uint32(138).fork()).join();
+        VotePhotoData.encode(
+          message.payload.votePhotoData,
+          writer.uint32(138).fork(),
+        ).join();
         break;
       case "photoReady":
-        PhotoReady.encode(message.payload.photoReady, writer.uint32(146).fork()).join();
+        PhotoReady.encode(
+          message.payload.photoReady,
+          writer.uint32(146).fork(),
+        ).join();
+        break;
+      case "confirm":
+        Confirm.encode(
+          message.payload.confirm,
+          writer.uint32(154).fork(),
+        ).join();
+        break;
+      case "shakeProgress":
+        ShakeProgress.encode(
+          message.payload.shakeProgress,
+          writer.uint32(162).fork(),
+        ).join();
         break;
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): PlayerInputPayload {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): PlayerInputPayload {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePlayerInputPayload();
     while (reader.pos < end) {
@@ -1281,7 +1607,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "questionData", questionData: QuestionData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "questionData",
+            questionData: QuestionData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 2: {
@@ -1289,7 +1618,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "promptData", promptData: PromptData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "promptData",
+            promptData: PromptData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 3: {
@@ -1297,7 +1629,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "dilemmaData", dilemmaData: DilemmaData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "dilemmaData",
+            dilemmaData: DilemmaData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 4: {
@@ -1316,7 +1651,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "voteData", voteData: VoteData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "voteData",
+            voteData: VoteData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 6: {
@@ -1324,7 +1662,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "adminStartData", adminStartData: AdminStartData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "adminStartData",
+            adminStartData: AdminStartData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 7: {
@@ -1343,7 +1684,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "joystickData", joystickData: JoystickData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "joystickData",
+            joystickData: JoystickData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 9: {
@@ -1351,7 +1695,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "avatarUpdate", avatarUpdate: AvatarUpdate.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "avatarUpdate",
+            avatarUpdate: AvatarUpdate.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 10: {
@@ -1359,7 +1706,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "startGame", startGame: StartGame.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "startGame",
+            startGame: StartGame.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 11: {
@@ -1367,7 +1717,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "emote", emote: Emote.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "emote",
+            emote: Emote.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 12: {
@@ -1375,7 +1728,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "multipleChoice", multipleChoice: MultipleChoice.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "multipleChoice",
+            multipleChoice: MultipleChoice.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 13: {
@@ -1383,7 +1739,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "restartGame", restartGame: RestartGame.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "restartGame",
+            restartGame: RestartGame.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 14: {
@@ -1391,7 +1750,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "promptTextData", promptTextData: PromptTextData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "promptTextData",
+            promptTextData: PromptTextData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 15: {
@@ -1399,7 +1761,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "playerVoteData", playerVoteData: PlayerVoteData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "playerVoteData",
+            playerVoteData: PlayerVoteData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 16: {
@@ -1418,7 +1783,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "votePhotoData", votePhotoData: VotePhotoData.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "votePhotoData",
+            votePhotoData: VotePhotoData.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 18: {
@@ -1426,7 +1794,32 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             break;
           }
 
-          message.payload = { $case: "photoReady", photoReady: PhotoReady.decode(reader, reader.uint32()) };
+          message.payload = {
+            $case: "photoReady",
+            photoReady: PhotoReady.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
+        case 19: {
+          if (tag !== 154) {
+            break;
+          }
+
+          message.payload = {
+            $case: "confirm",
+            confirm: Confirm.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
+        case 20: {
+          if (tag !== 162) {
+            break;
+          }
+
+          message.payload = {
+            $case: "shakeProgress",
+            shakeProgress: ShakeProgress.decode(reader, reader.uint32()),
+          };
           continue;
         }
       }
@@ -1441,42 +1834,137 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
   fromJSON(object: any): PlayerInputPayload {
     return {
       payload: isSet(object.questionData)
-        ? { $case: "questionData", questionData: QuestionData.fromJSON(object.questionData) }
+        ? {
+            $case: "questionData",
+            questionData: QuestionData.fromJSON(object.questionData),
+          }
         : isSet(object.promptData)
-          ? { $case: "promptData", promptData: PromptData.fromJSON(object.promptData) }
+          ? {
+              $case: "promptData",
+              promptData: PromptData.fromJSON(object.promptData),
+            }
           : isSet(object.dilemmaData)
-            ? { $case: "dilemmaData", dilemmaData: DilemmaData.fromJSON(object.dilemmaData) }
+            ? {
+                $case: "dilemmaData",
+                dilemmaData: DilemmaData.fromJSON(object.dilemmaData),
+              }
             : isSet(object.instructionData)
-              ? { $case: "instructionData", instructionData: InstructionData.fromJSON(object.instructionData) }
+              ? {
+                  $case: "instructionData",
+                  instructionData: InstructionData.fromJSON(
+                    object.instructionData,
+                  ),
+                }
               : isSet(object.voteData)
-                ? { $case: "voteData", voteData: VoteData.fromJSON(object.voteData) }
+                ? {
+                    $case: "voteData",
+                    voteData: VoteData.fromJSON(object.voteData),
+                  }
                 : isSet(object.adminStartData)
-                  ? { $case: "adminStartData", adminStartData: AdminStartData.fromJSON(object.adminStartData) }
+                  ? {
+                      $case: "adminStartData",
+                      adminStartData: AdminStartData.fromJSON(
+                        object.adminStartData,
+                      ),
+                    }
                   : isSet(object.photoPickerData)
-                    ? { $case: "photoPickerData", photoPickerData: PhotoPickerData.fromJSON(object.photoPickerData) }
+                    ? {
+                        $case: "photoPickerData",
+                        photoPickerData: PhotoPickerData.fromJSON(
+                          object.photoPickerData,
+                        ),
+                      }
                     : isSet(object.joystickData)
-                      ? { $case: "joystickData", joystickData: JoystickData.fromJSON(object.joystickData) }
+                      ? {
+                          $case: "joystickData",
+                          joystickData: JoystickData.fromJSON(
+                            object.joystickData,
+                          ),
+                        }
                       : isSet(object.avatarUpdate)
-                        ? { $case: "avatarUpdate", avatarUpdate: AvatarUpdate.fromJSON(object.avatarUpdate) }
+                        ? {
+                            $case: "avatarUpdate",
+                            avatarUpdate: AvatarUpdate.fromJSON(
+                              object.avatarUpdate,
+                            ),
+                          }
                         : isSet(object.startGame)
-                          ? { $case: "startGame", startGame: StartGame.fromJSON(object.startGame) }
+                          ? {
+                              $case: "startGame",
+                              startGame: StartGame.fromJSON(object.startGame),
+                            }
                           : isSet(object.emote)
-                            ? { $case: "emote", emote: Emote.fromJSON(object.emote) }
+                            ? {
+                                $case: "emote",
+                                emote: Emote.fromJSON(object.emote),
+                              }
                             : isSet(object.multipleChoice)
-                              ? { $case: "multipleChoice", multipleChoice: MultipleChoice.fromJSON(object.multipleChoice) }
+                              ? {
+                                  $case: "multipleChoice",
+                                  multipleChoice: MultipleChoice.fromJSON(
+                                    object.multipleChoice,
+                                  ),
+                                }
                               : isSet(object.restartGame)
-                                ? { $case: "restartGame", restartGame: RestartGame.fromJSON(object.restartGame) }
+                                ? {
+                                    $case: "restartGame",
+                                    restartGame: RestartGame.fromJSON(
+                                      object.restartGame,
+                                    ),
+                                  }
                                 : isSet(object.promptTextData)
-                                  ? { $case: "promptTextData", promptTextData: PromptTextData.fromJSON(object.promptTextData) }
+                                  ? {
+                                      $case: "promptTextData",
+                                      promptTextData: PromptTextData.fromJSON(
+                                        object.promptTextData,
+                                      ),
+                                    }
                                   : isSet(object.playerVoteData)
-                                    ? { $case: "playerVoteData", playerVoteData: PlayerVoteData.fromJSON(object.playerVoteData) }
+                                    ? {
+                                        $case: "playerVoteData",
+                                        playerVoteData: PlayerVoteData.fromJSON(
+                                          object.playerVoteData,
+                                        ),
+                                      }
                                     : isSet(object.promptPhotoData)
-                                      ? { $case: "promptPhotoData", promptPhotoData: PromptPhotoData.fromJSON(object.promptPhotoData) }
+                                      ? {
+                                          $case: "promptPhotoData",
+                                          promptPhotoData:
+                                            PromptPhotoData.fromJSON(
+                                              object.promptPhotoData,
+                                            ),
+                                        }
                                       : isSet(object.votePhotoData)
-                                        ? { $case: "votePhotoData", votePhotoData: VotePhotoData.fromJSON(object.votePhotoData) }
+                                        ? {
+                                            $case: "votePhotoData",
+                                            votePhotoData:
+                                              VotePhotoData.fromJSON(
+                                                object.votePhotoData,
+                                              ),
+                                          }
                                         : isSet(object.photoReady)
-                                          ? { $case: "photoReady", photoReady: PhotoReady.fromJSON(object.photoReady) }
-                                          : undefined,
+                                          ? {
+                                              $case: "photoReady",
+                                              photoReady: PhotoReady.fromJSON(
+                                                object.photoReady,
+                                              ),
+                                            }
+                                          : isSet(object.confirm)
+                                            ? {
+                                                $case: "confirm",
+                                                confirm: Confirm.fromJSON(
+                                                  object.confirm,
+                                                ),
+                                              }
+                                            : isSet(object.shakeProgress)
+                                              ? {
+                                                  $case: "shakeProgress",
+                                                  shakeProgress:
+                                                    ShakeProgress.fromJSON(
+                                                      object.shakeProgress,
+                                                    ),
+                                                }
+                                              : undefined,
     };
   },
 
@@ -1489,13 +1977,19 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
     } else if (message.payload?.$case === "dilemmaData") {
       obj.dilemmaData = DilemmaData.toJSON(message.payload.dilemmaData);
     } else if (message.payload?.$case === "instructionData") {
-      obj.instructionData = InstructionData.toJSON(message.payload.instructionData);
+      obj.instructionData = InstructionData.toJSON(
+        message.payload.instructionData,
+      );
     } else if (message.payload?.$case === "voteData") {
       obj.voteData = VoteData.toJSON(message.payload.voteData);
     } else if (message.payload?.$case === "adminStartData") {
-      obj.adminStartData = AdminStartData.toJSON(message.payload.adminStartData);
+      obj.adminStartData = AdminStartData.toJSON(
+        message.payload.adminStartData,
+      );
     } else if (message.payload?.$case === "photoPickerData") {
-      obj.photoPickerData = PhotoPickerData.toJSON(message.payload.photoPickerData);
+      obj.photoPickerData = PhotoPickerData.toJSON(
+        message.payload.photoPickerData,
+      );
     } else if (message.payload?.$case === "joystickData") {
       obj.joystickData = JoystickData.toJSON(message.payload.joystickData);
     } else if (message.payload?.$case === "avatarUpdate") {
@@ -1505,19 +1999,31 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
     } else if (message.payload?.$case === "emote") {
       obj.emote = Emote.toJSON(message.payload.emote);
     } else if (message.payload?.$case === "multipleChoice") {
-      obj.multipleChoice = MultipleChoice.toJSON(message.payload.multipleChoice);
+      obj.multipleChoice = MultipleChoice.toJSON(
+        message.payload.multipleChoice,
+      );
     } else if (message.payload?.$case === "restartGame") {
       obj.restartGame = RestartGame.toJSON(message.payload.restartGame);
     } else if (message.payload?.$case === "promptTextData") {
-      obj.promptTextData = PromptTextData.toJSON(message.payload.promptTextData);
+      obj.promptTextData = PromptTextData.toJSON(
+        message.payload.promptTextData,
+      );
     } else if (message.payload?.$case === "playerVoteData") {
-      obj.playerVoteData = PlayerVoteData.toJSON(message.payload.playerVoteData);
+      obj.playerVoteData = PlayerVoteData.toJSON(
+        message.payload.playerVoteData,
+      );
     } else if (message.payload?.$case === "promptPhotoData") {
-      obj.promptPhotoData = PromptPhotoData.toJSON(message.payload.promptPhotoData);
+      obj.promptPhotoData = PromptPhotoData.toJSON(
+        message.payload.promptPhotoData,
+      );
     } else if (message.payload?.$case === "votePhotoData") {
       obj.votePhotoData = VotePhotoData.toJSON(message.payload.votePhotoData);
     } else if (message.payload?.$case === "photoReady") {
       obj.photoReady = PhotoReady.toJSON(message.payload.photoReady);
+    } else if (message.payload?.$case === "confirm") {
+      obj.confirm = Confirm.toJSON(message.payload.confirm);
+    } else if (message.payload?.$case === "shakeProgress") {
+      obj.shakeProgress = ShakeProgress.toJSON(message.payload.shakeProgress);
     }
     return obj;
   },
@@ -1529,7 +2035,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
     const message = createBasePlayerInputPayload();
     switch (object.payload?.$case) {
       case "questionData": {
-        if (object.payload?.questionData !== undefined && object.payload?.questionData !== null) {
+        if (
+          object.payload?.questionData !== undefined &&
+          object.payload?.questionData !== null
+        ) {
           message.payload = {
             $case: "questionData",
             questionData: QuestionData.fromPartial(object.payload.questionData),
@@ -1538,52 +2047,88 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
         break;
       }
       case "promptData": {
-        if (object.payload?.promptData !== undefined && object.payload?.promptData !== null) {
-          message.payload = { $case: "promptData", promptData: PromptData.fromPartial(object.payload.promptData) };
+        if (
+          object.payload?.promptData !== undefined &&
+          object.payload?.promptData !== null
+        ) {
+          message.payload = {
+            $case: "promptData",
+            promptData: PromptData.fromPartial(object.payload.promptData),
+          };
         }
         break;
       }
       case "dilemmaData": {
-        if (object.payload?.dilemmaData !== undefined && object.payload?.dilemmaData !== null) {
-          message.payload = { $case: "dilemmaData", dilemmaData: DilemmaData.fromPartial(object.payload.dilemmaData) };
+        if (
+          object.payload?.dilemmaData !== undefined &&
+          object.payload?.dilemmaData !== null
+        ) {
+          message.payload = {
+            $case: "dilemmaData",
+            dilemmaData: DilemmaData.fromPartial(object.payload.dilemmaData),
+          };
         }
         break;
       }
       case "instructionData": {
-        if (object.payload?.instructionData !== undefined && object.payload?.instructionData !== null) {
+        if (
+          object.payload?.instructionData !== undefined &&
+          object.payload?.instructionData !== null
+        ) {
           message.payload = {
             $case: "instructionData",
-            instructionData: InstructionData.fromPartial(object.payload.instructionData),
+            instructionData: InstructionData.fromPartial(
+              object.payload.instructionData,
+            ),
           };
         }
         break;
       }
       case "voteData": {
-        if (object.payload?.voteData !== undefined && object.payload?.voteData !== null) {
-          message.payload = { $case: "voteData", voteData: VoteData.fromPartial(object.payload.voteData) };
+        if (
+          object.payload?.voteData !== undefined &&
+          object.payload?.voteData !== null
+        ) {
+          message.payload = {
+            $case: "voteData",
+            voteData: VoteData.fromPartial(object.payload.voteData),
+          };
         }
         break;
       }
       case "adminStartData": {
-        if (object.payload?.adminStartData !== undefined && object.payload?.adminStartData !== null) {
+        if (
+          object.payload?.adminStartData !== undefined &&
+          object.payload?.adminStartData !== null
+        ) {
           message.payload = {
             $case: "adminStartData",
-            adminStartData: AdminStartData.fromPartial(object.payload.adminStartData),
+            adminStartData: AdminStartData.fromPartial(
+              object.payload.adminStartData,
+            ),
           };
         }
         break;
       }
       case "photoPickerData": {
-        if (object.payload?.photoPickerData !== undefined && object.payload?.photoPickerData !== null) {
+        if (
+          object.payload?.photoPickerData !== undefined &&
+          object.payload?.photoPickerData !== null
+        ) {
           message.payload = {
             $case: "photoPickerData",
-            photoPickerData: PhotoPickerData.fromPartial(object.payload.photoPickerData),
+            photoPickerData: PhotoPickerData.fromPartial(
+              object.payload.photoPickerData,
+            ),
           };
         }
         break;
       }
       case "joystickData": {
-        if (object.payload?.joystickData !== undefined && object.payload?.joystickData !== null) {
+        if (
+          object.payload?.joystickData !== undefined &&
+          object.payload?.joystickData !== null
+        ) {
           message.payload = {
             $case: "joystickData",
             joystickData: JoystickData.fromPartial(object.payload.joystickData),
@@ -1592,7 +2137,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
         break;
       }
       case "avatarUpdate": {
-        if (object.payload?.avatarUpdate !== undefined && object.payload?.avatarUpdate !== null) {
+        if (
+          object.payload?.avatarUpdate !== undefined &&
+          object.payload?.avatarUpdate !== null
+        ) {
           message.payload = {
             $case: "avatarUpdate",
             avatarUpdate: AvatarUpdate.fromPartial(object.payload.avatarUpdate),
@@ -1601,71 +2149,146 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
         break;
       }
       case "startGame": {
-        if (object.payload?.startGame !== undefined && object.payload?.startGame !== null) {
-          message.payload = { $case: "startGame", startGame: StartGame.fromPartial(object.payload.startGame) };
+        if (
+          object.payload?.startGame !== undefined &&
+          object.payload?.startGame !== null
+        ) {
+          message.payload = {
+            $case: "startGame",
+            startGame: StartGame.fromPartial(object.payload.startGame),
+          };
         }
         break;
       }
       case "emote": {
-        if (object.payload?.emote !== undefined && object.payload?.emote !== null) {
-          message.payload = { $case: "emote", emote: Emote.fromPartial(object.payload.emote) };
+        if (
+          object.payload?.emote !== undefined &&
+          object.payload?.emote !== null
+        ) {
+          message.payload = {
+            $case: "emote",
+            emote: Emote.fromPartial(object.payload.emote),
+          };
         }
         break;
       }
       case "multipleChoice": {
-        if (object.payload?.multipleChoice !== undefined && object.payload?.multipleChoice !== null) {
+        if (
+          object.payload?.multipleChoice !== undefined &&
+          object.payload?.multipleChoice !== null
+        ) {
           message.payload = {
             $case: "multipleChoice",
-            multipleChoice: MultipleChoice.fromPartial(object.payload.multipleChoice),
+            multipleChoice: MultipleChoice.fromPartial(
+              object.payload.multipleChoice,
+            ),
           };
         }
         break;
       }
       case "restartGame": {
-        if (object.payload?.restartGame !== undefined && object.payload?.restartGame !== null) {
-          message.payload = { $case: "restartGame", restartGame: RestartGame.fromPartial(object.payload.restartGame) };
+        if (
+          object.payload?.restartGame !== undefined &&
+          object.payload?.restartGame !== null
+        ) {
+          message.payload = {
+            $case: "restartGame",
+            restartGame: RestartGame.fromPartial(object.payload.restartGame),
+          };
         }
         break;
       }
       case "promptTextData": {
-        if (object.payload?.promptTextData !== undefined && object.payload?.promptTextData !== null) {
+        if (
+          object.payload?.promptTextData !== undefined &&
+          object.payload?.promptTextData !== null
+        ) {
           message.payload = {
             $case: "promptTextData",
-            promptTextData: PromptTextData.fromPartial(object.payload.promptTextData),
+            promptTextData: PromptTextData.fromPartial(
+              object.payload.promptTextData,
+            ),
           };
         }
         break;
       }
       case "playerVoteData": {
-        if (object.payload?.playerVoteData !== undefined && object.payload?.playerVoteData !== null) {
+        if (
+          object.payload?.playerVoteData !== undefined &&
+          object.payload?.playerVoteData !== null
+        ) {
           message.payload = {
             $case: "playerVoteData",
-            playerVoteData: PlayerVoteData.fromPartial(object.payload.playerVoteData),
+            playerVoteData: PlayerVoteData.fromPartial(
+              object.payload.playerVoteData,
+            ),
           };
         }
         break;
       }
       case "promptPhotoData": {
-        if (object.payload?.promptPhotoData !== undefined && object.payload?.promptPhotoData !== null) {
+        if (
+          object.payload?.promptPhotoData !== undefined &&
+          object.payload?.promptPhotoData !== null
+        ) {
           message.payload = {
             $case: "promptPhotoData",
-            promptPhotoData: PromptPhotoData.fromPartial(object.payload.promptPhotoData),
+            promptPhotoData: PromptPhotoData.fromPartial(
+              object.payload.promptPhotoData,
+            ),
           };
         }
         break;
       }
       case "votePhotoData": {
-        if (object.payload?.votePhotoData !== undefined && object.payload?.votePhotoData !== null) {
+        if (
+          object.payload?.votePhotoData !== undefined &&
+          object.payload?.votePhotoData !== null
+        ) {
           message.payload = {
             $case: "votePhotoData",
-            votePhotoData: VotePhotoData.fromPartial(object.payload.votePhotoData),
+            votePhotoData: VotePhotoData.fromPartial(
+              object.payload.votePhotoData,
+            ),
           };
         }
         break;
       }
       case "photoReady": {
-        if (object.payload?.photoReady !== undefined && object.payload?.photoReady !== null) {
-          message.payload = { $case: "photoReady", photoReady: PhotoReady.fromPartial(object.payload.photoReady) };
+        if (
+          object.payload?.photoReady !== undefined &&
+          object.payload?.photoReady !== null
+        ) {
+          message.payload = {
+            $case: "photoReady",
+            photoReady: PhotoReady.fromPartial(object.payload.photoReady),
+          };
+        }
+        break;
+      }
+      case "confirm": {
+        if (
+          object.payload?.confirm !== undefined &&
+          object.payload?.confirm !== null
+        ) {
+          message.payload = {
+            $case: "confirm",
+            confirm: Confirm.fromPartial(object.payload.confirm),
+          };
+        }
+        break;
+      }
+      case "shakeProgress": {
+        if (
+          object.payload?.shakeProgress !== undefined &&
+          object.payload?.shakeProgress !== null
+        ) {
+          message.payload = {
+            $case: "shakeProgress",
+            shakeProgress: ShakeProgress.fromPartial(
+              object.payload.shakeProgress,
+            ),
+          };
         }
         break;
       }
@@ -1679,7 +2302,10 @@ function createBaseAvatarUpdate(): AvatarUpdate {
 }
 
 export const AvatarUpdate: MessageFns<AvatarUpdate> = {
-  encode(message: AvatarUpdate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: AvatarUpdate,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.avatar !== undefined) {
       Avatar.encode(message.avatar, writer.uint32(10).fork()).join();
     }
@@ -1687,7 +2313,8 @@ export const AvatarUpdate: MessageFns<AvatarUpdate> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): AvatarUpdate {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAvatarUpdate();
     while (reader.pos < end) {
@@ -1711,7 +2338,9 @@ export const AvatarUpdate: MessageFns<AvatarUpdate> = {
   },
 
   fromJSON(object: any): AvatarUpdate {
-    return { avatar: isSet(object.avatar) ? Avatar.fromJSON(object.avatar) : undefined };
+    return {
+      avatar: isSet(object.avatar) ? Avatar.fromJSON(object.avatar) : undefined,
+    };
   },
 
   toJSON(message: AvatarUpdate): unknown {
@@ -1727,9 +2356,10 @@ export const AvatarUpdate: MessageFns<AvatarUpdate> = {
   },
   fromPartial(object: DeepPartial<AvatarUpdate>): AvatarUpdate {
     const message = createBaseAvatarUpdate();
-    message.avatar = (object.avatar !== undefined && object.avatar !== null)
-      ? Avatar.fromPartial(object.avatar)
-      : undefined;
+    message.avatar =
+      object.avatar !== undefined && object.avatar !== null
+        ? Avatar.fromPartial(object.avatar)
+        : undefined;
     return message;
   },
 };
@@ -1739,7 +2369,10 @@ function createBaseJoystickData(): JoystickData {
 }
 
 export const JoystickData: MessageFns<JoystickData> = {
-  encode(message: JoystickData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: JoystickData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.x !== 0) {
       writer.uint32(9).double(message.x);
     }
@@ -1753,7 +2386,8 @@ export const JoystickData: MessageFns<JoystickData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): JoystickData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseJoystickData();
     while (reader.pos < end) {
@@ -1796,7 +2430,9 @@ export const JoystickData: MessageFns<JoystickData> = {
     return {
       x: isSet(object.x) ? globalThis.Number(object.x) : 0,
       y: isSet(object.y) ? globalThis.Number(object.y) : 0,
-      isPressed: isSet(object.isPressed) ? globalThis.Boolean(object.isPressed) : false,
+      isPressed: isSet(object.isPressed)
+        ? globalThis.Boolean(object.isPressed)
+        : false,
     };
   },
 
@@ -1831,12 +2467,16 @@ function createBasePhotoReady(): PhotoReady {
 }
 
 export const PhotoReady: MessageFns<PhotoReady> = {
-  encode(_: PhotoReady, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    _: PhotoReady,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PhotoReady {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePhotoReady();
     while (reader.pos < end) {
@@ -1874,7 +2514,10 @@ function createBasePromptPhotoData(): PromptPhotoData {
 }
 
 export const PromptPhotoData: MessageFns<PromptPhotoData> = {
-  encode(message: PromptPhotoData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PromptPhotoData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.photoUrl !== "") {
       writer.uint32(10).string(message.photoUrl);
     }
@@ -1882,7 +2525,8 @@ export const PromptPhotoData: MessageFns<PromptPhotoData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PromptPhotoData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePromptPhotoData();
     while (reader.pos < end) {
@@ -1906,7 +2550,11 @@ export const PromptPhotoData: MessageFns<PromptPhotoData> = {
   },
 
   fromJSON(object: any): PromptPhotoData {
-    return { photoUrl: isSet(object.photoUrl) ? globalThis.String(object.photoUrl) : "" };
+    return {
+      photoUrl: isSet(object.photoUrl)
+        ? globalThis.String(object.photoUrl)
+        : "",
+    };
   },
 
   toJSON(message: PromptPhotoData): unknown {
@@ -1932,7 +2580,10 @@ function createBaseVotePhotoData(): VotePhotoData {
 }
 
 export const VotePhotoData: MessageFns<VotePhotoData> = {
-  encode(message: VotePhotoData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: VotePhotoData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.photoIndex !== "") {
       writer.uint32(10).string(message.photoIndex);
     }
@@ -1940,7 +2591,8 @@ export const VotePhotoData: MessageFns<VotePhotoData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): VotePhotoData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseVotePhotoData();
     while (reader.pos < end) {
@@ -1964,7 +2616,11 @@ export const VotePhotoData: MessageFns<VotePhotoData> = {
   },
 
   fromJSON(object: any): VotePhotoData {
-    return { photoIndex: isSet(object.photoIndex) ? globalThis.String(object.photoIndex) : "" };
+    return {
+      photoIndex: isSet(object.photoIndex)
+        ? globalThis.String(object.photoIndex)
+        : "",
+    };
   },
 
   toJSON(message: VotePhotoData): unknown {
@@ -1985,12 +2641,95 @@ export const VotePhotoData: MessageFns<VotePhotoData> = {
   },
 };
 
+function createBaseShakeProgress(): ShakeProgress {
+  return { progress: 0, motion: false };
+}
+
+export const ShakeProgress: MessageFns<ShakeProgress> = {
+  encode(
+    message: ShakeProgress,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
+    if (message.progress !== 0) {
+      writer.uint32(9).double(message.progress);
+    }
+    if (message.motion !== false) {
+      writer.uint32(16).bool(message.motion);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ShakeProgress {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShakeProgress();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 9) {
+            break;
+          }
+
+          message.progress = reader.double();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.motion = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ShakeProgress {
+    return {
+      progress: isSet(object.progress) ? globalThis.Number(object.progress) : 0,
+      motion: isSet(object.motion) ? globalThis.Boolean(object.motion) : false,
+    };
+  },
+
+  toJSON(message: ShakeProgress): unknown {
+    const obj: any = {};
+    if (message.progress !== 0) {
+      obj.progress = message.progress;
+    }
+    if (message.motion !== false) {
+      obj.motion = message.motion;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ShakeProgress>): ShakeProgress {
+    return ShakeProgress.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ShakeProgress>): ShakeProgress {
+    const message = createBaseShakeProgress();
+    message.progress = object.progress ?? 0;
+    message.motion = object.motion ?? false;
+    return message;
+  },
+};
+
 function createBaseMultipleChoice(): MultipleChoice {
   return { answer: "" };
 }
 
 export const MultipleChoice: MessageFns<MultipleChoice> = {
-  encode(message: MultipleChoice, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: MultipleChoice,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.answer !== "") {
       writer.uint32(10).string(message.answer);
     }
@@ -1998,7 +2737,8 @@ export const MultipleChoice: MessageFns<MultipleChoice> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): MultipleChoice {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMultipleChoice();
     while (reader.pos < end) {
@@ -2022,7 +2762,9 @@ export const MultipleChoice: MessageFns<MultipleChoice> = {
   },
 
   fromJSON(object: any): MultipleChoice {
-    return { answer: isSet(object.answer) ? globalThis.String(object.answer) : "" };
+    return {
+      answer: isSet(object.answer) ? globalThis.String(object.answer) : "",
+    };
   },
 
   toJSON(message: MultipleChoice): unknown {
@@ -2048,7 +2790,10 @@ function createBaseQuestionData(): QuestionData {
 }
 
 export const QuestionData: MessageFns<QuestionData> = {
-  encode(message: QuestionData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: QuestionData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.question !== "") {
       writer.uint32(10).string(message.question);
     }
@@ -2059,7 +2804,8 @@ export const QuestionData: MessageFns<QuestionData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): QuestionData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQuestionData();
     while (reader.pos < end) {
@@ -2092,8 +2838,12 @@ export const QuestionData: MessageFns<QuestionData> = {
 
   fromJSON(object: any): QuestionData {
     return {
-      question: isSet(object.question) ? globalThis.String(object.question) : "",
-      answers: globalThis.Array.isArray(object?.answers) ? object.answers.map((e: any) => globalThis.String(e)) : [],
+      question: isSet(object.question)
+        ? globalThis.String(object.question)
+        : "",
+      answers: globalThis.Array.isArray(object?.answers)
+        ? object.answers.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2124,7 +2874,10 @@ function createBasePromptData(): PromptData {
 }
 
 export const PromptData: MessageFns<PromptData> = {
-  encode(message: PromptData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PromptData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.question !== "") {
       writer.uint32(10).string(message.question);
     }
@@ -2132,7 +2885,8 @@ export const PromptData: MessageFns<PromptData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PromptData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePromptData();
     while (reader.pos < end) {
@@ -2156,7 +2910,11 @@ export const PromptData: MessageFns<PromptData> = {
   },
 
   fromJSON(object: any): PromptData {
-    return { question: isSet(object.question) ? globalThis.String(object.question) : "" };
+    return {
+      question: isSet(object.question)
+        ? globalThis.String(object.question)
+        : "",
+    };
   },
 
   toJSON(message: PromptData): unknown {
@@ -2177,12 +2935,59 @@ export const PromptData: MessageFns<PromptData> = {
   },
 };
 
+function createBaseConfirm(): Confirm {
+  return {};
+}
+
+export const Confirm: MessageFns<Confirm> = {
+  encode(_: Confirm, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Confirm {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConfirm();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Confirm {
+    return {};
+  },
+
+  toJSON(_: Confirm): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<Confirm>): Confirm {
+    return Confirm.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<Confirm>): Confirm {
+    const message = createBaseConfirm();
+    return message;
+  },
+};
+
 function createBasePromptTextData(): PromptTextData {
   return { answer: "" };
 }
 
 export const PromptTextData: MessageFns<PromptTextData> = {
-  encode(message: PromptTextData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PromptTextData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.answer !== "") {
       writer.uint32(10).string(message.answer);
     }
@@ -2190,7 +2995,8 @@ export const PromptTextData: MessageFns<PromptTextData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PromptTextData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePromptTextData();
     while (reader.pos < end) {
@@ -2214,7 +3020,9 @@ export const PromptTextData: MessageFns<PromptTextData> = {
   },
 
   fromJSON(object: any): PromptTextData {
-    return { answer: isSet(object.answer) ? globalThis.String(object.answer) : "" };
+    return {
+      answer: isSet(object.answer) ? globalThis.String(object.answer) : "",
+    };
   },
 
   toJSON(message: PromptTextData): unknown {
@@ -2240,7 +3048,10 @@ function createBaseDilemmaData(): DilemmaData {
 }
 
 export const DilemmaData: MessageFns<DilemmaData> = {
-  encode(message: DilemmaData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: DilemmaData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.points !== 0) {
       writer.uint32(8).int32(message.points);
     }
@@ -2248,7 +3059,8 @@ export const DilemmaData: MessageFns<DilemmaData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): DilemmaData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseDilemmaData();
     while (reader.pos < end) {
@@ -2272,7 +3084,9 @@ export const DilemmaData: MessageFns<DilemmaData> = {
   },
 
   fromJSON(object: any): DilemmaData {
-    return { points: isSet(object.points) ? globalThis.Number(object.points) : 0 };
+    return {
+      points: isSet(object.points) ? globalThis.Number(object.points) : 0,
+    };
   },
 
   toJSON(message: DilemmaData): unknown {
@@ -2298,7 +3112,10 @@ function createBaseInstructionData(): InstructionData {
 }
 
 export const InstructionData: MessageFns<InstructionData> = {
-  encode(message: InstructionData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: InstructionData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.instruction !== "") {
       writer.uint32(10).string(message.instruction);
     }
@@ -2306,7 +3123,8 @@ export const InstructionData: MessageFns<InstructionData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): InstructionData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseInstructionData();
     while (reader.pos < end) {
@@ -2330,7 +3148,11 @@ export const InstructionData: MessageFns<InstructionData> = {
   },
 
   fromJSON(object: any): InstructionData {
-    return { instruction: isSet(object.instruction) ? globalThis.String(object.instruction) : "" };
+    return {
+      instruction: isSet(object.instruction)
+        ? globalThis.String(object.instruction)
+        : "",
+    };
   },
 
   toJSON(message: InstructionData): unknown {
@@ -2356,7 +3178,10 @@ function createBaseVoteData(): VoteData {
 }
 
 export const VoteData: MessageFns<VoteData> = {
-  encode(message: VoteData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: VoteData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     for (const v of message.options) {
       writer.uint32(10).string(v!);
     }
@@ -2364,7 +3189,8 @@ export const VoteData: MessageFns<VoteData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): VoteData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseVoteData();
     while (reader.pos < end) {
@@ -2389,7 +3215,9 @@ export const VoteData: MessageFns<VoteData> = {
 
   fromJSON(object: any): VoteData {
     return {
-      options: globalThis.Array.isArray(object?.options) ? object.options.map((e: any) => globalThis.String(e)) : [],
+      options: globalThis.Array.isArray(object?.options)
+        ? object.options.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2416,7 +3244,10 @@ function createBasePlayerVoteData(): PlayerVoteData {
 }
 
 export const PlayerVoteData: MessageFns<PlayerVoteData> = {
-  encode(message: PlayerVoteData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PlayerVoteData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.answer !== "") {
       writer.uint32(10).string(message.answer);
     }
@@ -2424,7 +3255,8 @@ export const PlayerVoteData: MessageFns<PlayerVoteData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PlayerVoteData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePlayerVoteData();
     while (reader.pos < end) {
@@ -2448,7 +3280,9 @@ export const PlayerVoteData: MessageFns<PlayerVoteData> = {
   },
 
   fromJSON(object: any): PlayerVoteData {
-    return { answer: isSet(object.answer) ? globalThis.String(object.answer) : "" };
+    return {
+      answer: isSet(object.answer) ? globalThis.String(object.answer) : "",
+    };
   },
 
   toJSON(message: PlayerVoteData): unknown {
@@ -2470,11 +3304,20 @@ export const PlayerVoteData: MessageFns<PlayerVoteData> = {
 };
 
 function createBaseSettings(): Settings {
-  return { doubloons: 0, rounds: 0, endCondition: 0, drinking: false, family: false };
+  return {
+    doubloons: 0,
+    rounds: 0,
+    endCondition: 0,
+    drinking: false,
+    family: false,
+  };
 }
 
 export const Settings: MessageFns<Settings> = {
-  encode(message: Settings, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: Settings,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.doubloons !== 0) {
       writer.uint32(8).int32(message.doubloons);
     }
@@ -2494,7 +3337,8 @@ export const Settings: MessageFns<Settings> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): Settings {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSettings();
     while (reader.pos < end) {
@@ -2551,10 +3395,16 @@ export const Settings: MessageFns<Settings> = {
 
   fromJSON(object: any): Settings {
     return {
-      doubloons: isSet(object.doubloons) ? globalThis.Number(object.doubloons) : 0,
+      doubloons: isSet(object.doubloons)
+        ? globalThis.Number(object.doubloons)
+        : 0,
       rounds: isSet(object.rounds) ? globalThis.Number(object.rounds) : 0,
-      endCondition: isSet(object.endCondition) ? globalThis.Number(object.endCondition) : 0,
-      drinking: isSet(object.drinking) ? globalThis.Boolean(object.drinking) : false,
+      endCondition: isSet(object.endCondition)
+        ? globalThis.Number(object.endCondition)
+        : 0,
+      drinking: isSet(object.drinking)
+        ? globalThis.Boolean(object.drinking)
+        : false,
       family: isSet(object.family) ? globalThis.Boolean(object.family) : false,
     };
   },
@@ -2598,7 +3448,10 @@ function createBaseAdminStartData(): AdminStartData {
 }
 
 export const AdminStartData: MessageFns<AdminStartData> = {
-  encode(message: AdminStartData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: AdminStartData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.settings !== undefined) {
       Settings.encode(message.settings, writer.uint32(10).fork()).join();
     }
@@ -2606,7 +3459,8 @@ export const AdminStartData: MessageFns<AdminStartData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): AdminStartData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAdminStartData();
     while (reader.pos < end) {
@@ -2630,7 +3484,11 @@ export const AdminStartData: MessageFns<AdminStartData> = {
   },
 
   fromJSON(object: any): AdminStartData {
-    return { settings: isSet(object.settings) ? Settings.fromJSON(object.settings) : undefined };
+    return {
+      settings: isSet(object.settings)
+        ? Settings.fromJSON(object.settings)
+        : undefined,
+    };
   },
 
   toJSON(message: AdminStartData): unknown {
@@ -2646,9 +3504,10 @@ export const AdminStartData: MessageFns<AdminStartData> = {
   },
   fromPartial(object: DeepPartial<AdminStartData>): AdminStartData {
     const message = createBaseAdminStartData();
-    message.settings = (object.settings !== undefined && object.settings !== null)
-      ? Settings.fromPartial(object.settings)
-      : undefined;
+    message.settings =
+      object.settings !== undefined && object.settings !== null
+        ? Settings.fromPartial(object.settings)
+        : undefined;
     return message;
   },
 };
@@ -2658,12 +3517,16 @@ function createBaseStartGame(): StartGame {
 }
 
 export const StartGame: MessageFns<StartGame> = {
-  encode(_: StartGame, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    _: StartGame,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): StartGame {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseStartGame();
     while (reader.pos < end) {
@@ -2706,7 +3569,8 @@ export const Emote: MessageFns<Emote> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): Emote {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEmote();
     while (reader.pos < end) {
@@ -2744,12 +3608,16 @@ function createBaseRestartGame(): RestartGame {
 }
 
 export const RestartGame: MessageFns<RestartGame> = {
-  encode(_: RestartGame, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    _: RestartGame,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): RestartGame {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRestartGame();
     while (reader.pos < end) {
@@ -2787,7 +3655,10 @@ function createBasePhotoPickerData(): PhotoPickerData {
 }
 
 export const PhotoPickerData: MessageFns<PhotoPickerData> = {
-  encode(message: PhotoPickerData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PhotoPickerData,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.photoAmount !== 0) {
       writer.uint32(8).int32(message.photoAmount);
     }
@@ -2798,7 +3669,8 @@ export const PhotoPickerData: MessageFns<PhotoPickerData> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PhotoPickerData {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePhotoPickerData();
     while (reader.pos < end) {
@@ -2831,8 +3703,12 @@ export const PhotoPickerData: MessageFns<PhotoPickerData> = {
 
   fromJSON(object: any): PhotoPickerData {
     return {
-      photoAmount: isSet(object.photoAmount) ? globalThis.Number(object.photoAmount) : 0,
-      photoIndex: isSet(object.photoIndex) ? globalThis.Number(object.photoIndex) : 0,
+      photoAmount: isSet(object.photoAmount)
+        ? globalThis.Number(object.photoAmount)
+        : 0,
+      photoIndex: isSet(object.photoIndex)
+        ? globalThis.Number(object.photoIndex)
+        : 0,
     };
   },
 
@@ -2863,12 +3739,16 @@ function createBaseCreateRoomRequest(): CreateRoomRequest {
 }
 
 export const CreateRoomRequest: MessageFns<CreateRoomRequest> = {
-  encode(_: CreateRoomRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    _: CreateRoomRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): CreateRoomRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateRoomRequest();
     while (reader.pos < end) {
@@ -2906,7 +3786,10 @@ function createBaseCreateRoomResponse(): CreateRoomResponse {
 }
 
 export const CreateRoomResponse: MessageFns<CreateRoomResponse> = {
-  encode(message: CreateRoomResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: CreateRoomResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.roomCode !== "") {
       writer.uint32(10).string(message.roomCode);
     }
@@ -2916,8 +3799,12 @@ export const CreateRoomResponse: MessageFns<CreateRoomResponse> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): CreateRoomResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): CreateRoomResponse {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateRoomResponse();
     while (reader.pos < end) {
@@ -2950,8 +3837,12 @@ export const CreateRoomResponse: MessageFns<CreateRoomResponse> = {
 
   fromJSON(object: any): CreateRoomResponse {
     return {
-      roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
-      hostToken: isSet(object.hostToken) ? globalThis.String(object.hostToken) : "",
+      roomCode: isSet(object.roomCode)
+        ? globalThis.String(object.roomCode)
+        : "",
+      hostToken: isSet(object.hostToken)
+        ? globalThis.String(object.hostToken)
+        : "",
     };
   },
 
@@ -2982,7 +3873,10 @@ function createBaseJoinRoomRequest(): JoinRoomRequest {
 }
 
 export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
-  encode(message: JoinRoomRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: JoinRoomRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.roomCode !== "") {
       writer.uint32(10).string(message.roomCode);
     }
@@ -2996,7 +3890,8 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): JoinRoomRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseJoinRoomRequest();
     while (reader.pos < end) {
@@ -3037,8 +3932,12 @@ export const JoinRoomRequest: MessageFns<JoinRoomRequest> = {
 
   fromJSON(object: any): JoinRoomRequest {
     return {
-      roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
-      playerName: isSet(object.playerName) ? globalThis.String(object.playerName) : "",
+      roomCode: isSet(object.roomCode)
+        ? globalThis.String(object.roomCode)
+        : "",
+      playerName: isSet(object.playerName)
+        ? globalThis.String(object.playerName)
+        : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
     };
   },
@@ -3074,7 +3973,10 @@ function createBaseJoinRoomResponse(): JoinRoomResponse {
 }
 
 export const JoinRoomResponse: MessageFns<JoinRoomResponse> = {
-  encode(message: JoinRoomResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: JoinRoomResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.playerToken !== "") {
       writer.uint32(10).string(message.playerToken);
     }
@@ -3088,7 +3990,8 @@ export const JoinRoomResponse: MessageFns<JoinRoomResponse> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): JoinRoomResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseJoinRoomResponse();
     while (reader.pos < end) {
@@ -3129,9 +4032,15 @@ export const JoinRoomResponse: MessageFns<JoinRoomResponse> = {
 
   fromJSON(object: any): JoinRoomResponse {
     return {
-      playerToken: isSet(object.playerToken) ? globalThis.String(object.playerToken) : "",
-      wasReconnection: isSet(object.wasReconnection) ? globalThis.Boolean(object.wasReconnection) : false,
-      snapshot: isSet(object.snapshot) ? PlayerState.fromJSON(object.snapshot) : undefined,
+      playerToken: isSet(object.playerToken)
+        ? globalThis.String(object.playerToken)
+        : "",
+      wasReconnection: isSet(object.wasReconnection)
+        ? globalThis.Boolean(object.wasReconnection)
+        : false,
+      snapshot: isSet(object.snapshot)
+        ? PlayerState.fromJSON(object.snapshot)
+        : undefined,
     };
   },
 
@@ -3156,9 +4065,10 @@ export const JoinRoomResponse: MessageFns<JoinRoomResponse> = {
     const message = createBaseJoinRoomResponse();
     message.playerToken = object.playerToken ?? "";
     message.wasReconnection = object.wasReconnection ?? false;
-    message.snapshot = (object.snapshot !== undefined && object.snapshot !== null)
-      ? PlayerState.fromPartial(object.snapshot)
-      : undefined;
+    message.snapshot =
+      object.snapshot !== undefined && object.snapshot !== null
+        ? PlayerState.fromPartial(object.snapshot)
+        : undefined;
     return message;
   },
 };
@@ -3168,15 +4078,22 @@ function createBaseGetServerTimeRequest(): GetServerTimeRequest {
 }
 
 export const GetServerTimeRequest: MessageFns<GetServerTimeRequest> = {
-  encode(message: GetServerTimeRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetServerTimeRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.clientTimestamp !== 0) {
       writer.uint32(9).double(message.clientTimestamp);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetServerTimeRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): GetServerTimeRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetServerTimeRequest();
     while (reader.pos < end) {
@@ -3200,7 +4117,11 @@ export const GetServerTimeRequest: MessageFns<GetServerTimeRequest> = {
   },
 
   fromJSON(object: any): GetServerTimeRequest {
-    return { clientTimestamp: isSet(object.clientTimestamp) ? globalThis.Number(object.clientTimestamp) : 0 };
+    return {
+      clientTimestamp: isSet(object.clientTimestamp)
+        ? globalThis.Number(object.clientTimestamp)
+        : 0,
+    };
   },
 
   toJSON(message: GetServerTimeRequest): unknown {
@@ -3226,9 +4147,15 @@ function createBaseGetServerTimeResponse(): GetServerTimeResponse {
 }
 
 export const GetServerTimeResponse: MessageFns<GetServerTimeResponse> = {
-  encode(message: GetServerTimeResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetServerTimeResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.serverTime !== undefined) {
-      Timestamp.encode(toTimestamp(message.serverTime), writer.uint32(10).fork()).join();
+      Timestamp.encode(
+        toTimestamp(message.serverTime),
+        writer.uint32(10).fork(),
+      ).join();
     }
     if (message.clientTimestamp !== 0) {
       writer.uint32(17).double(message.clientTimestamp);
@@ -3236,8 +4163,12 @@ export const GetServerTimeResponse: MessageFns<GetServerTimeResponse> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetServerTimeResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): GetServerTimeResponse {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetServerTimeResponse();
     while (reader.pos < end) {
@@ -3248,7 +4179,9 @@ export const GetServerTimeResponse: MessageFns<GetServerTimeResponse> = {
             break;
           }
 
-          message.serverTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.serverTime = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32()),
+          );
           continue;
         }
         case 2: {
@@ -3270,8 +4203,12 @@ export const GetServerTimeResponse: MessageFns<GetServerTimeResponse> = {
 
   fromJSON(object: any): GetServerTimeResponse {
     return {
-      serverTime: isSet(object.serverTime) ? fromJsonTimestamp(object.serverTime) : undefined,
-      clientTimestamp: isSet(object.clientTimestamp) ? globalThis.Number(object.clientTimestamp) : 0,
+      serverTime: isSet(object.serverTime)
+        ? fromJsonTimestamp(object.serverTime)
+        : undefined,
+      clientTimestamp: isSet(object.clientTimestamp)
+        ? globalThis.Number(object.clientTimestamp)
+        : 0,
     };
   },
 
@@ -3289,7 +4226,9 @@ export const GetServerTimeResponse: MessageFns<GetServerTimeResponse> = {
   create(base?: DeepPartial<GetServerTimeResponse>): GetServerTimeResponse {
     return GetServerTimeResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<GetServerTimeResponse>): GetServerTimeResponse {
+  fromPartial(
+    object: DeepPartial<GetServerTimeResponse>,
+  ): GetServerTimeResponse {
     const message = createBaseGetServerTimeResponse();
     message.serverTime = object.serverTime ?? undefined;
     message.clientTimestamp = object.clientTimestamp ?? 0;
@@ -3302,23 +4241,36 @@ function createBaseGameEvent(): GameEvent {
 }
 
 export const GameEvent: MessageFns<GameEvent> = {
-  encode(message: GameEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GameEvent,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     switch (message.event?.$case) {
       case "fullSync":
-        RoomState.encode(message.event.fullSync, writer.uint32(10).fork()).join();
+        RoomState.encode(
+          message.event.fullSync,
+          writer.uint32(10).fork(),
+        ).join();
         break;
       case "playerUpdate":
-        PlayerState.encode(message.event.playerUpdate, writer.uint32(18).fork()).join();
+        PlayerState.encode(
+          message.event.playerUpdate,
+          writer.uint32(18).fork(),
+        ).join();
         break;
       case "connectionChange":
-        ConnectionChange.encode(message.event.connectionChange, writer.uint32(26).fork()).join();
+        ConnectionChange.encode(
+          message.event.connectionChange,
+          writer.uint32(26).fork(),
+        ).join();
         break;
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): GameEvent {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGameEvent();
     while (reader.pos < end) {
@@ -3329,7 +4281,10 @@ export const GameEvent: MessageFns<GameEvent> = {
             break;
           }
 
-          message.event = { $case: "fullSync", fullSync: RoomState.decode(reader, reader.uint32()) };
+          message.event = {
+            $case: "fullSync",
+            fullSync: RoomState.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 2: {
@@ -3337,7 +4292,10 @@ export const GameEvent: MessageFns<GameEvent> = {
             break;
           }
 
-          message.event = { $case: "playerUpdate", playerUpdate: PlayerState.decode(reader, reader.uint32()) };
+          message.event = {
+            $case: "playerUpdate",
+            playerUpdate: PlayerState.decode(reader, reader.uint32()),
+          };
           continue;
         }
         case 3: {
@@ -3365,9 +4323,17 @@ export const GameEvent: MessageFns<GameEvent> = {
       event: isSet(object.fullSync)
         ? { $case: "fullSync", fullSync: RoomState.fromJSON(object.fullSync) }
         : isSet(object.playerUpdate)
-          ? { $case: "playerUpdate", playerUpdate: PlayerState.fromJSON(object.playerUpdate) }
+          ? {
+              $case: "playerUpdate",
+              playerUpdate: PlayerState.fromJSON(object.playerUpdate),
+            }
           : isSet(object.connectionChange)
-            ? { $case: "connectionChange", connectionChange: ConnectionChange.fromJSON(object.connectionChange) }
+            ? {
+                $case: "connectionChange",
+                connectionChange: ConnectionChange.fromJSON(
+                  object.connectionChange,
+                ),
+              }
             : undefined,
     };
   },
@@ -3379,7 +4345,9 @@ export const GameEvent: MessageFns<GameEvent> = {
     } else if (message.event?.$case === "playerUpdate") {
       obj.playerUpdate = PlayerState.toJSON(message.event.playerUpdate);
     } else if (message.event?.$case === "connectionChange") {
-      obj.connectionChange = ConnectionChange.toJSON(message.event.connectionChange);
+      obj.connectionChange = ConnectionChange.toJSON(
+        message.event.connectionChange,
+      );
     }
     return obj;
   },
@@ -3391,22 +4359,39 @@ export const GameEvent: MessageFns<GameEvent> = {
     const message = createBaseGameEvent();
     switch (object.event?.$case) {
       case "fullSync": {
-        if (object.event?.fullSync !== undefined && object.event?.fullSync !== null) {
-          message.event = { $case: "fullSync", fullSync: RoomState.fromPartial(object.event.fullSync) };
+        if (
+          object.event?.fullSync !== undefined &&
+          object.event?.fullSync !== null
+        ) {
+          message.event = {
+            $case: "fullSync",
+            fullSync: RoomState.fromPartial(object.event.fullSync),
+          };
         }
         break;
       }
       case "playerUpdate": {
-        if (object.event?.playerUpdate !== undefined && object.event?.playerUpdate !== null) {
-          message.event = { $case: "playerUpdate", playerUpdate: PlayerState.fromPartial(object.event.playerUpdate) };
+        if (
+          object.event?.playerUpdate !== undefined &&
+          object.event?.playerUpdate !== null
+        ) {
+          message.event = {
+            $case: "playerUpdate",
+            playerUpdate: PlayerState.fromPartial(object.event.playerUpdate),
+          };
         }
         break;
       }
       case "connectionChange": {
-        if (object.event?.connectionChange !== undefined && object.event?.connectionChange !== null) {
+        if (
+          object.event?.connectionChange !== undefined &&
+          object.event?.connectionChange !== null
+        ) {
           message.event = {
             $case: "connectionChange",
-            connectionChange: ConnectionChange.fromPartial(object.event.connectionChange),
+            connectionChange: ConnectionChange.fromPartial(
+              object.event.connectionChange,
+            ),
           };
         }
         break;
@@ -3421,7 +4406,10 @@ function createBasePlayerInput(): PlayerInput {
 }
 
 export const PlayerInput: MessageFns<PlayerInput> = {
-  encode(message: PlayerInput, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PlayerInput,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.playerName !== "") {
       writer.uint32(10).string(message.playerName);
     }
@@ -3432,7 +4420,8 @@ export const PlayerInput: MessageFns<PlayerInput> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PlayerInput {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePlayerInput();
     while (reader.pos < end) {
@@ -3465,8 +4454,12 @@ export const PlayerInput: MessageFns<PlayerInput> = {
 
   fromJSON(object: any): PlayerInput {
     return {
-      playerName: isSet(object.playerName) ? globalThis.String(object.playerName) : "",
-      input: isSet(object.input) ? PlayerInputPayload.fromJSON(object.input) : undefined,
+      playerName: isSet(object.playerName)
+        ? globalThis.String(object.playerName)
+        : "",
+      input: isSet(object.input)
+        ? PlayerInputPayload.fromJSON(object.input)
+        : undefined,
     };
   },
 
@@ -3487,9 +4480,10 @@ export const PlayerInput: MessageFns<PlayerInput> = {
   fromPartial(object: DeepPartial<PlayerInput>): PlayerInput {
     const message = createBasePlayerInput();
     message.playerName = object.playerName ?? "";
-    message.input = (object.input !== undefined && object.input !== null)
-      ? PlayerInputPayload.fromPartial(object.input)
-      : undefined;
+    message.input =
+      object.input !== undefined && object.input !== null
+        ? PlayerInputPayload.fromPartial(object.input)
+        : undefined;
     return message;
   },
 };
@@ -3499,7 +4493,10 @@ function createBaseRoomState(): RoomState {
 }
 
 export const RoomState: MessageFns<RoomState> = {
-  encode(message: RoomState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: RoomState,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.roomCode !== "") {
       writer.uint32(10).string(message.roomCode);
     }
@@ -3513,7 +4510,8 @@ export const RoomState: MessageFns<RoomState> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): RoomState {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRoomState();
     while (reader.pos < end) {
@@ -3554,9 +4552,13 @@ export const RoomState: MessageFns<RoomState> = {
 
   fromJSON(object: any): RoomState {
     return {
-      roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
+      roomCode: isSet(object.roomCode)
+        ? globalThis.String(object.roomCode)
+        : "",
       stage: isSet(object.stage) ? gameStageFromJSON(object.stage) : 0,
-      players: globalThis.Array.isArray(object?.players) ? object.players.map((e: any) => PlayerState.fromJSON(e)) : [],
+      players: globalThis.Array.isArray(object?.players)
+        ? object.players.map((e: any) => PlayerState.fromJSON(e))
+        : [],
     };
   },
 
@@ -3581,7 +4583,8 @@ export const RoomState: MessageFns<RoomState> = {
     const message = createBaseRoomState();
     message.roomCode = object.roomCode ?? "";
     message.stage = object.stage ?? 0;
-    message.players = object.players?.map((e) => PlayerState.fromPartial(e)) || [];
+    message.players =
+      object.players?.map((e) => PlayerState.fromPartial(e)) || [];
     return message;
   },
 };
@@ -3591,7 +4594,10 @@ function createBaseConnectionChange(): ConnectionChange {
 }
 
 export const ConnectionChange: MessageFns<ConnectionChange> = {
-  encode(message: ConnectionChange, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: ConnectionChange,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.playerName !== "") {
       writer.uint32(10).string(message.playerName);
     }
@@ -3605,7 +4611,8 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): ConnectionChange {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseConnectionChange();
     while (reader.pos < end) {
@@ -3646,9 +4653,13 @@ export const ConnectionChange: MessageFns<ConnectionChange> = {
 
   fromJSON(object: any): ConnectionChange {
     return {
-      playerName: isSet(object.playerName) ? globalThis.String(object.playerName) : "",
+      playerName: isSet(object.playerName)
+        ? globalThis.String(object.playerName)
+        : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
-      isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
+      isConnected: isSet(object.isConnected)
+        ? globalThis.Boolean(object.isConnected)
+        : false,
     };
   },
 
@@ -3683,15 +4694,25 @@ function createBaseUpdatePlayerStateRequest(): UpdatePlayerStateRequest {
 }
 
 export const UpdatePlayerStateRequest: MessageFns<UpdatePlayerStateRequest> = {
-  encode(message: UpdatePlayerStateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: UpdatePlayerStateRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     Object.entries(message.updates).forEach(([key, value]) => {
-      UpdatePlayerStateRequest_UpdatesEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).join();
+      UpdatePlayerStateRequest_UpdatesEntry.encode(
+        { key: key as any, value },
+        writer.uint32(26).fork(),
+      ).join();
     });
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): UpdatePlayerStateRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): UpdatePlayerStateRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdatePlayerStateRequest();
     while (reader.pos < end) {
@@ -3702,7 +4723,10 @@ export const UpdatePlayerStateRequest: MessageFns<UpdatePlayerStateRequest> = {
             break;
           }
 
-          const entry3 = UpdatePlayerStateRequest_UpdatesEntry.decode(reader, reader.uint32());
+          const entry3 = UpdatePlayerStateRequest_UpdatesEntry.decode(
+            reader,
+            reader.uint32(),
+          );
           if (entry3.value !== undefined) {
             message.updates[entry3.key] = entry3.value;
           }
@@ -3720,10 +4744,13 @@ export const UpdatePlayerStateRequest: MessageFns<UpdatePlayerStateRequest> = {
   fromJSON(object: any): UpdatePlayerStateRequest {
     return {
       updates: isObject(object.updates)
-        ? Object.entries(object.updates).reduce<{ [key: string]: PlayerState }>((acc, [key, value]) => {
-          acc[key] = PlayerState.fromJSON(value);
-          return acc;
-        }, {})
+        ? Object.entries(object.updates).reduce<{ [key: string]: PlayerState }>(
+            (acc, [key, value]) => {
+              acc[key] = PlayerState.fromJSON(value);
+              return acc;
+            },
+            {},
+          )
         : {},
     };
   },
@@ -3742,20 +4769,23 @@ export const UpdatePlayerStateRequest: MessageFns<UpdatePlayerStateRequest> = {
     return obj;
   },
 
-  create(base?: DeepPartial<UpdatePlayerStateRequest>): UpdatePlayerStateRequest {
+  create(
+    base?: DeepPartial<UpdatePlayerStateRequest>,
+  ): UpdatePlayerStateRequest {
     return UpdatePlayerStateRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<UpdatePlayerStateRequest>): UpdatePlayerStateRequest {
+  fromPartial(
+    object: DeepPartial<UpdatePlayerStateRequest>,
+  ): UpdatePlayerStateRequest {
     const message = createBaseUpdatePlayerStateRequest();
-    message.updates = Object.entries(object.updates ?? {}).reduce<{ [key: string]: PlayerState }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = PlayerState.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
+    message.updates = Object.entries(object.updates ?? {}).reduce<{
+      [key: string]: PlayerState;
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = PlayerState.fromPartial(value);
+      }
+      return acc;
+    }, {});
     return message;
   },
 };
@@ -3764,86 +4794,104 @@ function createBaseUpdatePlayerStateRequest_UpdatesEntry(): UpdatePlayerStateReq
   return { key: "", value: undefined };
 }
 
-export const UpdatePlayerStateRequest_UpdatesEntry: MessageFns<UpdatePlayerStateRequest_UpdatesEntry> = {
-  encode(message: UpdatePlayerStateRequest_UpdatesEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-    if (message.value !== undefined) {
-      PlayerState.encode(message.value, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): UpdatePlayerStateRequest_UpdatesEntry {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdatePlayerStateRequest_UpdatesEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.key = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = PlayerState.decode(reader, reader.uint32());
-          continue;
-        }
+export const UpdatePlayerStateRequest_UpdatesEntry: MessageFns<UpdatePlayerStateRequest_UpdatesEntry> =
+  {
+    encode(
+      message: UpdatePlayerStateRequest_UpdatesEntry,
+      writer: BinaryWriter = new BinaryWriter(),
+    ): BinaryWriter {
+      if (message.key !== "") {
+        writer.uint32(10).string(message.key);
       }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
+      if (message.value !== undefined) {
+        PlayerState.encode(message.value, writer.uint32(18).fork()).join();
       }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
+      return writer;
+    },
 
-  fromJSON(object: any): UpdatePlayerStateRequest_UpdatesEntry {
-    return {
-      key: isSet(object.key) ? globalThis.String(object.key) : "",
-      value: isSet(object.value) ? PlayerState.fromJSON(object.value) : undefined,
-    };
-  },
+    decode(
+      input: BinaryReader | Uint8Array,
+      length?: number,
+    ): UpdatePlayerStateRequest_UpdatesEntry {
+      const reader =
+        input instanceof BinaryReader ? input : new BinaryReader(input);
+      let end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseUpdatePlayerStateRequest_UpdatesEntry();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
 
-  toJSON(message: UpdatePlayerStateRequest_UpdatesEntry): unknown {
-    const obj: any = {};
-    if (message.key !== "") {
-      obj.key = message.key;
-    }
-    if (message.value !== undefined) {
-      obj.value = PlayerState.toJSON(message.value);
-    }
-    return obj;
-  },
+            message.key = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
 
-  create(base?: DeepPartial<UpdatePlayerStateRequest_UpdatesEntry>): UpdatePlayerStateRequest_UpdatesEntry {
-    return UpdatePlayerStateRequest_UpdatesEntry.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<UpdatePlayerStateRequest_UpdatesEntry>): UpdatePlayerStateRequest_UpdatesEntry {
-    const message = createBaseUpdatePlayerStateRequest_UpdatesEntry();
-    message.key = object.key ?? "";
-    message.value = (object.value !== undefined && object.value !== null)
-      ? PlayerState.fromPartial(object.value)
-      : undefined;
-    return message;
-  },
-};
+            message.value = PlayerState.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    },
+
+    fromJSON(object: any): UpdatePlayerStateRequest_UpdatesEntry {
+      return {
+        key: isSet(object.key) ? globalThis.String(object.key) : "",
+        value: isSet(object.value)
+          ? PlayerState.fromJSON(object.value)
+          : undefined,
+      };
+    },
+
+    toJSON(message: UpdatePlayerStateRequest_UpdatesEntry): unknown {
+      const obj: any = {};
+      if (message.key !== "") {
+        obj.key = message.key;
+      }
+      if (message.value !== undefined) {
+        obj.value = PlayerState.toJSON(message.value);
+      }
+      return obj;
+    },
+
+    create(
+      base?: DeepPartial<UpdatePlayerStateRequest_UpdatesEntry>,
+    ): UpdatePlayerStateRequest_UpdatesEntry {
+      return UpdatePlayerStateRequest_UpdatesEntry.fromPartial(base ?? {});
+    },
+    fromPartial(
+      object: DeepPartial<UpdatePlayerStateRequest_UpdatesEntry>,
+    ): UpdatePlayerStateRequest_UpdatesEntry {
+      const message = createBaseUpdatePlayerStateRequest_UpdatesEntry();
+      message.key = object.key ?? "";
+      message.value =
+        object.value !== undefined && object.value !== null
+          ? PlayerState.fromPartial(object.value)
+          : undefined;
+      return message;
+    },
+  };
 
 function createBaseSendMessageRequest(): SendMessageRequest {
   return { targetPlayer: "", message: "" };
 }
 
 export const SendMessageRequest: MessageFns<SendMessageRequest> = {
-  encode(message: SendMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: SendMessageRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.targetPlayer !== "") {
       writer.uint32(10).string(message.targetPlayer);
     }
@@ -3853,8 +4901,12 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): SendMessageRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): SendMessageRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSendMessageRequest();
     while (reader.pos < end) {
@@ -3887,7 +4939,9 @@ export const SendMessageRequest: MessageFns<SendMessageRequest> = {
 
   fromJSON(object: any): SendMessageRequest {
     return {
-      targetPlayer: isSet(object.targetPlayer) ? globalThis.String(object.targetPlayer) : "",
+      targetPlayer: isSet(object.targetPlayer)
+        ? globalThis.String(object.targetPlayer)
+        : "",
       message: isSet(object.message) ? globalThis.String(object.message) : "",
     };
   },
@@ -3919,7 +4973,10 @@ function createBaseSetGameStageRequest(): SetGameStageRequest {
 }
 
 export const SetGameStageRequest: MessageFns<SetGameStageRequest> = {
-  encode(message: SetGameStageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: SetGameStageRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.roomCode !== "") {
       writer.uint32(10).string(message.roomCode);
     }
@@ -3932,8 +4989,12 @@ export const SetGameStageRequest: MessageFns<SetGameStageRequest> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): SetGameStageRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): SetGameStageRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSetGameStageRequest();
     while (reader.pos < end) {
@@ -3974,8 +5035,12 @@ export const SetGameStageRequest: MessageFns<SetGameStageRequest> = {
 
   fromJSON(object: any): SetGameStageRequest {
     return {
-      roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
-      hostToken: isSet(object.hostToken) ? globalThis.String(object.hostToken) : "",
+      roomCode: isSet(object.roomCode)
+        ? globalThis.String(object.roomCode)
+        : "",
+      hostToken: isSet(object.hostToken)
+        ? globalThis.String(object.hostToken)
+        : "",
       stage: isSet(object.stage) ? gameStageFromJSON(object.stage) : 0,
     };
   },
@@ -4011,7 +5076,10 @@ function createBaseSendPlayerInputRequest(): SendPlayerInputRequest {
 }
 
 export const SendPlayerInputRequest: MessageFns<SendPlayerInputRequest> = {
-  encode(message: SendPlayerInputRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: SendPlayerInputRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.roomCode !== "") {
       writer.uint32(10).string(message.roomCode);
     }
@@ -4024,8 +5092,12 @@ export const SendPlayerInputRequest: MessageFns<SendPlayerInputRequest> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): SendPlayerInputRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number,
+  ): SendPlayerInputRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSendPlayerInputRequest();
     while (reader.pos < end) {
@@ -4066,9 +5138,15 @@ export const SendPlayerInputRequest: MessageFns<SendPlayerInputRequest> = {
 
   fromJSON(object: any): SendPlayerInputRequest {
     return {
-      roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
-      playerToken: isSet(object.playerToken) ? globalThis.String(object.playerToken) : "",
-      input: isSet(object.input) ? PlayerInputPayload.fromJSON(object.input) : undefined,
+      roomCode: isSet(object.roomCode)
+        ? globalThis.String(object.roomCode)
+        : "",
+      playerToken: isSet(object.playerToken)
+        ? globalThis.String(object.playerToken)
+        : "",
+      input: isSet(object.input)
+        ? PlayerInputPayload.fromJSON(object.input)
+        : undefined,
     };
   },
 
@@ -4089,13 +5167,16 @@ export const SendPlayerInputRequest: MessageFns<SendPlayerInputRequest> = {
   create(base?: DeepPartial<SendPlayerInputRequest>): SendPlayerInputRequest {
     return SendPlayerInputRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<SendPlayerInputRequest>): SendPlayerInputRequest {
+  fromPartial(
+    object: DeepPartial<SendPlayerInputRequest>,
+  ): SendPlayerInputRequest {
     const message = createBaseSendPlayerInputRequest();
     message.roomCode = object.roomCode ?? "";
     message.playerToken = object.playerToken ?? "";
-    message.input = (object.input !== undefined && object.input !== null)
-      ? PlayerInputPayload.fromPartial(object.input)
-      : undefined;
+    message.input =
+      object.input !== undefined && object.input !== null
+        ? PlayerInputPayload.fromPartial(object.input)
+        : undefined;
     return message;
   },
 };
@@ -4105,7 +5186,10 @@ function createBaseLeaveRoomRequest(): LeaveRoomRequest {
 }
 
 export const LeaveRoomRequest: MessageFns<LeaveRoomRequest> = {
-  encode(message: LeaveRoomRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: LeaveRoomRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.roomCode !== "") {
       writer.uint32(10).string(message.roomCode);
     }
@@ -4116,7 +5200,8 @@ export const LeaveRoomRequest: MessageFns<LeaveRoomRequest> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): LeaveRoomRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseLeaveRoomRequest();
     while (reader.pos < end) {
@@ -4149,8 +5234,12 @@ export const LeaveRoomRequest: MessageFns<LeaveRoomRequest> = {
 
   fromJSON(object: any): LeaveRoomRequest {
     return {
-      roomCode: isSet(object.roomCode) ? globalThis.String(object.roomCode) : "",
-      playerToken: isSet(object.playerToken) ? globalThis.String(object.playerToken) : "",
+      roomCode: isSet(object.roomCode)
+        ? globalThis.String(object.roomCode)
+        : "",
+      playerToken: isSet(object.playerToken)
+        ? globalThis.String(object.playerToken)
+        : "",
     };
   },
 
@@ -4176,14 +5265,28 @@ export const LeaveRoomRequest: MessageFns<LeaveRoomRequest> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin =
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends { $case: string }
+        ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & {
+            $case: T["$case"];
+          }
+        : T extends {}
+          ? { [K in keyof T]?: DeepPartial<T[K]> }
+          : Partial<T>;
 
 function toTimestamp(date: Date): Timestamp {
   const seconds = Math.trunc(date.getTime() / 1_000);

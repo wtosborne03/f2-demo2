@@ -34,6 +34,13 @@ declare namespace Paths {
             }[];
         }
     }
+    namespace GetGameTime {
+        namespace Responses {
+            export interface $200 {
+                time: number;
+            }
+        }
+    }
     namespace GetShopItems {
         namespace Responses {
             export type $200 = {
@@ -353,6 +360,14 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PostShopCreatePaymentIntent.Responses.$200>
   /**
+   * getGameTime - Get server time
+   */
+  'getGameTime'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetGameTime.Responses.$200>
+  /**
    * postGameStart - Start a new game
    */
   'postGameStart'(
@@ -565,6 +580,16 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PostShopCreatePaymentIntent.Responses.$200>
   }
+  ['/game/time']: {
+    /**
+     * getGameTime - Get server time
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetGameTime.Responses.$200>
+  }
   ['/game/start']: {
     /**
      * postGameStart - Start a new game
@@ -614,6 +639,8 @@ export interface PathsDictionary {
       data?: Paths.PostGameByIdPrompt.RequestBody,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PostGameByIdPrompt.Responses.$200>
+  }
+  ['/game']: {
   }
   ['/api/auth/*']: {
     /**

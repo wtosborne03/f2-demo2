@@ -134,17 +134,12 @@ export function getPlaying() {
 
 /**
  * Get the current time from the server.
- * @returns {Promise<number>} - The current time in milliseconds since the epoch.
+ * @returns The current time in milliseconds since the epoch.
  */
 export async function getTime() {
   try {
-    const response = await gameClient.getTime();
-    if (response?.serverTime) {
-      return response.serverTime.getTime();
-    } else {
-      console.error("Invalid time response from server.");
-      return Date.now();
-    }
+    const response = await (await apiClient)?.getGameTime();
+    return response?.data.time;
   } catch (error) {
     console.error("Failed to get time:", error);
     return Date.now();
