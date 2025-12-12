@@ -55,10 +55,10 @@
       sideBarOpen.set(true);
     }}
     >{#if $session.data?.user}
-      <span class="hidden sm:inline">Account</span>
+      <span class="">Account</span>
       <Icon icon="mdi:account-box" class="ml-0 text-xl"></Icon>
     {:else}
-      <span class="hidden sm:inline">Log In</span>
+      <span class="">Log In</span>
       <Icon icon="uil:signin" class="ml-0 text-2xl"></Icon>
     {/if}
   </button>
@@ -77,16 +77,16 @@
     </figure>
     <!-- / -->
 
-    <div class="space-y-2 w-full">
+    <div class="space-y-1 w-full">
       <label class="label">
-        <span class="flex items-center gap-2 text-lg font-semibold mb-2">
+        <span class="flex items-center gap-2 text-lg font-semibold">
           <Icon icon="mdi:key-variant" class="text-xl text-primary-500"></Icon>
           Room Code
         </span>
         <div class="relative">
           <input
             type="text"
-            class="input text-center text-2xl tracking-widest font-bold bg-surface-700/50 backdrop-blur-sm border-2 border-primary-500/30 focus:border-primary-500 transition-colors shadow-lg"
+            class="input text-center text-2xl h-16 tracking-widest font-bold bg-surface-700/50 backdrop-blur-sm border-2 border-primary-500/30 focus:border-primary-500 transition-colors shadow-lg"
             id="p_code"
             style="text-transform:uppercase"
             name="Room Code"
@@ -97,14 +97,14 @@
         </div>
       </label>
       <label class="label">
-        <span class="flex items-center gap-2 text-lg font-semibold mb-2">
+        <span class="flex items-center gap-2 text-lg font-semibold">
           <Icon icon="mdi:account" class="text-xl text-secondary-500"></Icon>
           Name
         </span>
         <div class="relative">
           <input
             type="text"
-            class="input text-center text-xl bg-surface-700/50 backdrop-blur-sm border-2 border-secondary-500/30 focus:border-secondary-500 transition-colors shadow-lg"
+            class="input text-center h-16 text-xl bg-surface-700/50 backdrop-blur-sm border-2 border-secondary-500/30 focus:border-secondary-500 transition-colors shadow-lg"
             id="p_name"
             maxlength="10"
             name="Name"
@@ -114,18 +114,11 @@
         </div>
       </label>
       <button
-        class="rounded-3xl mt-5 preset-filled-primary-500 px-5 flex flex-row justify-between items-center w-full text-xl py-4 hover:scale-[1.03] hover:bg-linear-to-br from-red-300 to-purple-600 transition-all hover:text-white font-bold"
+        class="rounded-3xl mt-5 preset-filled-secondary-500 px-5  items-center w-full text-xl py-4 hover:scale-[1.03] hover:bg-linear-to-br from-red-300 to-purple-600 transition-all hover:text-white font-bold"
         id="joinButton"
         on:click={joinGame}
       >
-        <Icon
-          icon="streamline-block:other-ui-rocket"
-          class="mr-2 text-3xl opacity-0"
-        ></Icon>
-
         Join Game
-        <Icon icon="streamline-block:other-ui-rocket" class="mr-2 text-3xl"
-        ></Icon>
       </button>
     </div>
   </div>
