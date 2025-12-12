@@ -4,16 +4,14 @@
   import { player_state } from "../stores/player_state";
   import AppBar from "$lib/components/layout/app_bar.svelte";
   import BgTimer from "$lib/components/layout/bg_timer.svelte";
-  import Footer from "$lib/components/layout/footer.svelte";
   import { Dialog, Portal, Toast } from "@skeletonlabs/skeleton-svelte";
   import AuthBox from "$lib/components/SideBar.svelte";
-  import Spinner from "$lib/components/spinner.svelte";
-  import { setupErrorHandling } from "$lib/util/error_handling";
   import { browser } from "$app/environment";
   import { websocketSetup } from "$lib/webSocketService";
   import { toaster } from "$lib/util/toaster";
   import { sideBarOpen } from "../stores/sidebar";
   import { page } from "$app/state";
+  import Modal from "$lib/components/Modal.svelte";
 
   let dialogOpen = false;
   const unsubDialog = sideBarOpen.subscribe((v) => (dialogOpen = v));
@@ -23,7 +21,6 @@
   $: screen = $player_state.screen;
   $: timer_duration = $player_state.timerDuration;
 
-  let loading = false;
   //let cleanupErrorHandling = setupErrorHandling();
 
   onMount(() => {
@@ -90,14 +87,8 @@
 {/if}
 
 <!-- Page Route Content -->
-<div class="grow">
-  {#if loading}
-    <div class="flex justify-center items-center h-full">
-      <Spinner />
-    </div>
-  {:else}
-    <slot />
-  {/if}
-</div>
+<slot />
 
-<Footer />
+<!-- Global modal -->
+<Modal />
+

@@ -1,49 +1,126 @@
 <script lang="ts">
   export let onClick: () => {};
 </script>
-
-<button
-  aria-label="Sign in with Google"
-  class="px-5 py-3 inline-flex items-center rounded-3xl overflow-clip text-md text-[#333] tracking-wider font-semibold border-none outline-none shadow-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-50"
-  on:click={onClick}
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="22px"
-    fill="#fff"
-    class="inline mr-3 scale-200 py-2"
-    viewBox="0 0 512 512"
-  >
-    <path
-      fill="#fbbd00"
-      d="M120 256c0-25.367 6.989-49.13 19.131-69.477v-86.308H52.823C18.568 144.703 0 198.922 0 256s18.568 111.297 52.823 155.785h86.308v-86.308C126.989 305.13 120 281.367 120 256z"
-      data-original="#fbbd00"
-    />
-    <path
-      fill="#0f9d58"
-      d="m256 392-60 60 60 60c57.079 0 111.297-18.568 155.785-52.823v-86.216h-86.216C305.044 385.147 281.181 392 256 392z"
-      data-original="#0f9d58"
-    />
-    <path
-      fill="#31aa52"
-      d="m139.131 325.477-86.308 86.308a260.085 260.085 0 0 0 22.158 25.235C123.333 485.371 187.62 512 256 512V392c-49.624 0-93.117-26.72-116.869-66.523z"
-      data-original="#31aa52"
-    />
-    <path
-      fill="#3c79e6"
-      d="M512 256a258.24 258.24 0 0 0-4.192-46.377l-2.251-12.299H256v120h121.452a135.385 135.385 0 0 1-51.884 55.638l86.216 86.216a260.085 260.085 0 0 0 25.235-22.158C485.371 388.667 512 324.38 512 256z"
-      data-original="#3c79e6"
-    />
-    <path
-      fill="#cf2d48"
-      d="m352.167 159.833 10.606 10.606 84.853-84.852-10.606-10.606C388.668 26.629 324.381 0 256 0l-60 60 60 60c36.326 0 70.479 14.146 96.167 39.833z"
-      data-original="#cf2d48"
-    />
-    <path
-      fill="#eb4132"
-      d="M256 120V0C187.62 0 123.333 26.629 74.98 74.98a259.849 259.849 0 0 0-22.158 25.235l86.308 86.308C162.883 146.72 206.376 120 256 120z"
-      data-original="#eb4132"
-    />
-  </svg>
-  <span class="ml-3 tracking-normal">Continue with Google</span>
+<button class="gsi-material-button h-12" on:click={onClick}>
+  <div class="gsi-material-button-state"></div>
+  <div class="gsi-material-button-content-wrapper">
+    <div class="gsi-material-button-icon">
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+        <path fill="none" d="M0 0h48v48H0z"></path>
+      </svg>
+    </div>
+    <span class="gsi-material-button-contents">Continue with Google</span>
+    <span style="display: none;">Continue with Google</span>
+  </div>
 </button>
+<style>
+  .gsi-material-button {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -webkit-appearance: none;
+  background-color: #f2f2f2;
+  background-image: none;
+  border: none;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #1f1f1f;
+  cursor: pointer;
+  font-family: 'Roboto', arial, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.25px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 12px;
+  position: relative;
+  text-align: center;
+  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
+  transition: background-color .218s, border-color .218s, box-shadow .218s;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: auto;
+  min-width: min-content;
+}
+
+.gsi-material-button .gsi-material-button-icon {
+  height: 20px;
+  margin-right: 10px;
+  min-width: 20px;
+  width: 20px;
+}
+
+.gsi-material-button .gsi-material-button-content-wrapper {
+  -webkit-align-items: center;
+  align-items: center;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  height: 100%;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+}
+
+.gsi-material-button .gsi-material-button-contents {
+  -webkit-flex-grow: 1;
+  flex-grow: 1;
+  font-family: 'Roboto', arial, sans-serif;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
+.gsi-material-button .gsi-material-button-state {
+  -webkit-transition: opacity .218s;
+  transition: opacity .218s;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.gsi-material-button:disabled {
+  cursor: default;
+  background-color: #ffffff61;
+}
+
+.gsi-material-button:disabled .gsi-material-button-state {
+  background-color: #1f1f1f1f;
+}
+
+.gsi-material-button:disabled .gsi-material-button-contents {
+  opacity: 38%;
+}
+
+.gsi-material-button:disabled .gsi-material-button-icon {
+  opacity: 38%;
+}
+
+.gsi-material-button:not(:disabled):active .gsi-material-button-state, 
+.gsi-material-button:not(:disabled):focus .gsi-material-button-state {
+  background-color: #001d35;
+  opacity: 12%;
+}
+
+.gsi-material-button:not(:disabled):hover {
+  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+}
+
+.gsi-material-button:not(:disabled):hover .gsi-material-button-state {
+  background-color: #001d35;
+  opacity: 8%;
+}
+
+</style>

@@ -7,6 +7,8 @@
   import { authClient } from "../stores/authStore";
   import { sideBarOpen } from "../stores/sidebar";
   import { apiClient } from "$lib/backend/axios";
+  import Icon from "@iconify/svelte";
+    import { openModal } from "../stores/modal";
 
   const session = authClient.useSession();
 
@@ -48,54 +50,83 @@
 
 <div class="w-full flex flex-row justify-end items-center">
   <button
-    class="btn preset-filled"
+    class="btn preset-filled shadow-lg py-2 hover:scale-105 transition-transform"
     on:click={() => {
       sideBarOpen.set(true);
     }}
     >{#if $session.data?.user}
-      Account <i class="fa-solid fa-user ml-2"></i>
+      <span class="hidden sm:inline">Account</span>
+      <Icon icon="mdi:account-box" class="ml-0 text-xl"></Icon>
     {:else}
-      Log In <i class="fa-solid fa-right-to-bracket ml-2"></i>
+      <span class="hidden sm:inline">Log In</span>
+      <Icon icon="uil:signin" class="ml-0 text-2xl"></Icon>
     {/if}
   </button>
 </div>
 
-<div class="container h-full mx-auto flex justify-center items-center">
-  <div class="space-y-10 text-center flex flex-col items-center">
+<div class="container h-full mx-auto flex justify-center items-center px-4">
+  <div class="space-y-4 text-center flex flex-col items-center w-full max-w-md">
     <!-- Animated Logo -->
-    <figure class="flex flex-col items-center h-72">
+    <figure class="flex flex-col items-center h-64">
       <section class="img-bg" />
-      <img src={logo} alt="logo" class="object-contain h-full" />
+      <img
+        src={logo}
+        alt="logo"
+        class="object-contain h-full drop-shadow-2xl"
+      />
     </figure>
     <!-- / -->
 
-    <div class="space-y-2">
-      <label class="label"
-        ><span>Room Code</span>
-        <input
-          type="text"
-          class="input"
-          id="p_code"
-          style="text-transform:uppercase"
-          name="Room Code"
-          maxlength="4"
-          bind:value={roomCode}
-        />
+    <div class="space-y-2 w-full">
+      <label class="label">
+        <span class="flex items-center gap-2 text-lg font-semibold mb-2">
+          <Icon icon="mdi:key-variant" class="text-xl text-primary-500"></Icon>
+          Room Code
+        </span>
+        <div class="relative">
+          <input
+            type="text"
+            class="input text-center text-2xl tracking-widest font-bold bg-surface-700/50 backdrop-blur-sm border-2 border-primary-500/30 focus:border-primary-500 transition-colors shadow-lg"
+            id="p_code"
+            style="text-transform:uppercase"
+            name="Room Code"
+            maxlength="4"
+            placeholder="ABCD"
+            bind:value={roomCode}
+          />
+        </div>
       </label>
-      <label class="label"
-        ><span>Name</span>
-        <input
-          type="text"
-          class="input"
-          id="p_name"
-          maxlength="10"
-          name="Name"
-          bind:value={name}
-        />
+      <label class="label">
+        <span class="flex items-center gap-2 text-lg font-semibold mb-2">
+          <Icon icon="mdi:account" class="text-xl text-secondary-500"></Icon>
+          Name
+        </span>
+        <div class="relative">
+          <input
+            type="text"
+            class="input text-center text-xl bg-surface-700/50 backdrop-blur-sm border-2 border-secondary-500/30 focus:border-secondary-500 transition-colors shadow-lg"
+            id="p_name"
+            maxlength="10"
+            name="Name"
+            placeholder="Your Name"
+            bind:value={name}
+          />
+        </div>
       </label>
-      <button class="btn preset-filled" id="joinButton" on:click={joinGame}
-        >Join</button
+      <button
+        class="rounded-3xl mt-5 preset-filled-primary-500 px-5 flex flex-row justify-between items-center w-full text-xl py-4 hover:scale-[1.03] hover:bg-linear-to-br from-red-300 to-purple-600 transition-all hover:text-white font-bold"
+        id="joinButton"
+        on:click={joinGame}
       >
+        <Icon
+          icon="streamline-block:other-ui-rocket"
+          class="mr-2 text-3xl opacity-0"
+        ></Icon>
+
+        Join Game
+        <Icon icon="streamline-block:other-ui-rocket" class="mr-2 text-3xl"
+        ></Icon>
+      </button>
     </div>
   </div>
 </div>

@@ -7,6 +7,7 @@
     import { cubicOut } from "svelte/easing";
     import Spinner from "$lib/components/spinner.svelte";
     import { browser } from "$app/environment";
+    import { getPlaying } from "$lib/gameService";
 
     // Properly typed dynamic imports
     const screens: Record<string, any> = import.meta.glob("../pages/*.svelte");
@@ -38,11 +39,11 @@
 {#key $player_state.screen}
     <div
         id="main-background"
-        class="w-full h-full p-3 overflow-hidden relative"
+        class="p-4"
         out:scale|local={{ duration: 300, easing: cubicOut }}
         in:scale|local={{ delay: 0, duration: 300, easing: cubicOut }}
     >
-        {#if $conn_store == false}
+        {#if $conn_store == false && getPlaying()}
             <div
                 class="fixed w-screen h-screen top-0 left-0 bg-black/50 z-50 flex flex-col justify-center items-center"
             >

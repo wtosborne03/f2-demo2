@@ -5,8 +5,9 @@
   import { toaster } from "$lib/util/toaster";
   import GoogleSignInButton from "./GoogleSignInButton.svelte";
   import { sideBarOpen } from "../../stores/sidebar";
+    import SpotifySignInButton from "./SpotifySignInButton.svelte";
 
-  const { signIn, signUp, signOut, useSession } = authClient;
+  const { signIn, signOut, useSession } = authClient;
   const session = useSession();
 
   const customizeAvatar = async () => {
@@ -45,10 +46,19 @@
       });
     }
   };
+
+  const signInWithSpotify = async () => {
+    toaster.info({
+      title: "Spotify Sign-In",
+      description: "Spotify sign-in is coming soon!",
+    });
+  }
+
   const goShop = async () => {
     await goto("/shop", { replaceState: false });
     sideBarOpen.set(false);
   };
+
 </script>
 
 <div
@@ -65,7 +75,7 @@
         <button
           class="btn preset-filled w-full flex flex-row justify-between"
           on:click={customizeAvatar}
-          >Avatar <Icon icon="pixelarticons:avatar" font-size="2rem" /></button
+          >Avatar <Icon icon="dashicons:admin-customizer" font-size="2rem" /></button
         >
         <button
           class="btn preset-filled w-full flex flex-row justify-between"
@@ -88,8 +98,9 @@
       >
     </div>
   {:else}
-    <div class="px-2">
+  <div class="flex flex-col justify-center items-stretch gap-4 mw-64">
       <GoogleSignInButton onClick={signInWithGoogle} />
-    </div>
+      <SpotifySignInButton onClick={signInWithSpotify} />
+      </div>
   {/if}
 </div>
