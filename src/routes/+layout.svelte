@@ -81,6 +81,7 @@
 </Dialog>
 
 {#if page.url.pathname === "/" && screen != "index"}
+    <div class="h-22"></div>
     <AppBar />
     {#if timer_duration > 0}
         <BgTimer />
@@ -88,6 +89,9 @@
 {/if}
 <!-- Page Route Content -->
 <slot />
+{#if page.url.pathname === "/" && screen != "index"}
+    <div class="h-22"></div>
+{/if}
 
 <!-- Global modal -->
 <Modal />
