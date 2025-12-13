@@ -257,7 +257,7 @@
         const now = Date.now();
         // Limit to ~100 updates per second maximum; your previous used 10ms (~100Hz),
         // but comment said ~20 updates/sec. We'll keep a sane 50ms (20Hz) throttle.
-        if (now - lastSendTime > 10) {
+        if (now - lastSendTime > 7) {
             gameClient.sendPlayerInput({
                 payload: {
                     $case: "shakeProgress", // Ensure this exists in your protobuf/types
