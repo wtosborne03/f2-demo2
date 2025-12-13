@@ -171,6 +171,12 @@ export interface VotePhotoData {
 }
 
 export interface ShakeProgress {
+  alpha: number;
+  beta: number;
+  gamma: number;
+  accX: number;
+  accY: number;
+  accZ: number;
   progress: number;
   motion: boolean;
 }
@@ -2642,7 +2648,16 @@ export const VotePhotoData: MessageFns<VotePhotoData> = {
 };
 
 function createBaseShakeProgress(): ShakeProgress {
-  return { progress: 0, motion: false };
+  return {
+    alpha: 0,
+    beta: 0,
+    gamma: 0,
+    accX: 0,
+    accY: 0,
+    accZ: 0,
+    progress: 0,
+    motion: false,
+  };
 }
 
 export const ShakeProgress: MessageFns<ShakeProgress> = {
@@ -2650,11 +2665,29 @@ export const ShakeProgress: MessageFns<ShakeProgress> = {
     message: ShakeProgress,
     writer: BinaryWriter = new BinaryWriter(),
   ): BinaryWriter {
+    if (message.alpha !== 0) {
+      writer.uint32(9).double(message.alpha);
+    }
+    if (message.beta !== 0) {
+      writer.uint32(17).double(message.beta);
+    }
+    if (message.gamma !== 0) {
+      writer.uint32(25).double(message.gamma);
+    }
+    if (message.accX !== 0) {
+      writer.uint32(33).double(message.accX);
+    }
+    if (message.accY !== 0) {
+      writer.uint32(41).double(message.accY);
+    }
+    if (message.accZ !== 0) {
+      writer.uint32(49).double(message.accZ);
+    }
     if (message.progress !== 0) {
-      writer.uint32(9).double(message.progress);
+      writer.uint32(57).double(message.progress);
     }
     if (message.motion !== false) {
-      writer.uint32(16).bool(message.motion);
+      writer.uint32(64).bool(message.motion);
     }
     return writer;
   },
@@ -2672,11 +2705,59 @@ export const ShakeProgress: MessageFns<ShakeProgress> = {
             break;
           }
 
-          message.progress = reader.double();
+          message.alpha = reader.double();
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 17) {
+            break;
+          }
+
+          message.beta = reader.double();
+          continue;
+        }
+        case 3: {
+          if (tag !== 25) {
+            break;
+          }
+
+          message.gamma = reader.double();
+          continue;
+        }
+        case 4: {
+          if (tag !== 33) {
+            break;
+          }
+
+          message.accX = reader.double();
+          continue;
+        }
+        case 5: {
+          if (tag !== 41) {
+            break;
+          }
+
+          message.accY = reader.double();
+          continue;
+        }
+        case 6: {
+          if (tag !== 49) {
+            break;
+          }
+
+          message.accZ = reader.double();
+          continue;
+        }
+        case 7: {
+          if (tag !== 57) {
+            break;
+          }
+
+          message.progress = reader.double();
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
             break;
           }
 
@@ -2694,6 +2775,12 @@ export const ShakeProgress: MessageFns<ShakeProgress> = {
 
   fromJSON(object: any): ShakeProgress {
     return {
+      alpha: isSet(object.alpha) ? globalThis.Number(object.alpha) : 0,
+      beta: isSet(object.beta) ? globalThis.Number(object.beta) : 0,
+      gamma: isSet(object.gamma) ? globalThis.Number(object.gamma) : 0,
+      accX: isSet(object.accX) ? globalThis.Number(object.accX) : 0,
+      accY: isSet(object.accY) ? globalThis.Number(object.accY) : 0,
+      accZ: isSet(object.accZ) ? globalThis.Number(object.accZ) : 0,
       progress: isSet(object.progress) ? globalThis.Number(object.progress) : 0,
       motion: isSet(object.motion) ? globalThis.Boolean(object.motion) : false,
     };
@@ -2701,6 +2788,24 @@ export const ShakeProgress: MessageFns<ShakeProgress> = {
 
   toJSON(message: ShakeProgress): unknown {
     const obj: any = {};
+    if (message.alpha !== 0) {
+      obj.alpha = message.alpha;
+    }
+    if (message.beta !== 0) {
+      obj.beta = message.beta;
+    }
+    if (message.gamma !== 0) {
+      obj.gamma = message.gamma;
+    }
+    if (message.accX !== 0) {
+      obj.accX = message.accX;
+    }
+    if (message.accY !== 0) {
+      obj.accY = message.accY;
+    }
+    if (message.accZ !== 0) {
+      obj.accZ = message.accZ;
+    }
     if (message.progress !== 0) {
       obj.progress = message.progress;
     }
@@ -2715,6 +2820,12 @@ export const ShakeProgress: MessageFns<ShakeProgress> = {
   },
   fromPartial(object: DeepPartial<ShakeProgress>): ShakeProgress {
     const message = createBaseShakeProgress();
+    message.alpha = object.alpha ?? 0;
+    message.beta = object.beta ?? 0;
+    message.gamma = object.gamma ?? 0;
+    message.accX = object.accX ?? 0;
+    message.accY = object.accY ?? 0;
+    message.accZ = object.accZ ?? 0;
     message.progress = object.progress ?? 0;
     message.motion = object.motion ?? false;
     return message;

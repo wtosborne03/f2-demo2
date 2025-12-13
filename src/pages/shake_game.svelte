@@ -1,14 +1,24 @@
 <script lang="ts">
-    import { sendMessage } from "$lib/webSocketService";
     import { onDestroy, onMount } from "svelte";
     import { draggable } from "@neodrag/svelte";
     import type { DragEventData } from "@neodrag/svelte";
-    import type { PlayerState } from "../types/player_state";
     import { player_state } from "../stores/player_state";
     import { get } from "svelte/store";
     import { gameClient } from "$lib/gameService";
 
     let pos = 0;
+
+    let lastSendTime = 0;
+
+    // Local state to store latest sensor data before sending
+    let sensorData = {
+        alpha: 0,
+        beta: 0,
+        gamma: 0,
+        accX: 0,
+        accY: 0,
+        accZ: 0,
+    };
 
     function checkMotionPermission() {
         return new Promise((resolve, reject) => {
@@ -56,6 +66,7 @@
         checkMotion().then((value) => {
             motion = value;
             if (motion) {
+                window.addEventListener("deviceorientation", handleOrientation);
                 window.addEventListener("devicemotion", handleMotion);
             }
         });
@@ -66,8 +77,14 @@
             payload: {
                 $case: "shakeProgress",
                 shakeProgress: {
+                    alpha: 0,
+                    beta: 0,
+                    gamma: 0,
+                    accX: 0,
+                    accY: 0,
+                    accZ: 0,
                     progress: progress,
-                    motion: motion,
+                    motion: false,
                 },
             },
         });
@@ -96,27 +113,46 @@
         lastDragTime = currentTime; // Update last drag time
     }
 
+    function handleOrientation(event: DeviceOrientationEvent) {
+        // Capture rotation
+        sensorData.alpha = event.alpha || 0;
+        sensorData.beta = event.beta || 0;
+        sensorData.gamma = event.gamma || 0;
+        trySend();
+    }
+
     function handleMotion(event: DeviceMotionEvent) {
-        const acceleration = event.accelerationIncludingGravity;
-        if (acceleration) {
-            const distanceMoved = Math.sqrt(
-                Math.pow(acceleration.x || 0, 2) +
-                    Math.pow(acceleration.y || 0, 2),
-            );
-            const currentTime = Date.now();
-            const timeDifference = currentTime - lastMotionTime;
-            const velocity = distanceMoved / timeDifference;
+        // Capture acceleration (including gravity is usually better for 'tilt' logic,
+        // but 'acceleration' is better for raw movement impulses)
+        const acc = event.acceleration;
+        if (acc) {
+            sensorData.accX = acc.x || 0;
+            sensorData.accY = acc.y || 0;
+            sensorData.accZ = acc.z || 0;
+        }
+        trySend();
+    }
 
-            totalShakingDistance += distanceMoved;
-            pos -= event.acceleration?.y || 0;
-            sendProgress(event.acceleration?.y || 0);
-
-            lastMotionTime = currentTime; // Update last motion time
+    // --- Throttled Sender ---
+    function trySend() {
+        const now = Date.now();
+        // Limit to ~20 updates per second to save bandwidth
+        if (now - lastSendTime > 50) {
+            gameClient.sendPlayerInput({
+                payload: {
+                    $case: "shakeProgress", // Ensure this exists in your protobuf/types
+                    shakeProgress: { ...sensorData, progress: 0, motion: true },
+                },
+            });
+            lastSendTime = now;
         }
     }
 
     onDestroy(() => {
-        window.removeEventListener("devicemotion", handleMotion);
+        if (typeof window !== "undefined") {
+            window.removeEventListener("deviceorientation", handleOrientation);
+            window.removeEventListener("devicemotion", handleMotion);
+        }
     });
 </script>
 
