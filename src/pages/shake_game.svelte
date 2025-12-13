@@ -235,7 +235,7 @@
     function handleOrientation(event: DeviceOrientationEvent) {
         // Capture rotation
         sensorData.alpha = event.alpha ?? 0;
-        sensorData.beta = (event.beta ?? 0) * -1;
+        sensorData.beta = event.beta ?? 0;
         sensorData.gamma = event.gamma ?? 0;
         trySend();
     }
