@@ -12,6 +12,7 @@
   import { sideBarOpen } from "../stores/sidebar";
   import { page } from "$app/state";
   import Modal from "$lib/components/Modal.svelte";
+  import Footer from "$lib/components/layout/footer.svelte";
 
   let dialogOpen = false;
   const unsubDialog = sideBarOpen.subscribe((v) => (dialogOpen = v));
@@ -85,10 +86,8 @@
     <BgTimer />
   {/if}
 {/if}
-
 <!-- Page Route Content -->
 <slot />
 
 <!-- Global modal -->
 <Modal />
-

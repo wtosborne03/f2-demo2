@@ -8,7 +8,7 @@
   import { sideBarOpen } from "../stores/sidebar";
   import { apiClient } from "$lib/backend/axios";
   import Icon from "@iconify/svelte";
-    import { openModal } from "../stores/modal";
+  import { openModal } from "../stores/modal";
 
   const session = authClient.useSession();
 
@@ -48,7 +48,9 @@
   };
 </script>
 
-<div class="w-full flex flex-row justify-end items-center">
+<div
+  class="w-full absolute top-0 right-0 p-4 flex flex-row justify-end items-center"
+>
   <button
     class="btn preset-filled shadow-lg py-2 hover:scale-105 transition-transform"
     on:click={() => {
@@ -64,10 +66,10 @@
   </button>
 </div>
 
-<div class="container h-full mx-auto flex justify-center items-center px-4">
-  <div class="space-y-4 text-center flex flex-col items-center w-full max-w-md">
+<div class="h-full mx-auto flex justify-center items-center px-4">
+  <div class="space-y-2 text-center flex flex-col items-center w-full max-w-md">
     <!-- Animated Logo -->
-    <figure class="flex flex-col items-center h-64">
+    <figure class="flex flex-col items-center h-52">
       <section class="img-bg" />
       <img
         src={logo}
@@ -114,7 +116,7 @@
         </div>
       </label>
       <button
-        class="rounded-3xl mt-5 preset-filled-secondary-500 px-5  items-center w-full text-xl py-4 hover:scale-[1.03] hover:bg-linear-to-br from-red-300 to-purple-600 transition-all hover:text-white font-bold"
+        class="rounded-3xl mt-5 preset-filled-secondary-500 px-5 items-center w-full text-xl py-4 hover:scale-[1.03] hover:bg-linear-to-br from-red-300 to-purple-600 transition-all hover:text-white font-bold"
         id="joinButton"
         on:click={joinGame}
       >

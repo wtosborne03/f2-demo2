@@ -1,1 +1,1 @@
-<footer class="footer footer-center"></footer>
+<footer class="footer footer-center" style="height: 20rem;"></footer>

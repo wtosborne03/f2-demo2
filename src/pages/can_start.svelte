@@ -58,17 +58,17 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="container h-full mx-auto flex flex-col justify-center items-center"
+  class=" h-full mx-auto flex flex-col justify-center items-center"
   on:click={playerEmote}
 >
   <button
-    class="btn rounded-2xl text-white preset-filled-secondary-500 py-3"
+    class="btn rounded-2xl text-white preset-filled-secondary-500 py-2"
     on:click={promptForStart}
     >Start Game <Icon icon="mdi:play" font-size="1.8rem" /></button
   >
 
-  <div class="container max-w-96">
-    <h3 class="mt-8 mb-2 pl-2 text-lg">Settings</h3>
+  <div class=" max-w-96">
+    <h3 class="mt-4 mb-2 pl-2 text-lg">Settings</h3>
     <ul>
       <li
         class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800 bg-opacity-40"
@@ -154,7 +154,7 @@
   {#if $session.data?.user}
     <div class=""></div>
   {:else}
-    <div class="mt-16 opacity-75">
+    <div class="mt-8 opacity-75">
       (
       <span
         class="cursor-pointer text-blue-500 hover:text-blue-600"
