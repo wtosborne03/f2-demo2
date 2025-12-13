@@ -67,6 +67,7 @@ export interface WsClientPacket {
     | { $case: "sendMessage"; sendMessage: SendMessageRequest } //
     /** Player Actions */
     | { $case: "playerInput"; playerInput: SendPlayerInputRequest }
+    | { $case: "ping"; ping: Ping }
     | undefined;
 }
 
@@ -86,6 +87,7 @@ export interface WsServerPacket {
     | { $case: "playerInput"; playerInput: PlayerInput } //
     /** Error handling */
     | { $case: "error"; error: ErrorResponse }
+    | { $case: "pong"; pong: Pong }
     | undefined;
 }
 
@@ -93,6 +95,10 @@ export interface ErrorResponse {
   message: string;
   code: number;
 }
+
+export interface Ping {}
+
+export interface Pong {}
 
 export interface Avatar {
   eyes: number;
@@ -389,6 +395,9 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
           writer.uint32(66).fork(),
         ).join();
         break;
+      case "ping":
+        Ping.encode(message.packet.ping, writer.uint32(74).fork()).join();
+        break;
     }
     return writer;
   },
@@ -492,6 +501,17 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
           };
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.packet = {
+            $case: "ping",
+            ping: Ping.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -549,7 +569,9 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
                             object.playerInput,
                           ),
                         }
-                      : undefined,
+                      : isSet(object.ping)
+                        ? { $case: "ping", ping: Ping.fromJSON(object.ping) }
+                        : undefined,
     };
   },
 
@@ -575,6 +597,8 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
       obj.playerInput = SendPlayerInputRequest.toJSON(
         message.packet.playerInput,
       );
+    } else if (message.packet?.$case === "ping") {
+      obj.ping = Ping.toJSON(message.packet.ping);
     }
     return obj;
   },
@@ -687,6 +711,15 @@ export const WsClientPacket: MessageFns<WsClientPacket> = {
         }
         break;
       }
+      case "ping": {
+        if (object.packet?.ping !== undefined && object.packet?.ping !== null) {
+          message.packet = {
+            $case: "ping",
+            ping: Ping.fromPartial(object.packet.ping),
+          };
+        }
+        break;
+      }
     }
     return message;
   },
@@ -737,6 +770,9 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
           message.packet.error,
           writer.uint32(50).fork(),
         ).join();
+        break;
+      case "pong":
+        Pong.encode(message.packet.pong, writer.uint32(58).fork()).join();
         break;
     }
     return writer;
@@ -822,6 +858,17 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
           };
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.packet = {
+            $case: "pong",
+            pong: Pong.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -869,7 +916,9 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
                       $case: "error",
                       error: ErrorResponse.fromJSON(object.error),
                     }
-                  : undefined,
+                  : isSet(object.pong)
+                    ? { $case: "pong", pong: Pong.fromJSON(object.pong) }
+                    : undefined,
     };
   },
 
@@ -893,6 +942,8 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
       obj.playerInput = PlayerInput.toJSON(message.packet.playerInput);
     } else if (message.packet?.$case === "error") {
       obj.error = ErrorResponse.toJSON(message.packet.error);
+    } else if (message.packet?.$case === "pong") {
+      obj.pong = Pong.toJSON(message.packet.pong);
     }
     return obj;
   },
@@ -981,6 +1032,15 @@ export const WsServerPacket: MessageFns<WsServerPacket> = {
         }
         break;
       }
+      case "pong": {
+        if (object.packet?.pong !== undefined && object.packet?.pong !== null) {
+          message.packet = {
+            $case: "pong",
+            pong: Pong.fromPartial(object.packet.pong),
+          };
+        }
+        break;
+      }
     }
     return message;
   },
@@ -1062,6 +1122,94 @@ export const ErrorResponse: MessageFns<ErrorResponse> = {
     const message = createBaseErrorResponse();
     message.message = object.message ?? "";
     message.code = object.code ?? 0;
+    return message;
+  },
+};
+
+function createBasePing(): Ping {
+  return {};
+}
+
+export const Ping: MessageFns<Ping> = {
+  encode(_: Ping, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Ping {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePing();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Ping {
+    return {};
+  },
+
+  toJSON(_: Ping): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<Ping>): Ping {
+    return Ping.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<Ping>): Ping {
+    const message = createBasePing();
+    return message;
+  },
+};
+
+function createBasePong(): Pong {
+  return {};
+}
+
+export const Pong: MessageFns<Pong> = {
+  encode(_: Pong, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Pong {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePong();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Pong {
+    return {};
+  },
+
+  toJSON(_: Pong): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<Pong>): Pong {
+    return Pong.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<Pong>): Pong {
+    const message = createBasePong();
     return message;
   },
 };
