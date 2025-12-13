@@ -8,6 +8,8 @@
     import Spinner from "$lib/components/spinner.svelte";
     import { browser } from "$app/environment";
     import { getPlaying } from "$lib/gameService";
+    import { page } from "$app/state";
+    $: screen = $player_state.screen;
 
     // Properly typed dynamic imports
     const screens: Record<string, any> = import.meta.glob("../pages/*.svelte");
@@ -53,8 +55,13 @@
                     <div class="text-sm"><Spinner /></div>
                 </div>
             {/if}
-
+            {#if page.url.pathname === "/" && screen != "index"}
+                <div class="h-22"></div>
+            {/if}
             <svelte:component this={Component} />
+            {#if page.url.pathname === "/" && screen != "index"}
+                <div class="h-22"></div>
+            {/if}
         </div>
     </div>
 {/key}
