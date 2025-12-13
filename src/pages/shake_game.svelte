@@ -10,148 +10,31 @@
 
     let pos = 0;
 
-    // Keep a reference to a Generic Sensor instance if created (Android/Chrome)
-    let sensor: any = null;
-    let usingGenericSensor = false;
-
-    // Probe for motion availability by trying Generic Sensor API first, then falling back
-    // to a short devicemotion listener probe. Returns 'granted' | 'not-determined'
     function checkMotionPermission() {
-        return new Promise<"granted" | "not-determined">((resolve) => {
-            const SensorCtor =
-                (window as any).Accelerometer ||
-                (window as any).LinearAccelerationSensor ||
-                (window as any).Gyroscope;
-
-            if (SensorCtor) {
-                try {
-                    // Construct a sensor probe; if this throws or errors, we'll fallback to devicemotion
-                    sensor = new SensorCtor({ frequency: 60 });
-
-                    const onReading = () => {
-                        // We received sensor data -> treat as granted and keep sensor available for real-time use
-                        usingGenericSensor = true;
-                        // Remove probe listeners (we'll reattach proper handlers later)
-                        try {
-                            sensor.removeEventListener &&
-                                sensor.removeEventListener(
-                                    "reading",
-                                    onReading,
-                                );
-                            sensor.removeEventListener &&
-                                sensor.removeEventListener("error", onError);
-                        } catch (e) {}
-                        resolve("granted");
-                    };
-
-                    const onError = (_ev: any) => {
-                        // Cannot access sensor (denied or unavailable); stop and fall back
-                        try {
-                            sensor.removeEventListener &&
-                                sensor.removeEventListener(
-                                    "reading",
-                                    onReading,
-                                );
-                            sensor.removeEventListener &&
-                                sensor.removeEventListener("error", onError);
-                            sensor.stop && sensor.stop();
-                        } catch (e) {}
-                        sensor = null;
-                        resolve("not-determined");
-                    };
-
-                    sensor.addEventListener &&
-                        sensor.addEventListener("reading", onReading);
-                    sensor.addEventListener &&
-                        sensor.addEventListener("error", onError);
-
-                    try {
-                        sensor.start();
-                    } catch (e) {
-                        // start may throw if not allowed; cleanup and fall through to devicemotion
-                        try {
-                            sensor.removeEventListener &&
-                                sensor.removeEventListener(
-                                    "reading",
-                                    onReading,
-                                );
-                            sensor.removeEventListener &&
-                                sensor.removeEventListener("error", onError);
-                            sensor.stop && sensor.stop();
-                        } catch (e) {}
-                        sensor = null;
-                        resolve("not-determined");
-                        return;
-                    }
-
-                    // Timeout: if no reading within 400ms, treat as not-determined and stop probe
-                    setTimeout(() => {
-                        if (!usingGenericSensor) {
-                            try {
-                                sensor.removeEventListener &&
-                                    sensor.removeEventListener(
-                                        "reading",
-                                        onReading,
-                                    );
-                                sensor.removeEventListener &&
-                                    sensor.removeEventListener(
-                                        "error",
-                                        onError,
-                                    );
-                                sensor.stop && sensor.stop();
-                            } catch (e) {}
-                            sensor = null;
-                            resolve("not-determined");
-                        }
-                    }, 400);
-
-                    return; // early return because we handled sensor path
-                } catch (err) {
-                    // fall through to devicemotion probe
-                    sensor = null;
-                }
-            }
-
-            // Fallback: listen briefly for a devicemotion event to infer permission / availability
-            function handleMotionProbe(event: DeviceMotionEvent) {
-                if (
-                    event.acceleration?.z ||
-                    event.accelerationIncludingGravity?.z
-                ) {
-                    window.removeEventListener(
-                        "devicemotion",
-                        handleMotionProbe,
-                    );
+        return new Promise((resolve, reject) => {
+            function handleMotion(event: DeviceMotionEvent) {
+                if (event.acceleration?.z) {
+                    window.removeEventListener("devicemotion", handleMotion);
                     resolve("granted");
                 } else {
-                    // Saw an event but not useful data
-                    window.removeEventListener(
-                        "devicemotion",
-                        handleMotionProbe,
-                    );
                     resolve("not-determined");
                 }
             }
 
-            window.addEventListener("devicemotion", handleMotionProbe);
+            window.addEventListener("devicemotion", handleMotion);
 
             // Set a timeout to handle the case where the event does not fire
             setTimeout(() => {
-                window.removeEventListener("devicemotion", handleMotionProbe);
+                window.removeEventListener("devicemotion", handleMotion);
                 resolve("not-determined");
             }, 400); // Adjust the timeout as needed
         });
     }
 
     async function checkMotion() {
-        // If either DeviceMotionEvent or Generic Sensor API exists, probe
-        if (
-            typeof DeviceMotionEvent !== "undefined" ||
-            typeof (window as any).Accelerometer !== "undefined" ||
-            typeof (window as any).LinearAccelerationSensor !== "undefined" ||
-            typeof (window as any).Gyroscope !== "undefined"
-        ) {
+        if (typeof DeviceMotionEvent !== "undefined") {
             const permissionState = await checkMotionPermission();
+            console.log(permissionState);
             if (permissionState === "granted") {
                 return true;
             } else {
@@ -168,6 +51,15 @@
     let totalShakingDistance = 0;
     let lastDragTime = 0;
     let lastMotionTime = 0;
+
+    onMount(() => {
+        checkMotion().then((value) => {
+            motion = value;
+            if (motion) {
+                window.addEventListener("devicemotion", handleMotion);
+            }
+        });
+    });
 
     const sendProgress = (progress: number) => {
         gameClient.sendPlayerInput({
@@ -204,132 +96,27 @@
         lastDragTime = currentTime; // Update last drag time
     }
 
-    // Unified motion handler that accepts either a DeviceMotionEvent or a synthetic object from Generic Sensor
-    function handleMotion(event: DeviceMotionEvent | any) {
-        // Normalize event to have accelerationIncludingGravity and acceleration fields
-        const accInc = event.accelerationIncludingGravity ||
-            (event as any).acceleration || { x: 0, y: 0, z: 0 };
-        const acc = event.acceleration || accInc || { x: 0, y: 0, z: 0 };
-
-        if (accInc) {
+    function handleMotion(event: DeviceMotionEvent) {
+        const acceleration = event.accelerationIncludingGravity;
+        if (acceleration) {
             const distanceMoved = Math.sqrt(
-                Math.pow(accInc.x || 0, 2) + Math.pow(accInc.y || 0, 2),
+                Math.pow(acceleration.x || 0, 2) +
+                    Math.pow(acceleration.y || 0, 2),
             );
             const currentTime = Date.now();
-            const timeDifference = Math.max(1, currentTime - lastMotionTime);
+            const timeDifference = currentTime - lastMotionTime;
             const velocity = distanceMoved / timeDifference;
 
             totalShakingDistance += distanceMoved;
-            // use acceleration if available, fall back to accelerationIncludingGravity
-            const yVal = acc.y ?? accInc.y ?? 0;
-            pos -= yVal;
-            sendProgress(yVal);
+            pos -= event.acceleration?.y || 0;
+            sendProgress(event.acceleration?.y || 0);
 
             lastMotionTime = currentTime; // Update last motion time
         }
     }
 
-    // Initialize listeners depending on available APIs. Generic Sensor preferred for Android/Chrome.
-    function initMotionListeners() {
-        const SensorCtor =
-            (window as any).Accelerometer ||
-            (window as any).LinearAccelerationSensor ||
-            (window as any).Gyroscope;
-
-        if (SensorCtor) {
-            try {
-                // If we already have a sensor from the probe, re-use it; otherwise create a fresh one.
-                if (!sensor) {
-                    sensor = new SensorCtor({ frequency: 60 });
-                }
-
-                const onReading = () => {
-                    // Construct a DeviceMotionEvent-like object from sensor readings
-                    // Different sensor types may expose different properties; use x,y,z where available
-                    const syntheticEvent = {
-                        acceleration: {
-                            x: sensor.x ?? sensor.acceleration?.x ?? 0,
-                            y: sensor.y ?? sensor.acceleration?.y ?? 0,
-                            z: sensor.z ?? sensor.acceleration?.z ?? 0,
-                        },
-                        accelerationIncludingGravity: {
-                            x: sensor.x ?? sensor.acceleration?.x ?? 0,
-                            y: sensor.y ?? sensor.acceleration?.y ?? 0,
-                            z: sensor.z ?? sensor.acceleration?.z ?? 0,
-                        },
-                    } as DeviceMotionEvent;
-
-                    handleMotion(syntheticEvent);
-                };
-
-                const onError = (_ev: any) => {
-                    // If sensor errors, fall back to devicemotion events
-                    try {
-                        sensor.removeEventListener &&
-                            sensor.removeEventListener("reading", onReading);
-                        sensor.removeEventListener &&
-                            sensor.removeEventListener("error", onError);
-                        sensor.stop && sensor.stop();
-                    } catch (e) {}
-                    sensor = null;
-                    window.addEventListener(
-                        "devicemotion",
-                        handleMotion as any,
-                    );
-                };
-
-                sensor.addEventListener &&
-                    sensor.addEventListener("reading", onReading);
-                sensor.addEventListener &&
-                    sensor.addEventListener("error", onError);
-                sensor.start && sensor.start();
-
-                motion = true;
-                usingGenericSensor = true;
-                return;
-            } catch (err) {
-                // Fall through to devicemotion
-                try {
-                    sensor = null;
-                } catch (e) {}
-            }
-        }
-
-        // Fallback: use devicemotion events
-        window.addEventListener("devicemotion", handleMotion as any);
-        motion = true;
-    }
-
-    onMount(() => {
-        checkMotion().then((value) => {
-            motion = value;
-            if (motion) {
-                // Initialize appropriate listeners (Generic Sensor preferred)
-                initMotionListeners();
-            }
-        });
-    });
-
     onDestroy(() => {
-        try {
-            window.removeEventListener("devicemotion", handleMotion as any);
-        } catch (e) {}
-        try {
-            if (sensor) {
-                // We attached sensor 'reading' with a closure, so try to stop it
-                try {
-                    sensor.removeEventListener &&
-                        sensor.removeEventListener(
-                            "reading",
-                            handleMotion as any,
-                        );
-                } catch (e) {}
-                try {
-                    sensor.stop && sensor.stop();
-                } catch (e) {}
-                sensor = null;
-            }
-        } catch (e) {}
+        window.removeEventListener("devicemotion", handleMotion);
     });
 </script>
 
