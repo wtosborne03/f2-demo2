@@ -7,7 +7,7 @@
     import { gameClient } from "$lib/gameService";
 
     let pos = 0;
-
+    let wakeLock: WakeLockSentinel | null = null;
     let lastSendTime = 0;
 
     // Local state to store latest sensor data before sending
@@ -18,6 +18,30 @@
         accX: 0,
         accY: 0,
         accZ: 0,
+    };
+
+    /**
+     * Requests wake lock for keeping screen on while shaking
+     */
+    const requestWakeLock = async () => {
+        try {
+            wakeLock = await navigator.wakeLock.request("screen");
+            wakeLock.addEventListener("release", () => {
+                console.log("Wake lock released");
+            });
+        } catch (err) {
+            console.error(`Failed to request wake lock: ${err}`);
+        }
+    };
+
+    /**
+     * Releases wake lock when shaking is finished
+     */
+    const releaseWakeLock = async () => {
+        if (wakeLock) {
+            await wakeLock.release();
+            wakeLock = null;
+        }
     };
 
     function checkMotionPermission() {
@@ -70,6 +94,7 @@
                 window.addEventListener("devicemotion", handleMotion);
             }
         });
+        requestWakeLock();
     });
 
     const sendProgress = (progress: number) => {
@@ -152,6 +177,7 @@
         if (typeof window !== "undefined") {
             window.removeEventListener("deviceorientation", handleOrientation);
             window.removeEventListener("devicemotion", handleMotion);
+            releaseWakeLock();
         }
     });
 </script>
