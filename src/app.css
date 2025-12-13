@@ -1,11 +1,10 @@
 @import "tailwindcss";
 
-
-@import '@skeletonlabs/skeleton';
+@import "@skeletonlabs/skeleton";
 /* [!code ++] */
-@import '@skeletonlabs/skeleton-svelte';
+@import "@skeletonlabs/skeleton-svelte";
 /* [!code ++] */
-@import '@skeletonlabs/skeleton/themes/modern';
+@import "@skeletonlabs/skeleton/themes/modern";
 /* [!code ++] */
 
 /* make font size bigger for app */
@@ -18,5 +17,4 @@
 
 html,
 body {
-    height: -webkit-fill-available;
 }

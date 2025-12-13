@@ -21,6 +21,54 @@
     };
 
     /**
+     * Transforms accelerometer data from device coordinates to world coordinates
+     * using the device orientation (alpha, beta, gamma).
+     * This ensures consistent acceleration representation regardless of device rotation.
+     */
+    function transformAcceleration(
+        accX: number,
+        accY: number,
+        accZ: number,
+        alpha: number,
+        beta: number,
+        gamma: number,
+    ): { x: number; y: number; z: number } {
+        // Convert degrees to radians
+        const alphaRad = (alpha * Math.PI) / 180;
+        const betaRad = (beta * Math.PI) / 180;
+        const gammaRad = (gamma * Math.PI) / 180;
+
+        // Pre-calculate trigonometric values
+        const cosAlpha = Math.cos(alphaRad);
+        const sinAlpha = Math.sin(alphaRad);
+        const cosBeta = Math.cos(betaRad);
+        const sinBeta = Math.sin(betaRad);
+        const cosGamma = Math.cos(gammaRad);
+        const sinGamma = Math.sin(gammaRad);
+
+        // Build rotation matrix based on Z-X'-Y'' intrinsic rotation (standard for mobile devices)
+        // This follows the W3C DeviceOrientation Event Specification
+        const r11 = cosAlpha * cosGamma - sinAlpha * sinBeta * sinGamma;
+        const r12 = -cosAlpha * sinGamma - sinAlpha * sinBeta * cosGamma;
+        const r13 = -sinAlpha * cosBeta;
+
+        const r21 = cosBeta * sinGamma;
+        const r22 = cosBeta * cosGamma;
+        const r23 = -sinBeta;
+
+        const r31 = sinAlpha * cosGamma + cosAlpha * sinBeta * sinGamma;
+        const r32 = -sinAlpha * sinGamma + cosAlpha * sinBeta * cosGamma;
+        const r33 = cosAlpha * cosBeta;
+
+        // Apply rotation matrix to acceleration vector
+        const worldX = r11 * accX + r12 * accY + r13 * accZ;
+        const worldY = r21 * accX + r22 * accY + r23 * accZ;
+        const worldZ = r31 * accX + r32 * accY + r33 * accZ;
+
+        return { x: worldX, y: worldY, z: worldZ };
+    }
+
+    /**
      * Requests wake lock for keeping screen on while shaking
      */
     const requestWakeLock = async () => {
@@ -244,9 +292,23 @@
         // Prefer raw acceleration; fall back to accelerationIncludingGravity if needed
         const acc = event.acceleration ?? event.accelerationIncludingGravity;
         if (acc) {
-            sensorData.accX = acc.x ?? 0;
-            sensorData.accY = acc.y ?? 0;
-            sensorData.accZ = acc.z ?? 0;
+            const rawX = acc.x ?? 0;
+            const rawY = acc.y ?? 0;
+            const rawZ = acc.z ?? 0;
+
+            // Transform acceleration from device coordinates to world coordinates
+            const worldAcc = transformAcceleration(
+                rawX,
+                rawY,
+                rawZ,
+                sensorData.alpha,
+                sensorData.beta,
+                sensorData.gamma,
+            );
+
+            sensorData.accX = worldAcc.x;
+            sensorData.accY = worldAcc.y;
+            sensorData.accZ = worldAcc.z;
         }
         lastMotionTime = Date.now();
         trySend();
