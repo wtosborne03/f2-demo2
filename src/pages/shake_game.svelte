@@ -137,7 +137,7 @@
     function trySend() {
         const now = Date.now();
         // Limit to ~20 updates per second to save bandwidth
-        if (now - lastSendTime > 50) {
+        if (now - lastSendTime > 10) {
             gameClient.sendPlayerInput({
                 payload: {
                     $case: "shakeProgress", // Ensure this exists in your protobuf/types
