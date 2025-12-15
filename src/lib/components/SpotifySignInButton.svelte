@@ -10,7 +10,7 @@
     on:click={onClick}
 >
     <Icon icon="mdi:spotify" font-size="2.75rem" class="mr-2 text-white" />
-    <span class="text-[1.25rem] text-white font-medium"
+    <span class="text-[1.1rem] text-white font-medium"
         >Continue with Spotify</span
     >
 </button>

@@ -48,20 +48,26 @@
     };
 </script>
 
-<div
-    class="w-full absolute top-0 right-0 p-8 flex flex-row justify-end items-center"
->
+<div class="w-full absolute top-0 right-0 p-6 flex flex-row justify-end items-center">
     <button
-        class="btn preset-filled shadow-lg p-3 hover:scale-105 transition-transform"
+        class="flex items-center gap-3 bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-full px-4 py-2 shadow-lg hover:scale-105 transform transition ease-out duration-200 focus:outline-none"
         on:click={() => {
             sideBarOpen.set(true);
         }}
-        >{#if $session.data?.user}
-            <span class="text-xl">Account</span>
-            <Icon icon="mdi:account-box" class="ml-0 text-3xl"></Icon>
+    >
+        {#if $session.data?.user}
+            <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+           
+                    <Icon icon="mdi:account-circle" class="text-2xl" />
+            </div>
+            <div class="flex flex-col items-start leading-tight">
+                <span class="text-sm font-semibold">Account</span>
+            </div>
         {:else}
-            <span class="text-xl">Log In</span>
-            <Icon icon="uil:signin" class="ml-0 text-3xl"></Icon>
+                <Icon icon="uil:signin" class="text-xl" />
+            <div class="flex flex-col items-start leading-tight">
+                <span class="text-sm font-semibold">Log In</span>
+            </div>
         {/if}
     </button>
 </div>
