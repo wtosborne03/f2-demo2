@@ -49,19 +49,19 @@
 </script>
 
 <div
-    class="w-full absolute top-0 right-0 p-4 flex flex-row justify-end items-center"
+    class="w-full absolute top-0 right-0 p-8 flex flex-row justify-end items-center"
 >
     <button
-        class="btn preset-filled shadow-lg py-2 hover:scale-105 transition-transform"
+        class="btn preset-filled shadow-lg p-3 hover:scale-105 transition-transform"
         on:click={() => {
             sideBarOpen.set(true);
         }}
         >{#if $session.data?.user}
-            <span class="">Account</span>
-            <Icon icon="mdi:account-box" class="ml-0 text-xl"></Icon>
+            <span class="text-xl">Account</span>
+            <Icon icon="mdi:account-box" class="ml-0 text-3xl"></Icon>
         {:else}
-            <span class="">Log In</span>
-            <Icon icon="uil:signin" class="ml-0 text-2xl"></Icon>
+            <span class="text-xl">Log In</span>
+            <Icon icon="uil:signin" class="ml-0 text-3xl"></Icon>
         {/if}
     </button>
 </div>

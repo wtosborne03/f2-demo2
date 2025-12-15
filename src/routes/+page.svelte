@@ -41,7 +41,7 @@
 {#key $player_state.screen}
     <div
         id="main-background"
-        class="p-4 flex flex-col max-h-lvh h-lvh min-h-lvh overflow-hidden"
+        class="flex flex-col p-4 grow flex-1 overflow-hidden"
         out:scale|local={{ duration: 300, easing: cubicOut }}
         in:scale|local={{ delay: 0, duration: 300, easing: cubicOut }}
     >
@@ -56,11 +56,11 @@
                 </div>
             {/if}
             {#if page.url.pathname === "/" && screen != "index"}
-                <div class="h-22"></div>
+                <div class="h-22 bg-red-500"></div>
             {/if}
             <svelte:component this={Component} />
             {#if page.url.pathname === "/" && screen != "index"}
-                <div class="h-22"></div>
+                <div class="h-22 bg-amber-300"></div>
             {/if}
         </div>
     </div>

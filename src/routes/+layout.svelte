@@ -68,11 +68,11 @@
 >
     <Portal>
         <Dialog.Backdrop
-            class="fixed inset-0 z-50 bg-surface-50-950/50 transition transition-discrete opacity-0 starting:data-[state=open]:opacity-0 data-[state=open]:opacity-100 starting:data-[state=closed]:opacity-100 data-[state=closed]:opacity-0"
+            class="fixed inset-0 z-50 bg-surface-50-950/50 transition backdrop-blur-xs transition-discrete opacity-0 starting:data-[state=open]:opacity-0 data-[state=open]:opacity-100 starting:data-[state=closed]:opacity-100 data-[state=closed]:opacity-0"
         />
-        <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start">
+        <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start py-4 pl-2">
             <Dialog.Content
-                class="h-svh card bg-surface-100-900 w-2/3 md:w-md space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
+                class="h-[calc(100dvh - 20rem)] card rounded-3xl bg-surface-100-900 w-2/3 md:w-md space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
             >
                 <AuthBox />
             </Dialog.Content>
