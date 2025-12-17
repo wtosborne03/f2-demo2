@@ -14,7 +14,7 @@
         font-size="2.75rem"
         class="mr-2 text-white"
     />
-    <span class="text-[1.5rem] text-black font-medium"
+    <span class="text-[1.1rem] text-black font-medium"
         >Continue with Google</span
     >
 </button>
