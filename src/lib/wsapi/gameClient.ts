@@ -293,6 +293,7 @@ export class GameClient {
             }
             break;
           case "error":
+            console.timeEnd("joinRoom");
             this.emit("error", msg.packet.error);
             break;
         }
@@ -377,6 +378,7 @@ export class GameClient {
     this.send({
       packet: { $case: "joinRoom", joinRoom: { roomCode, playerName } },
     });
+    console.time("joinRoom");
   }
 
   leaveRoom(roomCode: string, playerToken?: string) {
