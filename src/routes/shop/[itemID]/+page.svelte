@@ -80,7 +80,7 @@
 </script>
 
 <div
-  class={`min-h-screen  text-white`}
+  class={`h-screen overflow-y-auto text-white`}
   style={`background: linear-gradient(30deg, ${getSecondaryHue(item?.id)}, transparent);`}
 >
   <!-- Header -->
