@@ -41,7 +41,7 @@
 {#key $player_state.screen}
     <div
         id="main-background"
-        class="p-4 flex flex-col max-h-lvh h-lvh min-h-lvh overflow-hidden"
+        class="p-4 flex flex-col max-h-lvh h-lvh min-h-lvh"
         out:scale|local={{ duration: 300, easing: cubicOut }}
         in:scale|local={{ delay: 0, duration: 300, easing: cubicOut }}
     >

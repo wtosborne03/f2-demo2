@@ -150,6 +150,8 @@ export interface PlayerInputPayload {
     | { $case: "photoReady"; photoReady: PhotoReady }
     | { $case: "confirm"; confirm: Confirm }
     | { $case: "shakeProgress"; shakeProgress: ShakeProgress }
+    | { $case: "sketchProfile"; sketchProfile: SketchProfile }
+    | { $case: "multiVote"; multiVote: MultiVote }
     | undefined;
 }
 
@@ -220,6 +222,18 @@ export interface VoteData {
 
 export interface PlayerVoteData {
   answer: string;
+}
+
+export interface SketchProfile {
+  name: string;
+  age: number;
+  job: string;
+  description: string;
+  sketch: string;
+}
+
+export interface MultiVote {
+  answers: string[];
 }
 
 export interface Settings {
@@ -1741,6 +1755,18 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
           writer.uint32(162).fork(),
         ).join();
         break;
+      case "sketchProfile":
+        SketchProfile.encode(
+          message.payload.sketchProfile,
+          writer.uint32(170).fork(),
+        ).join();
+        break;
+      case "multiVote":
+        MultiVote.encode(
+          message.payload.multiVote,
+          writer.uint32(178).fork(),
+        ).join();
+        break;
     }
     return writer;
   },
@@ -1976,6 +2002,28 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
           };
           continue;
         }
+        case 21: {
+          if (tag !== 170) {
+            break;
+          }
+
+          message.payload = {
+            $case: "sketchProfile",
+            sketchProfile: SketchProfile.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
+        case 22: {
+          if (tag !== 178) {
+            break;
+          }
+
+          message.payload = {
+            $case: "multiVote",
+            multiVote: MultiVote.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2118,7 +2166,23 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
                                                       object.shakeProgress,
                                                     ),
                                                 }
-                                              : undefined,
+                                              : isSet(object.sketchProfile)
+                                                ? {
+                                                    $case: "sketchProfile",
+                                                    sketchProfile:
+                                                      SketchProfile.fromJSON(
+                                                        object.sketchProfile,
+                                                      ),
+                                                  }
+                                                : isSet(object.multiVote)
+                                                  ? {
+                                                      $case: "multiVote",
+                                                      multiVote:
+                                                        MultiVote.fromJSON(
+                                                          object.multiVote,
+                                                        ),
+                                                    }
+                                                  : undefined,
     };
   },
 
@@ -2178,6 +2242,10 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
       obj.confirm = Confirm.toJSON(message.payload.confirm);
     } else if (message.payload?.$case === "shakeProgress") {
       obj.shakeProgress = ShakeProgress.toJSON(message.payload.shakeProgress);
+    } else if (message.payload?.$case === "sketchProfile") {
+      obj.sketchProfile = SketchProfile.toJSON(message.payload.sketchProfile);
+    } else if (message.payload?.$case === "multiVote") {
+      obj.multiVote = MultiVote.toJSON(message.payload.multiVote);
     }
     return obj;
   },
@@ -2442,6 +2510,32 @@ export const PlayerInputPayload: MessageFns<PlayerInputPayload> = {
             shakeProgress: ShakeProgress.fromPartial(
               object.payload.shakeProgress,
             ),
+          };
+        }
+        break;
+      }
+      case "sketchProfile": {
+        if (
+          object.payload?.sketchProfile !== undefined &&
+          object.payload?.sketchProfile !== null
+        ) {
+          message.payload = {
+            $case: "sketchProfile",
+            sketchProfile: SketchProfile.fromPartial(
+              object.payload.sketchProfile,
+            ),
+          };
+        }
+        break;
+      }
+      case "multiVote": {
+        if (
+          object.payload?.multiVote !== undefined &&
+          object.payload?.multiVote !== null
+        ) {
+          message.payload = {
+            $case: "multiVote",
+            multiVote: MultiVote.fromPartial(object.payload.multiVote),
           };
         }
         break;
@@ -3558,6 +3652,202 @@ export const PlayerVoteData: MessageFns<PlayerVoteData> = {
   fromPartial(object: DeepPartial<PlayerVoteData>): PlayerVoteData {
     const message = createBasePlayerVoteData();
     message.answer = object.answer ?? "";
+    return message;
+  },
+};
+
+function createBaseSketchProfile(): SketchProfile {
+  return { name: "", age: 0, job: "", description: "", sketch: "" };
+}
+
+export const SketchProfile: MessageFns<SketchProfile> = {
+  encode(
+    message: SketchProfile,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.age !== 0) {
+      writer.uint32(16).int32(message.age);
+    }
+    if (message.job !== "") {
+      writer.uint32(26).string(message.job);
+    }
+    if (message.description !== "") {
+      writer.uint32(34).string(message.description);
+    }
+    if (message.sketch !== "") {
+      writer.uint32(42).string(message.sketch);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SketchProfile {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSketchProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.age = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.job = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.sketch = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SketchProfile {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      age: isSet(object.age) ? globalThis.Number(object.age) : 0,
+      job: isSet(object.job) ? globalThis.String(object.job) : "",
+      description: isSet(object.description)
+        ? globalThis.String(object.description)
+        : "",
+      sketch: isSet(object.sketch) ? globalThis.String(object.sketch) : "",
+    };
+  },
+
+  toJSON(message: SketchProfile): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.age !== 0) {
+      obj.age = Math.round(message.age);
+    }
+    if (message.job !== "") {
+      obj.job = message.job;
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    if (message.sketch !== "") {
+      obj.sketch = message.sketch;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<SketchProfile>): SketchProfile {
+    return SketchProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<SketchProfile>): SketchProfile {
+    const message = createBaseSketchProfile();
+    message.name = object.name ?? "";
+    message.age = object.age ?? 0;
+    message.job = object.job ?? "";
+    message.description = object.description ?? "";
+    message.sketch = object.sketch ?? "";
+    return message;
+  },
+};
+
+function createBaseMultiVote(): MultiVote {
+  return { answers: [] };
+}
+
+export const MultiVote: MessageFns<MultiVote> = {
+  encode(
+    message: MultiVote,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
+    for (const v of message.answers) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MultiVote {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMultiVote();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.answers.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MultiVote {
+    return {
+      answers: globalThis.Array.isArray(object?.answers)
+        ? object.answers.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: MultiVote): unknown {
+    const obj: any = {};
+    if (message.answers?.length) {
+      obj.answers = message.answers;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MultiVote>): MultiVote {
+    return MultiVote.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MultiVote>): MultiVote {
+    const message = createBaseMultiVote();
+    message.answers = object.answers?.map((e) => e) || [];
     return message;
   },
 };
