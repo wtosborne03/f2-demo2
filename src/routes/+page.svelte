@@ -35,6 +35,8 @@
         }
     }
 
+
+
     $: ($player_state.screen, loadComponent()); // Auto-update when screen changes
 </script>
 
@@ -45,7 +47,7 @@
         out:scale|local={{ duration: 300, easing: cubicOut }}
         in:scale|local={{ delay: 0, duration: 300, easing: cubicOut }}
     >
-        <div class="flex flex-1 flex-col justify-center items-center">
+        <div class={`flex flex-1 flex-col justify-center items-center ${page.url.pathname === "/" && screen != "index" ? "pt-22 min-h-[calc(100vh-5.5rem)]" : ""}`}>
             {#if $conn_store == false && getPlaying()}
                 <div
                     class="fixed w-screen stop-0 left-0 bg-black/50 z-50 flex flex-col justify-center items-center"
@@ -55,13 +57,9 @@
                     <div class="text-sm"><Spinner /></div>
                 </div>
             {/if}
-            {#if page.url.pathname === "/" && screen != "index"}
-                <div class="h-22 bg-red-500"></div>
-            {/if}
+          
             <svelte:component this={Component} />
-            {#if page.url.pathname === "/" && screen != "index"}
-                <div class="h-22 bg-amber-300"></div>
-            {/if}
+     
         </div>
     </div>
 {/key}

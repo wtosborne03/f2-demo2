@@ -9,7 +9,7 @@ interface PlayerStateClient extends PlayerState {
 export const player_state = writable<PlayerStateClient>({
     name: "",
     score: 0,
-    screen: "index",
+    screen: "sketch_match",
     pageDataJson: "",
     pageData: {},
     isAdmin: false,
