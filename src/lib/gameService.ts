@@ -15,6 +15,7 @@ export const gameClient = new GameClient({
   role: "PLAYER",
   autoReconnect: true,
   autoRejoin: true,
+  reconnectInterval: 50000,
   pingInterval: 10000,
 });
 gameClient.connect();

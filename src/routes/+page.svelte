@@ -35,8 +35,6 @@
         }
     }
 
-
-
     $: ($player_state.screen, loadComponent()); // Auto-update when screen changes
 </script>
 
@@ -44,10 +42,11 @@
     <div
         id="main-background"
         class="flex flex-col p-4 grow flex-1 overflow-hidden"
-        out:scale|local={{ duration: 300, easing: cubicOut }}
-        in:scale|local={{ delay: 0, duration: 300, easing: cubicOut }}
     >
-        <div class={`flex flex-1 flex-col justify-center items-center ${page.url.pathname === "/" && screen != "index" ? "pt-22 min-h-[calc(100vh-5.5rem)]" : ""}`}>
+        <div
+            in:scale|global={{ duration: 250, easing: cubicOut }}
+            class={`flex flex-1 flex-col justify-center items-center ${page.url.pathname === "/" && screen != "index" ? "pt-22 min-h-[calc(100vh-5.5rem)]" : ""}`}
+        >
             {#if $conn_store == false && getPlaying()}
                 <div
                     class="fixed w-screen stop-0 left-0 bg-black/50 z-50 flex flex-col justify-center items-center"
@@ -57,9 +56,8 @@
                     <div class="text-sm"><Spinner /></div>
                 </div>
             {/if}
-          
+
             <svelte:component this={Component} />
-     
         </div>
     </div>
 {/key}

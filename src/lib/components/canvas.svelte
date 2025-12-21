@@ -6,40 +6,92 @@
     export let square: boolean = false;
 
     let canvas: HTMLCanvasElement;
-    let context: CanvasRenderingContext2D;
+    let context: CanvasRenderingContext2D | null = null;
     let isDrawing: boolean = false;
-    let start: { x: number; y: number };
-    let width: number = 320;
-    let height: number = 480;
+    let start: { x: number; y: number } = { x: 0, y: 0 };
+    // internal buffer size (pixels)
+    let bufferWidth: number = 320;
+    let bufferHeight: number = 480;
     let containerElement: HTMLDivElement;
 
+    /**
+     * Initialize or resize the internal canvas buffer only when the computed
+     * size actually changes. Changing canvas.width / canvas.height clears the
+     * drawing buffer, so avoid doing it unnecessarily. The visible CSS size
+     * is kept responsive (100% width) while the internal buffer is adjusted
+     * only when the container's width changes.
+     */
     const initCanvas = () => {
         if (!canvas || !containerElement) return;
 
-        const container = containerElement.getBoundingClientRect();
-        width = Math.floor(container.width);
-        height = square ? width : Math.floor(width * 1.5);
+        const rect = containerElement.getBoundingClientRect();
+        const newBufferWidth = Math.max(1, Math.floor(rect.width));
+        const newBufferHeight = square
+            ? newBufferWidth
+            : Math.max(1, Math.floor(newBufferWidth * 1.5));
 
-        context = canvas.getContext("2d")!;
+        // If size hasn't changed and we have a context, just update stroke style
+        if (
+            context &&
+            newBufferWidth === bufferWidth &&
+            newBufferHeight === bufferHeight
+        ) {
+            context.strokeStyle = color;
+            return;
+        }
+
+        // Update buffer dimensions only when they change
+        bufferWidth = newBufferWidth;
+        bufferHeight = newBufferHeight;
+
+        // Set internal drawing buffer size (this clears the canvas)
+        canvas.width = bufferWidth;
+        canvas.height = bufferHeight;
+
+        // Ensure the visible element scales to the container
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${square ? rect.width : Math.floor(rect.width * 1.5)}px`;
+
+        context = canvas.getContext("2d");
+        if (!context) return;
+
+        // Set drawing defaults
         context.lineWidth = 6;
-        context.fillStyle = "white";
-        context.fillRect(0, 0, width, height);
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.strokeStyle = color;
+        context.fillStyle = background;
+
+        // Fill background
+        context.fillRect(0, 0, canvas.width, canvas.height);
     };
 
     onMount(() => {
         initCanvas();
-        setTimeout(() => initCanvas(), 360);
+        // Second pass after layout settles (keeps behaviour similar to previous)
+        setTimeout(initCanvas, 360);
     });
 
+    // react to color/background changes
     $: if (context) {
         context.strokeStyle = color;
+        // If you want the "eraser" to use the current background, we respect that in handlers.
     }
 
-    // Convert client coordinates to canvas coordinates accounting for CSS scaling
+    $: if (context && background) {
+        // If background changes and buffer exists, refill the background
+        // (do not clear strokes unless explicitly requested)
+        // We won't automatically clear the user's drawing here; this just sets
+        // the fill style for future clear operations.
+        context.fillStyle = background;
+    }
+
+    // Convert client coordinates to canvas internal coordinates accounting for CSS scaling
     const getCanvasCoordinates = (clientX: number, clientY: number) => {
+        if (!canvas) return { x: 0, y: 0 };
         const rect = canvas.getBoundingClientRect();
-        const scaleX = width / rect.width;
-        const scaleY = height / rect.height;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
 
         return {
             x: (clientX - rect.left) * scaleX,
@@ -47,56 +99,77 @@
         };
     };
 
-    const handleStart = ({ offsetX: x, offsetY: y }: any) => {
+    // Mouse handlers — use client coordinates for accurate mapping even when CSS scales
+    const handlePointerStart = (e: MouseEvent | PointerEvent) => {
+        if (!context || !canvas) return;
+        const coords = getCanvasCoordinates(
+            (e as MouseEvent).clientX,
+            (e as MouseEvent).clientY,
+        );
+
         if (color === background) {
-            context.clearRect(0, 0, width, height);
-            context.fillStyle = "white";
+            // Clear to background color
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = background;
             context.fillRect(0, 0, canvas.width, canvas.height);
-        } else {
-            isDrawing = true;
-            start = { x, y };
+            // If you want the eraser to also start drawing after clearing, you could set isDrawing = true here.
+            isDrawing = false;
+            return;
         }
+
+        isDrawing = true;
+        start = coords;
     };
 
-    const handleEnd = () => {
-        isDrawing = false;
-    };
+    const handlePointerMove = (e: MouseEvent | PointerEvent) => {
+        if (!isDrawing || !context || !canvas) return;
 
-    const handleMove = ({ offsetX: x1, offsetY: y1 }: any) => {
-        if (!isDrawing) return;
+        const coords = getCanvasCoordinates(
+            (e as MouseEvent).clientX,
+            (e as MouseEvent).clientY,
+        );
 
         const { x, y } = start;
         context.lineWidth = 6;
         context.beginPath();
         context.moveTo(x, y);
-        context.lineTo(x1, y1);
+        context.lineTo(coords.x, coords.y);
         context.closePath();
         context.stroke();
 
-        start = { x: x1, y: y1 };
+        start = coords;
     };
 
+    const handlePointerEnd = () => {
+        isDrawing = false;
+    };
+
+    // Touch handlers (convert touch -> client coords)
     const handleTouchStart = (e: TouchEvent) => {
         e.preventDefault();
-        const { clientX, clientY } = e.touches[0];
-        const coords = getCanvasCoordinates(clientX, clientY);
+        if (!context || !canvas) return;
+        const touch = e.touches[0];
+        if (!touch) return;
+        const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
 
         if (color === background) {
-            context.clearRect(0, 0, width, height);
-            context.fillStyle = "white";
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = background;
             context.fillRect(0, 0, canvas.width, canvas.height);
-        } else {
-            isDrawing = true;
-            start = coords;
+            isDrawing = false;
+            return;
         }
+
+        isDrawing = true;
+        start = coords;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
         e.preventDefault();
-        if (!isDrawing) return;
-
-        const { clientX, clientY } = e.touches[0];
-        const coords = getCanvasCoordinates(clientX, clientY);
+        if (!isDrawing || !context || !canvas) return;
+        const touch = e.touches[0];
+        if (!touch) return;
+        const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
 
         const { x, y } = start;
         context.lineWidth = 6;
@@ -113,20 +186,24 @@
 <svelte:window on:resize={initCanvas} />
 
 <div bind:this={containerElement} class="canvas-container">
+    <!--
+    Do NOT bind `width`/`height` attributes on the element. We manage the internal
+    buffer (`canvas.width` / `canvas.height`) imperatively in `initCanvas`.
+    Use a CSS style for background and responsive sizing.
+  -->
     <canvas
         id="draw-canvas"
-        {width}
-        {height}
-        style:background
         bind:this={canvas}
-        on:mousedown={handleStart}
+        style="background: {background}; width: 100%; height: auto;"
+        on:mousedown={handlePointerStart}
+        on:mouseup={handlePointerEnd}
+        on:mouseleave={handlePointerEnd}
+        on:mousemove={handlePointerMove}
         on:touchstart={handleTouchStart}
-        on:mouseup={handleEnd}
-        on:touchend={handleEnd}
-        on:mouseleave={handleEnd}
-        on:mousemove={handleMove}
         on:touchmove={handleTouchMove}
-    />
+        on:touchend={handlePointerEnd}
+        on:touchcancel={handlePointerEnd}
+    ></canvas>
 </div>
 
 <style>
