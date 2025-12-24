@@ -19,7 +19,7 @@
 </script>
 
 <div
-    class="container h-full mx-auto w-full flex flex-col justify-center items-center text-center p-6"
+    class="container h-full overflow-y-auto mx-auto w-full flex flex-col justify-center items-center text-center p-6"
 >
     <div
         class="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-3xl p-8 max-w-2xl w-full border-4 border-purple-500/30 shadow-2xl"

@@ -56,15 +56,16 @@
         }}
     >
         {#if $session.data?.user}
-            <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-           
-                    <Icon icon="mdi:account-circle" class="text-2xl" />
+            <div
+                class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center overflow-hidden"
+            >
+                <Icon icon="mdi:account-circle" class="text-2xl" />
             </div>
             <div class="flex flex-col items-start leading-tight">
                 <span class="text-sm font-semibold">Account</span>
             </div>
         {:else}
-                <Icon icon="uil:signin" class="text-xl" />
+            <Icon icon="uil:signin" class="text-xl" />
             <div class="flex flex-col items-start leading-tight">
                 <span class="text-sm font-semibold">Log In</span>
             </div>
@@ -76,19 +77,14 @@
     <!-- Animated Logo -->
     <figure class="flex flex-col items-center h-52">
         <section class="img-bg" />
-        <img
-            src={logo}
-            alt="logo"
-            class="object-contain h-full drop-shadow-2xl"
-        />
+        <img src={logo} alt="logo" class="object-contain h-full drop-shadow-2xl" />
     </figure>
     <!-- / -->
 
     <div class="space-y-1 w-full">
         <label class="label">
             <span class="flex items-center gap-2 text-lg font-semibold">
-                <Icon icon="mdi:key-variant" class="text-xl text-primary-500"
-                ></Icon>
+                <Icon icon="mdi:key-variant" class="text-xl text-primary-500"></Icon>
                 Room Code
             </span>
             <div class="relative">
@@ -98,6 +94,8 @@
                     id="p_code"
                     style="text-transform:uppercase"
                     name="Room Code"
+                    autocorrect="off"
+                    autocomplete="off"
                     maxlength="4"
                     placeholder="ABCD"
                     bind:value={roomCode}
@@ -106,13 +104,14 @@
         </label>
         <label class="label">
             <span class="flex items-center gap-2 text-lg font-semibold">
-                <Icon icon="mdi:account" class="text-xl text-secondary-500"
-                ></Icon>
+                <Icon icon="mdi:account" class="text-xl text-secondary-500"></Icon>
                 Name
             </span>
             <div class="relative">
                 <input
                     type="text"
+                    autocorrect="off"
+                    autocomplete="off"
                     class="input text-center h-16 text-xl bg-surface-700/50 backdrop-blur-sm border-2 border-secondary-500/30 focus:border-secondary-500 transition-colors shadow-lg"
                     id="p_name"
                     maxlength="10"

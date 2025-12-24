@@ -16,10 +16,6 @@
     <div
         class="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-3xl flex flex-col justify-center items-center p-8 max-w-2xl w-full border-4 border-purple-500/30 shadow-2xl"
     >
-        <div class="text-6xl mb-6">🎭</div>
-        <h3 class="text-4xl font-bold mb-6 text-purple-300 text-center">
-            Performance Results
-        </h3>
         <div
             class="bg-black/40 rounded-2xl w-full flex flex-col items-center justify-center p-6 mb-6 border-2 border-purple-400/50"
         >

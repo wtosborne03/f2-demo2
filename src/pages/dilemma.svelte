@@ -51,47 +51,35 @@
 </svelte:head>
 
 <div
-    class="page-root w-full h-full min-h-screen relative overflow-hidden font-dynapuff"
+    class="page-root w-full h-full relative flex flex-col justify-center items-center overflow-y-auto font-dynapuff"
 >
-    <main
-        class="container mx-auto h-full flex flex-col items-center justify-center px-6 py-3"
-    >
+    <main class="container mx-auto h-fit flex flex-col items-center justify-center px-6 py-3">
         <!-- Prompt Card -->
 
-        <div class="w-full flex flex-col md:flex-row items-stretch gap-6">
+        <div class="w-full flex h-full flex-col md:flex-row items-stretch gap-4">
             <!-- SHARE card -->
             <button
                 role="button"
-                class="choice-card flex-1 relative bg-gradient-to-br from-green-600/20 to-blue-600/10 border-4 border-green-400/40 rounded-2xl p-3 md:p-8 transform-gpu transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+                class="choice-card flex-1 relative bg-gradient-to-br from-green-600/20 to-blue-600/10 border-4 border-green-400/40 rounded-2xl transform-gpu transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
                 on:click={() => sendChoice("keep")}
                 aria-pressed={choice === "keep"}
                 aria-disabled={disabled}
                 class:disabled
             >
-                <div
-                    class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-                >
+                <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                     <div class="inner-glow-left" />
                 </div>
 
-                <div
-                    class="relative z-10 flex flex-col items-center text-center"
-                >
-                    <span
-                        class="flex flex-row justify-center items-center gap-6"
-                    >
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <span class="flex flex-row justify-center items-center gap-6">
                         <div class="icon-bubble animate-wiggle text-yellow-400">
-                            <Icon icon="dinkie-icons:banana" font-size="3rem" />
+                            <Icon icon="dinkie-icons:banana" font-size="2rem" />
                         </div>
-                        <h2
-                            class="text-3xl md:text-4xl font-bold text-green-100 drop-shadow-md"
-                        >
+                        <h2 class="text-xl md:text-2xl font-bold text-green-100 drop-shadow-md">
                             SHARE
                         </h2>
                     </span>
-                    <p
-                        class="mt-3 text-lg md:text-xl text-white/90 leading-relaxed"
-                    >
+                    <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
                         Keep a few bananas and sell them for
                         <span
                             class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
@@ -109,38 +97,23 @@
             <!-- STEAL card -->
             <button
                 role="button"
-                class="choice-card flex-1 relative bg-gradient-to-br from-red-700/20 to-orange-600/10 border-4 border-red-400/40 rounded-2xl p-6 md:p-8 transform-gpu transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+                class="choice-card flex-1 relative bg-gradient-to-br from-red-700/20 to-orange-600/10 border-4 border-red-400/40 rounded-2xl transform-gpu transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
                 on:click={() => sendChoice("steal")}
                 aria-pressed={choice === "steal"}
                 aria-disabled={disabled}
             >
-                <div
-                    class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-                >
+                <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                     <div class="inner-glow-right" />
                 </div>
 
-                <div
-                    class="relative z-10 flex flex-col items-center text-center"
-                >
-                    <span
-                        class="flex flex-row justify-center items-center gap-6"
-                    >
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <span class="flex flex-row justify-center items-center gap-3">
                         <div class="icon-bubble animate-flip">
-                            <Icon
-                                icon="dinkie-icons:dagger-knife"
-                                font-size="3rem"
-                            />
+                            <Icon icon="dinkie-icons:dagger-knife" font-size="2rem" />
                         </div>
-                        <h2
-                            class="text-3xl md:text-4xl font-bold text-red-100 drop-shadow-md"
-                        >
-                            STEAL
-                        </h2>
+                        <h2 class="text-xl md:text-2xl font-bold text-red-100 drop-shadow-md">STEAL</h2>
                     </span>
-                    <p
-                        class="mt-3 text-lg md:text-xl text-white/90 leading-relaxed"
-                    >
+                    <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
                         Steal them all for
                         <span
                             class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
@@ -157,9 +130,7 @@
         </div>
 
         <!-- Warning and hint -->
-        <div
-            class="mt-6 w-full flex flex-col md:flex-row items-center justify-between gap-4"
-        >
+        <div class="mt-6 w-full flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div
                     class="warning-pill bg-yellow-800/60 text-yellow-200 px-4 py-2 rounded-full text-center font-semibold drop-shadow-md"
@@ -167,8 +138,7 @@
                     ⚠️ Warning
                 </div>
                 <p class="text-white/80 max-w-2xl">
-                    If more than one monkey steals, everyone loses — mutually
-                    assured destruction.
+                    If more than one monkey steals, everyone loses — mutually assured destruction.
                 </p>
             </div>
         </div>
@@ -219,31 +189,24 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 1rem;
     }
 
     .choice-card .icon-bubble {
-        width: 88px;
-        height: 88px;
+        width: 60px;
+        height: 60px;
         border-radius: 999px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.06),
-            rgba(255, 255, 255, 0.02)
-        );
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
     }
 
     .inner-glow-left {
         height: 60%;
         width: 60%;
-        background: radial-gradient(
-            circle at top left,
-            rgba(34, 197, 94, 0.25),
-            transparent 60%
-        );
+        background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.25), transparent 60%);
         filter: blur(36px);
         opacity: 0.9;
     }
@@ -251,11 +214,7 @@
     .inner-glow-right {
         height: 60%;
         width: 60%;
-        background: radial-gradient(
-            circle at top right,
-            rgba(239, 68, 68, 0.25),
-            transparent 60%
-        );
+        background: radial-gradient(circle at top right, rgba(239, 68, 68, 0.25), transparent 60%);
         filter: blur(36px);
         opacity: 0.95;
     }
@@ -334,11 +293,10 @@
 
     @media (max-width: 768px) {
         .choice-card {
-            min-height: 260px;
         }
         .icon-bubble {
-            width: 72px;
-            height: 72px;
+            width: 60px;
+            height: 60px;
         }
     }
 </style>
