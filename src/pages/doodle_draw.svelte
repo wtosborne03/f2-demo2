@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import type { DoodleData, matchPerson, PromptData } from "../types/page_data";
-  import { player_state } from "../stores/player_state";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   import Canvas from "../lib/components/canvas.svelte";
   import Palette from "$lib/components/palette.svelte";
@@ -15,15 +14,14 @@
   const paletteColor = color;
 
   let m_data: DoodleData;
-  m_data = get<PlayerState>(player_state).page_data;
+  m_data = get(gameState).page_data;
 
   function submit_prompt() {
     const image = (
       document.getElementById("draw-canvas") as HTMLCanvasElement
     ).toDataURL("image/png");
 
-    sendMessage({
-      type: "game",
+    gameClient.sendPlayerInput("doodle", {
       data: {
         type: "answer",
         data: image,
@@ -46,9 +44,8 @@
         color = detail.color;
       }}
     />
-    <button
-      class="btn preset-filled mb-24 mt-12 px-10"
-      on:click={submit_prompt}>Submit</button
+    <button class="btn preset-filled mb-24 mt-12 px-10" on:click={submit_prompt}
+      >Submit</button
     >
   </form>
 </div>
