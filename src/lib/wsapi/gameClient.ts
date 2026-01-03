@@ -3,6 +3,7 @@ import { writable, get } from 'svelte/store';
 import { OpCode, encode, decode } from './shared/protocol';
 import type { PlayerInput, PlayerState } from './shared/types';
 import { toaster } from '$lib/util/toaster';
+import { dbClient } from '../../stores/apiClient';
 
 const defaultPlayerState: PlayerState = {
     name: '',
@@ -74,12 +75,7 @@ class GameClient {
 
             switch (op) {
                 case OpCode.IDENTITY:
-                    this.playerId = payload.playerId;
-                    this.roomCode = payload.roomCode;
-                    localStorage.setItem("code", this.roomCode!);
-                    localStorage.setItem("name", this.name);
-                    localStorage.setItem('couch_pid', payload.playerId);
-                    localStorage.setItem('couch_room', payload.roomCode);
+                    this.joinedRoom(payload.playerId, payload.roomCode);
                     break;
                 case OpCode.STATE_UPDATE:
                     gameState.set(payload);
@@ -117,6 +113,28 @@ class GameClient {
         };
     }
 
+    private async joinedRoom(playerId: string, roomCode: string) {
+        this.playerId = playerId;
+        this.roomCode = roomCode;
+        localStorage.setItem("code", this.roomCode!);
+        localStorage.setItem("name", this.name);
+        localStorage.setItem('couch_pid', playerId);
+        localStorage.setItem('couch_room', roomCode);
+
+        try {
+            const { data: me } = await get(dbClient)!.getUsersMe()
+            const avatar = {
+                eyes: me.avatar_eyes,
+                mouth: me.avatar_mouth,
+                hair: me.avatar_hair,
+                emote: me.avatar_emote,
+            }
+            this.sendPlayerInput("avatarUpdate", { avatar })
+        } catch (error) {
+            console.error("Failed to get user:", error);
+        }
+    }
+
     private handleGameEnded() {
         this.clearSession();
         this.shouldReconnect = false;
@@ -128,11 +146,13 @@ class GameClient {
     }
 
     async join(room: string, name: string, userId?: string) {
-        if (localStorage.getItem("couch_room") === room) {
-            // try rejoin
-            const rejoined = await this.tryRejoin();
-            if (rejoined) return;
-        }
+
+        if (get(session))
+            if (localStorage.getItem("couch_room") === room) {
+                // try rejoin
+                const rejoined = await this.tryRejoin();
+                if (rejoined) return;
+            }
         // Clear old session if joining new room
         this.clearSession();
         this.name = name;
@@ -207,7 +227,7 @@ class GameClient {
                 this.pongTimeout = setTimeout(() => {
                     console.warn("Connection stale. Reconnecting...");
                     this.ws?.close(); // This triggers onclose -> retry
-                }, 2000);
+                }, 5000);
             }
         }, 5000);
     }

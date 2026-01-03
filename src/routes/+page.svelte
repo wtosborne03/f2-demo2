@@ -8,6 +8,8 @@
   import { browser } from "$app/environment";
   import { page } from "$app/state";
   import { onMount, onDestroy } from "svelte";
+  import { apiClient } from "$lib/backend/axios";
+  import { dbClient } from "../stores/apiClient";
 
   // Toggle this to enable automatic cycling through screens for debugging
   const debug = false;
@@ -43,9 +45,15 @@
   // Debug: automatically cycle through available screens every 10 seconds
   let cycleInterval: ReturnType<typeof setInterval> | null = null;
 
+  const initApi = async () => {
+    const client = await apiClient;
+    dbClient.set(client);
+  };
+
   onMount(() => {
     if (!browser) return;
 
+    initApi();
     gameClient.connect(import.meta.env.VITE_PUBLIC_WS_API_URL);
 
     // if (debug) {

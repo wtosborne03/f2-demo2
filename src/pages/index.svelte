@@ -14,13 +14,8 @@
   const session = authClient.useSession();
 
   let roomCode = (browser && localStorage.getItem("code")) || "";
-  let name = (browser && localStorage.getItem("name")) || "";
-
-  session.subscribe((s) => {
-    if (s.data?.user.name) {
-      name = s.data.user.name;
-    }
-  });
+  $: name =
+    $session.data?.user.name || (browser && localStorage.getItem("name")) || "";
 
   const updateName = async (new_name: string) => {
     try {
