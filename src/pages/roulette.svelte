@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { getName } from "$lib/gameService";
   import type { RouletteData } from "../types/page_data";
   import { Slider } from "@skeletonlabs/skeleton-svelte";
   import { toaster } from "$lib/util/toaster";
@@ -15,6 +14,7 @@
     }
     return array;
   };
+  const gs = get(gameState);
 
   const challenges: Record<string, string> = {
     "Take 3 drinks": "Take 3 drinks",
@@ -39,15 +39,15 @@
     "Let the person on your right text anyone on your phone": "Text 'em",
     "Reveal the first three digits of your Social Security Number":
       "SSN sneak peek",
-    [`Take a drink from ${getName()}'s cup`]: `${getName()}'s cup`,
+    [`Take a drink from ${gs.name}'s cup`]: `${gs.name}'s cup`,
     "Take a drink if you've lost money gambling": "Gamble Regret",
-    [`Give ${getName()} a compliment'`]: `Compliment Me`,
+    [`Give ${gs.name} a compliment'`]: `Compliment Me`,
     "Reveal your phone's daily screentime": "Screen Reveal",
   };
 
   const available_challenges = shuffle(Object.keys(challenges)).slice(0, 5);
 
-  const m_data = get(gameState).page_data;
+  const m_data = gs.page_data;
 
   function placeBet() {
     if (selected_challenge === "") {
