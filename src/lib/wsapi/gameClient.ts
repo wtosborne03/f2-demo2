@@ -147,12 +147,11 @@ class GameClient {
 
     async join(room: string, name: string, userId?: string) {
 
-        if (get(session))
-            if (localStorage.getItem("couch_room") === room) {
-                // try rejoin
-                const rejoined = await this.tryRejoin();
-                if (rejoined) return;
-            }
+        if (localStorage.getItem("couch_room") === room) {
+            // try rejoin
+            const rejoined = await this.tryRejoin();
+            if (rejoined) return;
+        }
         // Clear old session if joining new room
         this.clearSession();
         this.name = name;
