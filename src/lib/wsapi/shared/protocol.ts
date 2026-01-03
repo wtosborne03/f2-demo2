@@ -24,7 +24,8 @@ export enum OpCode {
 
     // Host -> Server
     HOST_ERROR = 30,    // New: Host instructing server to send error to specific player
-    GAME_START = 99
+    GAME_START = 99,
+    GAME_ENDED = 100
 }
 
 // ... encode/decode remain the same

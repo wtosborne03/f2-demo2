@@ -40,7 +40,7 @@
     },
   );
 
-  const TICK_RATE = 1000 / 30;
+  const TICK_RATE = 1000 / 19;
 
   function sendJoystickData() {
     // Check if the joystick data has changed
@@ -48,10 +48,10 @@
       joystickData.x !== previousJoystickData.x ||
       joystickData.y !== previousJoystickData.y
     ) {
-      gameClient.sendPlayerInput("joystickData", {
+      gameClient.sendPlayerInput("jd", {
         x: joystickData.x,
         y: joystickData.y,
-        isPressed: false,
+        p: false,
       });
       // Update the previous joystick data
       previousJoystickData.x = joystickData.x;

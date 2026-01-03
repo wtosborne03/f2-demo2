@@ -101,6 +101,10 @@ class GameClient {
                 case OpCode.TIME_RESPONSE:
                     this.handleTimeResponse(payload); // payload is server timestamp
                     break;
+
+                case OpCode.GAME_ENDED:
+                    this.handleGameEnded();
+                    break;
             }
         };
 
@@ -111,6 +115,16 @@ class GameClient {
                 setTimeout(() => this.connect(url), 1500); // Simple Retry Strategy
             }
         };
+    }
+
+    private handleGameEnded() {
+        this.clearSession();
+        this.shouldReconnect = false;
+        this.ws?.close();
+        gameState.set({
+            ...get(gameState),
+            screen: "room_ended"
+        });
     }
 
     async join(room: string, name: string, userId?: string) {
