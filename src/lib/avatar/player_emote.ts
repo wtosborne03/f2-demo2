@@ -1,4 +1,4 @@
-import { gameClient } from "$lib/gameService";
+import { gameClient } from "$lib/wsapi/gameClient";
 
 // per-container cooldown map to avoid spamming
 const lastEmoteAt = new WeakMap<HTMLElement, number>();
@@ -19,11 +19,8 @@ function playerEmote(event: Event) {
     lastEmoteAt.set(container, now);
 
     // notify server immediately
-    gameClient.sendPlayerInput({
-        payload: {
-            $case: 'emote',
-            emote: {}
-        }
+    gameClient.sendInput({
+        type: 'emote',
     });
 
     // UI feedback: ephemeral animated badge appended to the clicked container

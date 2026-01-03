@@ -1,451 +1,247 @@
-import {
-  WsClientPacket,
-  WsServerPacket,
-  GameStage,
-  type PlayerInputPayload,
-  type CreateRoomResponse,
-  type JoinRoomResponse,
-  type GetServerTimeResponse,
-  type GameEvent,
-  type RoomState,
-  type PlayerState,
-  type ConnectionChange,
-  type ErrorResponse,
-  PlayerInput,
-} from "./game";
+// client/gameClient.ts
+import { writable, get } from 'svelte/store';
+import { OpCode, encode, decode } from './shared/protocol';
+import type { PlayerInput, PlayerState } from './shared/types';
+import { toaster } from '$lib/util/toaster';
 
-type Role = "HOST" | "PLAYER";
-
-/** Map of event names to payload types for GameClient events */
-export interface GameClientEvents {
-  open: void;
-  close: void;
-  raw: unknown; // raw string or parsed JSON
-  createRoomResponse: CreateRoomResponse;
-  joinRoomResponse: JoinRoomResponse;
-  getTimeResponse: GetServerTimeResponse;
-  gameEvent: GameEvent;
-  fullSync: RoomState;
-  playerUpdate: PlayerState;
-  connectionChange: ConnectionChange;
-  playerInput: PlayerInput;
-  error: ErrorResponse | { message: string; err?: any };
-}
-
-type Handler = (payload?: any) => void;
-interface PendingRpc<T> {
-  resolve: (payload: T) => void;
-  reject: (reason?: any) => void;
-  timeoutId?: ReturnType<typeof setTimeout>;
-  filter?: (payload: T) => boolean;
-}
-
-export interface GameClientOptions {
-  url: string;
-  role?: Role;
-  autoReconnect?: boolean;
-  reconnectInterval?: number; // ms
-  autoRejoin?: boolean;
-  rpcTimeoutMs?: number;
-  pingInterval?: number; // ms, set to 0 to disable auto ping
-}
-
-export class GameClient {
-  url: string;
-  role: Role;
-  ws: WebSocket | null = null;
-  handlers = new Map<string, Handler[]>();
-  private pendingRpcs = new Map<string, PendingRpc<any>[]>();
-  autoReconnect: boolean;
-  reconnectInterval: number;
-  rpcTimeoutMs: number;
-  private shouldReconnect = false;
-  autoRejoin: boolean;
-  public lastRoomCode?: string;
-  public lastPlayerToken?: string;
-  public lastPlayerName?: string;
-  public hostToken?: string;
-  pingInterval: number;
-  private pingIntervalId?: ReturnType<typeof setInterval>;
-
-  constructor(opts: GameClientOptions) {
-    this.url = opts.url;
-    this.role = opts.role ?? "PLAYER";
-    this.autoReconnect = opts.autoReconnect ?? true;
-    this.reconnectInterval = opts.reconnectInterval ?? 1500;
-    this.autoRejoin = opts.autoRejoin ?? true;
-    this.rpcTimeoutMs = opts.rpcTimeoutMs ?? 5000;
-    this.pingInterval = opts.pingInterval ?? 30000; // 30 seconds by default
-  }
-
-  on<K extends keyof GameClientEvents>(
-    event: K,
-    cb: (payload?: GameClientEvents[K]) => void,
-  ) {
-    const arr = this.handlers.get(event as string) ?? [];
-    arr.push(cb as Handler);
-    this.handlers.set(event as string, arr);
-  }
-
-  off<K extends keyof GameClientEvents>(
-    event: K,
-    cb?: (payload?: GameClientEvents[K]) => void,
-  ) {
-    if (!cb) {
-      this.handlers.delete(event as string);
-      return;
-    }
-    const arr = this.handlers.get(event as string) ?? [];
-    this.handlers.set(
-      event as string,
-      arr.filter((c) => c !== (cb as Handler)),
-    );
-  }
-
-  private emit<K extends keyof GameClientEvents>(
-    event: K,
-    payload?: GameClientEvents[K],
-  ) {
-    const arr = this.handlers.get(event as string) ?? [];
-    for (const cb of arr) cb(payload);
-    this.resolveRpc(event, payload);
-  }
-
-  private enqueueRpc<K extends keyof GameClientEvents>(
-    event: K,
-    pending: PendingRpc<GameClientEvents[K]>,
-  ) {
-    const key = event as string;
-    const queue = this.pendingRpcs.get(key) ?? [];
-    queue.push(pending as PendingRpc<any>);
-    this.pendingRpcs.set(key, queue);
-  }
-
-  private removePending(key: string, pending: PendingRpc<any>) {
-    const queue = this.pendingRpcs.get(key);
-    if (!queue) return;
-    const idx = queue.indexOf(pending);
-    if (idx === -1) return;
-    queue.splice(idx, 1);
-    if (queue.length === 0) {
-      this.pendingRpcs.delete(key);
-    }
-  }
-
-  private resolveRpc<K extends keyof GameClientEvents>(
-    event: K,
-    payload?: GameClientEvents[K],
-  ) {
-    const key = event as string;
-    const queue = this.pendingRpcs.get(key);
-    if (!queue || !queue.length) return;
-    for (let i = 0; i < queue.length; i++) {
-      const pending = queue[i];
-      const typedPayload = payload as GameClientEvents[K];
-      if (pending.filter && !pending.filter(typedPayload)) continue;
-      queue.splice(i, 1);
-      if (!queue.length) this.pendingRpcs.delete(key);
-      if (pending.timeoutId) clearTimeout(pending.timeoutId);
-      pending.resolve(typedPayload);
-      return;
-    }
-  }
-
-  private rejectAllPending(reason: Error | string) {
-    const error = typeof reason === "string" ? new Error(reason) : reason;
-    for (const [key, queue] of this.pendingRpcs.entries()) {
-      while (queue.length) {
-        const pending = queue.shift();
-        if (!pending) continue;
-        if (pending.timeoutId) clearTimeout(pending.timeoutId);
-        pending.reject(error);
-      }
-      this.pendingRpcs.delete(key);
-    }
-  }
-
-  private rpc<K extends keyof GameClientEvents>(
-    responseEvent: K,
-    send: () => void,
-    options?: {
-      timeoutMs?: number;
-      filter?: (payload: GameClientEvents[K]) => boolean;
+const defaultPlayerState: PlayerState = {
+    name: '',
+    score: 0,
+    screen: 'index',
+    page_data: null,
+    admin: false,
+    drinks: 0,
+    timer_stamp: new Date(),
+    timer_duration: 0,
+    index: -1,
+    color: '',
+    team: '',
+    avatar: {
+        eyes: 0,
+        mouth: 0,
+        hair: 0,
+        emote: 0,
     },
-  ): Promise<GameClientEvents[K]> {
-    return new Promise((resolve, reject) => {
-      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        reject(new Error("Socket not open"));
-        return;
-      }
-
-      const pending: PendingRpc<GameClientEvents[K]> = {
-        resolve,
-        reject,
-        filter: options?.filter,
-      };
-
-      const timeout = options?.timeoutMs ?? this.rpcTimeoutMs;
-      if (timeout > 0) {
-        pending.timeoutId = setTimeout(() => {
-          this.removePending(
-            responseEvent as string,
-            pending as PendingRpc<any>,
-          );
-          reject(new Error(`RPC timeout waiting for ${String(responseEvent)}`));
-        }, timeout);
-      }
-
-      this.enqueueRpc(responseEvent, pending);
-
-      try {
-        send();
-      } catch (err) {
-        this.removePending(responseEvent as string, pending as PendingRpc<any>);
-        if (pending.timeoutId) clearTimeout(pending.timeoutId);
-        reject(err);
-      }
-    });
-  }
-
-  connect() {
-    if (this.ws) return;
-    this.shouldReconnect = this.autoReconnect;
-    this.ws = new WebSocket(this.url);
-    this.ws.binaryType = "arraybuffer";
-    this.ws.onopen = () => {
-      this.emit("open");
-      this.startPingInterval();
-      // If player and we have room/name, rejoin automatically
-      if (
-        this.autoRejoin &&
-        this.role === "PLAYER" &&
-        this.lastRoomCode &&
-        this.lastPlayerName
-      ) {
-        try {
-          // Avoid race if open event handler chain triggers non-open state
-          setTimeout(
-            () => this.joinRoom(this.lastRoomCode!, this.lastPlayerName!),
-            50,
-          );
-        } catch (e) {
-          /* ignore */
-        }
-      }
-    };
-    this.ws.onclose = async () => {
-      this.emit("close");
-      this.stopPingInterval();
-      this.rejectAllPending(new Error("Socket closed"));
-      this.ws = null;
-      if (this.shouldReconnect) {
-        setTimeout(() => this.connect(), this.reconnectInterval);
-      }
-    };
-    this.ws.onmessage = (ev) => {
-      const data = ev.data as ArrayBuffer | string;
-      if (typeof data === "string") {
-        try {
-          const parsed = JSON.parse(data);
-          this.emit("raw", parsed);
-        } catch {
-          this.emit("raw", data);
-        }
-        return;
-      }
-      try {
-        const arr = new Uint8Array(data as ArrayBuffer);
-        const msg = WsServerPacket.decode(arr);
-        if (!msg.packet) return;
-        switch (msg.packet.$case) {
-          case "playerInput":
-            this.emit("playerInput", msg.packet.playerInput);
-            break;
-          case "createRoomResponse":
-            this.hostToken = msg.packet.createRoomResponse?.hostToken;
-            this.lastRoomCode = msg.packet.createRoomResponse?.roomCode;
-            this.emit("createRoomResponse", msg.packet.createRoomResponse);
-            break;
-          case "joinRoomResponse":
-            // store token
-            this.lastPlayerToken = msg.packet.joinRoomResponse?.playerToken;
-            this.emit("joinRoomResponse", msg.packet.joinRoomResponse);
-            break;
-          case "getTimeResponse":
-            this.emit("getTimeResponse", msg.packet.getTimeResponse);
-            break;
-          case "gameEvent":
-            this.emit("gameEvent", msg.packet.gameEvent);
-            // also emit per event
-            if (msg.packet.gameEvent?.event) {
-              const packet = msg.packet.gameEvent.event;
-              switch (packet.$case) {
-                case "fullSync":
-                  this.emit("fullSync", packet.fullSync);
-                  break;
-                case "playerUpdate":
-                  this.emit("playerUpdate", packet.playerUpdate);
-                  break;
-                case "connectionChange":
-                  this.emit("connectionChange", packet.connectionChange);
-                  break;
-              }
-            }
-            break;
-          case "error":
-            console.timeEnd("joinRoom");
-            this.emit("error", msg.packet.error);
-            break;
-        }
-      } catch (err) {
-        this.emit("error", { message: "Failed to decode server packet", err });
-      }
-    };
-  }
-
-  close() {
-    if (!this.ws) return;
-    this.shouldReconnect = false;
-    this.stopPingInterval();
-    this.ws.close();
-    this.ws = null;
-  }
-
-  reconnect() {
-    this.shouldReconnect = true;
-    if (this.ws) {
-      this.ws.close();
-    } else {
-      this.connect();
-    }
-  }
-
-  setPlayerToken(token: string) {
-    this.lastPlayerToken = token;
-  }
-
-  setHostToken(token: string) {
-    this.hostToken = token;
-  }
-
-  sendRawString(payload: string) {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN)
-      throw new Error("Socket not open");
-    this.ws.send(payload);
-  }
-
-  private send(packet: any) {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error("Socket not open");
-    }
-    const bytes = WsClientPacket.encode(packet).finish();
-    this.ws.send(bytes);
-  }
-
-  // Host Methods
-  createRoom() {
-    if (this.role !== "HOST") throw new Error("createRoom requires host role");
-    this.send({ packet: { $case: "createRoom", createRoom: {} } });
-  }
-
-  setStage(stage: GameStage) {
-    this.send({
-      packet: {
-        $case: "setStage",
-        setStage: {
-          roomCode: this.lastRoomCode,
-          hostToken: this.hostToken,
-          stage,
-        },
-      },
-    });
-  }
-
-  updatePlayer(updates: Record<string, Partial<PlayerState> | undefined>) {
-    this.send({ packet: { $case: "updatePlayer", updatePlayer: { updates } } });
-  }
-
-  sendMessageToPlayer(targetPlayer: string, message: string) {
-    this.send({
-      packet: { $case: "sendMessage", sendMessage: { targetPlayer, message } },
-    });
-  }
-
-  // Player Methods
-  joinRoom(roomCode: string, playerName: string) {
-    this.lastRoomCode = roomCode;
-    this.lastPlayerName = playerName;
-    this.send({
-      packet: { $case: "joinRoom", joinRoom: { roomCode, playerName } },
-    });
-    console.time("joinRoom");
-  }
-
-  leaveRoom(roomCode: string, playerToken?: string) {
-    this.send({
-      packet: {
-        $case: "leaveRoom",
-        leaveRoom: {
-          roomCode,
-          playerToken: playerToken ?? this.lastPlayerToken ?? "",
-        },
-      },
-    });
-  }
-
-  sendPlayerInput(input: PlayerInputPayload) {
-    this.send({ packet: { $case: "playerInput", playerInput: { input } } });
-  }
-
-  private startPingInterval() {
-    if (this.pingInterval <= 0) return;
-    if (this.pingIntervalId) return; // Already running
-    this.pingIntervalId = setInterval(() => {
-      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        this.stopPingInterval();
-        return;
-      }
-      try {
-        this.send({ packet: { $case: "ping", ping: {} } });
-      } catch (err) {
-        console.error("Failed to send ping:", err);
-        this.stopPingInterval();
-      }
-    }, this.pingInterval);
-  }
-
-  private stopPingInterval() {
-    if (this.pingIntervalId) {
-      clearInterval(this.pingIntervalId);
-      this.pingIntervalId = undefined;
-    }
-  }
-
-  ping() {
-    return this.getTime();
-  }
-
-  /**
-   * Request the authoritative server time and await the protobuf response.
-   * @param timeoutMs override the default RPC timeout in milliseconds
-   */
-  async getTime(timeoutMs?: number) {
-    console.log("Getting server time");
-    const res = await this.rpc(
-      "getTimeResponse",
-      () => {
-        this.send({
-          packet: {
-            $case: "getTime",
-            getTime: { clientTimestamp: Date.now() },
-          },
-        });
-      },
-      { timeoutMs },
-    );
-    console.log("Received server time:", res);
-    return res;
-  }
 }
 
-export default GameClient;
+export const gameState = writable<PlayerState>(defaultPlayerState); // The screen content
+export const connectionStatus = writable<"DISCONNECTED" | "CONNECTING" | "CONNECTED">("DISCONNECTED");
+export const errorStore = writable<string | null>(null);
+export const serverTimeOffset = writable<number>(0); // Add this to track time difference
+
+const ignoreErrors = [
+    "Game_Lobby"
+]
+
+class GameClient {
+    private ws: WebSocket | null = null;
+    private name: string = "";
+    private playerId: string | null = null; // localStorage.getItem('couch_pid');
+    private roomCode: string | null = null; // localStorage.getItem('couch_room');
+    private shouldReconnect = true;
+    private pingInterval: NodeJS.Timeout | null = null;
+    private pongTimeout: NodeJS.Timeout | null = null;
+    private latency = 0;
+    private _lastTimeRequest = 0;
+    private waiters: Array<{ ops: OpCode[]; resolve: (val: any) => void }> = [];
+
+    connect(url: string) {
+        connectionStatus.set("CONNECTING");
+        this.ws = new WebSocket(url);
+        this.ws.binaryType = 'arraybuffer';
+
+        this.ws.onopen = () => {
+            connectionStatus.set("CONNECTED");
+            this.startHeartbeat(); // Start pinging
+            this.syncTime();
+            // Auto-decide: Join fresh or Reconnect?
+            if (this.playerId && this.roomCode) {
+                this.send(OpCode.RECONNECT, { roomCode: this.roomCode, playerId: this.playerId });
+            }
+        };
+
+        this.ws.onmessage = (event) => {
+            const { op, payload } = decode(event.data);
+
+            // Notify any waiters
+            this.waiters = this.waiters.filter((w) => {
+                if (w.ops.includes(op)) {
+                    w.resolve({ op, payload });
+                    return false;
+                }
+                return true;
+            });
+
+            switch (op) {
+                case OpCode.IDENTITY:
+                    this.playerId = payload.playerId;
+                    this.roomCode = payload.roomCode;
+                    localStorage.setItem("code", this.roomCode!);
+                    localStorage.setItem("name", this.name);
+                    localStorage.setItem('couch_pid', payload.playerId);
+                    localStorage.setItem('couch_room', payload.roomCode);
+                    break;
+                case OpCode.STATE_UPDATE:
+                    gameState.set(payload);
+                    break;
+                case OpCode.ERROR:
+                    errorStore.set(payload);
+                    if (!ignoreErrors.includes(payload)) {
+                        toaster.error({ title: "Error", description: payload });
+                    }
+                    // If error is "Session expired", clear local storage
+                    if (payload === "Session expired" || payload === "Room invalid") {
+                        this.clearSession();
+                    }
+                    break;
+                case OpCode.PONG:
+                    this.handlePong();
+                    break;
+
+                case OpCode.TIME_RESPONSE:
+                    this.handleTimeResponse(payload); // payload is server timestamp
+                    break;
+            }
+        };
+
+        this.ws.onclose = () => {
+            this.stopHeartbeat();
+            connectionStatus.set("DISCONNECTED");
+            if (this.shouldReconnect) {
+                setTimeout(() => this.connect(url), 1500); // Simple Retry Strategy
+            }
+        };
+    }
+
+    async join(room: string, name: string, userId?: string) {
+        if (localStorage.getItem("couch_room") === room) {
+            // try rejoin
+            const rejoined = await this.tryRejoin();
+            if (rejoined) return;
+        }
+        // Clear old session if joining new room
+        this.clearSession();
+        this.name = name;
+        this.send(OpCode.JOIN_ROOM, { roomCode: room, name, userId });
+    }
+
+    public async tryRejoin(): Promise<boolean> {
+        const roomCode = localStorage.getItem('couch_room');
+        const playerId = localStorage.getItem('couch_pid');
+
+        if (!roomCode || !playerId) return false;
+
+        this.send(OpCode.RECONNECT, { roomCode, playerId });
+
+        try {
+            const res = await this.waitForResponse([OpCode.IDENTITY, OpCode.ERROR]);
+            if (res.op === OpCode.ERROR) {
+                console.warn("Rejoin failed:", res.payload);
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error("Rejoin timed out or failed", e);
+            return false;
+        }
+    }
+
+    private waitForResponse(ops: OpCode[], timeout = 5000): Promise<{ op: OpCode; payload: any }> {
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                this.waiters = this.waiters.filter((w) => w !== waiter);
+                reject('Timeout');
+            }, timeout);
+
+            const waiter = {
+                ops,
+                resolve: (val: any) => {
+                    clearTimeout(timer);
+                    resolve(val);
+                },
+            };
+            this.waiters.push(waiter);
+        });
+    }
+
+
+    sendInput(data: PlayerInput) {
+        // High priority, minimal latency
+        this.send(OpCode.INPUT, data);
+    }
+
+    /**
+     * Send Player Input
+     * @param type - type of input action, eg "startGame", "move", "textPrompt"...
+     * @param data - input payload data
+     */
+    sendPlayerInput(type: string, data?: any) {
+        this.send(OpCode.INPUT, {
+            type: type,
+            ...(data)
+        });
+    }
+
+    private startHeartbeat() {
+        this.stopHeartbeat();
+        // Send a ping every 5 seconds
+        this.pingInterval = setInterval(() => {
+            if (this.ws?.readyState === WebSocket.OPEN) {
+                this.send(OpCode.PING, null);
+
+                // If we don't get a PONG in 2 seconds, assume dead and reconnect
+                this.pongTimeout = setTimeout(() => {
+                    console.warn("Connection stale. Reconnecting...");
+                    this.ws?.close(); // This triggers onclose -> retry
+                }, 2000);
+            }
+        }, 5000);
+    }
+
+    public async syncTime() {
+        const start = Date.now();
+        // We use a one-off listener or specific logic, but for simplicity
+        // we assume the next TIME_RESPONSE matches this request.
+        // In production, you might attach a request ID.
+        this.send(OpCode.GET_TIME, null);
+
+        // We store 'start' in a temporary property to calculate latency in handleTimeResponse
+        this._lastTimeRequest = start;
+    }
+
+    private handleTimeResponse(serverTs: number) {
+        const end = Date.now();
+        const rtt = end - (this._lastTimeRequest || end);
+        this.latency = rtt / 2;
+
+        // Offset = ServerTime - LocalTime
+        // Current Server Time ~= LocalTime + Offset
+        const offset = serverTs - end + this.latency;
+        serverTimeOffset.set(offset);
+    }
+
+    private stopHeartbeat() {
+        if (this.pingInterval) clearInterval(this.pingInterval);
+        if (this.pongTimeout) clearTimeout(this.pongTimeout);
+    }
+
+    private handlePong() {
+        // We are alive! Clear the "death timer"
+        if (this.pongTimeout) clearTimeout(this.pongTimeout);
+    }
+
+    private send(op: OpCode, data: any) {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(encode(op, data));
+        }
+    }
+
+    private clearSession() {
+        this.playerId = null;
+        this.roomCode = null;
+        localStorage.removeItem('couch_pid');
+        localStorage.removeItem('couch_room');
+    }
+}
+
+export const gameClient = new GameClient();

@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { player_state } from "../../../stores/player_state";
   import { sideBarOpen } from "../../../stores/sidebar";
   import doubloon from "$lib/assets/icons/doubloon.png";
   import Icon from "@iconify/svelte";
+  import { gameState } from "$lib/wsapi/gameClient";
   import { onMount, onDestroy } from "svelte";
 
   // reactive shortcuts to the store values
-  $: name = $player_state.name;
-  $: admin = $player_state.isAdmin;
-  $: score = $player_state.score;
-  $: team = $player_state.team;
-  $: color = $player_state.color;
+  $: name = $gameState.name;
+  $: admin = $gameState.admin;
+  $: score = $gameState.score;
+  $: team = $gameState.team;
+  $: color = $gameState.color;
 
   // flash state when score increases
   let flash = false;
@@ -19,7 +19,7 @@
 
   onMount(() => {
     // avoid flashing on initial mount
-    prevScore = $player_state.score ?? 0;
+    prevScore = $gameState.score ?? 0;
   });
 
   onDestroy(() => {
@@ -33,7 +33,6 @@
       if (flashTimeout) clearTimeout(flashTimeout);
       flashTimeout = setTimeout(() => {
         flash = false;
-        C;
         flashTimeout = null;
       }, 700); // keep in sync with CSS animation duration
     }

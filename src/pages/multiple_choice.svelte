@@ -1,22 +1,16 @@
 <script lang="ts">
-  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { QuestionData } from "../types/page_data";
-  import { player_state } from "../stores/player_state";
   import type { PlayerState } from "$lib/wsapi/game";
-  import { gameClient } from "$lib/gameService";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   let m_data: QuestionData;
-  m_data = get(player_state).pageData;
+  m_data = get(gameState).page_data;
 
   function submit_answer(index: number) {
-    gameClient.sendPlayerInput({
-      payload: {
-        $case: "multipleChoice",
-        multipleChoice: {
-          answer: m_data.answers[index],
-        },
-      },
+    gameClient.sendInput({
+      type: "multiple_choice",
+      answer_index: index,
     });
   }
 </script>

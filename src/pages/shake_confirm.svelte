@@ -1,14 +1,11 @@
 <script lang="ts">
-  import { gameClient } from "$lib/gameService";
-  import { sendMessage } from "$lib/webSocketService";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
+
   import { onMount } from "svelte";
 
   const confirm = () => {
-    gameClient.sendPlayerInput({
-      payload: {
-        $case: "confirm",
-        confirm: {},
-      },
+    gameClient.sendInput({
+      type: "confirm",
     });
   };
 

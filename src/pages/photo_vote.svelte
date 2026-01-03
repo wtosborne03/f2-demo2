@@ -1,15 +1,12 @@
 <script lang="ts">
-  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
   import type { photoPickerData, photoVoteData } from "../types/page_data";
-  import type { PlayerState } from "../types/player_state";
-  import { player_state } from "../stores/player_state";
   import Icon from "@iconify/svelte";
   import PhotoCarousel from "$lib/components/PhotoCarousel.svelte";
-  import { gameClient } from "$lib/gameService";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   let s_data: photoVoteData;
-  s_data = get(player_state).pageData;
+  s_data = get(gameState).page_data;
 
   let p_index = 0;
 
@@ -21,12 +18,10 @@
 
   function submit_answer() {
     const photoId = items[p_index]?.id || "No Photo";
-    gameClient.sendPlayerInput({
-      payload: {
-        $case: "votePhotoData",
-        votePhotoData: {
-          photoIndex: photoId,
-        },
+    gameClient.sendInput({
+      type: "votePhotoData",
+      votePhotoData: {
+        photoIndex: photoId,
       },
     });
   }

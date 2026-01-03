@@ -1,13 +1,7 @@
 <script lang="ts">
-  import { gameClient } from "$lib/gameService";
-  import { sendMessage } from "$lib/webSocketService";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
   function confirm() {
-    gameClient.sendPlayerInput({
-      payload: {
-        $case: "restartGame",
-        restartGame: {},
-      },
-    });
+    gameClient.sendPlayerInput("restartGame");
   }
 </script>
 

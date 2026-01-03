@@ -1,12 +1,8 @@
 <script lang="ts">
-  import { sendMessage } from "$lib/webSocketService";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
+
   function confirm() {
-    sendMessage({
-      type: "game",
-      data: {
-        type: "confirm",
-      },
-    });
+    gameClient.sendPlayerInput("confirm");
   }
 </script>
 

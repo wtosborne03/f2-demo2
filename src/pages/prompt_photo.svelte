@@ -1,15 +1,14 @@
 <script lang="ts">
   import Compressor from "compressorjs";
   import { get } from "svelte/store";
-  import { player_state } from "../stores/player_state";
   import type { PromptData } from "../types/page_data";
 
   import Spinner from "$lib/components/spinner.svelte";
-  import { gameClient } from "$lib/gameService";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
 
   let m_data: PromptData;
-  m_data = get(player_state).pageData;
+  m_data = get(gameState).page_data;
 
   let base64Image: string | null = null;
   let fileinput: HTMLInputElement;
@@ -45,21 +44,16 @@
   }
 
   function submit_ready() {
-    gameClient.sendPlayerInput({
-      payload: {
-        $case: "photoReady",
-        photoReady: {},
-      },
+    gameClient.sendInput({
+      type: "photoReady",
     });
   }
 
   function submit_prompt(image_b64: string) {
-    gameClient.sendPlayerInput({
-      payload: {
-        $case: "promptPhotoData",
-        promptPhotoData: {
-          photoUrl: image_b64,
-        },
+    gameClient.sendInput({
+      type: "promptPhotoData",
+      promptPhotoData: {
+        photoUrl: image_b64,
       },
     });
   }
