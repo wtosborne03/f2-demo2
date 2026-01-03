@@ -1,23 +1,17 @@
 <script lang="ts">
-  import { sendMessage } from "$lib/webSocketService";
   import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
-  import type { ProductPromptData, PromptData } from "../types/page_data";
-  import { player_state } from "../stores/player_state";
+  import type { ProductPromptData } from "../types/page_data";
+  import { gameState, gameClient } from "$lib/wsapi/gameClient";
 
   let m_data: ProductPromptData;
-  m_data = get<PlayerState>(player_state).page_data;
+  m_data = get(gameState).page_data;
 
   let answer_text = "";
 
   function submit_prompt() {
-    sendMessage({
-      type: "game",
-      data: {
-        type: "product",
-        part: "description",
-        data: answer_text,
-      },
+    gameClient.sendPlayerInput("product", {
+      part: "description",
+      data: answer_text,
     });
   }
 </script>
