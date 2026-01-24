@@ -58,13 +58,8 @@
       return;
     }
     gameClient.sendPlayerInput("roulette", {
-      data: {
-        type: "bet",
-        data: {
-          challenge: selected_challenge,
-          short_challenge: challenges[selected_challenge],
-        },
-      },
+      challenge: selected_challenge,
+      short_challenge: challenges[selected_challenge],
     });
   }
 </script>

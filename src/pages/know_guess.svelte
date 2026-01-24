@@ -18,9 +18,9 @@
 </script>
 
 <div
-  class="container h-full md:max-w-140 mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full overflow-y-auto md:max-w-140 mx-auto w-full flex flex-col justify-start items-center"
 >
-  <form class="flex flex-col justify-center items-center w-full">
+  <form class="flex h-full flex-col justify-center items-center w-full">
     <div
       class="mb-12 px-10 py-3 text-lg text-white/85 text-center preset-filled-secondary-300-700 rounded-2xl"
     >

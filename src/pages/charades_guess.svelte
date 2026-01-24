@@ -10,21 +10,21 @@
   class="container h-full overflow-y-auto mx-auto w-full flex flex-col justify-center items-center p-2"
 >
   <div
-    class="bg-linear-to-br from-purple-900/20 to-pink-900/20 rounded-3xl p-4 max-w-2xl w-full border-4 border-purple-500/30 shadow-2xl"
+    class="bg-linear-to-br from-purple-900/20 to-pink-900/20 rounded-3xl p-2 pb-6 max-w-2xl w-full border-4 border-purple-500/30 shadow-2xl"
   >
-    <div class="text-5xl text-center mb-6">🎭</div>
-    <h3 class="text-2xl font-bold mb-6 text-purple-300 text-center">
+    <div class="text-2xl text-center mb-0">🎭</div>
+    <h3 class="text-xl font-bold mb-2 text-purple-300 text-center">
       What Did You See?
     </h3>
-    <p class="text-md text-gray-300 mb-8 text-center italic">
+    <p class="text-xl text-gray-300 mb-2 text-center italic">
       Take your best guess at the performance!
     </p>
     <form class="flex flex-col justify-center items-center w-full">
       <div class="flex flex-row justify-start items-center w-full">
         <input
           type="text"
-          class="textarea w-full text-lg p-4 rounded-xl bg-black/40 border-2 border-purple-400/50 text-white placeholder-gray-400"
-          maxlength="30"
+          class="textarea w-full text-lg p-3 rounded-xl bg-black/40 border-2 border-purple-400/50 text-white placeholder-gray-400"
+          maxlength="48"
           placeholder="Type your guess here..."
           bind:value={guess}
         />

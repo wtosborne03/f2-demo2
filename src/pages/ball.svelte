@@ -35,7 +35,7 @@
       },
     );
 
-    intervalId = setInterval(sendJoystickData, 1000 / 19);
+    intervalId = setInterval(sendJoystickData, 1000 / 22);
   });
 
   function sendJoystickData() {

@@ -96,6 +96,23 @@ interface KnowData {
     prompt: string;
 }
 
+interface bunkerData {
+    locations: PointOfInterest[];
+}
+interface PointOfInterest {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    type: string;
+    icon: string;
+    thumbnail?: string; // Photo URL from Foursquare
+    address?: string;
+}
 
 
-export type { matchData, KnowData, DoodleData, CharadesResultsData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData };
+interface PickGameData {
+    options: string[];
+}
+
+export type { PickGameData, matchData, KnowData, DoodleData, CharadesResultsData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData, bunkerData, PointOfInterest };

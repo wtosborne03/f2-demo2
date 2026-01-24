@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
-  import * as rive from "@rive-app/canvas";
   import { goto } from "$app/navigation";
+  import {
+    Rive,
+    ViewModelInstanceColor,
+    ViewModelInstanceNumber,
+    ViewModelInstanceTrigger,
+  } from "@rive-app/canvas";
   import { get } from "svelte/store";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
@@ -12,12 +17,13 @@
   import { getHue, getSecondaryHue } from "$lib/util/color";
   import type { Paths } from "$lib/backend/api";
 
-  let r: rive.Rive;
-  let eyes_input: rive.StateMachineInput | undefined;
-  let mouth_input: rive.StateMachineInput | undefined;
-  let hair_input: rive.StateMachineInput | undefined;
-  let emote_input: rive.StateMachineInput | undefined;
-  let emote_fire_input: rive.StateMachineInput | undefined;
+  let r: Rive;
+  let color_input: ViewModelInstanceColor | undefined | null;
+  let eyes_input: ViewModelInstanceNumber | undefined | null;
+  let mouth_input: ViewModelInstanceNumber | undefined | null;
+  let hair_input: ViewModelInstanceNumber | undefined | null;
+  let emote_input: ViewModelInstanceNumber | undefined | null;
+  let emote_fire_input: ViewModelInstanceTrigger | undefined | null;
 
   let owned_items: Paths.GetUsersOwned.Responses.$200 = {};
   let loadedin = false;
@@ -31,27 +37,44 @@
 
   onMount(() => {
     rCanvas();
-    r = new rive.Rive({
+    r = new Rive({
       src: import.meta.env.VITE_PUBLIC_API_URL + "/static/avatar/avatar.riv",
       canvas: document.getElementById("canvas") as any,
       autoplay: true,
-      stateMachines: "State Machine 1",
+      stateMachines: "AvatarState",
       onLoad: async () => {
         r.resizeDrawingSurfaceToCanvas();
-        const inputs = r.stateMachineInputs("State Machine 1");
-        eyes_input = inputs.find((input) => input.name === "Eyes");
-        mouth_input = inputs.find((input) => input.name === "Mouth");
-        hair_input = inputs.find((input) => input.name === "Bodies");
-        emote_input = inputs.find((input) => input.name === "emote");
-        emote_fire_input = inputs.find((input) => input.name === "playEmote");
+        const avatarModel = r.viewModelByName("AvatarModel");
+        const avatarState = avatarModel?.defaultInstance();
+        r.bindViewModelInstance(avatarState!);
+        eyes_input = avatarState?.number("eyes");
+        mouth_input = avatarState?.number("mouth");
+        hair_input = avatarState?.number("hair");
+        emote_input = avatarState?.number("playerEmote");
+        avatarState!.enum("gameEmote")!.value = "None";
+        color_input = avatarState?.color("color");
+        color_input!.rgb(204, 0, 0);
+        emote_fire_input = avatarState?.trigger("playPlayerEmote");
         const client = await apiClient;
-        const { data } = await client!.getUsersMe();
+        let data: any = {
+          avatar_eyes: 0,
+          avatar_hair: 0,
+          avatar_mouth: 0,
+          avatar_emote: 0,
+        };
+        try {
+          data = (await client!.getUsersMe()).data;
+        } catch (e) {
+          console.log(e);
+        }
+        console.log(data);
         a_values["0"] = data.avatar_eyes || 0;
         a_values["2"] = data.avatar_mouth || 0;
         a_values["1"] = data.avatar_hair || 0;
         a_values["3"] = data.avatar_emote || 0;
-        update();
         loadedin = true;
+
+        update();
 
         const { data: ownedData } = await client!.getUsersOwned();
         owned_items = ownedData;
@@ -160,7 +183,7 @@
           <canvas
             id="canvas"
             class="w-64 h-64 md:w-80 md:h-80 rounded-md"
-            on:click={() => emote_fire_input?.fire()}
+            on:click={() => emote_fire_input?.trigger()}
           ></canvas>
         </div>
         <div class="mt-4 text-sm text-gray-300 text-center">

@@ -14,7 +14,7 @@
         "@neodrag/svelte": "^2.0.6",
         "@paypal/paypal-js": "9.0.1",
         "@react2svelte/image-gallery": "^1.0.1",
-        "@rive-app/canvas": "^2.21.5",
+        "@rive-app/webgl2": "^2.34.1",
         "@sentry/sveltekit": "10.22.0",
         "@stripe/stripe-js": "8.2.0",
         "@tailwindcss/vite": "^4.1.16",
@@ -413,7 +413,7 @@
 
     "@react2svelte/swipeable": ["@react2svelte/swipeable@0.1.4", "", {}, "sha512-iMBI1lxsUwbiFd9zyvU3/Ot4UY583pBKHmU7xP9nTVN8ZBX+PtCVHOPGugf8fgSriL+6CCAp45gLw7zxGt/czQ=="],
 
-    "@rive-app/canvas": ["@rive-app/canvas@2.32.0", "", {}, "sha512-RZRZQRWItH7e0NVmHVhffkm02J/9CO/Qdq71Vu1TkExj312Oc22FpBVn8rBnyEeQak75bJy9m/ig84Crcr7qog=="],
+    "@rive-app/webgl2": ["@rive-app/webgl2@2.34.1", "", {}, "sha512-xxdz1XJaVp0OOsg9CJZ8gNtfPerqtAXnOpPg2autwZWgQ+0OSNvxhfUOA80+R/7BxxqNLQDcCjj7vs3pAQy7Wg=="],
 
     "@rollup/plugin-typescript": ["@rollup/plugin-typescript@11.1.6", "", { "dependencies": { "@rollup/pluginutils": "^5.1.0", "resolve": "^1.22.1" }, "peerDependencies": { "rollup": "^2.14.0||^3.0.0||^4.0.0", "tslib": "*", "typescript": ">=3.7.0" }, "optionalPeers": ["rollup", "tslib"] }, "sha512-R92yOmIACgYdJ7dJ97p4K69I8gg6IEHt8M7dUBxN3W6nrO8uUxX5ixl0yU/N3aZTi8WhPuICvOHXQvF6FaykAA=="],
 
