@@ -77,7 +77,6 @@
       >
     </div>
     <h1 class="header-title">SELECT TARGET ZONE</h1>
-    <Icon icon="mdi:radioactive" class="warning-icon pulse mx-auto" />
   </header>
 
   <!-- Targets List -->
@@ -154,13 +153,10 @@
       <div class="button-core">
         {#if isLaunched}
           <Icon icon="mdi:rocket-launch" class="launch-icon" />
-          <span>LAUNCHED</span>
         {:else if isArmed}
           <Icon icon="mdi:nuke" class="launch-icon" />
-          <span>LAUNCH</span>
         {:else}
           <Icon icon="mdi:lock" class="launch-icon" />
-          <span>LOCKED</span>
         {/if}
       </div>
     </button>
@@ -181,14 +177,14 @@
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     font-family: "Orbitron", sans-serif;
     color: #e0e0e0;
-    padding-top: 7.5rem;
+    padding-top: 6.5rem;
   }
 
   /* Background Effects */
@@ -313,7 +309,7 @@
 
   /* Header */
   .control-header {
-    padding: 20px;
+    padding: 9px;
     text-align: center;
     position: relative;
     z-index: 10;
@@ -363,7 +359,7 @@
 
   .status-text {
     font-family: "Share Tech Mono", monospace;
-    font-size: 2rem;
+    font-size: 1rem;
     letter-spacing: 0.1em;
     color: #888;
     transition: color 0.3s ease;
@@ -481,8 +477,8 @@
   }
 
   .target-icon-wrapper {
-    width: 8rem;
-    height: 8rem;
+    width: 4rem;
+    height: 4rem;
     border-radius: 10px;
     background: linear-gradient(
       135deg,
@@ -517,7 +513,7 @@
   }
 
   .target-name {
-    font-size: 1.95rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #ffffff;
     white-space: nowrap;
@@ -536,7 +532,7 @@
 
   .target-type {
     font-family: "Share Tech Mono", monospace;
-    font-size: 1.65rem;
+    font-size: 0.85rem;
     letter-spacing: 0.15em;
     color: #888;
   }
@@ -624,7 +620,7 @@
 
   /* Launch Section */
   .launch-section {
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -640,8 +636,8 @@
 
   .launch-button {
     position: relative;
-    width: 12rem;
-    height: 12rem;
+    width: 6rem;
+    height: 6rem;
     border-radius: 50%;
     background: #1a1a1a;
     border: none;

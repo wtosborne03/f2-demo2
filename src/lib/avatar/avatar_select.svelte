@@ -49,7 +49,7 @@
         r.bindViewModelInstance(avatarState!);
         eyes_input = avatarState?.number("eyes");
         mouth_input = avatarState?.number("mouth");
-        hair_input = avatarState?.number("hair");
+        hair_input = avatarState?.number("head");
         emote_input = avatarState?.number("playerEmote");
         avatarState!.enum("gameEmote")!.value = "None";
         color_input = avatarState?.color("color");

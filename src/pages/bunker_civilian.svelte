@@ -77,7 +77,6 @@
       >
     </div>
     <h1 class="header-title">CHOOSE YOUR SHELTER</h1>
-    <Icon icon="mdi:alert-octagon" class="warning-icon pulse mx-auto" />
   </header>
 
   <!-- Shelters List -->
@@ -154,13 +153,10 @@
       <div class="button-core">
         {#if isConfirmed}
           <Icon icon="mdi:run-fast" class="confirm-icon" />
-          <span>MOVING</span>
         {:else if isReady}
           <Icon icon="mdi:shield-check" class="confirm-icon" />
-          <span>HIDE</span>
         {:else}
           <Icon icon="mdi:shield-off-outline" class="confirm-icon" />
-          <span>SELECT</span>
         {/if}
       </div>
     </button>
@@ -181,14 +177,14 @@
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     background: linear-gradient(135deg, #0a0f14 0%, #0f1a2e 50%, #0a1020 100%);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     font-family: "Orbitron", sans-serif;
     color: #e0e0e0;
-    padding-top: 7.5rem;
+    padding-top: 6.5rem;
   }
 
   /* Background Effects */
@@ -287,7 +283,7 @@
 
   /* Header */
   .control-header {
-    padding: 20px;
+    padding: 9px;
     text-align: center;
     position: relative;
     z-index: 10;
@@ -337,7 +333,7 @@
 
   .status-text {
     font-family: "Share Tech Mono", monospace;
-    font-size: 2rem;
+    font-size: 1rem;
     letter-spacing: 0.1em;
     color: #888;
     transition: color 0.3s ease;
@@ -447,8 +443,8 @@
   }
 
   .shelter-icon-wrapper {
-    width: 8rem;
-    height: 8rem;
+    width: 4rem;
+    height: 4rem;
     border-radius: 10px;
     background: linear-gradient(
       135deg,
@@ -483,7 +479,7 @@
   }
 
   .shelter-name {
-    font-size: 1.95rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #ffffff;
     white-space: nowrap;
@@ -502,7 +498,7 @@
 
   .shelter-type {
     font-family: "Share Tech Mono", monospace;
-    font-size: 1.65rem;
+    font-size: 0.85rem;
     letter-spacing: 0.15em;
     color: #888;
   }
@@ -581,7 +577,7 @@
 
   /* Confirm Section */
   .confirm-section {
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -597,8 +593,8 @@
 
   .confirm-button {
     position: relative;
-    width: 12rem;
-    height: 12rem;
+    width: 6rem;
+    height: 6rem;
     border-radius: 50%;
     background: #1a1a1a;
     border: none;
