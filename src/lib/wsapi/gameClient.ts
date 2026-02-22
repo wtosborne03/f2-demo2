@@ -5,6 +5,11 @@ import type { PlayerInput, PlayerState } from './shared/types';
 import { toaster } from '$lib/util/toaster';
 import { dbClient } from '../../stores/apiClient';
 
+const RECONNECT_DELAY_MS = 1500;
+const HEARTBEAT_INTERVAL_MS = 10000;
+const HEARTBEAT_TIMEOUT_MS = 25000;
+const MAX_PENDING_CRITICAL_MESSAGES = 50;
+
 const defaultPlayerState: PlayerState = {
     name: '',
     score: 0,
@@ -30,35 +35,55 @@ export const connectionStatus = writable<"DISCONNECTED" | "CONNECTING" | "CONNEC
 export const errorStore = writable<string | null>(null);
 export const serverTimeOffset = writable<number>(0); // Add this to track time difference
 
-const ignoreErrors = [
-    "Game_Lobby"
-]
+const ignoreErrors: string[] = [];
 
 class GameClient {
     private ws: WebSocket | null = null;
     private name: string = "";
     private playerId: string | null = null; // localStorage.getItem('couch_pid');
     private roomCode: string | null = null; // localStorage.getItem('couch_room');
+    private connectUrl: string | null = null;
     private shouldReconnect = true;
     private pingInterval: NodeJS.Timeout | null = null;
     private pongTimeout: NodeJS.Timeout | null = null;
+    private reconnectTimer: NodeJS.Timeout | null = null;
     private latency = 0;
     private _lastTimeRequest = 0;
     private waiters: Array<{ ops: OpCode[]; resolve: (val: any) => void }> = [];
+    private pendingCriticalMessages: Array<{ op: OpCode; data: any }> = [];
+    private hasBoundLifecycleListeners = false;
+
+    constructor() {
+        this.hydrateSessionFromStorage();
+        this.bindBrowserLifecycleListeners();
+    }
 
     connect(url: string) {
+        this.connectUrl = url;
+        if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+            return;
+        }
+
         connectionStatus.set("CONNECTING");
         this.ws = new WebSocket(url);
         this.ws.binaryType = 'arraybuffer';
 
         this.ws.onopen = () => {
+            if (this.reconnectTimer) {
+                clearTimeout(this.reconnectTimer);
+                this.reconnectTimer = null;
+            }
             connectionStatus.set("CONNECTED");
             this.startHeartbeat(); // Start pinging
             this.syncTime();
-            // Auto-decide: Join fresh or Reconnect?
-            if (this.playerId && this.roomCode) {
-                this.send(OpCode.RECONNECT, { roomCode: this.roomCode, playerId: this.playerId });
+            // Auto-decide: Join fresh or Reconnect when no explicit queued session action exists.
+            const hasQueuedSessionAction = this.pendingCriticalMessages.some(
+                (message) => message.op === OpCode.JOIN_ROOM || message.op === OpCode.RECONNECT
+            );
+            if (!hasQueuedSessionAction && this.playerId && this.roomCode) {
+                this.sendCritical(OpCode.RECONNECT, { roomCode: this.roomCode, playerId: this.playerId });
             }
+            this.flushCriticalQueue();
         };
 
         this.ws.onmessage = (event) => {
@@ -107,9 +132,7 @@ class GameClient {
         this.ws.onclose = () => {
             this.stopHeartbeat();
             connectionStatus.set("DISCONNECTED");
-            if (this.shouldReconnect) {
-                setTimeout(() => this.connect(url), 1500); // Simple Retry Strategy
-            }
+            this.scheduleReconnect();
         };
     }
 
@@ -146,6 +169,7 @@ class GameClient {
     }
 
     async join(room: string, name: string, userId?: string) {
+        this.name = name;
 
         if (localStorage.getItem("couch_room") === room) {
             // try rejoin
@@ -154,8 +178,7 @@ class GameClient {
         }
         // Clear old session if joining new room
         this.clearSession();
-        this.name = name;
-        this.send(OpCode.JOIN_ROOM, { roomCode: room, name, userId });
+        this.sendCritical(OpCode.JOIN_ROOM, { roomCode: room, name, userId });
     }
 
     public async tryRejoin(): Promise<boolean> {
@@ -164,7 +187,7 @@ class GameClient {
 
         if (!roomCode || !playerId) return false;
 
-        this.send(OpCode.RECONNECT, { roomCode, playerId });
+        this.sendCritical(OpCode.RECONNECT, { roomCode, playerId });
 
         try {
             const res = await this.waitForResponse([OpCode.IDENTITY, OpCode.ERROR]);
@@ -217,18 +240,22 @@ class GameClient {
 
     private startHeartbeat() {
         this.stopHeartbeat();
-        // Send a ping every 5 seconds
+        // Mobile browsers throttle timers when backgrounded, so use a wider stale window.
         this.pingInterval = setInterval(() => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+                return;
+            }
             if (this.ws?.readyState === WebSocket.OPEN) {
                 this.send(OpCode.PING, null);
 
-                // If we don't get a PONG in 2 seconds, assume dead and reconnect
+                // If we don't get a PONG within timeout, assume dead and reconnect.
+                if (this.pongTimeout) clearTimeout(this.pongTimeout);
                 this.pongTimeout = setTimeout(() => {
                     console.warn("Connection stale. Reconnecting...");
                     this.ws?.close(); // This triggers onclose -> retry
-                }, 5000);
+                }, HEARTBEAT_TIMEOUT_MS);
             }
-        }, 5000);
+        }, HEARTBEAT_INTERVAL_MS);
     }
 
     public async syncTime() {
@@ -236,7 +263,7 @@ class GameClient {
         // We use a one-off listener or specific logic, but for simplicity
         // we assume the next TIME_RESPONSE matches this request.
         // In production, you might attach a request ID.
-        this.send(OpCode.GET_TIME, null);
+        this.sendCritical(OpCode.GET_TIME, null);
 
         // We store 'start' in a temporary property to calculate latency in handleTimeResponse
         this._lastTimeRequest = start;
@@ -256,11 +283,14 @@ class GameClient {
     private stopHeartbeat() {
         if (this.pingInterval) clearInterval(this.pingInterval);
         if (this.pongTimeout) clearTimeout(this.pongTimeout);
+        this.pingInterval = null;
+        this.pongTimeout = null;
     }
 
     private handlePong() {
         // We are alive! Clear the "death timer"
         if (this.pongTimeout) clearTimeout(this.pongTimeout);
+        this.pongTimeout = null;
     }
 
     private send(op: OpCode, data: any) {
@@ -269,11 +299,79 @@ class GameClient {
         }
     }
 
+    private sendCritical(op: OpCode, data: any) {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(encode(op, data));
+            return;
+        }
+        this.pendingCriticalMessages.push({ op, data });
+        if (this.pendingCriticalMessages.length > MAX_PENDING_CRITICAL_MESSAGES) {
+            this.pendingCriticalMessages.shift();
+        }
+    }
+
+    private flushCriticalQueue() {
+        if (this.ws?.readyState !== WebSocket.OPEN || this.pendingCriticalMessages.length === 0) {
+            return;
+        }
+        const queued = [...this.pendingCriticalMessages];
+        this.pendingCriticalMessages = [];
+        queued.forEach((message) => {
+            this.ws!.send(encode(message.op, message.data));
+        });
+    }
+
+    private scheduleReconnect(delayMs = RECONNECT_DELAY_MS) {
+        if (!this.shouldReconnect || !this.connectUrl) return;
+        if (typeof navigator !== "undefined" && !navigator.onLine) return;
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(() => this.connect(this.connectUrl!), delayMs);
+    }
+
+    private hydrateSessionFromStorage() {
+        if (typeof window === "undefined") return;
+        this.playerId = localStorage.getItem("couch_pid");
+        this.roomCode = localStorage.getItem("couch_room");
+        this.name = localStorage.getItem("name") || "";
+    }
+
+    private bindBrowserLifecycleListeners() {
+        if (typeof window === "undefined" || this.hasBoundLifecycleListeners) return;
+        this.hasBoundLifecycleListeners = true;
+
+        window.addEventListener("online", () => {
+            if (this.ws?.readyState !== WebSocket.OPEN) {
+                this.scheduleReconnect(250);
+            }
+        });
+
+        if (typeof document !== "undefined") {
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    if (this.ws?.readyState === WebSocket.OPEN) {
+                        this.syncTime();
+                        this.sendCritical(OpCode.PING, null);
+                    } else {
+                        this.scheduleReconnect(250);
+                    }
+                    return;
+                }
+                if (this.pongTimeout) {
+                    clearTimeout(this.pongTimeout);
+                    this.pongTimeout = null;
+                }
+            });
+        }
+    }
+
     private clearSession() {
         this.playerId = null;
         this.roomCode = null;
-        localStorage.removeItem('couch_pid');
-        localStorage.removeItem('couch_room');
+        this.pendingCriticalMessages = [];
+        if (typeof window !== "undefined") {
+            localStorage.removeItem('couch_pid');
+            localStorage.removeItem('couch_room');
+        }
     }
 }
 
