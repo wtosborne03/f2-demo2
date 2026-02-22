@@ -40,7 +40,6 @@ const ignoreErrors: string[] = [];
 class GameClient {
     private ws: WebSocket | null = null;
     private name: string = "";
-    private playerId: string | null = null; // localStorage.getItem('couch_pid');
     private roomCode: string | null = null; // localStorage.getItem('couch_room');
     private connectUrl: string | null = null;
     private shouldReconnect = true;
@@ -80,8 +79,8 @@ class GameClient {
             const hasQueuedSessionAction = this.pendingCriticalMessages.some(
                 (message) => message.op === OpCode.JOIN_ROOM || message.op === OpCode.RECONNECT
             );
-            if (!hasQueuedSessionAction && this.playerId && this.roomCode) {
-                this.sendCritical(OpCode.RECONNECT, { roomCode: this.roomCode, playerId: this.playerId });
+            if (!hasQueuedSessionAction && this.name && this.roomCode) {
+                this.sendCritical(OpCode.RECONNECT, { roomCode: this.roomCode, name: this.name });
             }
             this.flushCriticalQueue();
         };
@@ -136,12 +135,10 @@ class GameClient {
         };
     }
 
-    private async joinedRoom(playerId: string, roomCode: string) {
-        this.playerId = playerId;
+    private async joinedRoom(_playerId: string, roomCode: string) {
         this.roomCode = roomCode;
         localStorage.setItem("code", this.roomCode!);
         localStorage.setItem("name", this.name);
-        localStorage.setItem('couch_pid', playerId);
         localStorage.setItem('couch_room', roomCode);
 
         try {
@@ -183,11 +180,11 @@ class GameClient {
 
     public async tryRejoin(): Promise<boolean> {
         const roomCode = localStorage.getItem('couch_room');
-        const playerId = localStorage.getItem('couch_pid');
+        const name = this.name || localStorage.getItem('name');
 
-        if (!roomCode || !playerId) return false;
+        if (!roomCode || !name) return false;
 
-        this.sendCritical(OpCode.RECONNECT, { roomCode, playerId });
+        this.sendCritical(OpCode.RECONNECT, { roomCode, name });
 
         try {
             const res = await this.waitForResponse([OpCode.IDENTITY, OpCode.ERROR]);
@@ -330,7 +327,6 @@ class GameClient {
 
     private hydrateSessionFromStorage() {
         if (typeof window === "undefined") return;
-        this.playerId = localStorage.getItem("couch_pid");
         this.roomCode = localStorage.getItem("couch_room");
         this.name = localStorage.getItem("name") || "";
     }
@@ -365,7 +361,6 @@ class GameClient {
     }
 
     private clearSession() {
-        this.playerId = null;
         this.roomCode = null;
         this.pendingCriticalMessages = [];
         if (typeof window !== "undefined") {
