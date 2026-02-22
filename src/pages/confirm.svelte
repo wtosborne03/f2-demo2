@@ -9,10 +9,19 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
-  <h3>Admin: Make sure that the players have completed their prompt.</h3>
-  <button
-    style="width: 100%; font-size: 1.5rem;"
-    class="btn preset-filled m-2 p-2"
-    on:click={confirm}>Confirm 👍</button
+  <div
+    class="card p-6 mt-8 max-w-md mx-auto bg-surface-800/80 backdrop-blur-md border border-surface-700 shadow-2xl flex flex-col gap-4 items-center text-center rounded-2xl"
   >
+    <div>
+      <h3 class="h3 font-bold text-primary-200 underline">Admin</h3>
+      <p class="text-surface-100 mt-2 text-xl">
+        Verify that all players have completed the prompt.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="btn bg-green-600 border-green-500 border-4 text-white w-full font-bold text-xl py-3 shadow-lg"
+      on:click={confirm}>They drank 👍</button
+    >
+  </div>
 </div>

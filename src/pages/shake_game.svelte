@@ -74,10 +74,28 @@
       let resolved = false;
       function handler(e: DeviceMotionEvent) {
         if (resolved) return;
-        resolved = true;
-        window.removeEventListener("devicemotion", handler);
-        // Treat any delivered devicemotion event as success.
-        resolve(true);
+
+        // Check if the event actually contains data
+        const hasData =
+          (e.acceleration &&
+            (e.acceleration.x !== null ||
+              e.acceleration.y !== null ||
+              e.acceleration.z !== null)) ||
+          (e.accelerationIncludingGravity &&
+            (e.accelerationIncludingGravity.x !== null ||
+              e.accelerationIncludingGravity.y !== null ||
+              e.accelerationIncludingGravity.z !== null)) ||
+          (e.rotationRate &&
+            (e.rotationRate.alpha !== null ||
+              e.rotationRate.beta !== null ||
+              e.rotationRate.gamma !== null));
+
+        if (hasData) {
+          resolved = true;
+          window.removeEventListener("devicemotion", handler);
+          // Treat any delivered devicemotion event as success.
+          resolve(true);
+        }
       }
       window.addEventListener("devicemotion", handler, { passive: true });
       setTimeout(() => {
@@ -114,11 +132,14 @@
   let lastShakingDistance = 0;
   let totalShakingDistance = 0;
   let lastDragTime = 0;
+  let lastVelocityY = 0;
   let lastMotionTime = 0;
 
   // Late fallback handler reference so we can remove it on destroy
   let lateHandler: ((e: DeviceMotionEvent) => void) | null = null;
   let lateHandlerTimeoutId: number | null = null;
+
+  let showEnableMotionButton = false;
 
   async function enableMotionManually() {
     // Try requesting permission (iOS) and enabling motion handlers on user gesture
@@ -127,6 +148,19 @@
       console.warn("User did not grant motion permission.");
       return;
     }
+
+    // If we are here, either we are non-iOS (ok=true auto) OR iOS granted (ok=true).
+    // But for non-iOS, "ok" (true) just means "didn't fail permission".
+    // We should double check we ACTUALLY get events if we were non-iOS (since we might have failed the initial probe).
+    // However, the button is primarily for iOS permission.
+    // If users click this on desktop (if button manages to show), we probe again.
+
+    const hasEvent = await probeDevicemotion(500);
+    if (!hasEvent) {
+      console.warn("Manual enable failed: No motion data received.");
+      return;
+    }
+
     // Add full listeners
     if (!motion) {
       motion = true;
@@ -155,8 +189,37 @@
           passive: true,
         });
       } else {
+        // Decide if we should show the manual enable button.
+        // We only show it if the device supports requestPermission (e.g. iOS)
+        // because that might be the reason checkMotion failed (lack of user gesture).
+        // If it DOESN'T support requestPermission (Desktop/Android), checking probe failed means
+        // it really doesn't have sensors, so don't show the button.
+        const anyDM = DeviceMotionEvent as any;
+        const needsPermission =
+          typeof anyDM !== "undefined" &&
+          typeof anyDM.requestPermission === "function";
+
+        showEnableMotionButton = needsPermission;
+
         // Start a late fallback listener that will enable motion if a devicemotion arrives later
         lateHandler = (e: DeviceMotionEvent) => {
+          // Check for actual data presence using the robust check logic
+          const hasData =
+            (e.acceleration &&
+              (e.acceleration.x !== null ||
+                e.acceleration.y !== null ||
+                e.acceleration.z !== null)) ||
+            (e.accelerationIncludingGravity &&
+              (e.accelerationIncludingGravity.x !== null ||
+                e.accelerationIncludingGravity.y !== null ||
+                e.accelerationIncludingGravity.z !== null)) ||
+            (e.rotationRate &&
+              (e.rotationRate.alpha !== null ||
+                e.rotationRate.beta !== null ||
+                e.rotationRate.gamma !== null));
+
+          if (!hasData) return;
+
           // first devicemotion -> enable motion mode and add full handlers
           if (!motion) {
             motion = true;
@@ -186,7 +249,7 @@
     requestWakeLock();
   });
 
-  const sendProgress = (progress: number) => {
+  const sendProgress = (progress: number, accY = 0) => {
     gameClient.sendInput({
       type: "shakeProgress",
       shakeProgress: {
@@ -194,7 +257,7 @@
         beta: 0,
         gamma: 0,
         accX: 0,
-        accY: 0,
+        accY,
         accZ: 0,
         progress: progress,
         motion: false,
@@ -205,6 +268,7 @@
   function onDragStart(data: DragEventData) {
     initialPosition = { x: data.offsetX, y: data.offsetY };
     lastDragTime = Date.now();
+    lastVelocityY = 0;
   }
 
   function onDrag(data: DragEventData) {
@@ -215,11 +279,20 @@
     );
     const currentTime = Date.now();
     const timeDifference = currentTime - lastDragTime;
-    const velocity = timeDifference > 0 ? distanceMoved / timeDifference : 0;
+
+    let accY = 0;
+    if (timeDifference > 0) {
+      const velocityY =
+        (currentPosition.y - initialPosition.y) / timeDifference;
+      const acceleration = (velocityY - lastVelocityY) / timeDifference;
+      // Convert px/ms^2 to approx m/s^2 (assuming ~3800px/m)
+      accY = acceleration * 263;
+      lastVelocityY = velocityY;
+    }
 
     totalShakingDistance += distanceMoved;
 
-    sendProgress(currentPosition.y * 0.05);
+    sendProgress(currentPosition.y * 0.01, accY);
 
     initialPosition = currentPosition; // Update initial position to current position
     lastDragTime = currentTime; // Update last drag time
@@ -321,17 +394,19 @@
         </svg>
       </div>
 
-      <button
-        on:click={enableMotionManually}
-        class="px-4 py-2 rounded bg-blue-600 text-white"
-        aria-label="Enable motion controls"
-      >
-        Enable motion controls
-      </button>
-      <div class="text-sm text-gray-500">
-        If your device didn't enable motion automatically, tap the button to
-        allow motion sensors.
-      </div>
+      {#if showEnableMotionButton}
+        <button
+          on:click={enableMotionManually}
+          class="px-4 py-2 rounded bg-blue-600 text-white"
+          aria-label="Enable motion controls"
+        >
+          Enable motion controls
+        </button>
+        <div class="text-sm text-gray-500">
+          If your device didn't enable motion automatically, tap the button to
+          allow motion sensors.
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

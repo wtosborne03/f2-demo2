@@ -14,6 +14,32 @@
     status?: "correct" | "wrong"; // Updated from host code
   }
 
+  // Safelist for Tailwind to pick up dynamic classes from server
+  const _safelist = [
+    "bg-red-400",
+    "bg-orange-400",
+    "bg-amber-400",
+    "bg-yellow-400",
+    "bg-lime-400",
+    "bg-green-400",
+    "bg-emerald-400",
+    "bg-teal-400",
+    "bg-cyan-400",
+    "bg-sky-400",
+    "bg-blue-400",
+    "bg-indigo-400",
+    "bg-violet-400",
+    "bg-purple-400",
+    "bg-fuchsia-400",
+    "bg-pink-400",
+    "bg-rose-400",
+    "bg-slate-400",
+    "bg-gray-400",
+    "bg-zinc-400",
+    "bg-neutral-400",
+    "bg-stone-400",
+  ];
+
   interface RecipePageData {
     recipeName: string;
     mySteps: RecipeStep[];
@@ -21,12 +47,14 @@
 
   // Reactive State
   $: m_data = $gameState.page_data as RecipePageData;
+  $: console.log(m_data, "m_data");
   $: mySteps = m_data?.mySteps || [];
   $: recipeName = m_data?.recipeName || "Prepare Order";
   $: score = $gameState.score || 0;
 
   // Local State
   let lastClickedStep: number | null = null;
+  let lastRecipeName: string = "";
   let isShaking = false;
   let feedbackMessage: string | null = null;
   let feedbackType: "success" | "error" | null = null;
@@ -35,6 +63,13 @@
   let prevStepsStatus: Record<number, string | undefined> = {};
 
   $: {
+    // Reset if recipe changes
+    if (recipeName !== lastRecipeName) {
+      lastRecipeName = recipeName;
+      lastClickedStep = null;
+      prevStepsStatus = {};
+    }
+
     mySteps.forEach((step) => {
       const prev = prevStepsStatus[step.index];
       if (step.status !== prev) {
@@ -65,6 +100,13 @@
     if (step.status === "correct" || lastClickedStep !== null) return;
 
     lastClickedStep = step.index;
+
+    // Safety timeout: if server doesn't respond in 1s, unlock
+    setTimeout(() => {
+      if (lastClickedStep === step.index) {
+        lastClickedStep = null;
+      }
+    }, 1000);
 
     // Optimistic UI handled by loading spinner, actual confirmation comes from 'status' prop
 
@@ -298,14 +340,12 @@
   }
 
   .ingredient-card.correct {
-    background: #a5d6a7 !important; /* Pastel Green */
     cursor: default;
     transform: translateY(6px);
     box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
   .ingredient-card.wrong {
-    background: #ef9a9a !important; /* Pastel Red */
     animation: wobble 0.5s ease-in-out;
   }
 

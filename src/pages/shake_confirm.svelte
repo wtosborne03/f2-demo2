@@ -12,14 +12,30 @@
   async function checkMotionPermissionStatus(): Promise<PermissionState> {
     return new Promise((resolve) => {
       const tempListener = (event: DeviceMotionEvent) => {
-        window.removeEventListener("devicemotion", tempListener);
-        resolve("granted");
+        const hasData =
+          (event.acceleration &&
+            (event.acceleration.x !== null ||
+              event.acceleration.y !== null ||
+              event.acceleration.z !== null)) ||
+          (event.accelerationIncludingGravity &&
+            (event.accelerationIncludingGravity.x !== null ||
+              event.accelerationIncludingGravity.y !== null ||
+              event.accelerationIncludingGravity.z !== null)) ||
+          (event.rotationRate &&
+            (event.rotationRate.alpha !== null ||
+              event.rotationRate.beta !== null ||
+              event.rotationRate.gamma !== null));
+
+        if (hasData) {
+          window.removeEventListener("devicemotion", tempListener);
+          resolve("granted");
+        }
       };
       window.addEventListener("devicemotion", tempListener);
       setTimeout(() => {
         window.removeEventListener("devicemotion", tempListener);
         resolve("denied");
-      }, 100);
+      }, 500);
     });
   }
 

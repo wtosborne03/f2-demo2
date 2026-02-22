@@ -25,6 +25,7 @@
         family: s_data.family,
         rounds: s_data.rounds,
         doubloons: s_data.doubloons,
+        endCondition: s_data.endCondition,
       },
     });
 
@@ -102,7 +103,12 @@
 
       <!-- Game End Condition Settings -->
       <li class="mt-2 p-4 rounded-lg bg-slate-800 bg-opacity-40">
-        <Tabs defaultValue="tab-rounds">
+        <Tabs
+          defaultValue="tab-rounds"
+          onValueChange={(e) => {
+            s_data.endCondition = e.value === "tab-rounds" ? 0 : 1;
+          }}
+        >
           <div class="text-start text-gray-200 font-bold mb-4">Game End 🏁</div>
           <Tabs.List class="h-10">
             <Tabs.Trigger class="flex-1" value="tab-rounds">

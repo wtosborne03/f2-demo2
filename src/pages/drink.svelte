@@ -14,11 +14,18 @@
 <Drink prompt={m_data.prompt} />
 
 {#if get(gameState).admin}
-  <div class="flex mt-10 flex-col justify-center items-center text-center">
-    <h3>Admin: Make sure that the players have completed their prompt.</h3>
+  <div
+    class="card p-6 mt-8 max-w-md mx-auto bg-surface-800/80 backdrop-blur-md border border-surface-700 shadow-2xl flex flex-col gap-4 items-center text-center rounded-2xl"
+  >
+    <div>
+      <h3 class="h3 font-bold text-primary-200 underline">Admin</h3>
+      <p class="text-surface-100 mt-2 text-xl">
+        Verify that all players have completed the prompt.
+      </p>
+    </div>
     <button
-      style=" font-size: 1.25rem;"
-      class="btn preset-filled m-4 p-3"
+      type="button"
+      class="btn bg-green-600 border-green-500 border-4 text-white w-full font-bold text-xl py-3 shadow-lg"
       on:click={confirm}>They drank 👍</button
     >
   </div>
