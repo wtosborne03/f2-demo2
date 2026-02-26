@@ -10,6 +10,8 @@ const HEARTBEAT_INTERVAL_MS = 10000;
 const HEARTBEAT_TIMEOUT_MS = 25000;
 const MAX_PENDING_CRITICAL_MESSAGES = 50;
 
+type RoomStatus = "LOBBY" | "RUNNING" | "UNKNOWN";
+
 const defaultPlayerState: PlayerState = {
     name: '',
     score: 0,
@@ -35,7 +37,7 @@ export const connectionStatus = writable<"DISCONNECTED" | "CONNECTING" | "CONNEC
 export const errorStore = writable<string | null>(null);
 export const serverTimeOffset = writable<number>(0); // Add this to track time difference
 
-const ignoreErrors: string[] = [];
+const ignoreErrors: string[] = ['Game_Lobby'];
 
 class GameClient {
     private ws: WebSocket | null = null;
@@ -46,6 +48,8 @@ class GameClient {
     private pingInterval: NodeJS.Timeout | null = null;
     private pongTimeout: NodeJS.Timeout | null = null;
     private reconnectTimer: NodeJS.Timeout | null = null;
+    private roomStatus: RoomStatus = "UNKNOWN";
+    private hasSeenInGameState = false;
     private latency = 0;
     private _lastTimeRequest = 0;
     private waiters: Array<{ ops: OpCode[]; resolve: (val: any) => void }> = [];
@@ -79,7 +83,7 @@ class GameClient {
             const hasQueuedSessionAction = this.pendingCriticalMessages.some(
                 (message) => message.op === OpCode.JOIN_ROOM || message.op === OpCode.RECONNECT
             );
-            if (!hasQueuedSessionAction && this.name && this.roomCode) {
+            if (!hasQueuedSessionAction && this.canAttemptSessionReconnect()) {
                 this.sendCritical(OpCode.RECONNECT, { roomCode: this.roomCode, name: this.name });
             }
             this.flushCriticalQueue();
@@ -99,9 +103,10 @@ class GameClient {
 
             switch (op) {
                 case OpCode.IDENTITY:
-                    this.joinedRoom(payload.playerId, payload.roomCode);
+                    this.joinedRoom(payload.playerId, payload.roomCode, payload.status);
                     break;
                 case OpCode.STATE_UPDATE:
+                    this.trackStateStatus(payload);
                     gameState.set(payload);
                     break;
                 case OpCode.ERROR:
@@ -135,8 +140,9 @@ class GameClient {
         };
     }
 
-    private async joinedRoom(_playerId: string, roomCode: string) {
+    private async joinedRoom(_playerId: string, roomCode: string, status?: string) {
         this.roomCode = roomCode;
+        this.setRoomStatus(status);
         localStorage.setItem("code", this.roomCode!);
         localStorage.setItem("name", this.name);
         localStorage.setItem('couch_room', roomCode);
@@ -170,19 +176,22 @@ class GameClient {
 
         if (localStorage.getItem("couch_room") === room) {
             // try rejoin
-            const rejoined = await this.tryRejoin();
+            const rejoined = await this.tryRejoin(true);
             if (rejoined) return;
         }
         // Clear old session if joining new room
         this.clearSession();
+        this.roomStatus = "UNKNOWN";
+        this.hasSeenInGameState = false;
         this.sendCritical(OpCode.JOIN_ROOM, { roomCode: room, name, userId });
     }
 
-    public async tryRejoin(): Promise<boolean> {
+    public async tryRejoin(force = false): Promise<boolean> {
         const roomCode = localStorage.getItem('couch_room');
         const name = this.name || localStorage.getItem('name');
 
         if (!roomCode || !name) return false;
+        if (!this.canAttemptSessionReconnect(force)) return false;
 
         this.sendCritical(OpCode.RECONNECT, { roomCode, name });
 
@@ -321,6 +330,7 @@ class GameClient {
     private scheduleReconnect(delayMs = RECONNECT_DELAY_MS) {
         if (!this.shouldReconnect || !this.connectUrl) return;
         if (typeof navigator !== "undefined" && !navigator.onLine) return;
+        if (!this.canAttemptSessionReconnect()) return;
         if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
         this.reconnectTimer = setTimeout(() => this.connect(this.connectUrl!), delayMs);
     }
@@ -329,6 +339,40 @@ class GameClient {
         if (typeof window === "undefined") return;
         this.roomCode = localStorage.getItem("couch_room");
         this.name = localStorage.getItem("name") || "";
+    }
+
+    private canAttemptSessionReconnect(force = false) {
+        if (!this.roomCode || !this.name) return false;
+        if (force) return true;
+        if (this.roomStatus === "RUNNING") return true;
+        return this.hasSeenInGameState;
+    }
+
+    private setRoomStatus(status?: string) {
+        if (status === "RUNNING") {
+            this.roomStatus = "RUNNING";
+            this.hasSeenInGameState = true;
+            return;
+        }
+        if (status === "LOBBY") {
+            this.roomStatus = "LOBBY";
+            return;
+        }
+        this.roomStatus = "UNKNOWN";
+    }
+
+    private trackStateStatus(payload: Partial<PlayerState>) {
+        const screen = payload?.screen;
+        if (!screen) return;
+        // In practice lobby screens are index/start/can_start. Any other game screen implies RUNNING.
+        if (screen === "index" || screen === "start" || screen === "can_start") {
+            if (!this.hasSeenInGameState) {
+                this.roomStatus = "LOBBY";
+            }
+            return;
+        }
+        this.roomStatus = "RUNNING";
+        this.hasSeenInGameState = true;
     }
 
     private bindBrowserLifecycleListeners() {
@@ -362,6 +406,8 @@ class GameClient {
 
     private clearSession() {
         this.roomCode = null;
+        this.roomStatus = "UNKNOWN";
+        this.hasSeenInGameState = false;
         this.pendingCriticalMessages = [];
         if (typeof window !== "undefined") {
             localStorage.removeItem('couch_pid');
