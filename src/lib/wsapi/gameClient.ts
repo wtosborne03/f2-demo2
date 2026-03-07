@@ -37,7 +37,7 @@ export const connectionStatus = writable<"DISCONNECTED" | "CONNECTING" | "CONNEC
 export const errorStore = writable<string | null>(null);
 export const serverTimeOffset = writable<number>(0); // Add this to track time difference
 
-const ignoreErrors: string[] = ['Game_Lobby'];
+const ignoreErrors: string[] = ['Game_Lobby', 'Session expired'];
 
 class GameClient {
     private ws: WebSocket | null = null;
@@ -172,9 +172,23 @@ class GameClient {
     }
 
     async join(room: string, name: string, userId?: string) {
+        this.sendCritical(OpCode.QUERY_ROOM_STATE, { roomCode: room }); // Ask server for current room state to decide if we can rejoin
+        let roomState: "LOBBY" | "RUNNING";
+        try {
+            const res = await this.waitForResponse([OpCode.ROOM_STATE, OpCode.ERROR], 3000);
+            if (res.op === OpCode.ERROR) throw new Error(res.payload);
+            roomState = res.payload.status;
+        }
+        catch (e) {
+            console.warn("Failed to get room state");
+            toaster.error({ title: "Error", description: "Room Not Found or Server Unreachable" });
+            return;
+        }
+
+
         this.name = name;
 
-        if (localStorage.getItem("couch_room") === room) {
+        if (localStorage.getItem("couch_room") === room && roomState === "RUNNING") {
             // try rejoin
             const rejoined = await this.tryRejoin(true);
             if (rejoined) return;
@@ -307,6 +321,7 @@ class GameClient {
 
     private sendCritical(op: OpCode, data: any) {
         if (this.ws?.readyState === WebSocket.OPEN) {
+
             this.ws.send(encode(op, data));
             return;
         }

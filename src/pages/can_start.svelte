@@ -1,21 +1,18 @@
 <script lang="ts">
   import { playerEmote } from "$lib/avatar/player_emote";
   import { Tabs, Switch } from "@skeletonlabs/skeleton-svelte";
-  import {} from "@skeletonlabs/skeleton-svelte";
-  import type { adminStartData } from "../types/page_data";
   import { get } from "svelte/store";
-  import { drawerSettings } from "$lib/config/drawer";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import type { AdminStartData } from "$lib/wsapi/game";
   import type { settings } from "../types/settings";
   import Icon from "@iconify/svelte";
 
   const session = authClient.useSession();
 
-  let s_data: settings;
-  s_data = get(gameState).page_data.settings;
+  let s_data: settings = get(gameState).page_data.settings;
+  let endConditionTab =
+    s_data.endCondition === 1 ? "tab-doubloons" : "tab-rounds";
 
   $: s_data,
     gameClient.sendInput({
@@ -29,18 +26,14 @@
       },
     });
 
+  $: {
+    const nextTab = s_data.endCondition === 1 ? "tab-doubloons" : "tab-rounds";
+    if (endConditionTab !== nextTab) {
+      endConditionTab = nextTab;
+    }
+  }
+
   function promptForStart() {
-    // const modal: ModalSettings = {
-    //   type: "confirm",
-    //   title: "Everybody In? 🤔",
-    //   body: "Once you start Couch Cup, new players cannot join. Are you sure you want to start?",
-    //   response: (r: boolean) => {
-    //     if (r) {
-    //       startGame();
-    //     }
-    //   },
-    // };
-    // modalStore.trigger(modal);
     startGame();
   }
 
@@ -49,120 +42,148 @@
       type: "start_game",
     });
   }
-  let tabSet: number = 0;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class=" h-full mx-auto flex flex-col justify-center items-center"
+  class="mx-auto flex h-full w-full max-w-xl flex-col gap-4 px-1 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4 sm:px-6"
   on:click={playerEmote}
 >
-  <button
-    class="btn rounded-2xl text-white preset-filled-secondary-500 py-2"
-    on:click={promptForStart}
-    >Start Game <Icon icon="mdi:play" font-size="1.8rem" /></button
-  >
+  <div class="h-full"></div>
 
-  <div class=" max-w-96">
-    <h3 class="mt-4 mb-2 pl-2 text-lg">Settings</h3>
-    <ul>
-      <li
-        class="flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800 bg-opacity-40"
-      >
+  <button
+    class="btn preset-filled-secondary-500 flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-lg font-semibold text-white shadow-lg"
+    on:click={promptForStart}
+  >
+    Start Game
+    <Icon icon="mdi:play" class="text-2xl" />
+  </button>
+
+  <div class="h-full"></div>
+
+  <section class=" py-1">
+    <h3 class="mb-3 text-lg font-semibold">Settings</h3>
+
+    <ul class="space-y-3">
+      <li class="rounded-xl bg-surface-300/50 p-4">
         <Switch
+          class="flex w-full items-center justify-between gap-3"
           checked={s_data.drinking}
           onCheckedChange={(e) => {
             s_data.drinking = e.checked;
           }}
         >
-          <Switch.Control>
+          <div>
+            <Switch.Label class="font-medium text-base"
+              >Drinking Game 🍺</Switch.Label
+            >
+          </div>
+          <Switch.Control class="shrink-0 scale-150 mr-4">
             <Switch.Thumb />
           </Switch.Control>
-          <Switch.Label>Drinking Game 🍺</Switch.Label>
           <Switch.HiddenInput />
         </Switch>
       </li>
 
-      <li
-        class="mt-2 flex flex-row justify-between items-center p-4 rounded-lg bg-slate-800"
-      >
+      <li class="rounded-xl bg-surface-300/50 p-4">
         <Switch
+          class="flex w-full items-center justify-between gap-3"
           checked={s_data.family}
           onCheckedChange={(e) => {
             s_data.family = e.checked;
           }}
         >
-          <Switch.Control>
+          <div>
+            <Switch.Label class="font-medium text-base"
+              >Family Mode</Switch.Label
+            >
+          </div>
+          <Switch.Control class="shrink-0 scale-150 mr-4">
             <Switch.Thumb />
           </Switch.Control>
-          <Switch.Label>Family Mode</Switch.Label>
           <Switch.HiddenInput />
         </Switch>
       </li>
 
-      <!-- Game End Condition Settings -->
-      <li class="mt-2 p-4 rounded-lg bg-slate-800 bg-opacity-40">
+      <li class="rounded-xl bg-surface-300/50 p-4">
         <Tabs
-          defaultValue="tab-rounds"
+          class="w-full"
+          value={endConditionTab}
           onValueChange={(e) => {
+            endConditionTab = e.value;
             s_data.endCondition = e.value === "tab-rounds" ? 0 : 1;
           }}
         >
-          <div class="text-start text-gray-200 font-bold mb-4">Game End 🏁</div>
-          <Tabs.List class="h-10">
-            <Tabs.Trigger class="flex-1" value="tab-rounds">
-              <span class="italic"> Rounds</span>
-            </Tabs.Trigger>
-            <Tabs.Trigger class="flex-1" value="tab-doubloons">
-              <span class="italic"> Doubloons</span></Tabs.Trigger
+          <Tabs.List
+            class="grid h-13 grid-cols-3 gap-2 rounded-lg items-center  p-1 pt-0"
+          >
+            <span class="text-sm font-semibold">End 🏁</span>
+            <Tabs.Trigger
+              class="rounded-md text-base font-medium"
+              value="tab-rounds"
             >
+              Rounds
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              class="rounded-md text-base font-medium"
+              value="tab-doubloons"
+            >
+              Doubloons
+            </Tabs.Trigger>
             <Tabs.Indicator />
           </Tabs.List>
-          <!-- Tab Panels --->
-          <Tabs.Content value="tab-rounds">
-            <div class="flex flex-row justify-between items-center">
-              <input
-                id="rounds"
-                type="number"
-                class="border m-2 p-2 rounded-md w-full"
-                min="10"
-                max="100"
-                step="1"
-                bind:value={s_data.rounds}
-              />
-              <span class="ml-2 w-64">Game Rounds</span>
-            </div>
+
+          <Tabs.Content value="tab-rounds" class="pt-0">
+            <label
+              for="rounds"
+              class="mb-1 block text-xs uppercase tracking-wide text-surface-300"
+            >
+              Total Rounds
+            </label>
+            <input
+              id="rounds"
+              type="number"
+              class="w-full rounded-lg border border-surface-500/40 bg-surface-900/70 p-3 text-base"
+              min="10"
+              max="100"
+              step="1"
+              inputmode="numeric"
+              bind:value={s_data.rounds}
+            />
           </Tabs.Content>
-          <Tabs.Content value="tab-doubloons">
-            <div class="flex flex-row justify-between items-center">
-              <input
-                id="points"
-                type="number"
-                class="border m-2 p-2 rounded-md w-full"
-                min="5000"
-                max="100000"
-                step="1000"
-                bind:value={s_data.doubloons}
-              />
-              <span class="ml-2 w-64">Doubloons To Win</span>
-            </div>
+
+          <Tabs.Content value="tab-doubloons" class="pt-0">
+            <label
+              for="points"
+              class="mb-1 block text-xs uppercase tracking-wide text-surface-300"
+            >
+              Doubloons To Win
+            </label>
+            <input
+              id="points"
+              type="number"
+              class="w-full rounded-lg border border-surface-500/40 bg-surface-900/70 p-3 text-base"
+              min="5000"
+              max="100000"
+              step="1000"
+              inputmode="numeric"
+              bind:value={s_data.doubloons}
+            />
           </Tabs.Content>
         </Tabs>
       </li>
     </ul>
-  </div>
+  </section>
 
-  {#if $session.data?.user}
-    <div class=""></div>
-  {:else}
-    <div class="mt-8 opacity-75">
+  {#if !$session.data?.user}
+    <div class="px-2 text-center text-sm opacity-80">
       (
       <span
-        class="cursor-pointer text-blue-500 hover:text-blue-600"
+        class="cursor-pointer text-blue-400 hover:text-blue-300"
         on:click={() => sideBarOpen.set(true)}>Sign In</span
       > to customize avatar.)
     </div>
   {/if}
 </div>
-<div class="h-22"></div>
+<div class="h-20"></div>

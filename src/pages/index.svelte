@@ -74,7 +74,7 @@
 <div class="space-y-2 text-center flex flex-col items-center w-full max-w-md">
   <!-- Animated Logo -->
   <figure class="flex flex-col items-center h-52">
-    <section class="img-bg" />
+    <section class="img-bg"></section>
     <img src={logo} alt="logo" class="object-contain h-full drop-shadow-2xl" />
   </figure>
   <!-- / -->

@@ -9,6 +9,7 @@ export enum OpCode {
     INPUT = 3,
     PING = 4,          // New: Keep-alive
     GET_TIME = 5,      // New: Request server time
+    QUERY_ROOM_STATE = 6, // New: Client requests current room state (for late joiners or reconnecting players)
 
     // Server -> Client
     ERROR = 10,
@@ -16,6 +17,7 @@ export enum OpCode {
     STATE_UPDATE = 12,
     PONG = 13,         // New: Response to Ping
     TIME_RESPONSE = 14,// New: Response with server timestamp
+    ROOM_STATE = 15,   // New: Server sending current room state to client
 
     // Server -> Host
     PLAYER_JOINED = 20,
@@ -31,6 +33,7 @@ export enum OpCode {
 // ... encode/decode remain the same
 
 export const encode = (op: OpCode, data: any) => {
+    console.log("Encoding", OpCode[op].toString(), data);
     const buffer = pack(data);
     const combined = new Uint8Array(buffer.length + 1);
     combined[0] = op;

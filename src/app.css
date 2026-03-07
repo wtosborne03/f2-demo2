@@ -6,6 +6,7 @@
 /* [!code ++] */
 @import "@skeletonlabs/skeleton/themes/modern";
 /* [!code ++] */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* make font size bigger for app */
 [data-theme="modern"] {
@@ -16,5 +17,4 @@
 }
 
 html,
-body {
-}
+body {}
