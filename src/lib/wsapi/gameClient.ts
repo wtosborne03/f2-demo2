@@ -37,7 +37,7 @@ export const connectionStatus = writable<"DISCONNECTED" | "CONNECTING" | "CONNEC
 export const errorStore = writable<string | null>(null);
 export const serverTimeOffset = writable<number>(0); // Add this to track time difference
 
-const ignoreErrors: string[] = ['Game_Lobby', 'Session expired'];
+const ignoreErrors: string[] = ['Game_Lobby', 'Session expired', 'Room not found'];
 
 class GameClient {
     private ws: WebSocket | null = null;
