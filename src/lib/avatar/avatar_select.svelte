@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount, tick } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { goto } from "$app/navigation";
   import {
     Rive,
@@ -25,6 +25,7 @@
   let emote_input: ViewModelInstanceNumber | undefined | null;
   let emote_fire_input: ViewModelInstanceTrigger | undefined | null;
 
+  let canvasEl: HTMLCanvasElement;
   let owned_items: Paths.GetUsersOwned.Responses.$200 = {};
   let loadedin = false;
 
@@ -39,7 +40,7 @@
     rCanvas();
     r = new Rive({
       src: import.meta.env.VITE_PUBLIC_API_URL + "/static/avatar/avatar.riv",
-      canvas: document.getElementById("canvas") as any,
+      canvas: canvasEl,
       autoplay: true,
       stateMachines: "AvatarState",
       onLoad: async () => {
@@ -146,12 +147,10 @@
 
   onDestroy(() => {});
 
-  const rCanvas = async () => {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d");
-    canvas.width = Math.max(window.innerWidth, window.innerHeight) / 5;
-    canvas.height = canvas.width;
-    await tick();
+  const rCanvas = () => {
+    if (!canvasEl) return;
+    canvasEl.width = Math.max(window.innerWidth, window.innerHeight) / 5;
+    canvasEl.height = canvasEl.width;
   };
 </script>
 
@@ -181,6 +180,7 @@
       >
         <div class="w-full flex justify-center">
           <canvas
+            bind:this={canvasEl}
             id="canvas"
             class="w-64 h-64 md:w-80 md:h-80 rounded-md"
             on:click={() => emote_fire_input?.trigger()}
@@ -293,7 +293,7 @@
     }
   }
 
-  .pop-anim {
+  :global(.pop-anim) {
     animation: pop 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 </style>
