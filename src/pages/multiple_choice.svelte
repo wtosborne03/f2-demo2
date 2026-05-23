@@ -3,6 +3,7 @@
   import type { QuestionData } from "../types/page_data";
   import type { PlayerState } from "$lib/wsapi/game";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import { Button } from "m3-svelte";
 
   let m_data: QuestionData;
   m_data = get(gameState).page_data;
@@ -19,12 +20,13 @@
   class="container h-full mx-auto w-full flex flex-col justify-center items-center"
 >
   {#each m_data.answers as answer}
-    <button
-      style="width: 100%; font-size: 1.5rem; white-space: normal; word-wrap: break-word;"
-      class="rounded-xl preset-filled m-2 p-2"
-      on:click={() =>
+    <Button
+      size="l"
+      square
+      style="width:100%; margin-bottom: 1rem; margin-top: 1rem;"
+      onclick={() =>
         submit_answer(m_data.answers.findIndex((a) => a == answer))}
-      >{answer}</button
+      >{answer}</Button
     >
   {/each}
 </div>

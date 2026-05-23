@@ -2,7 +2,6 @@
   import { get } from "svelte/store";
   import type { PlayerState } from "../types/player_state";
   import type { CharadesData, CharadesResultsData } from "../types/page_data";
-  import { RatingGroup } from "@skeletonlabs/skeleton-svelte";
   import Icon from "@iconify/svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
 

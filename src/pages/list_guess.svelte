@@ -5,6 +5,7 @@
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
+  import { TextFieldOutlined, TextFieldOutlinedMultiline } from "m3-svelte";
 
   let guess = "";
 
@@ -16,19 +17,41 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4"
 >
-  <div class="text-lg text-center">Think of a way out 🤔</div>
-  <form class="flex flex-col justify-center items-center w-full">
-    <div class="flex flex-row justify-start items-center w-full">
-      <textarea
-        class="textarea text-lg rounded-3xl p-5 mt-10 w-full"
-        maxlength="78"
-        rows="4"
-        placeholder="Survival Attempt"
+  <div class="subtitle-text">Think of a way out 🤔</div>
+  <form
+    class="flex flex-col justify-center items-center w-full max-w-md"
+    on:submit|preventDefault={submit_prompt}
+  >
+    <div class="field-wrapper">
+      <TextFieldOutlinedMultiline
+        label="Survival Attempt"
+        maxlength={78}
         bind:value={guess}
-      ></textarea>
+      />
     </div>
     <GameSubmit onSubmit={submit_prompt} />
   </form>
 </div>
+
+<style>
+  .subtitle-text {
+    font-family: var(--m3-font);
+    font-size: 1.5rem;
+    line-height: 1.333;
+    font-weight: 400;
+    text-align: center;
+    color: var(--m3c-on-background);
+    margin-bottom: 2rem;
+  }
+
+  .field-wrapper {
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .field-wrapper :global(.m3-container) {
+    width: 100%;
+  }
+</style>

@@ -1,12 +1,14 @@
 <script lang="ts">
   import "../app.css";
+  import "../../node_modules/m3-svelte/package/etc/styles.css";
+  import "../../node_modules/m3-svelte/package/etc/recommended-styles.css";
+  import "m3-svelte/etc/layer";
   import { onMount, onDestroy } from "svelte";
   import AppBar from "$lib/components/layout/app_bar.svelte";
   import BgTimer from "$lib/components/layout/bg_timer.svelte";
-  import { Dialog, Portal, Toast } from "@skeletonlabs/skeleton-svelte";
+  import { Dialog, Snackbar, Button } from "m3-svelte";
   import AuthBox from "$lib/components/SideBar.svelte";
   import { browser } from "$app/environment";
-  import { toaster } from "$lib/util/toaster";
   import { sideBarOpen } from "../stores/sidebar";
   import { page } from "$app/state";
   import Modal from "$lib/components/Modal.svelte";
@@ -14,63 +16,25 @@
   import { gameState } from "$lib/wsapi/gameClient";
 
   let dialogOpen = false;
-  const unsubDialog = sideBarOpen.subscribe((v) => (dialogOpen = v));
-
-  //storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+  const unsubDialog = sideBarOpen.subscribe((v) => {
+    dialogOpen = v;
+  });
 
   $: screen = $gameState.screen;
   $: timer_duration = $gameState.timer_duration;
 
-  //let cleanupErrorHandling = setupErrorHandling();
-
   onDestroy(() => {
     unsubDialog();
-    //storePopup.set(null);
-    //cleanupErrorHandling?.();
   });
 </script>
 
-<Toast.Group {toaster}>
-  {#snippet children(toast)}
-    <Toast
-      {toast}
-      class="app-toast pointer-events-auto w-full max-w-sm md:max-w-md shadow-xl rounded-lg p-3 text-white flex items-start gap-3"
-      style={`background-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-950);
-      border-color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-500);`}
-    >
-      <Toast.Message class="flex-1">
-        <Toast.Title class="text-sm font-semibold">
-          {toast.title}
-        </Toast.Title>
-        <Toast.Description class="text-xs mt-1">
-          {toast.description}
-        </Toast.Description>
-      </Toast.Message>
-      <Toast.CloseTrigger
-        class="ml-2 focus:outline-none"
-        style={`color: var(--color-${toast.type === "info" ? "secondary" : toast.type || "surface"}-600);`}
-      />
-    </Toast>
-  {/snippet}
-</Toast.Group>
+<Snackbar />
 
-<Dialog
-  open={dialogOpen}
-  onFocusOutside={() => sideBarOpen.set(false)}
-  onInteractOutside={() => sideBarOpen.set(false)}
->
-  <Portal>
-    <Dialog.Backdrop
-      class="fixed inset-0 z-50 bg-surface-50-950/50 transition backdrop-blur-xs transition-discrete opacity-0 starting:data-[state=open]:opacity-0 data-[state=open]:opacity-100 starting:data-[state=closed]:opacity-100 data-[state=closed]:opacity-0"
-    />
-    <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start py-4 pl-2">
-      <Dialog.Content
-        class="h-[calc(100dvh - 20rem)] card rounded-3xl bg-surface-100-900 w-2/3 md:w-md space-y-4 shadow-xl transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0 starting:data-[state=closed]:opacity-100 starting:data-[state=closed]:translate-x-0 data-[state=closed]:opacity-0 data-[state=closed]:-translate-x-full"
-      >
-        <AuthBox />
-      </Dialog.Content>
-    </Dialog.Positioner>
-  </Portal>
+<Dialog headline="Account" bind:open={dialogOpen} onclose={() => sideBarOpen.set(false)}>
+  <AuthBox />
+  {#snippet buttons()}
+    <Button variant="text" onclick={() => sideBarOpen.set(false)}>Close</Button>
+  {/snippet}
 </Dialog>
 
 {#if page.url.pathname === "/" && screen != "index"}

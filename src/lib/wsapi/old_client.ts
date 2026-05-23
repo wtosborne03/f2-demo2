@@ -342,7 +342,7 @@ export class GameClient {
   }
 
   updatePlayer(updates: Record<string, Partial<PlayerState> | undefined>) {
-    this.send({ packet: { $case: "updatePlayer", updatePlayer: { updates } } });
+    // this.send({ packet: { $case: "updatePlayer", updatePlayer: { updates } } });
   }
 
   sendMessageToPlayer(targetPlayer: string, message: string) {
@@ -375,7 +375,7 @@ export class GameClient {
   }
 
   sendPlayerInput(input: PlayerInputPayload) {
-    this.send({ packet: { $case: "playerInput", playerInput: { input } } });
+    //  this.send({ packet: { $case: "playerInput", playerInput: { input } } });
   }
 
   private startPingInterval() {

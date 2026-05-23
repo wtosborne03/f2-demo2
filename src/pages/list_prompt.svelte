@@ -4,6 +4,7 @@
   import type { ListPromptData, PromptData } from "../types/page_data";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
+  import { TextFieldOutlined, TextFieldOutlinedMultiline } from "m3-svelte";
 
   let m_data: ListPromptData;
   m_data = get(gameState).page_data;
@@ -18,28 +19,55 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4"
 >
-  <aside class="alert preset-filled-warning-500 mb-4 text-2xl rounded-xl p-3">
-    <!-- Icon -->
-    <!-- Message -->
-    <div class="alert-message">
-      <h3 class="h3 text-lg text-center">
-        If your scenario is survivable, you lose the round.
-      </h3>
-    </div>
-    <!-- Actions -->
-  </aside>
-  <form class="flex flex-col justify-center items-center w-full">
-    <div class="flex flex-row justify-start items-center w-full">
-      <textarea
-        class="textarea text-lg rounded-3xl p-5 mt-10 w-full"
-        placeholder="Survival Scenario"
-        rows="4"
-        maxlength="110"
+  <div class="alert-banner">
+    <h3>If your scenario is survivable, you lose the round.</h3>
+  </div>
+
+  <form
+    class="flex flex-col justify-center items-center w-full max-w-md"
+    on:submit|preventDefault={submit_prompt}
+  >
+    <div class="field-wrapper">
+      <TextFieldOutlinedMultiline
+        label="Survival Scenario"
+        maxlength={110}
         bind:value={survival_prompt}
-      ></textarea>
+      />
     </div>
     <GameSubmit onSubmit={submit_prompt} />
   </form>
 </div>
+
+<style>
+  .alert-banner {
+    background-color: var(--m3c-error-container);
+    color: var(--m3c-on-error-container);
+    padding: 1rem;
+    border-radius: var(--m3-shape-medium);
+    text-align: center;
+    width: 100%;
+    max-width: 28rem;
+    border: 1px solid var(--m3c-error);
+    margin-bottom: 2rem;
+  }
+
+  .alert-banner h3 {
+    margin: 0;
+    font-family: var(--m3-font);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 400;
+    font-weight: 500;
+  }
+
+  .field-wrapper {
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .field-wrapper :global(.m3-container) {
+    width: 100%;
+  }
+</style>

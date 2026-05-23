@@ -1,4 +1,4 @@
-import OpenAPIClientAxios from "openapi-client-axios";
+import { OpenAPIClientAxios } from "openapi-client-axios";
 import type { Client as ApiClient } from "./api";
 import axios from "axios";
 

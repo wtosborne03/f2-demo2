@@ -2,9 +2,9 @@
   import { get } from "svelte/store";
   import type { ProductPromptData } from "../types/page_data";
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
-
   import Canvas from "$lib/components/canvas.svelte";
   import Palette from "$lib/components/palette.svelte";
+  import { Button } from "m3-svelte";
 
   const colors = ["#000000", "#ffffff"];
   const background = "#fff";
@@ -28,10 +28,10 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4"
 >
-  <div class="mb-2 p-4 text-center">Draw an image of your product</div>
-  <form class=" flex flex-col justify-center items-center gap-4 my-12">
+  <div class="prompt-text">Draw an image of your product</div>
+  <form class="flex flex-col justify-center items-center gap-4 my-12 w-full max-w-sm" on:submit|preventDefault={submit_prompt}>
     <Canvas square {color} {background} />
     <Palette
       {paletteColor}
@@ -41,8 +41,26 @@
         color = detail.color;
       }}
     />
-    <button class="btn preset-filled mb-24 mt-12 px-10" on:click={submit_prompt}
-      >Submit</button
-    >
+    <div class="btn-wrapper">
+      <Button variant="filled" onclick={submit_prompt}>Submit</Button>
+    </div>
   </form>
 </div>
+
+<style>
+  .prompt-text {
+    font-family: var(--m3-font); font-size: 1.5rem; line-height: 1.333; font-weight: 400;
+    text-align: center;
+    color: var(--m3c-on-background);
+  }
+
+  .btn-wrapper {
+    margin-top: 2rem;
+    width: 100%;
+    margin-bottom: 6rem;
+  }
+
+  .btn-wrapper > :global(*) {
+    width: 100%;
+  }
+</style>

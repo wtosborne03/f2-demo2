@@ -1,15 +1,22 @@
 <script lang="ts">
-    import Icon from "@iconify/svelte";
+  import Icon from "@iconify/svelte";
+  import { Button } from "m3-svelte";
 
-    let { onSubmit }: { onSubmit: () => void } = $props();
+  let { onSubmit }: { onSubmit: () => void } = $props();
 </script>
 
-<button
-    class="btn preset-filled-primary-500 px-4 py-2 corner-squircle rounded-[3rem] corner-s text-lg font-bold text-white mt-12"
-    onclick={onSubmit}
-    >Submit <Icon
-        font-size="3rem"
-        class="ml-3"
-        icon="streamline-flex:mail-send-email-message-circle"
-    /></button
->
+<div class="submit-wrapper">
+  <Button variant="filled" size="m" onclick={onSubmit}>
+    Submit
+    <Icon
+      class="text-6xl"
+      icon="streamline-flex:mail-send-email-message-circle"
+    />
+  </Button>
+</div>
+
+<style>
+  .submit-wrapper {
+    margin-top: 2rem;
+  }
+</style>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { playerEmote } from "$lib/avatar/player_emote";
-  import { Tabs, Switch } from "@skeletonlabs/skeleton-svelte";
-  import { get } from "svelte/store";
+  import { Switch, Tabs, Slider, Button } from "m3-svelte";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
@@ -10,11 +9,33 @@
 
   const session = authClient.useSession();
 
-  let s_data: settings = get(gameState).page_data.settings;
-  let endConditionTab =
-    s_data.endCondition === 1 ? "tab-doubloons" : "tab-rounds";
+  // Create local reactive state representing the settings
+  let s_data = $state<settings>({
+    drinking: false,
+    family: false,
+    rounds: 10,
+    doubloons: 5000,
+    endCondition: 0,
+  });
 
-  $: s_data,
+  let endConditionTab = $state("tab-rounds");
+  let hasInitialized = false;
+
+  // Keep s_data synchronized with server-side gameState changes only once upon mount/load
+  $effect(() => {
+    const currentSettings = $gameState.page_data?.settings;
+    if (currentSettings && !hasInitialized) {
+      s_data.drinking = currentSettings.drinking;
+      s_data.family = currentSettings.family;
+      s_data.rounds = currentSettings.rounds;
+      s_data.doubloons = currentSettings.doubloons;
+      s_data.endCondition = currentSettings.endCondition;
+      hasInitialized = true;
+    }
+  });
+
+  // Function to send updated settings to the server
+  function sendSettings() {
     gameClient.sendInput({
       type: "update_settings",
       settings: {
@@ -25,13 +46,16 @@
         endCondition: s_data.endCondition,
       },
     });
-
-  $: {
-    const nextTab = s_data.endCondition === 1 ? "tab-doubloons" : "tab-rounds";
-    if (endConditionTab !== nextTab) {
-      endConditionTab = nextTab;
-    }
   }
+
+  // Handle updates from tab changes
+  $effect(() => {
+    const targetEndCondition = endConditionTab === "tab-rounds" ? 0 : 1;
+    if (s_data.endCondition !== targetEndCondition) {
+      s_data.endCondition = targetEndCondition;
+      sendSettings();
+    }
+  });
 
   function promptForStart() {
     startGame();
@@ -44,146 +68,252 @@
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-  class="mx-auto flex h-full w-full max-w-xl flex-col gap-4 px-1 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4 sm:px-6"
-  on:click={playerEmote}
->
-  <div class="h-full"></div>
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="can-start-container" onclick={playerEmote}>
+  <div class="spacer-flex"></div>
 
-  <button
-    class="btn preset-filled-secondary-500 flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-lg font-semibold text-white shadow-lg"
-    on:click={promptForStart}
-  >
-    Start Game
-    <Icon icon="mdi:play" class="text-2xl" />
-  </button>
+  <div class="start-btn-wrapper">
+    <Button variant="filled" size="l" onclick={promptForStart}>
+      Start Game
+      <Icon icon="mdi:play" />
+    </Button>
+  </div>
 
-  <div class="h-full"></div>
+  <section class="settings-section">
+    <h3 class="settings-title">Settings</h3>
 
-  <section class=" py-1">
-    <h3 class="mb-3 text-lg font-semibold">Settings</h3>
-
-    <ul class="space-y-3">
-      <li class="rounded-xl bg-surface-300/50 p-4">
-        <Switch
-          class="flex w-full items-center justify-between gap-3"
-          checked={s_data.drinking}
-          onCheckedChange={(e) => {
-            s_data.drinking = e.checked;
-          }}
-        >
-          <div>
-            <Switch.Label class="font-medium text-base"
-              >Drinking Game 🍺</Switch.Label
-            >
-          </div>
-          <Switch.Control class="shrink-0 scale-150 mr-4">
-            <Switch.Thumb />
-          </Switch.Control>
-          <Switch.HiddenInput />
-        </Switch>
+    <ul class="settings-list">
+      <li class="settings-item">
+        <label class="switch-label">
+          <span class="label-text">Drinking Game 🍺</span>
+          <Switch bind:checked={s_data.drinking} onchange={sendSettings} />
+        </label>
       </li>
 
-      <li class="rounded-xl bg-surface-300/50 p-4">
-        <Switch
-          class="flex w-full items-center justify-between gap-3"
-          checked={s_data.family}
-          onCheckedChange={(e) => {
-            s_data.family = e.checked;
-          }}
-        >
-          <div>
-            <Switch.Label class="font-medium text-base"
-              >Family Mode</Switch.Label
-            >
-          </div>
-          <Switch.Control class="shrink-0 scale-150 mr-4">
-            <Switch.Thumb />
-          </Switch.Control>
-          <Switch.HiddenInput />
-        </Switch>
+      <li class="settings-item">
+        <label class="switch-label">
+          <span class="label-text">Family Mode 👨‍👩‍👧‍👦</span>
+          <Switch bind:checked={s_data.family} onchange={sendSettings} />
+        </label>
       </li>
 
-      <li class="rounded-xl bg-surface-300/50 p-4">
-        <Tabs
-          class="w-full"
-          value={endConditionTab}
-          onValueChange={(e) => {
-            endConditionTab = e.value;
-            s_data.endCondition = e.value === "tab-rounds" ? 0 : 1;
-          }}
-        >
-          <Tabs.List
-            class="grid h-13 grid-cols-3 gap-2 rounded-lg items-center  p-1 pt-0"
-          >
-            <span class="text-sm font-semibold">End 🏁</span>
-            <Tabs.Trigger
-              class="rounded-md text-base font-medium"
-              value="tab-rounds"
-            >
-              Rounds
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              class="rounded-md text-base font-medium"
-              value="tab-doubloons"
-            >
-              Doubloons
-            </Tabs.Trigger>
-            <Tabs.Indicator />
-          </Tabs.List>
+      <li class="settings-item tabs-item">
+        <span class="tabs-title">End Condition 🏁</span>
 
-          <Tabs.Content value="tab-rounds" class="pt-0">
-            <label
-              for="rounds"
-              class="mb-1 block text-xs uppercase tracking-wide text-surface-300"
-            >
-              Total Rounds
-            </label>
-            <input
-              id="rounds"
-              type="number"
-              class="w-full rounded-lg border border-surface-500/40 bg-surface-900/70 p-3 text-base"
-              min="10"
-              max="100"
-              step="1"
-              inputmode="numeric"
-              bind:value={s_data.rounds}
-            />
-          </Tabs.Content>
+        <div class="tabs-container">
+          <Tabs
+            items={[
+              { name: "Rounds", value: "tab-rounds" },
+              { name: "Doubloons", value: "tab-doubloons" },
+            ]}
+            bind:tab={endConditionTab}
+            secondary
+          />
+        </div>
 
-          <Tabs.Content value="tab-doubloons" class="pt-0">
-            <label
-              for="points"
-              class="mb-1 block text-xs uppercase tracking-wide text-surface-300"
-            >
-              Doubloons To Win
-            </label>
-            <input
-              id="points"
-              type="number"
-              class="w-full rounded-lg border border-surface-500/40 bg-surface-900/70 p-3 text-base"
-              min="5000"
-              max="100000"
-              step="1000"
-              inputmode="numeric"
-              bind:value={s_data.doubloons}
-            />
-          </Tabs.Content>
-        </Tabs>
+        <div class="tabs-content">
+          {#if endConditionTab === "tab-rounds"}
+            <div class="slider-wrapper">
+              <div class="slider-label-row">
+                <span class="slider-label">Total Rounds</span>
+                <span class="slider-value-display">{s_data.rounds}</span>
+              </div>
+              <Slider
+                bind:value={s_data.rounds}
+                min={10}
+                max={100}
+                step={1}
+                onchange={sendSettings}
+              />
+            </div>
+          {:else}
+            <div class="slider-wrapper">
+              <div class="slider-label-row">
+                <span class="slider-label">Doubloons To Win</span>
+                <span class="slider-value-display"
+                  >{s_data.doubloons.toLocaleString()}</span
+                >
+              </div>
+              <Slider
+                bind:value={s_data.doubloons}
+                min={5000}
+                max={100000}
+                step={1000}
+                onchange={sendSettings}
+              />
+            </div>
+          {/if}
+        </div>
       </li>
     </ul>
   </section>
 
   {#if !$session.data?.user}
-    <div class="px-2 text-center text-sm opacity-80">
+    <div class="signin-helper">
       (
-      <span
-        class="cursor-pointer text-blue-400 hover:text-blue-300"
-        on:click={() => sideBarOpen.set(true)}>Sign In</span
+      <span class="signin-link" onclick={() => sideBarOpen.set(true)}
+        >Sign In</span
       > to customize avatar.)
     </div>
   {/if}
+  <div class="spacer-flex"></div>
 </div>
-<div class="h-20"></div>
+
+<style>
+  .can-start-container {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 36rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    min-height: 100%;
+  }
+
+  .spacer-flex {
+    flex-grow: 1;
+  }
+
+  .start-btn-wrapper {
+    width: 100%;
+    margin-bottom: 2.5rem;
+  }
+
+  .start-btn-wrapper > :global(*) {
+    width: 100%;
+    padding: 1.75rem 0;
+    font-size: 1.25rem;
+  }
+
+  .settings-section {
+    width: 100%;
+  }
+
+  .settings-title {
+    font-family: var(--m3-font);
+    font-size: 1.375rem;
+    line-height: 1.273;
+    font-weight: 400;
+    color: var(--m3c-on-background);
+    margin-bottom: 1rem;
+    margin-top: 0;
+  }
+
+  .settings-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .settings-item {
+    background-color: var(--m3c-surface-container-low);
+    border-radius: var(--m3-shape-large);
+    padding: 1.25rem;
+    border: 1px solid var(--m3c-outline-variant);
+    transition:
+      background-color 0.25s cubic-bezier(0.2, 0, 0, 1),
+      border-color 0.25s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .settings-item:hover {
+    background-color: var(--m3c-surface-container);
+    border-color: var(--m3c-outline);
+  }
+
+  .switch-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .label-text {
+    font-family: var(--m3-font);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--m3c-on-surface);
+  }
+
+  .tabs-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .tabs-title {
+    font-family: var(--m3-font);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--m3c-on-surface);
+  }
+
+  .tabs-container {
+    width: 100%;
+  }
+
+  .tabs-container :global(.m3-container) {
+    width: 100%;
+  }
+
+  .tabs-content {
+    width: 100%;
+    margin-top: 0.25rem;
+  }
+
+  .slider-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slider-label {
+    font-family: var(--m3-font);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--m3c-on-surface-variant);
+  }
+
+  .slider-value-display {
+    font-family: var(--m3-font);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--m3c-primary);
+  }
+
+  .slider-wrapper :global(.m3-container) {
+    width: 100%;
+  }
+
+  .signin-helper {
+    font-family: var(--m3-font);
+    font-size: 0.875rem;
+    line-height: 1.429;
+    font-weight: 400;
+    color: var(--m3c-on-surface-variant);
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  .signin-link {
+    color: var(--m3c-primary);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+</style>

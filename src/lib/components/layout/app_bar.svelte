@@ -49,7 +49,7 @@
     }}
     class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-70 cursor-pointer"
     class:flash
-    style="--app-color: {color}; border-width: 3px; border-color: {color}; background-color: color(from {color} srgb r g b / 0.2);"
+    style="--app-color: {color}; background-color: color(from {color} srgb r g b / 0.4);"
   >
     <!-- App Bar -->
     <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
@@ -60,7 +60,7 @@
       <div class="flex flex-col justify-center items-center h-10">
         {name}
         {#if admin}
-          <span class="text-xs -mt-2 opacity-50"> admin </span>
+          <span class="text-sm opacity-50"> admin </span>
         {/if}
       </div>
     </span>

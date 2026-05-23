@@ -5,6 +5,7 @@
   import ShopItemCard from "$lib/components/ShopItemCard.svelte";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
+  import { Button, TextFieldOutlined } from "m3-svelte";
 
   let shopItems: { [key: string]: any } = {};
   let allItems: any[] = [];
@@ -35,56 +36,42 @@
   });
 </script>
 
-<div
-  class="h-screen overflow-y-auto bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 text-white"
->
+<div class="shop-container">
   <!-- Header -->
-  <header
-    class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-purple-500/20"
-  >
-    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <button class="btn preset-filled w-14" on:click={() => goto("/")}>
-        <Icon icon="lets-icons:back" font-size="2rem" />
-      </button>
+  <header class="shop-header">
+    <div class="header-top">
+      <Button variant="filled" onclick={() => goto("/")}>
+        <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
+      </Button>
 
-      <h1 class="text-3xl font-bold text-white">Shop</h1>
+      <h1 class="header-title">Shop</h1>
 
-      <div class="w-14"></div>
-      <!-- Spacer for centering -->
+      <div class="spacer"></div>
     </div>
 
     <!-- Search Bar -->
-    <div class="max-w-7xl mx-auto px-4 pb-4">
-      <div class="relative">
-        <input
-          type="text"
-          bind:value={searchQuery}
-          placeholder="Search items..."
-          class="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm"
-        />
-        <i
-          class="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-        ></i>
-      </div>
+    <div class="search-bar">
+      <TextFieldOutlined
+        label="Search items..."
+        bind:value={searchQuery}
+      />
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-8">
+  <main class="shop-main">
     {#if isLoading}
-      <div class="flex justify-center items-center py-12">
+      <div class="loading-wrapper">
         <Spinner />
       </div>
     {:else}
       <!-- Featured Deals Section -->
       {#if deals.length > 0 && !searchQuery}
-        <section class="mb-12">
-          <h2 class="text-2xl font-bold mb-6 flex items-center">
-            <i class="fa-solid fa-fire text-red-500 mr-3"></i>
+        <section class="shop-section">
+          <h2 class="section-title">
+            <Icon icon="mdi:fire" class="title-icon" style="color: #ef5350;" />
             Featured Deals
           </h2>
-          <div
-            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-          >
+          <div class="item-grid">
             {#each deals.slice(0, 4) as item}
               <ShopItemCard
                 {item}
@@ -99,11 +86,11 @@
       <!-- Search Results or Categories -->
       {#if searchQuery}
         <!-- Search Results in List View -->
-        <section>
-          <h2 class="text-2xl font-bold mb-6 flex items-center">
-            <i class="fa-solid fa-search text-purple-400 mr-3"></i>
+        <section class="shop-section">
+          <h2 class="section-title">
+            <Icon icon="mdi:magnify" class="title-icon" style="color: var(--m3c-primary);" />
             Search Results
-            <span class="ml-2 text-sm text-gray-400"
+            <span class="results-count"
               >({allItems.filter(
                 (item) =>
                   item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -114,9 +101,7 @@
             >
           </h2>
 
-          <div
-            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-          >
+          <div class="item-grid">
             {#each allItems.filter((item) => item.name
                   .toLowerCase()
                   .includes(searchQuery.toLowerCase()) || categories[item.type]
@@ -136,15 +121,13 @@
         {#each Object.keys(shopItems) as category}
           {@const items = shopItems[category]}
           {#if items && items.length > 0}
-            <section class="mb-12">
-              <h2 class="text-2xl font-bold mb-6 flex items-center">
-                <i class="fa-solid fa-tag text-purple-400 mr-3"></i>
+            <section class="shop-section">
+              <h2 class="section-title">
+                <Icon icon="mdi:tag-outline" class="title-icon" style="color: var(--m3c-primary);" />
                 {categories[category]}
               </h2>
 
-              <div
-                class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-              >
+              <div class="item-grid">
                 {#each items as item}
                   <ShopItemCard
                     {item}
@@ -164,12 +147,140 @@
               .includes(searchQuery.toLowerCase()) || categories[item.type]
               ?.toLowerCase()
               .includes(searchQuery.toLowerCase())).length === 0}
-        <div class="text-center py-12">
-          <i class="fa-solid fa-search text-6xl text-gray-600 mb-4"></i>
-          <h3 class="text-2xl font-bold text-gray-400 mb-2">No items found</h3>
-          <p class="text-gray-500">Try adjusting your search terms</p>
+        <div class="no-results">
+          <Icon icon="mdi:search-off" class="no-results-icon" />
+          <h3>No items found</h3>
+          <p>Try adjusting your search terms</p>
         </div>
       {/if}
     {/if}
   </main>
 </div>
+
+<style>
+  .shop-container {
+    height: 100vh;
+    overflow-y: auto;
+    background-color: var(--m3c-background);
+    color: var(--m3c-on-background);
+  }
+
+  .shop-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--m3c-surface-container);
+    border-bottom: 1px solid var(--m3c-outline-variant);
+    padding: 1rem;
+  }
+
+  .header-top {
+    max-width: 80rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .header-title {
+    font-family: var(--m3-font); font-size: 1.75rem; line-height: 1.286; font-weight: 400;
+    margin: 0;
+    color: var(--m3c-on-surface);
+  }
+
+  .spacer {
+    width: 3.5rem;
+  }
+
+  .search-bar {
+    max-width: 80rem;
+    margin: 0 auto;
+  }
+
+  .search-bar > :global(*) {
+    width: 100%;
+  }
+
+  .shop-main {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .loading-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 0;
+  }
+
+  .shop-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-title {
+    font-family: var(--m3-font); font-size: 1.375rem; line-height: 1.273; font-weight: 400;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--m3c-on-background);
+  }
+
+  .title-icon {
+    font-size: 1.75rem;
+  }
+
+  .results-count {
+    font-family: var(--m3-font); font-size: 0.875rem; line-height: 1.429; font-weight: 400;
+    color: var(--m3c-on-surface-variant);
+    margin-left: 0.5rem;
+  }
+
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .item-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .item-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .item-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--m3c-on-surface-variant);
+  }
+
+  .no-results-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .no-results h3 {
+    font-family: var(--m3-font); font-size: 1.375rem; line-height: 1.273; font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+
+  .no-results p {
+    font-family: var(--m3-font); font-size: 0.875rem; line-height: 1.429; font-weight: 400;
+  }
+</style>

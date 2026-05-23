@@ -1,7 +1,7 @@
 <script lang="ts">
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-
   import { onMount } from "svelte";
+  import { Button } from "m3-svelte";
 
   const confirm = () => {
     gameClient.sendInput({
@@ -45,7 +45,6 @@
     if (!supportsMotion && !supportsOrientation) {
       return false;
     }
-    // Check if permission needs to be requested (iOS 13+)
     const needsMotionPermission =
       typeof (DeviceMotionEvent as any).requestPermission === "function";
     const needsOrientationPermission =
@@ -80,10 +79,10 @@
   let showButton = false;
 </script>
 
-<div class="container h-full mx-auto flex justify-center items-center">
+<div class="container h-full mx-auto flex justify-center items-center px-4">
   {#if showButton}
-    <button class="btn preset-filled" on:click={confirmMotion}
-      >Use Motion Controls</button
-    >
+    <Button variant="filled" onclick={confirmMotion}>
+      Use Motion Controls
+    </Button>
   {/if}
 </div>

@@ -41,6 +41,65 @@ declare namespace Paths {
             }
         }
     }
+    namespace GetMapIplocation {
+        namespace Parameters {
+            export type Ip = string;
+        }
+        export interface QueryParameters {
+            ip: Parameters.Ip;
+        }
+        namespace Responses {
+            export interface $200 {
+                longitude: number;
+                latitude: number;
+                country: string;
+                region: string;
+                city: string;
+            }
+            export interface $404 {
+                error: string;
+            }
+        }
+    }
+    namespace GetMapPlaces {
+        namespace Parameters {
+            export type Latitude = string /* numeric */ | number;
+            export type Limit = string /* numeric */ | number;
+            export type Longitude = string /* numeric */ | number;
+            export type Radius = string /* numeric */ | number;
+        }
+        export interface QueryParameters {
+            latitude: Parameters.Latitude;
+            longitude: Parameters.Longitude;
+            radius?: Parameters.Radius;
+            limit?: Parameters.Limit;
+        }
+        namespace Responses {
+            export type $200 = {
+                id: string;
+                name: string;
+                latitude: number;
+                longitude: number;
+                categories: {
+                    id: string;
+                    name: string;
+                    icon?: string;
+                }[];
+                photos: {
+                    id: string;
+                    url: string;
+                    width: number;
+                    height: number;
+                }[];
+                location: {
+                    formatted_address?: string;
+                };
+            }[];
+            export interface $500 {
+                error: string;
+            }
+        }
+    }
     namespace GetShopItems {
         namespace Responses {
             export type $200 = {
@@ -191,7 +250,7 @@ declare namespace Paths {
     namespace PostGameStart {
         export interface RequestBody {
             players: {
-                userId: string;
+                userId?: string;
             }[];
         }
         namespace Responses {
@@ -218,6 +277,32 @@ declare namespace Paths {
                 error: string;
             }
             export interface $404 {
+                error: string;
+            }
+        }
+    }
+    namespace PostTxt2img {
+        export interface RequestBody {
+            prompt: string;
+            negative_prompt?: string;
+            steps?: number;
+            cfg_scale?: number;
+            width?: number;
+            height?: number;
+            seed?: number;
+            sampler_name?: string;
+            batch_size?: number;
+        }
+        namespace Responses {
+            export interface $200 {
+                images: string[];
+                parameters?: any;
+                info?: string;
+            }
+            export interface $500 {
+                error: string;
+            }
+            export interface $503 {
                 error: string;
             }
         }
@@ -408,6 +493,30 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PostGameByIdPrompt.Responses.$200>
   /**
+   * getMapIplocation - Get location based on IP address
+   */
+  'getMapIplocation'(
+    parameters?: Parameters<Paths.GetMapIplocation.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetMapIplocation.Responses.$200>
+  /**
+   * getMapPlaces - Search for places using Overpass API (OpenStreetMap)
+   */
+  'getMapPlaces'(
+    parameters?: Parameters<Paths.GetMapPlaces.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetMapPlaces.Responses.$200>
+  /**
+   * postTxt2img - Generate image using Stable Diffusion txt2img API
+   */
+  'postTxt2img'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.PostTxt2img.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostTxt2img.Responses.$200>
+  /**
    * allApiAuth*
    */
   'allApiAuth*'(
@@ -490,6 +599,10 @@ export interface OperationMethods {
 }
 
 export interface PathsDictionary {
+  ['/game/host']: {
+  }
+  ['/game/play']: {
+  }
   ['/users/me']: {
     /**
      * getUsersMe - Get current user information
@@ -640,7 +753,35 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PostGameByIdPrompt.Responses.$200>
   }
-  ['/game']: {
+  ['/map/iplocation']: {
+    /**
+     * getMapIplocation - Get location based on IP address
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMapIplocation.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMapIplocation.Responses.$200>
+  }
+  ['/map/places']: {
+    /**
+     * getMapPlaces - Search for places using Overpass API (OpenStreetMap)
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMapPlaces.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMapPlaces.Responses.$200>
+  }
+  ['/txt2img/']: {
+    /**
+     * postTxt2img - Generate image using Stable Diffusion txt2img API
+     */
+    'post'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: Paths.PostTxt2img.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostTxt2img.Responses.$200>
   }
   ['/api/auth/*']: {
     /**

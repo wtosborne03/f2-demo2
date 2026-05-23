@@ -6,6 +6,7 @@
     import GoogleSignInButton from "./GoogleSignInButton.svelte";
     import { sideBarOpen } from "../../stores/sidebar";
     import SpotifySignInButton from "./SpotifySignInButton.svelte";
+    import { Button } from "m3-svelte";
 
     const { signIn, signOut, useSession } = authClient;
     const session = useSession();
@@ -20,10 +21,9 @@
         sideBarOpen.set(false);
     };
 
-    // Attempt multiple sign-in flows for Google depending on available client methods.
     const signInWithGoogle = async () => {
         try {
-            const redirectTo = `${window.location.origin}/`; // or specify a path like '/auth-complete'
+            const redirectTo = `${window.location.origin}/`;
             const { data, error } = await signIn.social({
                 provider: "google",
                 callbackURL: redirectTo,
@@ -35,15 +35,13 @@
                 });
                 return;
             }
-            // some clients return an url to redirect the browser to — handle that explicitly
             if (data?.url) {
                 window.location.href = data.url;
             }
         } catch (error) {
             toaster.error({
                 title: "Google Sign-In Failed",
-                description:
-                    error instanceof Error ? error.message : String(error),
+                description: error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -61,15 +59,13 @@
                 });
                 return;
             }
-            // some clients return an url to redirect the browser to — handle that explicitly
             if (data?.url) {
                 window.location.href = data.url;
             }
         } catch (error) {
             toaster.error({
                 title: "Spotify Sign-In Failed",
-                description:
-                    error instanceof Error ? error.message : String(error),
+                description: error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -80,57 +76,80 @@
     };
 </script>
 
-<div
-    class="py-8 px-3 text-center h-full flex flex-col justify-center items-center gap-4"
->
+<div class="sidebar-content">
     {#if $session.data?.user}
-        <div
-            class="flex flex-col justify-between h-full items-center text-xl w-full"
-        >
-            <div class="text-sm wrap-anywhere">
+        <div class="user-logged-in">
+            <div class="user-email">
                 {$session.data?.user?.email}
             </div>
-            <div
-                class="flex flex-col items-center justify-start gap-4 w-full h-full py-10"
-            >
-                <button
-                    class="btn preset-filled w-full flex flex-row justify-between"
-                    on:click={customizeAvatar}
-                    >Avatar <Icon
-                        icon="dashicons:admin-customizer"
-                        font-size="2rem"
-                    /></button
-                >
-                <button
-                    class="btn preset-filled w-full flex flex-row justify-between"
-                    on:click={goShop}
-                    >Shop <Icon
-                        icon="material-symbols:shop-two-outline"
-                        font-size="2rem"
-                    /></button
-                >
-                <button
-                    class="btn preset-filled w-full flex flex-row justify-between"
-                    on:click={goStats}
-                    >Stats <Icon
-                        icon="gridicons:stats"
-                        font-size="2rem"
-                    /></button
-                >
+            
+            <div class="nav-buttons">
+                <Button variant="tonal" onclick={customizeAvatar}>
+                    Avatar <Icon icon="dashicons:admin-customizer" />
+                </Button>
+                <Button variant="tonal" onclick={goShop}>
+                    Shop <Icon icon="material-symbols:shop-two-outline" />
+                </Button>
+                <Button variant="tonal" onclick={goStats}>
+                    Stats <Icon icon="gridicons:stats" />
+                </Button>
             </div>
-            <button
-                class="btn preset-filled-error-100-900 w-full"
-                on:click={() => signOut()}
-                >Sign Out <Icon
-                    icon="mdi:sign-out-variant"
-                    font-size="2rem"
-                /></button
-            >
+
+            <div class="action-buttons">
+                <Button variant="outlined" onclick={() => signOut()}>
+                    Sign Out <Icon icon="mdi:sign-out-variant" />
+                </Button>
+            </div>
         </div>
     {:else}
-        <div class="flex flex-col justify-center items-stretch gap-4 mw-64">
+        <div class="signin-options">
             <GoogleSignInButton onClick={signInWithGoogle} />
             <SpotifySignInButton onClick={signInWithSpotify} />
         </div>
     {/if}
 </div>
+
+<style>
+    .sidebar-content {
+        padding: 1.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .user-logged-in {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .user-email {
+        font-family: var(--m3-font); font-size: 1rem; line-height: 1.5; font-weight: 500;
+        color: var(--m3c-on-surface-variant);
+        text-align: center;
+        word-break: break-all;
+    }
+
+    .nav-buttons, .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .nav-buttons > :global(*), .action-buttons > :global(*) {
+        width: 100%;
+    }
+
+    .signin-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 280px;
+    }
+</style>

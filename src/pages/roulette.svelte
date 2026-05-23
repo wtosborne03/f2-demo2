@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { RouletteData } from "../types/page_data";
-  import { Slider } from "@skeletonlabs/skeleton-svelte";
   import { toaster } from "$lib/util/toaster";
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
   import { get } from "svelte/store";

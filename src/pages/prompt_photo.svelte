@@ -6,6 +6,7 @@
   import Spinner from "$lib/components/spinner.svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
+  import { Card } from "m3-svelte";
 
   let m_data: PromptData;
   m_data = get(gameState).page_data;
@@ -65,14 +66,12 @@
   {#if loading}
     <Spinner />
   {/if}
-  <div
-    class="mb-12 mt-2 p-3 pt-1.5 text-lg text-center border-4 leading-8 border-primary-500 bg-primary-contrast-50 rounded-container"
-  >
-    <span class="text-sm sitalic opacity-65">Prompt:</span><br />
+  <Card variant="elevated">
+    <span class="text-lg sitalic opacity-65">Prompt:</span><br />
     {m_data.question}
-  </div>
+  </Card>
   <button
-    class="btn preset-tonal-primary big-fun-button"
+    class="big-fun-button"
     on:click={async () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
       fileinput.click();
@@ -107,6 +106,7 @@
 
 <style>
   .big-fun-button {
+    margin-top: 1.25rem;
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -114,6 +114,10 @@
     padding: 0.85rem 1.4rem;
     font-size: 1.05rem;
     border-radius: 999px;
+    background-color: var(--m3c-primary-container);
+    color: var(--m3c-on-primary-container);
+    border: none;
+    cursor: pointer;
 
     transition:
       transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1),

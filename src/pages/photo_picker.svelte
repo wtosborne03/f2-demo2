@@ -3,6 +3,7 @@
   import type { photoPickerData } from "../types/page_data";
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
+  import { Button } from "m3-svelte";
 
   let s_data: photoPickerData;
   s_data = get(gameState).page_data;
@@ -81,18 +82,25 @@
   </div>
 
   <!-- Action Section -->
-  <div class="w-full flex justify-center mt-12 pb-4">
-    <button
-      type="button"
-      class="btn bg-indigo-600 hover:bg-indigo-500 text-white text-2xl px-12 py-5 rounded-2xl font-bold shadow-xl shadow-indigo-600/20 active:scale-95 transition-all flex items-center gap-4 group"
-      on:click={submit_answer}
-      aria-label="Vote for selected photo"
+  <div class="w-full flex justify-center mt-12 pb-4 btn-wrapper">
+    <Button
+      variant="filled"
+      onclick={submit_answer}
     >
-      <span>VOTE</span>
+      VOTE 
       <Icon
         icon="fa7-solid:vote-yea"
-        class="text-3xl group-hover:scale-110 transition-transform"
+        style="font-size: 1.75rem; margin-left: 0.5rem;"
       />
-    </button>
+    </Button>
   </div>
 </div>
+
+<style>
+  .btn-wrapper > :global(*) {
+    padding: 1.5rem 3rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+    border-radius: var(--m3-shape-large);
+  }
+</style>

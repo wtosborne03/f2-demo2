@@ -1,5 +1,4 @@
 <script lang="ts">
-  export const ssr = false; // Disable SSR for this component
   import type { SvelteComponent } from "svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { scale } from "svelte/transition";
@@ -10,6 +9,7 @@
   import { onMount, onDestroy } from "svelte";
   import { apiClient } from "$lib/backend/axios";
   import { dbClient } from "../stores/apiClient";
+  import { get } from "svelte/store";
 
   // Toggle this to enable automatic cycling through screens for debugging
   const debug = false;
@@ -56,36 +56,38 @@
     initApi();
     gameClient.connect(import.meta.env.VITE_PUBLIC_WS_API_URL);
 
-    // if (debug) {
-    //     // Build a list of screen names from the import keys.
-    //     // Keys are like "../pages/name.svelte"
-    //     const screenNames = Object.keys(screens)
-    //         .map((p) => p.replace("../pages/", "").replace(".svelte", ""))
-    //         .sort(); // sort to have deterministic order
+    if (debug) {
+      // Build a list of screen names from the import keys.
+      // Keys are like "../pages/name.svelte"
+      const screenNames = Object.keys(screens)
+        .map((p) => p.replace("../pages/", "").replace(".svelte", ""))
+        .sort(); // sort to have deterministic order
 
-    //     if (screenNames.length > 0) {
-    //         // Determine starting index from current screen
-    //         let idx = screenNames.indexOf(get(gameState)?.screen);
-    //         if (idx === -1) idx = 0;
+      if (screenNames.length > 0) {
+        // Determine starting index from current screen
+        let idx = screenNames.indexOf(get(gameState)?.screen);
+        if (idx === -1) idx = 0;
 
-    //         // Advance every 3 seconds
-    //         cycleInterval = setInterval(() => {
-    //             if (!paused) {
-    //                 idx = (idx + 1) % screenNames.length;
-    //                 // Update the store's screen - this will trigger loadComponent via the reactive statement above
-    //                 console.log(screenNames[idx], "screen changed");
-    //                 player_state.update((s) => {
-    //                     return {
-    //                         ...s,
-    //                         screen: screenNames[idx],
-    //                     };
-    //                 });
-    //             }
-    //         }, 3_000);
-    //     } else {
-    //         console.warn("Debug screen cycle enabled but no screens were found to cycle through.");
-    //     }
-    // }
+        // Advance every 3 seconds
+        cycleInterval = setInterval(() => {
+          if (!paused) {
+            idx = (idx + 1) % screenNames.length;
+            // Update the store's screen - this will trigger loadComponent via the reactive statement above
+            console.log(screenNames[idx], "screen changed");
+            gameState.update((s) => {
+              return {
+                ...s,
+                screen: screenNames[idx],
+              };
+            });
+          }
+        }, 3_000);
+      } else {
+        console.warn(
+          "Debug screen cycle enabled but no screens were found to cycle through.",
+        );
+      }
+    }
   });
 
   const pauseScreenSwitch = () => {

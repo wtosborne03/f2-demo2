@@ -1,20 +1,340 @@
 @import "tailwindcss";
 @plugin "@toolwind/corner-shape";
-@import "@skeletonlabs/skeleton";
-/* [!code ++] */
-@import "@skeletonlabs/skeleton-svelte";
-/* [!code ++] */
-@import "@skeletonlabs/skeleton/themes/modern";
-/* [!code ++] */
-@custom-variant dark (&:where(.dark, .dark *));
+@import "@fontsource-variable/google-sans-flex/index.css";
 
-/* make font size bigger for app */
-[data-theme="modern"] {
-    --skeleton-font-size-base: 1.5rem;
-    --skeleton-font-size-lg: 1.75rem;
-    --skeleton-font-size-sm: 1.25rem;
-    --text-scaling: 1.25;
+@function --m3-density(--size) {
+  result: var(--size);
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+:root {
+  /* Google Sans variable font configuration */
+  --m3-font: "Google Sans Flex", "Google Sans Flex Variable", system-ui, -apple-system, sans-serif;
+  --m3-font-mono: "Google Sans Code", monospace;
+
+  /* Material 3 Dark Palette Color Scheme */
+  --m3c-primary: #d0bcff;
+  --m3c-on-primary: #381e72;
+  --m3c-primary-container: #4f378b;
+  --m3c-on-primary-container: #eaddff;
+
+  --m3c-secondary: #ccc2dc;
+  --m3c-on-secondary: #332d41;
+  --m3c-secondary-container: #4a4458;
+  --m3c-on-secondary-container: #e8def8;
+
+  --m3c-tertiary: #efb8c8;
+  --m3c-on-tertiary: #492532;
+  --m3c-tertiary-container: #633b48;
+  --m3c-on-tertiary-container: #ffd8e3;
+
+  --m3c-error: #f2b8b5;
+  --m3c-on-error: #601410;
+  --m3c-error-container: #8c1d18;
+  --m3c-on-error-container: #f9dedc;
+
+  --m3c-background: #282335;
+  --m3c-on-background: #e6e1e5;
+
+  --m3c-surface: #141218;
+  --m3c-on-surface: #e6e1e5;
+  --m3c-surface-variant: #49454f;
+  --m3c-on-surface-variant: #cac4d0;
+
+  --m3c-outline: #938f99;
+  --m3c-outline-variant: #44474f;
+  --m3c-shadow: #000000;
+  --m3c-scrim: #000000;
+
+  --m3c-inverse-surface: #e6e1e5;
+  --m3c-inverse-on-surface: #313033;
+  --m3c-inverse-primary: #6750a4;
+
+  --m3c-surface-dim: #141218;
+  --m3c-surface-bright: #3b383e;
+  --m3c-surface-container-lowest: #0f0d13;
+  --m3c-surface-container-low: #1d1b20;
+  --m3c-surface-container: #211f26;
+  --m3c-surface-container-high: #2b2930;
+  --m3c-surface-container-highest: #36343b;
+
+  /* Custom colors for backwards compatibility and helper utility styles */
+  --color-primary-500: #a272ff;
+  --color-primary-700: #7b4bfb;
+  --color-secondary-500: #ccc2dc;
+  --color-secondary-700: #4a4458;
+
+  --color-surface-50: #e6e1e5;
+  --color-surface-100: #36343b;
+  --color-surface-300: #2b2930;
+  --color-surface-500: #211f26;
+  --color-surface-700: #1d1b20;
+  --color-surface-800: #141218;
+  --color-surface-900: #0f0d13;
+  --color-surface-950: #08070a;
+}
+
+/* Material 3 Typography Scale Utilities for Tailwind v4 compatibility */
+@utility m3-display-large {
+  font-family: var(--m3-font);
+  font-size: 3.563rem;
+  line-height: 1.123;
+  font-weight: 400;
+}
+
+@utility m3-display-medium {
+  font-family: var(--m3-font);
+  font-size: 2.813rem;
+  line-height: 1.156;
+  font-weight: 400;
+}
+
+@utility m3-display-small {
+  font-family: var(--m3-font);
+  font-size: 2.25rem;
+  line-height: 1.222;
+  font-weight: 400;
+}
+
+@utility m3-headline-large {
+  font-family: var(--m3-font);
+  font-size: 2rem;
+  line-height: 1.25;
+  font-weight: 400;
+}
+
+@utility m3-headline-medium {
+  font-family: var(--m3-font);
+  font-size: 1.75rem;
+  line-height: 1.286;
+  font-weight: 400;
+}
+
+@utility m3-headline-small {
+  font-family: var(--m3-font);
+  font-size: 1.5rem;
+  line-height: 1.333;
+  font-weight: 400;
+}
+
+@utility m3-title-large {
+  font-family: var(--m3-font);
+  font-size: 1.375rem;
+  line-height: 1.273;
+  font-weight: 400;
+}
+
+@utility m3-title-medium {
+  font-family: var(--m3-font);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+@utility m3-title-small {
+  font-family: var(--m3-font);
+  font-size: 0.875rem;
+  line-height: 1.429;
+  font-weight: 500;
+}
+
+@utility m3-label-large {
+  font-family: var(--m3-font);
+  font-size: 0.875rem;
+  line-height: 1.429;
+  font-weight: 500;
+}
+
+@utility m3-label-medium {
+  font-family: var(--m3-font);
+  font-size: 0.75rem;
+  line-height: 1.333;
+  font-weight: 500;
+}
+
+@utility m3-label-small {
+  font-family: var(--m3-font);
+  font-size: 0.688rem;
+  line-height: 1.455;
+  font-weight: 500;
+}
+
+@utility m3-body-large {
+  font-family: var(--m3-font);
+  font-size: 1.5rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@utility m3-body-medium {
+  font-family: var(--m3-font);
+  font-size: 1rem;
+  line-height: 1.429;
+  font-weight: 400;
+}
+
+@utility m3-body-small {
+  font-family: var(--m3-font);
+  font-size: 0.75rem;
+  line-height: 1.333;
+  font-weight: 400;
+}
+
+/* Base Body Styles matching Material 3 specifications */
 html,
-body {}
+body {
+  margin: 0;
+  font-family: var(--m3-font);
+  font-family: var(--m3-font);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+  background-color: var(--m3c-background);
+  color: var(--m3c-on-background);
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Custom Scrollbar styles using Material 3 container colors */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--m3c-surface-container-lowest);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--m3c-surface-container-high);
+  border-radius: var(--m3-shape-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--m3c-surface-container-highest);
+}
+
+/* Material 3 helper styling for buttons or wrappers */
+.m3-card-wrapper {
+  background-color: var(--m3c-surface-container-low);
+  color: var(--m3c-on-surface);
+  border-radius: var(--m3-shape-large);
+  border: 1px solid var(--m3c-outline-variant);
+  padding: 1.5rem;
+}
+
+/* ==========================================================================
+   Material 3 Svelte Component Sizing & Padding Restorations
+   ========================================================================== */
+
+/* 1. Buttons (xs, s, m, l, xl sizes) */
+button.m3-container.xs,
+a.m3-container.xs,
+label.m3-container.xs,
+summary.m3-container.xs {
+  padding: 0 0.75rem !important;
+  height: 2rem !important;
+}
+
+button.m3-container.xs.icon-full,
+a.m3-container.xs.icon-full {
+  padding: 0 !important;
+  width: 2rem !important;
+}
+
+button.m3-container.s,
+a.m3-container.s,
+label.m3-container.s,
+summary.m3-container.s {
+  padding: 0 1rem !important;
+  height: 2.5rem !important;
+}
+
+button.m3-container.s.icon-full,
+a.m3-container.s.icon-full {
+  padding: 0 !important;
+  width: 2.5rem !important;
+}
+
+button.m3-container.m,
+a.m3-container.m,
+label.m3-container.m,
+summary.m3-container.m {
+  padding: 0 1.5rem !important;
+  height: 3.5rem !important;
+}
+
+button.m3-container.m.icon-full,
+a.m3-container.m.icon-full {
+  padding: 0 !important;
+  width: 3.5rem !important;
+}
+
+button.m3-container.l,
+a.m3-container.l,
+label.m3-container.l,
+summary.m3-container.l {
+  padding: 0 2rem !important;
+  height: 5rem !important;
+}
+
+button.m3-container.l.icon-full,
+a.m3-container.l.icon-full {
+  padding: 0 !important;
+  width: 5rem !important;
+}
+
+button.m3-container.xl,
+a.m3-container.xl,
+label.m3-container.xl,
+summary.m3-container.xl {
+  padding: 0 3rem !important;
+  height: 6.5rem !important;
+}
+
+button.m3-container.xl.icon-full,
+a.m3-container.xl.icon-full {
+  padding: 0 !important;
+  width: 8.5rem !important;
+}
+
+/* 2. Text Fields and Textareas */
+.m3-container>input,
+.m3-container>textarea {
+  padding: 1rem !important;
+  box-sizing: border-box !important;
+}
+
+.leading-icon>input,
+.leading-icon>textarea {
+  padding-inline-start: 3.25rem !important;
+}
+
+.trailing-icon>input,
+.trailing-icon>textarea {
+  padding-inline-end: 3.25rem !important;
+}
+
+/* 3. List Items */
+.m3-container.lines-1 {
+  padding: 0.5rem 1.5rem 0.5rem 1rem !important;
+  height: 3.5rem !important;
+}
+
+.m3-container.lines-2 {
+  padding: 0.5rem 1.5rem 0.5rem 1rem !important;
+  height: 4.5rem !important;
+}
+
+.m3-container.lines-3 {
+  padding: 0.75rem 1.5rem 0.75rem 1rem !important;
+  height: 5.5rem !important;
+}

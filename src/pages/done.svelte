@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import { Button } from "m3-svelte";
+
   let submitting = false;
   let canSubmit = false;
   let countdown = 0;
@@ -40,20 +42,26 @@
       clear, concise, and persuasive — your words matter.
     </p>
 
-    <button
-      class="btn preset-filled-primary-500 m-2 p-4 w-full text-xl flex items-center justify-center gap-3"
-      on:click={confirm}
-      aria-label="Submit your argument and mark yourself done"
-      disabled={submitting || !canSubmit}
-    >
-      {#if submitting}
-        Sending...
-      {:else}
-        I'm Done<br />
-        {#if countdown > 0}
-          ({countdown}s)
+    <div class="btn-wrapper">
+      <Button
+        variant="filled"
+        onclick={confirm}
+        disabled={submitting || !canSubmit}
+      >
+        {#if submitting}
+          Sending...
+        {:else}
+          I'm Done {#if countdown > 0}({countdown}s){/if}
         {/if}
-      {/if}
-    </button>
+      </Button>
+    </div>
   </div>
 </div>
+
+<style>
+  .btn-wrapper > :global(*) {
+    width: 100%;
+    padding: 1.5rem 0;
+    font-size: 1.25rem;
+  }
+</style>

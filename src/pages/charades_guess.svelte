@@ -1,6 +1,9 @@
 <script lang="ts">
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import { TextFieldOutlined, Button } from "m3-svelte";
+
   let guess = "";
+
   function submit_prompt() {
     gameClient.sendPlayerInput("promptTextData", { answer: guess });
   }
@@ -10,30 +13,52 @@
   class="container h-full overflow-y-auto mx-auto w-full flex flex-col justify-center items-center p-2"
 >
   <div
-    class="bg-linear-to-br from-purple-900/20 to-pink-900/20 rounded-3xl p-2 pb-6 max-w-2xl w-full border-4 border-purple-500/30 shadow-2xl"
+    class="bg-linear-to-br from-purple-900/20 to-pink-900/20 rounded-3xl p-6 max-w-xl w-full border-4 border-purple-500/30 shadow-2xl flex flex-col items-center"
   >
-    <div class="text-2xl text-center mb-0">🎭</div>
-    <h3 class="text-xl font-bold mb-2 text-purple-300 text-center">
+    <div class="text-3xl text-center mb-2">🎭</div>
+    <h3 class="text-xl font-bold mb-1 text-purple-300 text-center">
       What Did You See?
     </h3>
-    <p class="text-xl text-gray-300 mb-2 text-center italic">
+    <p class="text-md text-gray-300 mb-6 text-center italic">
       Take your best guess at the performance!
     </p>
-    <form class="flex flex-col justify-center items-center w-full">
-      <div class="flex flex-row justify-start items-center w-full">
-        <input
+    <form class="flex flex-col justify-center items-center w-full" on:submit|preventDefault={submit_prompt}>
+      <div class="field-wrapper">
+        <TextFieldOutlined
+          label="Your Guess"
           type="text"
-          class="textarea w-full text-lg p-3 rounded-xl bg-black/40 border-2 border-purple-400/50 text-white placeholder-gray-400"
-          maxlength="48"
+          maxlength={48}
           placeholder="Type your guess here..."
           bind:value={guess}
         />
       </div>
-      <button
-        style="font-size: 1.5rem;"
-        class="btn preset-filled mt-8 px-8 py-4 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform"
-        on:click={submit_prompt}>🎯 Submit Guess</button
-      >
+      <div class="btn-wrapper">
+        <Button
+          variant="filled"
+          onclick={submit_prompt}
+        >
+          🎯 Submit Guess
+        </Button>
+      </div>
     </form>
   </div>
 </div>
+
+<style>
+  .field-wrapper {
+    width: 100%;
+  }
+
+  .field-wrapper > :global(*) {
+    width: 100%;
+  }
+
+  .btn-wrapper {
+    margin-top: 1.5rem;
+    width: 100%;
+  }
+
+  .btn-wrapper > :global(*) {
+    width: 100%;
+  }
+</style>

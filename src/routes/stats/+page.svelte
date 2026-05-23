@@ -6,11 +6,12 @@
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
   import Icon from "@iconify/svelte";
+  import { Button, Card, ListItem } from "m3-svelte";
+
   const session = authClient.useSession();
 
   let stats: Paths.GetUsersStats.Responses.$200 | null = null;
 
-  // Load and Aggregate User Stats
   const loadStats = async () => {
     const client = await apiClient;
     if (!$session.data?.user) {
@@ -25,47 +26,105 @@
   });
 </script>
 
-<div class="px-16 flex h-full flex-col justify-start items-center">
-  <button
-    class="btn preset-filled mb-6 mt-4 w-full sm:w-auto"
-    on:click={() => goto("/")}
-  >
-    <Icon icon="lets-icons:back" font-size="2rem" />
-  </button>
-  <div class="text-2xl mb-3">Stats</div>
+<div class="stats-container">
+  <div class="back-btn-wrapper">
+    <Button variant="filled" onclick={() => goto("/")}>
+      <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
+    </Button>
+  </div>
+
+  <h1 class="stats-title">Stats</h1>
+
   {#if !stats}
-    <Spinner />
+    <div class="spinner-wrapper">
+      <Spinner />
+    </div>
   {:else}
-    <table class="table w-full">
-      <tbody>
-        <tr>
-          <th>Player Since</th>
-          <td>{new Date(stats.playerSince).toDateString()}</td>
-        </tr>
-        <tr>
-          <th>Prompts Answered</th>
-          <td>{stats.totalPromptsAnswered}</td>
-        </tr>
-        <tr>
-          <th>Games Played</th>
-          <td>{stats.totalGamesPlayed}</td>
-        </tr>
-        <tr>
-          <th
-            >Doubloons <i class="fa-solid text-yellow-500 fa-coins ml-2"
-            ></i></th
-          >
-          <td>{stats.totalDoubloonsWon.toLocaleString()}</td>
-        </tr>
-        <tr>
-          <th>Drinks 🍺</th>
-          <td>{stats.totalDrinksTaken}</td>
-        </tr>
-        <tr>
-          <th>Wins</th>
-          <td>{stats.totalWins}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="card-wrapper">
+      <Card variant="outlined">
+        <div class="card-items">
+          <ListItem headline="Player Since" supporting={new Date(stats.playerSince).toDateString()}>
+            {#snippet leading()}
+              <Icon icon="mdi:calendar-range" class="stat-icon" />
+            {/snippet}
+          </ListItem>
+          
+          <ListItem headline="Prompts Answered" supporting={String(stats.totalPromptsAnswered)}>
+            {#snippet leading()}
+              <Icon icon="mdi:message-text-outline" class="stat-icon" />
+            {/snippet}
+          </ListItem>
+          
+          <ListItem headline="Games Played" supporting={String(stats.totalGamesPlayed)}>
+            {#snippet leading()}
+              <Icon icon="mdi:controller-classic-outline" class="stat-icon" />
+            {/snippet}
+          </ListItem>
+          
+          <ListItem headline="Doubloons Won" supporting={stats.totalDoubloonsWon.toLocaleString()}>
+            {#snippet leading()}
+              <Icon icon="mdi:coins" class="stat-icon" style="color: #ffb300;" />
+            {/snippet}
+          </ListItem>
+          
+          <ListItem headline="Drinks Taken" supporting={String(stats.totalDrinksTaken)}>
+            {#snippet leading()}
+              <Icon icon="mdi:glass-mug-variant" class="stat-icon" style="color: #ffb74d;" />
+            {/snippet}
+          </ListItem>
+          
+          <ListItem headline="Wins" supporting={String(stats.totalWins)}>
+            {#snippet leading()}
+              <Icon icon="mdi:trophy-outline" class="stat-icon" style="color: #ffd54f;" />
+            {/snippet}
+          </ListItem>
+        </div>
+      </Card>
+    </div>
   {/if}
 </div>
+
+<style>
+  .stats-container {
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 32rem;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .back-btn-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .stats-title {
+    font-family: var(--m3-font); font-size: 1.75rem; line-height: 1.286; font-weight: 400;
+    color: var(--m3c-on-background);
+    margin-top: 0;
+    margin-bottom: 2rem;
+  }
+
+  .spinner-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 0;
+  }
+
+  .card-wrapper {
+    width: 100%;
+  }
+
+  .card-items {
+    padding: 0.5rem 0;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+    color: var(--m3c-primary);
+  }
+</style>
