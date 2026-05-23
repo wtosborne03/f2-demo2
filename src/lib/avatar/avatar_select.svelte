@@ -6,7 +6,7 @@
     ViewModelInstanceColor,
     ViewModelInstanceNumber,
     ViewModelInstanceTrigger,
-  } from "@rive-app/canvas";
+  } from "@rive-app/webgl2";
   import { get } from "svelte/store";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
