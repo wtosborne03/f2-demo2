@@ -83,7 +83,7 @@
 
 <div class="rail-wrapper" class:open={$sideBarOpen}>
   <NavigationRail bind:open={$sideBarOpen} collapse="full" modal>
-    {#if $session.data?.user || true}
+    {#if $session.data?.user}
       <div class="user-info">
         <span class="user-email">{$session.data?.user?.email}</span>
       </div>
