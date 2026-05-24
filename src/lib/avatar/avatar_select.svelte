@@ -10,6 +10,7 @@
   import { get } from "svelte/store";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
+  import { Button, Card } from "m3-svelte";
   import { toaster } from "$lib/util/toaster";
   import { apiClient } from "$lib/backend/axios";
   import type { Avatar } from "$lib/wsapi/game";
@@ -154,131 +155,371 @@
   };
 </script>
 
-<div
-  class="h-screen overflow-y-auto bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 text-white"
->
-  <!-- Header -->
-  <header
-    class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-purple-500/20"
-  >
-    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <button class="btn preset-filled w-14" on:click={() => goto("/")}>
-        <Icon icon="lets-icons:back" font-size="2rem" />
-      </button>
+<svelte:head>
+  <title>Customize Avatar - Couch Cup</title>
+  <meta
+    name="description"
+    content="Customize your Couch Cup avatar with owned items, emotes, eyes, mouth, and hair options."
+  />
+</svelte:head>
 
-      <h1 class="text-2xl font-bold text-white">Avatar</h1>
-
-      <div class="w-14"></div>
-    </div>
+<div class="avatar-select-container">
+  <header class="app-bar">
+    <Button variant="filled" onclick={() => goto("/")} id="back-to-home-btn">
+      <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
+    </Button>
+    <h1 class="app-bar-title" id="avatar-page-title">Customize Avatar</h1>
+    <div class="app-bar-spacer"></div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-2 pb-4">
-    <div class="flex flex-col md:flex-row md:items-start gap-8">
-      <!-- Avatar preview -->
-      <div
-        class="shrink-0 w-full md:w-1/3 rounded-xl p-1 flex flex-col items-center"
-      >
-        <div class="w-full flex justify-center">
+  <main class="content-layout">
+    <!-- Left Column: Avatar preview -->
+    <div class="preview-column">
+      <div class="preview-card-content">
+        <div class="canvas-wrapper">
           <canvas
             bind:this={canvasEl}
-            id="canvas"
-            class="w-64 h-64 md:w-80 md:h-80 rounded-md"
-            on:click={() => emote_fire_input?.trigger()}
+            id="avatar-preview-canvas"
+            class="avatar-canvas"
+            onclick={() => emote_fire_input?.trigger()}
           ></canvas>
         </div>
-        <div class="mt-4 text-sm text-gray-300 text-center">
-          Tap to emote • Changes Saved Automatically <Icon
-            icon="material-symbols:save"
-            class="inline"
-          />
+        <div class="preview-status">
+          <span class="status-badge" id="badge-tap-emote">
+            <Icon
+              icon="material-symbols:motion-photos-on-outline"
+              class="badge-icon"
+            />
+            Tap to emote
+          </span>
+          <span class="status-badge save-status" id="badge-saved">
+            <Icon
+              icon="material-symbols:cloud-done-outline"
+              class="badge-icon"
+            />
+            Changes Saved
+          </span>
         </div>
       </div>
+    </div>
 
-      <!-- Items / categories -->
-      <div class="flex-1">
-        {#if loadedin}
-          <div class="space-y-8">
-            {#each Object.keys(owned_items) as category}
-              <section>
-                <div class="w-full flex items-center mb-4">
-                  <h2 class="text-2xl font-semibold mr-4">
-                    {categories[category]}
-                  </h2>
-                  <span class="flex-1 h-1 bg-slate-600 rounded"></span>
-                </div>
+    <!-- Right Column: Items / categories -->
+    <div class="items-column">
+      {#if loadedin}
+        <div class="categories-list">
+          {#each Object.keys(owned_items) as category}
+            <section
+              class="category-section"
+              id={`category-section-${category}`}
+            >
+              <div class="category-header">
+                <h2 class="category-title" id={`category-title-${category}`}>
+                  {categories[category]}
+                </h2>
+                <span class="category-divider"></span>
+              </div>
 
-                <div
-                  class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-4"
-                >
-                  {#each owned_items[category] || [] as item}
-                    <!-- item card -->
-                    <button
-                      use:clickPop
-                      class="rounded-lg p-2 aspect-square hover:brightness-105 cursor-pointer flex flex-col items-center justify-between text-center text-white transition-shadow shadow-md button-animate"
-                      class:selected={a_values[category] == item.shop.value}
-                      style={`background-color: ${getHue(item.shop.id)};` +
-                        (a_values[category] == item.shop.value
-                          ? ` box-shadow: 0 0 0 4px #f0f0f0, inset 0 1px 0 rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);`
-                          : `border: 4px solid transparent;`)}
-                      on:click={() => (a_values[category] = item.shop.value)}
-                    >
-                      <div class="text-md leading-6 text-gray-200">
-                        {item.shop.name}
-                      </div>
+              <div class="items-grid">
+                {#each owned_items[category] || [] as item}
+                  <!-- item card -->
+                  <button
+                    use:clickPop
+                    class="item-button"
+                    class:selected={a_values[category] == item.shop.value}
+                    style={`--item-bg: ${getHue(item.shop.id)}`}
+                    onclick={() => (a_values[category] = item.shop.value)}
+                    id={`item-btn-${item.shop.id}`}
+                  >
+                    <span class="item-name">{item.shop.name}</span>
+                    <div class="checkbox-wrapper">
                       {#if a_values[category] == item.shop.value}
                         <Icon
                           icon="pixelarticons:checkbox"
-                          color="#f0f0f0"
-                          class="mt-2 text-xl"
+                          class="checkbox-icon"
                         />
                       {:else}
                         <Icon
                           icon="pixelarticons:checkbox-on"
-                          color="#f0f0f0"
-                          class="mt-2 text-xl"
+                          class="checkbox-icon"
                         />
                       {/if}
-                    </button>
-                  {/each}
-                </div>
-              </section>
-            {/each}
-          </div>
-        {:else}
-          <div
-            class="w-full mt-6 flex flex-col justify-center items-center h-full"
-          >
-            <Spinner />
-          </div>
-        {/if}
-      </div>
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            </section>
+          {/each}
+        </div>
+      {:else}
+        <div class="spinner-wrapper" id="loading-spinner">
+          <Spinner />
+        </div>
+      {/if}
     </div>
   </main>
 </div>
 
 <style>
-  /* Small scoped animations for avatar item buttons */
-  .button-animate {
+  .avatar-select-container {
+    background-color: var(--m3c-background);
+    color: var(--m3c-on-background);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .app-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background-color: var(--m3c-surface-container);
+    border-bottom: 1px solid var(--m3c-outline-variant);
+  }
+
+  .app-bar-title {
+    font-family: var(--m3-font);
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 500;
+    color: var(--m3c-on-background);
+    margin: 0;
+  }
+
+  .app-bar-spacer {
+    flex: 1;
+  }
+
+  .content-layout {
+    max-width: 80rem;
+    margin: 0 auto;
+    width: 100%;
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 768px) {
+    .content-layout {
+      grid-template-columns: 320px 1fr;
+      align-items: start;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .content-layout {
+      grid-template-columns: 380px 1fr;
+    }
+  }
+
+  .preview-column {
+    width: 100%;
+  }
+
+  /* Style Card container for preview */
+  .preview-column :global(.m3-card) {
+    background-color: var(--m3c-surface-container-low) !important;
+    border-color: var(--m3c-outline-variant) !important;
+    border-radius: var(--m3-shape-large) !important;
+  }
+
+  .preview-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .canvas-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .avatar-canvas {
+    margin-top: -5rem;
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--m3-shape-medium);
+    cursor: pointer;
     transition:
-      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 160ms ease;
-    will-change: transform;
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
-  .button-animate:hover {
-    transform: scale(1.03);
+  .avatar-canvas:hover {
+    transform: scale(1.02);
   }
 
-  .button-animate:active {
-    transform: scale(1);
+  .avatar-canvas:active {
+    transform: scale(0.98);
   }
 
-  /* stronger selected state (supplements inline style box-shadow) */
-  .selected {
-    transform: scale(1);
+  .preview-status {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-family: var(--m3-font);
+    font-size: 0.875rem;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--m3-shape-full);
+    background-color: var(--m3c-surface-container-high);
+    color: var(--m3c-on-surface-variant);
+  }
+
+  .status-badge.save-status {
+    background-color: var(--m3c-primary-container);
+    color: var(--m3c-on-primary-container);
+  }
+
+  :global(.badge-icon) {
+    font-size: 1.125rem;
+  }
+
+  .items-column {
+    width: 100%;
+  }
+
+  .categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .category-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .category-title {
+    font-family: var(--m3-font);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+    color: var(--m3c-on-background);
+  }
+
+  .category-divider {
+    flex: 1;
+    height: 1px;
+    background-color: var(--m3c-outline-variant);
+    border-radius: var(--m3-shape-full);
+    opacity: 0.4;
+  }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 1rem;
+  }
+
+  .item-button {
+    background-color: var(--item-bg);
+    border-radius: var(--m3-shape-medium);
+    padding: 1rem;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition:
+      transform 0.2s var(--m3-easing-standard),
+      box-shadow 0.2s var(--m3-easing-standard),
+      border-color 0.2s var(--m3-easing-standard);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .item-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+  }
+
+  .item-button:hover::before {
+    opacity: 0.1;
+  }
+
+  .item-button:focus-visible {
+    outline: 2px solid var(--m3c-primary);
+    outline-offset: 2px;
+  }
+
+  .item-button.selected {
+    border-color: #ffffff;
     box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.45),
-      0 0 0 6px rgba(255, 255, 255, 0.06) !important;
+      0 0 0 3px var(--m3c-primary),
+      var(--m3-elevation-2);
+    transform: scale(1.02);
+  }
+
+  .item-name {
+    font-family: var(--m3-font);
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #ffffff;
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+
+  .checkbox-wrapper {
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :global(.checkbox-icon) {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition:
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .item-button.selected :global(.checkbox-icon) {
+    color: #ffffff;
+    transform: scale(1.1);
+  }
+
+  .spinner-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    width: 100%;
   }
 
   @keyframes pop {

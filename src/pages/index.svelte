@@ -71,37 +71,33 @@
   </figure>
 
   <!-- Login Card container -->
-  <div class="card-wrapper w-full">
-    <Card variant="elevated">
-      <div class="flex flex-col gap-6 w-full">
-        <div class="input-container w-full">
-          <TextFieldOutlined
-            label="Room Code"
-            leadingIcon={iconKey}
-            maxlength={4}
-            placeholder="ABCD"
-            bind:value={roomCode}
-            class="text-center text-2xl font-bold tracking-widest uppercase"
-          />
-        </div>
 
-        <div class="input-container w-full">
-          <TextFieldOutlined
-            label="Name"
-            leadingIcon={iconPerson}
-            maxlength={10}
-            placeholder="Your Name"
-            bind:value={name}
-            class="text-center text-xl"
-          />
-        </div>
+  <div class="flex flex-col gap-6 w-full mt-6">
+    <div class="input-container w-full">
+      <TextFieldOutlined
+        label="Room Code"
+        leadingIcon={iconKey}
+        maxlength={4}
+        placeholder="ABCD"
+        bind:value={roomCode}
+        class="text-center text-2xl font-bold tracking-widest uppercase"
+      />
+    </div>
 
-        <div class="btn-wrapper w-full">
-          <Button variant="filled" size="m" onclick={joinGame}>Join Game</Button
-          >
-        </div>
-      </div>
-    </Card>
+    <div class="input-container w-full">
+      <TextFieldOutlined
+        label="Name"
+        leadingIcon={iconPerson}
+        maxlength={10}
+        placeholder="Your Name"
+        bind:value={name}
+        class="text-center text-xl"
+      />
+    </div>
+
+    <div class="btn-wrapper w-full">
+      <Button variant="filled" size="m" onclick={joinGame}>Join Game</Button>
+    </div>
   </div>
 </div>
 
@@ -148,7 +144,6 @@
     height: 4rem; /* Spacious height for button */
     font-size: 1.35rem !important;
     font-weight: 800 !important;
-    margin-top: 1rem;
     border-radius: var(--m3-shape-medium) !important;
   }
 </style>

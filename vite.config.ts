@@ -11,8 +11,9 @@ import fs from 'fs';
 export default defineConfig({
     plugins: [
         { ...functionsMixins({ deps: ["m3-svelte"] }), enforce: 'pre' },
-        sveltekit(),
+        { ...tokenShaker(), enforce: 'pre' },
         tailwindcss(),
+        sveltekit(),
         Icons({ compiler: 'svelte' })
     ],
     build: {

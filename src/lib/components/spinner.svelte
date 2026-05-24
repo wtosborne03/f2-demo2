@@ -1,3 +1,7 @@
-<div
-  class="w-16 h-16 border-8 border-dashed rounded-full animate-spin border-blue-600"
-></div>
+<script lang="ts">
+  import { LoadingIndicator } from "m3-svelte";
+</script>
+
+<div>
+  <LoadingIndicator size={90} aria-label="loading" />
+</div>
