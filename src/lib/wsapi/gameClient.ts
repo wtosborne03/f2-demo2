@@ -114,9 +114,10 @@ class GameClient {
                     if (!ignoreErrors.includes(payload)) {
                         toaster.error({ title: "Error", description: payload });
                     }
-                    // If error is "Session expired", clear local storage
-                    if (payload === "Session expired" || payload === "Room invalid") {
+                    // If error is "Session expired", "Room invalid", or "Room not found", clear local session and reset Svelte gameState to index
+                    if (payload === "Session expired" || payload === "Room invalid" || payload === "Room not found") {
                         this.clearSession();
+                        gameState.set(defaultPlayerState);
                     }
                     break;
                 case OpCode.PONG:
@@ -357,10 +358,7 @@ class GameClient {
     }
 
     private canAttemptSessionReconnect(force = false) {
-        if (!this.roomCode || !this.name) return false;
-        if (force) return true;
-        if (this.roomStatus === "RUNNING") return true;
-        return this.hasSeenInGameState;
+        return !!(this.roomCode && this.name);
     }
 
     private setRoomStatus(status?: string) {
