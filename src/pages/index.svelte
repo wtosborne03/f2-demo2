@@ -40,8 +40,7 @@
   const joinGame = async () => {
     name = name.substring(0, 10).trim();
     const user = get(session).data?.user;
-    if (user === null) {
-    } else {
+    if (user) {
       updateName(name);
     }
     gameClient.join(roomCode.toUpperCase(), name, user?.id);
