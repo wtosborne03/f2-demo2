@@ -154,6 +154,8 @@ declare namespace Paths {
                 avatar_eyes?: number | null;
                 avatar_hair?: number | null;
                 avatar_mouth?: number | null;
+                avatar_selfie?: string | null;
+                avatar_landmarks?: string | null;
                 dollars: number;
                 game_name?: string | null;
             }
@@ -332,6 +334,8 @@ declare namespace Paths {
             avatar_eyes?: number | null;
             avatar_hair?: number | null;
             avatar_mouth?: number | null;
+            avatar_selfie?: string | null;
+            avatar_landmarks?: string | null;
         }
         namespace Responses {
             export interface $200 {
@@ -347,6 +351,8 @@ declare namespace Paths {
                 avatar_eyes?: number | null;
                 avatar_hair?: number | null;
                 avatar_mouth?: number | null;
+                avatar_selfie?: string | null;
+                avatar_landmarks?: string | null;
                 dollars: number;
                 game_name?: string | null;
             }

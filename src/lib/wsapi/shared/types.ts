@@ -1,9 +1,10 @@
-
 interface Avatar {
     eyes: number,
     mouth: number,
     hair: number,
     emote: number,
+    selfieUrl?: string,
+    landmarks?: { x: number; y: number; z: number }[],
 }
 
 export interface PlayerState {

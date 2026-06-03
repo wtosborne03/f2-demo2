@@ -29,6 +29,7 @@ const defaultPlayerState: PlayerState = {
         mouth: 0,
         hair: 0,
         emote: 0,
+        selfieUrl: '',
     },
 }
 
@@ -149,16 +150,45 @@ class GameClient {
         localStorage.setItem('couch_room', roomCode);
 
         try {
-            const { data: me } = await get(dbClient)!.getUsersMe()
-            const avatar = {
-                eyes: me.avatar_eyes,
-                mouth: me.avatar_mouth,
-                hair: me.avatar_hair,
-                emote: me.avatar_emote,
+            const { data: me } = await get(dbClient)!.getUsersMe();
+            let landmarks = undefined;
+            if (me.avatar_landmarks) {
+                try {
+                    landmarks = JSON.parse(me.avatar_landmarks);
+                } catch (e) {
+                    console.error("Failed to parse avatar landmarks:", e);
+                }
             }
-            this.sendPlayerInput("avatarUpdate", { avatar })
+            const avatar = {
+                eyes: me.avatar_eyes || 0,
+                mouth: me.avatar_mouth || 0,
+                hair: me.avatar_hair || 0,
+                emote: me.avatar_emote || 0,
+                selfieUrl: me.avatar_selfie || "",
+                landmarks,
+            };
+            this.sendPlayerInput("avatarUpdate", { avatar });
         } catch (error) {
             console.error("Failed to get user:", error);
+            const sessionSelfie = (typeof window !== "undefined" && localStorage.getItem("temp_selfie")) || "";
+            const sessionLandmarksStr = (typeof window !== "undefined" && localStorage.getItem("temp_landmarks")) || "";
+            let landmarks = undefined;
+            if (sessionLandmarksStr) {
+                try {
+                    landmarks = JSON.parse(sessionLandmarksStr);
+                } catch (e) {
+                    console.error("Failed to parse session landmarks:", e);
+                }
+            }
+            const avatar = {
+                eyes: 3,
+                mouth: 0,
+                hair: 0,
+                emote: 0,
+                selfieUrl: sessionSelfie,
+                landmarks,
+            };
+            this.sendPlayerInput("avatarUpdate", { avatar });
         }
     }
 

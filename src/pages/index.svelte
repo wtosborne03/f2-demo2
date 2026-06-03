@@ -14,6 +14,10 @@
   import iconPerson from "@ktibow/iconset-material-symbols/person";
   import iconAccount from "@ktibow/iconset-material-symbols/account-circle";
   import iconLogin from "@ktibow/iconset-material-symbols/login";
+  import Compressor from "compressorjs";
+  import Spinner from "$lib/components/spinner.svelte";
+  import { toaster } from "$lib/util/toaster";
+  import Iconify from "@iconify/svelte";
 
   const session = authClient.useSession();
 
@@ -21,10 +25,15 @@
   $: name =
     $session.data?.user.name || (browser && localStorage.getItem("name")) || "";
 
+  let step = "join"; // "join" | "selfie" | "uploading"
+  let fileinput: HTMLInputElement;
+
   const updateName = async (new_name: string) => {
     try {
       const client = await apiClient;
-      await client!.putUsersName({}, { name: new_name });
+      if (client) {
+        await client.putUsersName({}, { name: new_name });
+      }
     } catch (error) {
       console.error("Failed to update name:", error);
     }
@@ -37,14 +46,114 @@
     }
   });
 
-  const joinGame = async () => {
+  const startJoinFlow = async () => {
+    roomCode = roomCode.trim().toUpperCase();
     name = name.substring(0, 10).trim();
+    if (!roomCode || !name) {
+      toaster.error({ title: "Error", description: "Please enter both Room Code and Name." });
+      return;
+    }
+
     const user = get(session).data?.user;
     if (user) {
-      updateName(name);
+      try {
+        const client = await apiClient;
+        if (client) {
+          const { data: me } = await client.getUsersMe();
+          if (me.avatar_selfie) {
+            joinRoom(me.avatar_selfie);
+            return;
+          }
+        }
+        step = "selfie";
+      } catch (e) {
+        step = "selfie";
+      }
+    } else {
+      const localSelfie = localStorage.getItem("temp_selfie");
+      if (localSelfie) {
+        joinRoom(localSelfie);
+        return;
+      }
+      step = "selfie";
+    }
+  };
+
+  const joinRoom = async (avatarSelfieUrl?: string, landmarks?: any) => {
+    const user = get(session).data?.user;
+    if (user) {
+      await updateName(name);
+    }
+    if (avatarSelfieUrl) {
+      if (user) {
+        try {
+          const client = await apiClient;
+          await client!.putUsersAvatar(null, {
+            avatar_emote: 0,
+            avatar_eyes: 3,
+            avatar_hair: 0,
+            avatar_mouth: 0,
+            avatar_selfie: avatarSelfieUrl,
+            avatar_landmarks: landmarks ? JSON.stringify(landmarks) : null,
+          });
+        } catch (e) {
+          console.error("Failed to save avatar selfie:", e);
+        }
+      } else {
+        localStorage.setItem("temp_selfie", avatarSelfieUrl);
+        if (landmarks) {
+          localStorage.setItem("temp_landmarks", JSON.stringify(landmarks));
+        } else {
+          localStorage.removeItem("temp_landmarks");
+        }
+      }
     }
     gameClient.join(roomCode.toUpperCase(), name, user?.id);
   };
+
+  async function uploadSelfieImage(file: File | Blob): Promise<{ url: string; landmarks: any }> {
+    const formData = new FormData();
+    formData.append("file", file, "selfie.png");
+
+    const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload?detect_landmarks=true`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async function handleSelfieInput(event: Event) {
+    step = "uploading";
+    const fileInput = event.target as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    if (file) {
+      new Compressor(file, {
+        quality: 0.5,
+        maxWidth: 600,
+        maxHeight: 600,
+        async success(result) {
+          try {
+            const { url, landmarks } = await uploadSelfieImage(result);
+            await joinRoom(url, landmarks);
+          } catch (err: any) {
+            console.error("Failed to upload selfie, falling back:", err);
+            await joinRoom("");
+          }
+        },
+        error(err) {
+          console.error("Compression error:", err.message);
+          joinRoom("");
+        },
+      });
+    } else {
+      step = "selfie";
+    }
+  }
 </script>
 
 <div
@@ -71,33 +180,77 @@
 
   <!-- Login Card container -->
 
-  <div class="flex flex-col gap-6 w-full mt-6">
-    <div class="input-container w-full">
-      <TextFieldOutlined
-        label="Room Code"
-        leadingIcon={iconKey}
-        maxlength={4}
-        placeholder="ABCD"
-        bind:value={roomCode}
-        class="text-center text-2xl font-bold tracking-widest uppercase"
-      />
-    </div>
+  {#if step === "join"}
+    <div class="flex flex-col gap-6 w-full mt-6">
+      <div class="input-container w-full">
+        <TextFieldOutlined
+          label="Room Code"
+          leadingIcon={iconKey}
+          maxlength={4}
+          placeholder="ABCD"
+          bind:value={roomCode}
+          class="text-center text-2xl font-bold tracking-widest uppercase"
+        />
+      </div>
 
-    <div class="input-container w-full">
-      <TextFieldOutlined
-        label="Name"
-        leadingIcon={iconPerson}
-        maxlength={10}
-        placeholder="Your Name"
-        bind:value={name}
-        class="text-center text-xl"
-      />
-    </div>
+      <div class="input-container w-full">
+        <TextFieldOutlined
+          label="Name"
+          leadingIcon={iconPerson}
+          maxlength={10}
+          placeholder="Your Name"
+          bind:value={name}
+          class="text-center text-xl"
+        />
+      </div>
 
-    <div class="btn-wrapper w-full">
-      <Button variant="filled" size="m" onclick={joinGame}>Join Game</Button>
+      <div class="btn-wrapper w-full">
+        <Button variant="filled" size="m" onclick={startJoinFlow}>Join Game</Button>
+      </div>
     </div>
-  </div>
+  {:else if step === "selfie"}
+    <div class="flex flex-col gap-6 w-full mt-6 items-center">
+      <div class="text-center max-w-sm mb-4">
+        <h2 class="text-2xl font-extrabold text-white mb-2">Create Custom Avatar! 📸</h2>
+        <p class="text-zinc-400 text-sm leading-snug">
+          Upload a selfie to project your face onto an interactive 3D avatar on the main screen.
+        </p>
+      </div>
+
+      <input
+        style="display:none"
+        type="file"
+        accept="image/*"
+        capture="user"
+        on:change={handleSelfieInput}
+        bind:this={fileinput}
+      />
+
+      <div class="w-full flex flex-col gap-3">
+        <Button
+          variant="filled"
+          onclick={() => fileinput.click()}
+          class="w-full h-14 font-bold text-lg"
+        >
+          <Iconify icon="material-symbols:photo-camera-outline" style="font-size: 1.5rem; margin-right: 0.5rem;" />
+          Take / Upload Selfie
+        </Button>
+
+        <Button
+          variant="outlined"
+          onclick={() => joinRoom("")}
+          class="w-full h-14 font-medium"
+        >
+          Skip & Use 2D Avatar
+        </Button>
+      </div>
+    </div>
+  {:else if step === "uploading"}
+    <div class="flex flex-col items-center justify-center py-10 gap-4">
+      <Spinner />
+      <span class="text-zinc-400 text-lg font-medium animate-pulse">Processing selfie...</span>
+    </div>
+  {/if}
 </div>
 
 <style>
