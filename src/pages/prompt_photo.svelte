@@ -33,7 +33,6 @@
   }
 
   async function handleFileInput(event: Event) {
-    submit_ready();
     loading = true;
     const fileInput = event.target as HTMLInputElement;
     const file = fileInput.files?.[0];
@@ -46,12 +45,14 @@
           try {
             const url = await uploadCompressedImage(result);
             submit_prompt(url);
+            submit_ready();
           } catch (err: any) {
             console.error("Failed to upload image to S3, falling back to base64:", err);
             const reader = new FileReader();
             reader.onload = (e: ProgressEvent<FileReader>) => {
               base64Image = e.target?.result as string;
               submit_prompt(base64Image);
+              submit_ready();
             };
             reader.readAsDataURL(result);
           }
