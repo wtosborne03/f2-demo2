@@ -15,6 +15,23 @@
   let fileinput: HTMLInputElement;
   let loading = false;
 
+  async function uploadCompressedImage(file: File | Blob): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file, "photo.png");
+
+    const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.url;
+  }
+
   async function handleFileInput(event: Event) {
     submit_ready();
     loading = true;
@@ -25,23 +42,26 @@
         quality: 0.3,
         maxWidth: 900,
         maxHeight: 900,
-        success(result) {
-          sendCompressedImage(result);
+        async success(result) {
+          try {
+            const url = await uploadCompressedImage(result);
+            submit_prompt(url);
+          } catch (err: any) {
+            console.error("Failed to upload image to S3, falling back to base64:", err);
+            const reader = new FileReader();
+            reader.onload = (e: ProgressEvent<FileReader>) => {
+              base64Image = e.target?.result as string;
+              submit_prompt(base64Image);
+            };
+            reader.readAsDataURL(result);
+          }
         },
         error(err) {
           console.log(err.message);
+          loading = false;
         },
       });
     }
-  }
-
-  function sendCompressedImage(file: File | Blob) {
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      base64Image = e.target?.result as string;
-      submit_prompt(base64Image);
-    };
-    reader.readAsDataURL(file);
   }
 
   function submit_ready() {

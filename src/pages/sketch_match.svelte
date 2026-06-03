@@ -28,21 +28,48 @@
   let job = "";
   let description = "";
 
-  function submit_prompt() {
-    const image = (
-      document.getElementById("draw-canvas") as HTMLCanvasElement
-    ).toDataURL("image/png");
+  async function submit_prompt() {
+    const canvas = document.getElementById("draw-canvas") as HTMLCanvasElement;
+    if (!canvas) return;
+    const base64Image = canvas.toDataURL("image/png");
 
-    gameClient.sendInput({
-      type: "sketchProfile",
-      sketchProfile: {
-        name: name,
-        age: age,
-        job: job,
-        description: description,
-        sketch: image,
-      },
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload/base64`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ base64: base64Image }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      gameClient.sendInput({
+        type: "sketchProfile",
+        sketchProfile: {
+          name: name,
+          age: age,
+          job: job,
+          description: description,
+          sketch: result.url,
+        },
+      });
+    } catch (err) {
+      console.error("Sketch upload failed, falling back to base64:", err);
+      gameClient.sendInput({
+        type: "sketchProfile",
+        sketchProfile: {
+          name: name,
+          age: age,
+          job: job,
+          description: description,
+          sketch: base64Image,
+        },
+      });
+    }
   }
 </script>
 
