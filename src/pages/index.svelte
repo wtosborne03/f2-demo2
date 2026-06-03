@@ -50,7 +50,10 @@
     roomCode = roomCode.trim().toUpperCase();
     name = name.substring(0, 10).trim();
     if (!roomCode || !name) {
-      toaster.error({ title: "Error", description: "Please enter both Room Code and Name." });
+      toaster.error({
+        title: "Error",
+        description: "Please enter both Room Code and Name.",
+      });
       return;
     }
 
@@ -71,7 +74,7 @@
       }
     } else {
       const localSelfie = localStorage.getItem("temp_selfie");
-      if (localSelfie) {
+      if (localSelfie && false) {
         joinRoom(localSelfie);
         return;
       }
@@ -111,14 +114,19 @@
     gameClient.join(roomCode.toUpperCase(), name, user?.id);
   };
 
-  async function uploadSelfieImage(file: File | Blob): Promise<{ url: string; landmarks: any }> {
+  async function uploadSelfieImage(
+    file: File | Blob,
+  ): Promise<{ url: string; landmarks: any }> {
     const formData = new FormData();
     formData.append("file", file, "selfie.png");
 
-    const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload?detect_landmarks=true`, {
-      method: "POST",
-      body: formData,
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_PUBLIC_API_URL}/upload?detect_landmarks=true`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Upload failed with status ${response.status}`);
@@ -205,15 +213,20 @@
       </div>
 
       <div class="btn-wrapper w-full">
-        <Button variant="filled" size="m" onclick={startJoinFlow}>Join Game</Button>
+        <Button variant="filled" size="m" onclick={startJoinFlow}
+          >Join Game</Button
+        >
       </div>
     </div>
   {:else if step === "selfie"}
     <div class="flex flex-col gap-6 w-full mt-6 items-center">
       <div class="text-center max-w-sm mb-4">
-        <h2 class="text-2xl font-extrabold text-white mb-2">Create Custom Avatar! 📸</h2>
+        <h2 class="text-2xl font-extrabold text-white mb-2">
+          Create Custom Avatar! 📸
+        </h2>
         <p class="text-zinc-400 text-sm leading-snug">
-          Upload a selfie to project your face onto an interactive 3D avatar on the main screen.
+          Upload a selfie to project your face onto an interactive 3D avatar on
+          the main screen.
         </p>
       </div>
 
@@ -232,7 +245,10 @@
           onclick={() => fileinput.click()}
           class="w-full h-14 font-bold text-lg"
         >
-          <Iconify icon="material-symbols:photo-camera-outline" style="font-size: 1.5rem; margin-right: 0.5rem;" />
+          <Iconify
+            icon="material-symbols:photo-camera-outline"
+            style="font-size: 1.5rem; margin-right: 0.5rem;"
+          />
           Take / Upload Selfie
         </Button>
 
@@ -248,7 +264,9 @@
   {:else if step === "uploading"}
     <div class="flex flex-col items-center justify-center py-10 gap-4">
       <Spinner />
-      <span class="text-zinc-400 text-lg font-medium animate-pulse">Processing selfie...</span>
+      <span class="text-zinc-400 text-lg font-medium animate-pulse"
+        >Processing selfie...</span
+      >
     </div>
   {/if}
 </div>
