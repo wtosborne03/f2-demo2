@@ -23,28 +23,92 @@
   let loading = true;
   let error: string | null = null;
 
+  // Pagination State
+  let page = 0;
+  const limit = 24;
+  let hasMore = true;
+  let loadingMore = false;
+  let scrollAnchor: HTMLDivElement;
+  let observer: IntersectionObserver | null = null;
+
   // Lightbox State
   let activeIndex: number | null = null;
 
-  async function fetchImages() {
+  async function fetchImages(reset = false) {
+    if (reset) {
+      images = [];
+      page = 0;
+      hasMore = true;
+    }
+    if (!hasMore && !reset) return;
+
     try {
-      loading = true;
+      if (reset) {
+        loading = true;
+      } else {
+        loadingMore = true;
+      }
+
       const client = get(dbClient);
       if (!client) {
         throw new Error("API Client not loaded");
       }
 
-      // Call the endpoint using axios wrapper to bypass strict TypeScript typings in api.d.ts
+      const offset = page * limit;
+      // Query the API using direct axios path to support limit and offset variables
       const response = await (client as any).get(`/users/${userId}/images`, {
-        params: gameId !== undefined ? { gameId: String(gameId) } : {},
+        params: {
+          limit: String(limit),
+          offset: String(offset),
+          ...(gameId !== undefined ? { gameId: String(gameId) } : {}),
+        },
       });
 
-      images = response.data || [];
+      const newImages = response.data || [];
+      if (reset) {
+        images = newImages;
+      } else {
+        images = [...images, ...newImages];
+      }
+
+      if (newImages.length < limit) {
+        hasMore = false;
+      } else {
+        page += 1;
+      }
     } catch (e: any) {
       console.error("Failed to load user images:", e);
       error = e.message || "Failed to load images";
     } finally {
       loading = false;
+      loadingMore = false;
+    }
+  }
+
+  // CORS-safe download trigger
+  async function downloadImage(url: string, e?: Event) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const filename = url.substring(url.lastIndexOf("/") + 1) || "creation.png";
+      const cleanedFilename = filename.split("?")[0];
+      
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = cleanedFilename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Failed to download natively, opening in new window instead:", err);
+      window.open(url, "_blank");
     }
   }
 
@@ -84,9 +148,26 @@
   }
 
   onMount(() => {
-    fetchImages();
+    fetchImages(true);
+
+    // Set up Infinite Scroll observer
+    if (typeof window !== "undefined" && window.IntersectionObserver) {
+      observer = new IntersectionObserver((entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && !loading && !loadingMore && hasMore) {
+          fetchImages(false);
+        }
+      }, {
+        rootMargin: "200px" // Trigger loads early
+      });
+      
+      if (scrollAnchor) {
+        observer.observe(scrollAnchor);
+      }
+    }
+
     return () => {
-      // Clean up body scroll lock if unmounted while open
+      if (observer) observer.disconnect();
       if (typeof document !== "undefined") {
         document.body.style.overflow = "";
       }
@@ -97,15 +178,15 @@
 <svelte:window on:keydown={handleKeyDown} />
 
 <div class="grid-wrapper">
-  {#if loading}
+  {#if loading && images.length === 0}
     <div class="spinner-container">
       <Spinner />
       <span class="loading-text">Fetching your creations...</span>
     </div>
-  {:else if error}
+  {:else if error && images.length === 0}
     <div class="error-container">
       <p class="error-text">⚠️ {error}</p>
-      <button class="retry-btn" onclick={fetchImages}>Retry</button>
+      <button class="retry-btn" onclick={() => fetchImages(true)}>Retry</button>
     </div>
   {:else if images.length === 0}
     <div class="empty-container">
@@ -115,18 +196,34 @@
   {:else}
     <div class="grid">
       {#each images as img, i}
-        <button class="grid-card" onclick={() => openLightbox(i)}>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="grid-card" onclick={() => openLightbox(i)}>
           <div class="img-container">
             <img src={img.content} alt={img.prompt || "Generated creation"} loading="lazy" />
           </div>
+          <!-- Download Icon Overlay -->
+          <button class="card-download-btn" onclick={(e) => downloadImage(img.content, e)} aria-label="Download image">
+            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+          </button>
           <div class="card-overlay">
             <span class="minigame-tag">{img.minigameName || "Minigame"}</span>
             {#if img.prompt}
               <p class="prompt-preview">{img.prompt}</p>
             {/if}
           </div>
-        </button>
+        </div>
       {/each}
+    </div>
+
+    <!-- Infinite Scroll Loading Indicator & Intersection Anchor -->
+    <div bind:this={scrollAnchor} class="scroll-anchor-container">
+      {#if loadingMore}
+        <Spinner />
+        <span class="loading-more-text">Loading more masterpieces...</span>
+      {:else if !hasMore && images.length > 0}
+        <p class="end-gallery-text">You've reached the end of the gallery. Keep creating! 🚀</p>
+      {/if}
     </div>
   {/if}
 </div>
@@ -153,6 +250,12 @@
         <div class="details-header">
           <span class="game-tag">Game #{current.game}</span>
           <span class="minigame-tag-large">{current.minigameName || "Minigame"}</span>
+          <div class="spacer"></div>
+          <!-- Lightbox Download Button -->
+          <button class="lightbox-download-btn" onclick={() => downloadImage(current.content)}>
+            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+            <span>Download</span>
+          </button>
         </div>
         {#if current.prompt}
           <p class="lightbox-prompt">"{current.prompt}"</p>
@@ -261,6 +364,9 @@
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), 
                 box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
                 border-color 0.2s;
+    /* Native browser rendering optimization for performance */
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
   }
 
   .grid-card:hover {
@@ -286,6 +392,45 @@
 
   .grid-card:hover .img-container img {
     transform: scale(1.08);
+  }
+
+  /* Card floating download button */
+  .card-download-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s;
+    z-index: 5;
+  }
+
+  .grid-card:hover .card-download-btn {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .card-download-btn:hover {
+    background: rgba(0, 0, 0, 0.85);
+    color: var(--m3c-primary);
+    transform: scale(1.08);
+  }
+
+  .card-download-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: currentColor;
   }
 
   .card-overlay {
@@ -325,6 +470,30 @@
     text-overflow: ellipsis;
     width: 100%;
     font-weight: 500;
+  }
+
+  /* Infinite Scroll indicators */
+  .scroll-anchor-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 0 1rem 0;
+    gap: 0.75rem;
+  }
+
+  .loading-more-text {
+    font-size: 0.85rem;
+    color: var(--m3c-on-surface-variant);
+    font-weight: 500;
+  }
+
+  .end-gallery-text {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 500;
+    text-align: center;
   }
 
   /* Full-Screen Lightbox Modal styling */
@@ -397,6 +566,11 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    width: 100%;
+  }
+
+  .spacer {
+    flex-grow: 1;
   }
 
   .game-tag {
@@ -413,11 +587,38 @@
     font-size: 0.75rem;
     font-weight: 800;
     color: #fff;
-    background: var(--m3c-secondary, rgba(255, 255, 255, 0.15));
+    background: rgba(255, 255, 255, 0.15);
     padding: 0.25rem 0.6rem;
     border-radius: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  .lightbox-download-btn {
+    background: var(--m3c-primary);
+    color: var(--m3c-on-primary);
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .lightbox-download-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+  }
+
+  .lightbox-download-btn svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
   }
 
   .lightbox-prompt {
