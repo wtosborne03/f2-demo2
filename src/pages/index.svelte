@@ -95,7 +95,7 @@
       }
     } else {
       const localSelfie = localStorage.getItem("temp_selfie");
-      if (localSelfie && false) {
+      if (localSelfie) {
         joinRoom(localSelfie || undefined);
         return;
       }
