@@ -215,17 +215,17 @@
         </div>
       {/each}
     </div>
-
-    <!-- Infinite Scroll Loading Indicator & Intersection Anchor -->
-    <div bind:this={scrollAnchor} class="scroll-anchor-container">
-      {#if loadingMore}
-        <Spinner />
-        <span class="loading-more-text">Loading more masterpieces...</span>
-      {:else if !hasMore && images.length > 0}
-        <p class="end-gallery-text">You've reached the end of the gallery. Keep creating! 🚀</p>
-      {/if}
-    </div>
   {/if}
+
+  <!-- Infinite Scroll Loading Indicator & Intersection Anchor -->
+  <div bind:this={scrollAnchor} class="scroll-anchor-container">
+    {#if loadingMore}
+      <Spinner />
+      <span class="loading-more-text">Loading more masterpieces...</span>
+    {:else if !hasMore && images.length > 0}
+      <p class="end-gallery-text">You've reached the end of the gallery. Keep creating! 🚀</p>
+    {/if}
+  </div>
 </div>
 
 <!-- Lightbox Modal -->
