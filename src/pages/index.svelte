@@ -105,6 +105,14 @@
 
   const joinRoom = async (avatarSelfieUrl?: string, landmarks?: any) => {
     const user = get(session).data?.user;
+    let userId = user?.id;
+    if (!userId) {
+      userId = localStorage.getItem("temp_user_id") || "";
+      if (!userId) {
+        userId = "temp_" + crypto.randomUUID();
+        localStorage.setItem("temp_user_id", userId);
+      }
+    }
     if (user) {
       await updateName(name);
     }
@@ -132,7 +140,7 @@
         }
       }
     }
-    gameClient.join(roomCode.toUpperCase(), name, user?.id);
+    gameClient.join(roomCode.toUpperCase(), name, userId);
   };
 
   async function uploadSelfieImage(

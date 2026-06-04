@@ -12,6 +12,7 @@
   import iconStorefront from "@ktibow/iconset-material-symbols/storefront";
   import iconLeaderboard from "@ktibow/iconset-material-symbols/leaderboard";
   import iconLogout from "@ktibow/iconset-material-symbols/logout";
+  import iconImage from "@ktibow/iconset-material-symbols/image";
 
   const { signIn, signOut, useSession } = authClient;
   const session = useSession();
@@ -23,6 +24,11 @@
 
   const goStats = async () => {
     await goto("/stats", { replaceState: false });
+    sideBarOpen.set(false);
+  };
+
+  const goGallery = async () => {
+    await goto("/gallery", { replaceState: false });
     sideBarOpen.set(false);
   };
 
@@ -116,6 +122,12 @@
         icon={iconLeaderboard}
         active={page.url.pathname === "/stats"}
         onclick={goStats}
+      />
+      <NavigationRailItem
+        label="Gallery"
+        icon={iconImage}
+        active={page.url.pathname === "/gallery"}
+        onclick={goGallery}
       />
 
       <div class="spacer"></div>
