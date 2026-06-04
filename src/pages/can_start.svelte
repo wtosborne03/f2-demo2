@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { playerEmote } from "$lib/avatar/player_emote";
   import { Switch, Tabs, Slider, Button } from "m3-svelte";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
@@ -70,7 +69,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="can-start-container" onclick={playerEmote}>
+<div class="can-start-container">
   <div class="spacer-flex"></div>
 
   <div class="start-btn-wrapper">

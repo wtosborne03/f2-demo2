@@ -1,266 +1,317 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import {
-    Rive,
-    ViewModelInstanceColor,
-    ViewModelInstanceNumber,
-    ViewModelInstanceTrigger,
-  } from "@rive-app/webgl2";
+  import { browser } from "$app/environment";
   import { get } from "svelte/store";
   import Spinner from "$lib/components/spinner.svelte";
   import Icon from "@iconify/svelte";
-  import { Button, Card } from "m3-svelte";
+  import { Button } from "m3-svelte";
   import { toaster } from "$lib/util/toaster";
   import { apiClient } from "$lib/backend/axios";
-  import type { Avatar } from "$lib/wsapi/game";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { getHue, getSecondaryHue } from "$lib/util/color";
-  import type { Paths } from "$lib/backend/api";
+  import { authClient } from "../../stores/authStore";
+  import SelfieCapture from "$lib/components/SelfieCapture.svelte";
+  import Compressor from "compressorjs";
 
-  let r: Rive;
-  let color_input: ViewModelInstanceColor | undefined | null;
-  let eyes_input: ViewModelInstanceNumber | undefined | null;
-  let mouth_input: ViewModelInstanceNumber | undefined | null;
-  let hair_input: ViewModelInstanceNumber | undefined | null;
-  let emote_input: ViewModelInstanceNumber | undefined | null;
-  let emote_fire_input: ViewModelInstanceTrigger | undefined | null;
+  const session = authClient.useSession();
 
-  let canvasEl: HTMLCanvasElement;
-  let owned_items: Paths.GetUsersOwned.Responses.$200 = {};
-  let loadedin = false;
+  let mode: "preview" | "capture" | "uploading" = "preview";
+  let currentSelfieUrl: string | null = null;
+  let loading = true;
 
-  const categories: { [key: string]: string } = {
-    0: "Eyes",
-    1: "Hair",
-    2: "Mouth",
-    3: "Emote",
-  };
-
-  onMount(() => {
-    rCanvas();
-    r = new Rive({
-      src: import.meta.env.VITE_PUBLIC_API_URL + "/static/avatar/avatar.riv",
-      canvas: canvasEl,
-      autoplay: true,
-      stateMachines: "AvatarState",
-      onLoad: async () => {
-        r.resizeDrawingSurfaceToCanvas();
-        const avatarModel = r.viewModelByName("AvatarModel");
-        const avatarState = avatarModel?.defaultInstance();
-        r.bindViewModelInstance(avatarState!);
-        eyes_input = avatarState?.number("eyes");
-        mouth_input = avatarState?.number("mouth");
-        hair_input = avatarState?.number("head");
-        emote_input = avatarState?.number("playerEmote");
-        avatarState!.enum("gameEmote")!.value = "None";
-        color_input = avatarState?.color("color");
-        color_input!.rgb(204, 0, 0);
-        emote_fire_input = avatarState?.trigger("playPlayerEmote");
-        const client = await apiClient;
-        let data: any = {
-          avatar_eyes: 0,
-          avatar_hair: 0,
-          avatar_mouth: 0,
-          avatar_emote: 0,
-        };
-        try {
-          data = (await client!.getUsersMe()).data;
-        } catch (e) {
-          console.log(e);
-        }
-        console.log(data);
-        a_values["0"] = data.avatar_eyes || 0;
-        a_values["2"] = data.avatar_mouth || 0;
-        a_values["1"] = data.avatar_hair || 0;
-        a_values["3"] = data.avatar_emote || 0;
-        loadedin = true;
-
-        update();
-
-        const { data: ownedData } = await client!.getUsersOwned();
-        owned_items = ownedData;
-        console.log(ownedData);
-      },
-    });
+  onMount(async () => {
+    await loadCurrentAvatar();
   });
 
-  let owned;
-  let a_values: { [key: string]: number } = {
-    "0": 3,
-    "1": 0,
-    "2": 0,
-    "3": 0,
-  };
+  async function loadCurrentAvatar() {
+    loading = true;
+    const user = get(session).data?.user;
 
-  const update = async () => {
-    if (eyes_input) eyes_input.value = a_values["0"];
-    if (mouth_input) mouth_input.value = a_values["2"];
-    if (hair_input) hair_input.value = a_values["1"];
-    if (emote_input) emote_input.value = a_values["3"];
-    if (loadedin) {
-      saveAvatar();
-    }
-  };
-
-  // Svelte action: add a quick pop animation on click
-  const clickPop = (node: HTMLElement) => {
-    const handler = () => {
-      // add a class that triggers the keyframe, then remove it
-      node.classList.add("pop-anim");
-      window.setTimeout(() => node.classList.remove("pop-anim"), 260);
-    };
-
-    node.addEventListener("click", handler);
-    return {
-      destroy() {
-        node.removeEventListener("click", handler);
-      },
-    };
-  };
-
-  const saveAvatar = async () => {
-    const error = null;
-    const client = await apiClient;
-    try {
-      await client!.putUsersAvatar(null, {
-        avatar_eyes: a_values["0"],
-        avatar_hair: a_values["1"],
-        avatar_mouth: a_values["2"],
-        avatar_emote: a_values["3"],
-      });
-      if (get(gameState).screen != "index") {
-        const avatar: Avatar = {
-          eyes: a_values["0"] || 0,
-          hair: a_values["1"] || 0,
-          mouth: a_values["2"] || 0,
-          emote: a_values["3"] || 0,
-        };
-        gameClient.sendInput({
-          type: "avatarUpdate",
-          avatar: avatar,
-        });
+    if (user) {
+      try {
+        const client = await apiClient;
+        if (client) {
+          const { data: me } = await client.getUsersMe();
+          currentSelfieUrl = me.avatar_selfie || null;
+        }
+      } catch (e) {
+        console.error("Failed to load avatar:", e);
       }
-    } catch (e) {}
-  };
+    } else {
+      // Unauthenticated: check localStorage
+      if (browser) {
+        currentSelfieUrl = localStorage.getItem("temp_selfie") || null;
+      }
+    }
+    loading = false;
+  }
 
-  $: a_values, update();
+  async function handleCapture(blob: Blob) {
+    mode = "uploading";
+    new Compressor(blob, {
+      quality: 0.5,
+      maxWidth: 600,
+      maxHeight: 600,
+      async success(result) {
+        try {
+          const { url, landmarks } = await uploadSelfieImage(result);
+          await saveAvatar(url, landmarks);
+          currentSelfieUrl = url;
+          toaster.success({
+            title: "Avatar Updated",
+            description: "Your new avatar has been saved.",
+          });
+        } catch (err: any) {
+          console.error("Failed to upload selfie:", err);
+          toaster.error({
+            title: "Upload Failed",
+            description: "Could not save your avatar. Please try again.",
+          });
+        }
+        mode = "preview";
+      },
+      error(err) {
+        console.error("Compression error:", err.message);
+        toaster.error({
+          title: "Error",
+          description: "Failed to process image.",
+        });
+        mode = "preview";
+      },
+    });
+  }
 
-  onDestroy(() => {});
+  async function uploadSelfieImage(
+    file: File | Blob,
+  ): Promise<{ url: string; landmarks: any }> {
+    const formData = new FormData();
+    formData.append("file", file, "selfie.png");
 
-  const rCanvas = () => {
-    if (!canvasEl) return;
-    canvasEl.width = Math.max(window.innerWidth, window.innerHeight) / 5;
-    canvasEl.height = canvasEl.width;
-  };
+    const response = await fetch(
+      `${import.meta.env.VITE_PUBLIC_API_URL}/upload?detect_landmarks=true`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async function saveAvatar(selfieUrl: string, landmarks?: any) {
+    const user = get(session).data?.user;
+    if (user) {
+      const client = await apiClient;
+      await client!.putUsersAvatar(null, {
+        avatar_emote: 0,
+        avatar_eyes: 3,
+        avatar_hair: 0,
+        avatar_mouth: 0,
+        avatar_selfie: selfieUrl,
+        avatar_landmarks: landmarks ? JSON.stringify(landmarks) : null,
+      });
+    } else {
+      if (browser) {
+        localStorage.setItem("temp_selfie", selfieUrl);
+        if (landmarks) {
+          localStorage.setItem("temp_landmarks", JSON.stringify(landmarks));
+        } else {
+          localStorage.removeItem("temp_landmarks");
+        }
+      }
+    }
+
+    // If in a game, send avatar update
+    if (get(gameState).screen !== "index") {
+      gameClient.sendInput({
+        type: "avatarUpdate",
+        avatar: {
+          eyes: 3,
+          hair: 0,
+          mouth: 0,
+          emote: 0,
+          selfieUrl: selfieUrl,
+          landmarks,
+        },
+      });
+    }
+  }
+
+  async function removeAvatar() {
+    const user = get(session).data?.user;
+    if (user) {
+      try {
+        const client = await apiClient;
+        await client!.putUsersAvatar(null, {
+          avatar_emote: 0,
+          avatar_eyes: 3,
+          avatar_hair: 0,
+          avatar_mouth: 0,
+          avatar_selfie: null,
+          avatar_landmarks: null,
+        });
+      } catch (e) {
+        console.error("Failed to remove avatar:", e);
+      }
+    } else {
+      if (browser) {
+        localStorage.removeItem("temp_selfie");
+        localStorage.removeItem("temp_landmarks");
+      }
+    }
+
+    currentSelfieUrl = null;
+
+    // If in a game, send avatar update
+    if (get(gameState).screen !== "index") {
+      gameClient.sendInput({
+        type: "avatarUpdate",
+        avatar: {
+          eyes: 3,
+          hair: 0,
+          mouth: 0,
+          emote: 0,
+          selfieUrl: "",
+        },
+      });
+    }
+
+    toaster.success({
+      title: "Avatar Removed",
+      description: "You'll appear with a nametag only.",
+    });
+  }
 </script>
 
 <svelte:head>
-  <title>Customize Avatar - Couch Cup</title>
+  <title>Your Avatar - Couch Cup</title>
   <meta
     name="description"
-    content="Customize your Couch Cup avatar with owned items, emotes, eyes, mouth, and hair options."
+    content="Preview or change your Couch Cup avatar selfie."
   />
 </svelte:head>
 
-<div class="avatar-select-container">
+<div class="avatar-page">
   <header class="app-bar">
     <Button variant="filled" onclick={() => goto("/")} id="back-to-home-btn">
       <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
     </Button>
-    <h1 class="app-bar-title" id="avatar-page-title">Customize Avatar</h1>
+    <h1 class="app-bar-title" id="avatar-page-title">Your Avatar</h1>
     <div class="app-bar-spacer"></div>
   </header>
 
-  <main class="content-layout">
-    <!-- Left Column: Avatar preview -->
-    <div class="preview-column">
-      <div class="preview-card-content">
-        <div class="canvas-wrapper">
-          <canvas
-            bind:this={canvasEl}
-            id="avatar-preview-canvas"
-            class="avatar-canvas"
-            onclick={() => emote_fire_input?.trigger()}
-          ></canvas>
-        </div>
-        <div class="preview-status">
-          <span class="status-badge" id="badge-tap-emote">
-            <Icon
-              icon="material-symbols:motion-photos-on-outline"
-              class="badge-icon"
-            />
-            Tap to emote
-          </span>
-          <span class="status-badge save-status" id="badge-saved">
-            <Icon
-              icon="material-symbols:cloud-done-outline"
-              class="badge-icon"
-            />
-            Changes Saved
-          </span>
-        </div>
+  <main class="content-area">
+    {#if loading}
+      <div class="center-container">
+        <Spinner />
       </div>
-    </div>
+    {:else if mode === "preview"}
+      <div class="preview-section">
+        {#if currentSelfieUrl}
+          <!-- Current Avatar Preview -->
+          <div class="avatar-preview-card">
+            <div class="avatar-image-container">
+              <img
+                src={currentSelfieUrl}
+                alt="Your avatar"
+                class="avatar-image"
+              />
+            </div>
+            <div class="avatar-status">
+              <Icon
+                icon="material-symbols:check-circle-outline"
+                style="font-size: 1.25rem; color: #4ade80;"
+              />
+              <span>Avatar Active</span>
+            </div>
+          </div>
 
-    <!-- Right Column: Items / categories -->
-    <div class="items-column">
-      {#if loadedin}
-        <div class="categories-list">
-          {#each Object.keys(owned_items) as category}
-            <section
-              class="category-section"
-              id={`category-section-${category}`}
+          <!-- Actions -->
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="action-btn primary-action"
+              onclick={() => (mode = "capture")}
             >
-              <div class="category-header">
-                <h2 class="category-title" id={`category-title-${category}`}>
-                  {categories[category]}
-                </h2>
-                <span class="category-divider"></span>
-              </div>
+              <Icon
+                icon="material-symbols:photo-camera-outline"
+                style="font-size: 1.25rem;"
+              />
+              Change Avatar
+            </button>
+            <button
+              type="button"
+              class="action-btn danger-action"
+              onclick={removeAvatar}
+            >
+              <Icon
+                icon="material-symbols:delete-outline"
+                style="font-size: 1.25rem;"
+              />
+              Remove Avatar
+            </button>
+          </div>
+        {:else}
+          <!-- No Avatar Placeholder -->
+          <div class="no-avatar-card">
+            <div class="no-avatar-icon">
+              <Icon
+                icon="material-symbols:person-outline"
+                style="font-size: 4rem; color: #71717a;"
+              />
+            </div>
+            <h2 class="no-avatar-title">No Avatar Set</h2>
+            <p class="no-avatar-description">
+              Take a selfie to create your 3D avatar, or play with a nametag
+              only.
+            </p>
+          </div>
 
-              <div class="items-grid">
-                {#each owned_items[category] || [] as item}
-                  <!-- item card -->
-                  <button
-                    use:clickPop
-                    class="item-button"
-                    class:selected={a_values[category] == item.shop.value}
-                    style={`--item-bg: ${getHue(item.shop.id)}`}
-                    onclick={() => (a_values[category] = item.shop.value)}
-                    id={`item-btn-${item.shop.id}`}
-                  >
-                    <span class="item-name">{item.shop.name}</span>
-                    <div class="checkbox-wrapper">
-                      {#if a_values[category] == item.shop.value}
-                        <Icon
-                          icon="pixelarticons:checkbox"
-                          class="checkbox-icon"
-                        />
-                      {:else}
-                        <Icon
-                          icon="pixelarticons:checkbox-on"
-                          class="checkbox-icon"
-                        />
-                      {/if}
-                    </div>
-                  </button>
-                {/each}
-              </div>
-            </section>
-          {/each}
-        </div>
-      {:else}
-        <div class="spinner-wrapper" id="loading-spinner">
-          <Spinner />
-        </div>
-      {/if}
-    </div>
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="action-btn primary-action"
+              onclick={() => (mode = "capture")}
+            >
+              <Icon
+                icon="material-symbols:photo-camera-outline"
+                style="font-size: 1.25rem;"
+              />
+              Set Up Avatar
+            </button>
+          </div>
+        {/if}
+      </div>
+    {:else if mode === "capture"}
+      <div class="capture-section">
+        <SelfieCapture
+          onCapture={handleCapture}
+          onSkip={() => (mode = "preview")}
+          showSkip={false}
+        />
+        <button
+          type="button"
+          class="cancel-btn"
+          onclick={() => (mode = "preview")}
+        >
+          Cancel
+        </button>
+      </div>
+    {:else if mode === "uploading"}
+      <div class="center-container">
+        <Spinner />
+        <span class="uploading-text">Processing selfie...</span>
+      </div>
+    {/if}
   </main>
 </div>
 
 <style>
-  .avatar-select-container {
+  .avatar-page {
     background-color: var(--m3c-background);
     color: var(--m3c-on-background);
     min-height: 100vh;
@@ -294,247 +345,216 @@
     flex: 1;
   }
 
-  .content-layout {
-    max-width: 80rem;
+  .content-area {
+    max-width: 30rem;
     margin: 0 auto;
     width: 100%;
     padding: 2rem 1.5rem;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
     box-sizing: border-box;
-  }
-
-  @media (min-width: 768px) {
-    .content-layout {
-      grid-template-columns: 320px 1fr;
-      align-items: start;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .content-layout {
-      grid-template-columns: 380px 1fr;
-    }
-  }
-
-  .preview-column {
-    width: 100%;
-  }
-
-  /* Style Card container for preview */
-  .preview-column :global(.m3-card) {
-    background-color: var(--m3c-surface-container-low) !important;
-    border-color: var(--m3c-outline-variant) !important;
-    border-radius: var(--m3-shape-large) !important;
-  }
-
-  .preview-card-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
-    padding: 1.5rem;
   }
 
-  .canvas-wrapper {
-    width: 100%;
+  .center-container {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    min-height: 300px;
+    gap: 1rem;
   }
 
-  .avatar-canvas {
-    margin-top: -5rem;
-    width: 100%;
-    max-width: 320px;
-    aspect-ratio: 1 / 1;
-    border-radius: var(--m3-shape-medium);
-    cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+  .uploading-text {
+    color: var(--m3c-on-surface-variant);
+    font-size: 1rem;
+    font-weight: 500;
+    animation: pulse 1.5s ease-in-out infinite;
   }
 
-  .avatar-canvas:hover {
-    transform: scale(1.02);
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 
-  .avatar-canvas:active {
-    transform: scale(0.98);
-  }
-
-  .preview-status {
+  /* Preview Section */
+  .preview-section {
     display: flex;
-    flex-direction: row;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    font-family: var(--m3-font);
-    font-size: 0.875rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+    animation: fadeIn 300ms ease-out;
   }
 
-  .status-badge {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .avatar-preview-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .avatar-image-container {
+    width: 14rem;
+    height: 14rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--m3c-outline-variant);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+    background-color: var(--m3c-surface-container-low);
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-status {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
     padding: 0.375rem 0.75rem;
-    border-radius: var(--m3-shape-full);
+    border-radius: 9999px;
     background-color: var(--m3c-surface-container-high);
     color: var(--m3c-on-surface-variant);
-  }
-
-  .status-badge.save-status {
-    background-color: var(--m3c-primary-container);
-    color: var(--m3c-on-primary-container);
-  }
-
-  :global(.badge-icon) {
-    font-size: 1.125rem;
-  }
-
-  .items-column {
-    width: 100%;
-  }
-
-  .categories-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-  }
-
-  .category-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .category-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .category-title {
     font-family: var(--m3-font);
-    font-size: 1.5rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    margin: 0;
-    color: var(--m3c-on-background);
   }
 
-  .category-divider {
-    flex: 1;
-    height: 1px;
-    background-color: var(--m3c-outline-variant);
-    border-radius: var(--m3-shape-full);
-    opacity: 0.4;
-  }
-
-  .items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 1rem;
-  }
-
-  .item-button {
-    background-color: var(--item-bg);
-    border-radius: var(--m3-shape-medium);
-    padding: 1rem;
-    aspect-ratio: 1 / 1;
+  /* No Avatar Placeholder */
+  .no-avatar-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 2.5rem 1.5rem;
+    width: 100%;
     text-align: center;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition:
-      transform 0.2s var(--m3-easing-standard),
-      box-shadow 0.2s var(--m3-easing-standard),
-      border-color 0.2s var(--m3-easing-standard);
-    position: relative;
-    overflow: hidden;
   }
 
-  .item-button::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-color: #ffffff;
-    opacity: 0;
-    transition: opacity 0.15s linear;
+  .no-avatar-icon {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    background-color: var(--m3c-surface-container-high);
+    border: 3px dashed var(--m3c-outline-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .item-button:hover::before {
-    opacity: 0.1;
-  }
-
-  .item-button:focus-visible {
-    outline: 2px solid var(--m3c-primary);
-    outline-offset: 2px;
-  }
-
-  .item-button.selected {
-    border-color: #ffffff;
-    box-shadow:
-      0 0 0 3px var(--m3c-primary),
-      var(--m3-elevation-2);
-    transform: scale(1.02);
-  }
-
-  .item-name {
+  .no-avatar-title {
     font-family: var(--m3-font);
-    font-size: 0.95rem;
-    font-weight: 500;
-    line-height: 1.3;
-    color: #ffffff;
-    z-index: 1;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  }
-
-  .checkbox-wrapper {
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  :global(.checkbox-icon) {
     font-size: 1.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-    transition:
-      color 0.2s ease,
-      transform 0.2s ease;
+    font-weight: 600;
+    margin: 0;
+    color: var(--m3c-on-surface);
   }
 
-  .item-button.selected :global(.checkbox-icon) {
-    color: #ffffff;
-    transform: scale(1.1);
+  .no-avatar-description {
+    font-family: var(--m3-font);
+    font-size: 0.875rem;
+    color: var(--m3c-on-surface-variant);
+    margin: 0;
+    max-width: 20rem;
+    line-height: 1.5;
   }
 
-  .spinner-wrapper {
+  /* Action Buttons */
+  .action-buttons {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 20rem;
+  }
+
+  .action-btn {
+    width: 100%;
+    height: 3rem;
+    border-radius: 0.75rem;
+    font-family: var(--m3-font);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    display: flex;
     align-items: center;
-    min-height: 200px;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 200ms;
+    border: none;
+  }
+
+  .action-btn:active {
+    transform: scale(0.97);
+  }
+
+  .primary-action {
+    background-color: var(--m3c-primary);
+    color: var(--m3c-on-primary);
+  }
+
+  .primary-action:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .danger-action {
+    background-color: transparent;
+    color: var(--m3c-error);
+    border: 1px solid var(--m3c-outline-variant);
+  }
+
+  .danger-action:hover {
+    background-color: rgba(239, 68, 68, 0.08);
+  }
+
+  /* Capture Section */
+  .capture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
     width: 100%;
   }
 
-  @keyframes pop {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.08);
-    }
-    100% {
-      transform: scale(1);
-    }
+  .cancel-btn {
+    background-color: transparent;
+    color: var(--m3c-on-surface-variant);
+    border: 1px solid var(--m3c-outline-variant);
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.75rem;
+    font-family: var(--m3-font);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 200ms;
   }
 
-  :global(.pop-anim) {
-    animation: pop 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  .cancel-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .cancel-btn:active {
+    transform: scale(0.97);
   }
 </style>

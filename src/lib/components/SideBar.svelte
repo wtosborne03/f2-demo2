@@ -87,13 +87,24 @@
       <div class="user-info">
         <span class="user-email">{$session.data?.user?.email}</span>
       </div>
+    {:else}
+      <div class="signin-info">
+        <span class="signin-title">Sign In</span>
+      </div>
+      <div class="signin-options">
+        <GoogleSignInButton onClick={signInWithGoogle} />
+        <SpotifySignInButton onClick={signInWithSpotify} />
+      </div>
+    {/if}
 
-      <NavigationRailItem
-        label="Avatar"
-        icon={iconPerson}
-        active={page.url.pathname === "/avatar"}
-        onclick={customizeAvatar}
-      />
+    <NavigationRailItem
+      label="Avatar"
+      icon={iconPerson}
+      active={page.url.pathname === "/avatar"}
+      onclick={customizeAvatar}
+    />
+
+    {#if $session.data?.user}
       <NavigationRailItem
         label="Shop"
         icon={iconStorefront}
@@ -114,14 +125,6 @@
         icon={iconLogout}
         onclick={() => signOut()}
       />
-    {:else}
-      <div class="signin-info">
-        <span class="signin-title">Sign In</span>
-      </div>
-      <div class="signin-options">
-        <GoogleSignInButton onClick={signInWithGoogle} />
-        <SpotifySignInButton onClick={signInWithSpotify} />
-      </div>
     {/if}
   </NavigationRail>
 </div>
