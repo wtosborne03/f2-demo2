@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { playerEmote } from "$lib/avatar/player_emote";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
 
@@ -10,6 +11,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   class="container h-full mx-auto flex flex-col justify-center items-center"
+  on:click={playerEmote}
 >
   <div class="text-xl">Joined Game 👍</div>
 
