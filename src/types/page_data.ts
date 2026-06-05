@@ -59,7 +59,7 @@ interface photoVoteData {
 }
 
 interface DrinkingPrompt {
-    prompt: string,
+    prompt?: string,
 }
 
 interface RouletteData {

@@ -21,16 +21,11 @@
     <div>
       <h3 class="h3 font-bold text-primary underline">Admin</h3>
       <p class="text-surface-100 mt-2 text-xl">
-        Verify that all players have completed the prompt.
+        Verify that all players have completed the drinking punishment.
       </p>
     </div>
     <div class="btn-wrapper">
-      <Button
-        variant="filled"
-        onclick={confirm}
-      >
-        They drank 👍
-      </Button>
+      <Button variant="filled" onclick={confirm}>They drank 👍</Button>
     </div>
   </div>
 {/if}
