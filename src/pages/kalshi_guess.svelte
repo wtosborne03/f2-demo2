@@ -44,7 +44,7 @@
         {/if}
         {#if m_data.subTitle}
           <p class="text-xl text-[#080c14]/90 font-semibold tracking-wide">
-            -> {m_data.subTitle}
+            {m_data.subTitle}
           </p>
         {/if}
       </div>
