@@ -33,14 +33,18 @@
         >
           {m_data.category || "Prediction Market"}
         </span>
-        <h1
-          class="text-xl sm:text-2xl font-black leading-tight text-[#080c14] px-2 mt-2"
-        >
-          {m_data.question || "Will the event happen?"}
-        </h1>
+        {#if m_data.subtitle}
+          <h1 class="text-xl font-black leading-tight text-[#080c14] px-2 mt-2">
+            {m_data.question || "Will the event happen?"}
+          </h1>
+        {:else}
+          <h1 class="text-md font-black leading-tight text-[#080c14] px-2 mt-2">
+            {m_data.question || "Will the event happen?"}
+          </h1>
+        {/if}
         {#if m_data.subTitle}
-          <p class="text-lg text-[#080c14]/90 font-semibold tracking-wide">
-            {m_data.subTitle}
+          <p class="text-xl text-[#080c14]/90 font-semibold tracking-wide">
+            -> {m_data.subTitle}
           </p>
         {/if}
       </div>
