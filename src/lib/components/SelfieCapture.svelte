@@ -138,21 +138,10 @@
       ></video>
 
       <!-- SVG Face Guide Overlay -->
-      <svg
-        viewBox="0 0 100 100"
-        class="face-guide"
-      >
-        <!-- Face outline -->
-        <path
-          d="M 50,15 C 25,15 25,65 50,85 C 75,65 75,15 50,15 Z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.2"
-          stroke-dasharray="3,3"
-        />
+      <svg viewBox="0 0 100 100" class="face-guide">
         <!-- Eye guide marks -->
-        <circle cx="38" cy="45" r="2.2" fill="currentColor" opacity="0.6" />
-        <circle cx="62" cy="45" r="2.2" fill="currentColor" opacity="0.6" />
+        <circle cx="28" cy="45" r="2.2" fill="currentColor" opacity="0.6" />
+        <circle cx="72" cy="45" r="2.2" fill="currentColor" opacity="0.6" />
         <!-- Mouth guide mark -->
         <path
           d="M 44,65 Q 50,68 56,65"
