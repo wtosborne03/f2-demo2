@@ -5,11 +5,11 @@
   import { onMount } from "svelte";
   import doubloon from "$lib/assets/icons/doubloon.png";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import Phaser from "phaser";
 
   let game: Phaser.Game;
 
   onMount(async () => {
-    const Phaser = await import("phaser");
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       render: {
