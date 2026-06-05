@@ -52,21 +52,25 @@
     style="--app-color: {color}; background-color: color(from {color} srgb r g b / 1.0);"
   >
     <!-- App Bar -->
-    <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
+    <div
+      class="h-10 flex flex-col justify-center items-start w-20 flex-none text-shadow-2xs"
+    >
       <Icon icon="material-symbols:menu-rounded" font-size="3rem" />
     </div>
 
     <span class="text-xl flex flex-col justify-center items-center gap-0">
-      <div class="flex flex-col justify-center items-center h-10">
+      <div
+        class="flex flex-col justify-center items-center h-10 text-shadow-2xs"
+      >
         {name}
         {#if admin}
-          <span class="text-sm opacity-50"> admin </span>
+          <span class="text-sm opacity-70 text-shadow-2xs"> admin </span>
         {/if}
       </div>
     </span>
 
     <span
-      class="text-xl flex flex-row items-center justify-end gap-2 w-20 h-12 flex-none score"
+      class="text-xl flex flex-row items-center justify-end gap-2 w-20 h-12 flex-none score text-shadow-2xs"
       aria-live="polite"
       aria-atomic="true"
     >
