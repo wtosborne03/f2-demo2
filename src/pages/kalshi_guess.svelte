@@ -19,16 +19,11 @@
       guess: guessValue
     });
   }
-
-  function adjustGuess(amount: number) {
-    if (submitted) return;
-    guessValue = Math.max(1, Math.min(99, guessValue + amount));
-  }
 </script>
 
-<div class="w-full h-full min-h-screen bg-[#00DD94] flex flex-col justify-between p-6 text-[#080c14] font-sans">
+<div class="kalshi-page w-full max-w-md mx-auto flex flex-col justify-center p-6 text-[#080c14] font-sans">
   {#if !submitted}
-    <div class="flex-grow flex flex-col justify-between py-4 max-w-md mx-auto w-full" in:scale={{ duration: 300 }}>
+    <div class="w-full flex flex-col gap-6" in:scale={{ duration: 300 }}>
       
       <!-- Category Badge & Header -->
       <div class="text-center space-y-2">
@@ -47,7 +42,7 @@
  
       <!-- Image Area (if any) -->
       {#if m_data.imageUrl && !imgFailed}
-        <div class="my-4 flex justify-center" transition:fade>
+        <div class="flex justify-center" transition:fade>
           <img 
             src={m_data.imageUrl} 
             alt="Market illustration" 
@@ -58,7 +53,7 @@
       {/if}
  
       <!-- Guess Display & Slider -->
-      <div class="space-y-6 bg-[#080c14]/10 p-6 rounded-2xl my-4">
+      <div class="space-y-6 bg-[#080c14]/10 p-6 rounded-2xl">
         <div class="text-center">
           <p class="text-xs font-bold tracking-widest text-[#080c14]/60 uppercase">Your Estimate</p>
           <div class="text-6xl font-black tracking-tight k-accent-text mt-2 flex items-center justify-center">
@@ -68,45 +63,16 @@
           <p class="text-xs text-[#080c14]/70 mt-1 font-semibold">probability of happening</p>
         </div>
  
-        <!-- Fine Tuning Controls + Slider -->
+        <!-- Slider Track -->
         <div class="space-y-4">
-          <div class="flex items-center gap-3">
-            <button 
-              on:click={() => adjustGuess(-5)}
-              class="w-10 h-10 rounded-lg bg-[#080c14] text-[#00DD94] font-black active:scale-90 transition-all flex items-center justify-center text-sm"
-            >
-              -5
-            </button>
-            <button 
-              on:click={() => adjustGuess(-1)}
-              class="w-10 h-10 rounded-lg bg-[#080c14] text-[#00DD94] font-black active:scale-90 transition-all flex items-center justify-center text-sm"
-            >
-              -1
-            </button>
- 
-            <!-- Custom Styled Slider Track -->
-            <div class="flex-grow px-2 py-4 relative flex items-center">
-              <input 
-                type="range" 
-                min="1" 
-                max="99" 
-                bind:value={guessValue}
-                class="w-full h-3 bg-transparent rounded-lg appearance-none cursor-pointer focus:outline-none"
-              />
-            </div>
- 
-            <button 
-              on:click={() => adjustGuess(1)}
-              class="w-10 h-10 rounded-lg bg-[#080c14] text-[#00DD94] font-black active:scale-90 transition-all flex items-center justify-center text-sm"
-            >
-              +1
-            </button>
-            <button 
-              on:click={() => adjustGuess(5)}
-              class="w-10 h-10 rounded-lg bg-[#080c14] text-[#00DD94] font-black active:scale-90 transition-all flex items-center justify-center text-sm"
-            >
-              +5
-            </button>
+          <div class="py-4 relative flex items-center w-full">
+            <input 
+              type="range" 
+              min="1" 
+              max="99" 
+              bind:value={guessValue}
+              class="w-full h-3 bg-transparent rounded-lg appearance-none cursor-pointer focus:outline-none"
+            />
           </div>
  
           <!-- Ticks description -->
@@ -122,7 +88,7 @@
       <div class="px-2">
         <button
           on:click={submitGuess}
-          class="w-full py-4 k-accent-bg active:scale-98 transition-all font-black tracking-wider uppercase rounded-lg text-center text-sm"
+          class="w-full py-4 k-accent-bg active:scale-98 transition-all font-black tracking-wider uppercase rounded-lg text-center text-sm cursor-pointer"
         >
           Lock In Guess
         </button>
@@ -130,7 +96,7 @@
  
     </div>
   {:else}
-    <div class="flex-grow flex flex-col items-center justify-center text-center space-y-6" in:scale={{ duration: 400, start: 0.9 }}>
+    <div class="w-full flex flex-col items-center justify-center text-center gap-6 py-12" in:scale={{ duration: 400, start: 0.9 }}>
       <div class="w-20 h-20 bg-[#080c14]/10 k-accent-text rounded-full flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -144,8 +110,16 @@
     </div>
   {/if}
 </div>
- 
+
 <style>
+  :global(body:has(.kalshi-page)) {
+    background-color: #00DD94 !important;
+  }
+  :global(#main-background:has(.kalshi-page)) {
+    background-color: #00DD94 !important;
+    padding: 0 !important;
+  }
+
   .k-badge {
     background: rgba(8, 12, 20, 0.08);
     color: #080c14;
