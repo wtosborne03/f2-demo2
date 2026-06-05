@@ -16,74 +16,69 @@
     submitted = true;
     gameClient.sendInput({
       type: "kalshi_guess",
-      guess: guessValue
+      guess: guessValue,
     });
   }
 </script>
 
-<div class="kalshi-page w-full max-w-md mx-auto flex flex-col justify-center p-6 text-[#080c14] font-sans">
+<div
+  class="kalshi-page w-full max-w-md mx-auto flex flex-col justify-center p-6 text-[#080c14] font-sans"
+>
   {#if !submitted}
-    <div class="w-full flex flex-col gap-6" in:scale={{ duration: 300 }}>
-      
+    <div class="w-full flex flex-col gap-5" in:scale={{ duration: 300 }}>
       <!-- Category Badge & Header -->
       <div class="text-center space-y-2">
-        <span class="inline-block px-4 py-1.5 k-badge text-xs font-bold tracking-wider uppercase rounded-sm">
+        <span
+          class="inline-block px-4 py-1.5 k-badge text-xs font-bold tracking-wider uppercase rounded-sm"
+        >
           {m_data.category || "Prediction Market"}
         </span>
-        <h1 class="text-xl sm:text-2xl font-black leading-tight text-[#080c14] px-2 mt-2">
+        <h1
+          class="text-xl sm:text-2xl font-black leading-tight text-[#080c14] px-2 mt-2"
+        >
           {m_data.question || "Will the event happen?"}
         </h1>
         {#if m_data.subTitle}
-          <p class="text-xs text-[#080c14]/70 font-semibold tracking-wide">
+          <p class="text-lg text-[#080c14]/90 font-semibold tracking-wide">
             {m_data.subTitle}
           </p>
         {/if}
       </div>
- 
-      <!-- Image Area (if any) -->
-      {#if m_data.imageUrl && !imgFailed}
-        <div class="flex justify-center" transition:fade>
-          <img 
-            src={m_data.imageUrl} 
-            alt="Market illustration" 
-            on:error={() => imgFailed = true}
-            class="w-24 h-24 rounded-lg object-cover"
-          />
-        </div>
-      {/if}
- 
+
       <!-- Guess Display & Slider -->
-      <div class="space-y-6 bg-[#080c14]/10 p-6 rounded-2xl">
+      <div class="space-y-6 bg-[#080c14]/10 p-4 rounded-2xl">
         <div class="text-center">
-          <p class="text-xs font-bold tracking-widest text-[#080c14]/60 uppercase">Your Estimate</p>
-          <div class="text-6xl font-black tracking-tight k-accent-text mt-2 flex items-center justify-center">
+          <div
+            class="text-6xl font-black tracking-tight k-accent-text mt-2 flex items-center justify-center"
+          >
             <span>{guessValue}</span>
             <span class="text-3xl opacity-60 font-medium ml-1">%</span>
           </div>
-          <p class="text-xs text-[#080c14]/70 mt-1 font-semibold">probability of happening</p>
         </div>
- 
+
         <!-- Slider Track -->
         <div class="space-y-4">
           <div class="py-4 relative flex items-center w-full">
-            <input 
-              type="range" 
-              min="1" 
-              max="99" 
+            <input
+              type="range"
+              min="1"
+              max="99"
               bind:value={guessValue}
               class="w-full h-3 bg-transparent rounded-lg appearance-none cursor-pointer focus:outline-none"
             />
           </div>
- 
+
           <!-- Ticks description -->
-          <div class="flex justify-between text-[10px] font-bold text-[#080c14]/60 px-2">
+          <div
+            class="flex justify-between text-[10px] font-bold text-[#080c14]/60 px-2"
+          >
             <span>NO (1%)</span>
             <span>UNSURE (50%)</span>
             <span>YES (99%)</span>
           </div>
         </div>
       </div>
- 
+
       <!-- Action Button -->
       <div class="px-2">
         <button
@@ -93,19 +88,40 @@
           Lock In Guess
         </button>
       </div>
- 
     </div>
   {:else}
-    <div class="w-full flex flex-col items-center justify-center text-center gap-6 py-12" in:scale={{ duration: 400, start: 0.9 }}>
-      <div class="w-20 h-20 bg-[#080c14]/10 k-accent-text rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    <div
+      class="w-full flex flex-col items-center justify-center text-center gap-6 py-12"
+      in:scale={{ duration: 400, start: 0.9 }}
+    >
+      <div
+        class="w-20 h-20 bg-[#080c14]/10 k-accent-text rounded-full flex items-center justify-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-10 w-10 animate-bounce"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="3"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
       </div>
       <div class="space-y-2">
         <h2 class="text-2xl font-bold text-[#080c14]">Estimate Locked!</h2>
-        <p class="text-[#080c14]/70 text-sm font-semibold">Your guess of <strong class="k-accent-text text-lg font-black">{guessValue}%</strong> is registered.</p>
-        <p class="text-[#080c14]/50 text-xs mt-2 font-bold">Waiting for other players to submit...</p>
+        <p class="text-[#080c14]/70 text-sm font-semibold">
+          Your guess of <strong class="k-accent-text text-lg font-black"
+            >{guessValue}%</strong
+          > is registered.
+        </p>
+        <p class="text-[#080c14]/50 text-xs mt-2 font-bold">
+          Waiting for other players to submit...
+        </p>
       </div>
     </div>
   {/if}
@@ -113,10 +129,10 @@
 
 <style>
   :global(body:has(.kalshi-page)) {
-    background-color: #00DD94 !important;
+    background-color: #00dd94 !important;
   }
   :global(#main-background:has(.kalshi-page)) {
-    background-color: #00DD94 !important;
+    background-color: #00dd94 !important;
     padding: 0 !important;
   }
 
@@ -129,9 +145,9 @@
   }
   .k-accent-bg {
     background: #080c14;
-    color: #00DD94;
+    color: #00dd94;
   }
-  
+
   /* Customizing range inputs inside webkit/moz browsers */
   input[type="range"]::-webkit-slider-runnable-track {
     background: rgba(8, 12, 20, 0.15);

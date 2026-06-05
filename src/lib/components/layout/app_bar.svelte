@@ -47,9 +47,9 @@
     on:click={() => {
       sideBarOpen.set(true);
     }}
-    class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-70 cursor-pointer"
+    class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-80 cursor-pointer"
     class:flash
-    style="--app-color: {color}; background-color: color(from {color} srgb r g b / 0.4);"
+    style="--app-color: {color}; background-color: color(from {color} srgb r g b / 1.0);"
   >
     <!-- App Bar -->
     <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
