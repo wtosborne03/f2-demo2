@@ -4,6 +4,7 @@
   import Icon from "@iconify/svelte";
   import { gameState } from "$lib/wsapi/gameClient";
   import { onMount, onDestroy } from "svelte";
+  import { getContrastColor } from "$lib/util/color";
 
   // reactive shortcuts to the store values
   $: name = $gameState.name;
@@ -11,6 +12,7 @@
   $: score = $gameState.score;
   $: team = $gameState.team;
   $: color = $gameState.color;
+  $: textColor = getContrastColor(color);
 
   // flash state when score increases
   let flash = false;
@@ -49,28 +51,24 @@
     }}
     class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-80 cursor-pointer"
     class:flash
-    style="--app-color: {color}; background-color: color(from {color} srgb r g b / 1.0);"
+    style="--app-color: {color}; background-color: color(from {color} srgb r g b / 1.0); color: {textColor};"
   >
     <!-- App Bar -->
-    <div
-      class="h-10 flex flex-col justify-center items-start w-20 flex-none text-shadow-2xs"
-    >
+    <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
       <Icon icon="material-symbols:menu-rounded" font-size="3rem" />
     </div>
 
     <span class="text-xl flex flex-col justify-center items-center gap-0">
-      <div
-        class="flex flex-col justify-center items-center h-10 text-shadow-2xs"
-      >
+      <div class="flex flex-col justify-center items-center h-10">
         {name}
         {#if admin}
-          <span class="text-sm opacity-70 text-shadow-2xs"> admin </span>
+          <span class="text-sm opacity-70"> admin </span>
         {/if}
       </div>
     </span>
 
     <span
-      class="text-xl flex flex-row items-center justify-end gap-2 w-20 h-12 flex-none score text-shadow-2xs"
+      class="text-xl flex flex-row items-center justify-end gap-2 w-20 h-12 flex-none score"
       aria-live="polite"
       aria-atomic="true"
     >
