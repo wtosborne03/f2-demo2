@@ -3,25 +3,24 @@
   import { get } from "svelte/store";
   import { dbClient } from "../../stores/apiClient";
   import Spinner from "./spinner.svelte";
+  import {
+    getCacheKey,
+    getCached,
+    isStale,
+    updateCache,
+    invalidateCache,
+    type GameImage,
+  } from "$lib/util/imageCache";
 
   // Component Props
   export let userId: string;
   export let gameId: number | undefined = undefined;
 
-  interface GameImage {
-    id: number;
-    content: string;
-    createdAt: number;
-    game: number;
-    minigame: number;
-    minigameName?: string;
-    prompt?: string;
-    votes?: number;
-  }
-
   let images: GameImage[] = [];
   let loading = true;
   let error: string | null = null;
+  /** Shown when a background revalidation is running on top of cached data. */
+  let revalidating = false;
 
   // Pagination State
   let page = 0;
@@ -34,55 +33,138 @@
   // Lightbox State
   let activeIndex: number | null = null;
 
+  $: cacheKey = getCacheKey(userId, gameId);
+
+  /**
+   * Fetch a single page from the API, update the in-memory cache, and
+   * update local component state.
+   *
+   * @param targetPage  Which page to fetch (0 = first).
+   * @param isReset     When true this is a fresh load / revalidation of p0.
+   * @param silent      When true, don't flip the global loading flags (used
+   *                    for background revalidation so cached data stays visible).
+   */
+  async function fetchPage(
+    targetPage: number,
+    isReset: boolean,
+    silent: boolean
+  ) {
+    const client = get(dbClient);
+    if (!client) throw new Error("API Client not loaded");
+
+    const offset = targetPage * limit;
+    const response = await (client as any).get(`/users/${userId}/images`, {
+      params: {
+        limit: String(limit),
+        offset: String(offset),
+        ...(gameId !== undefined ? { gameId: String(gameId) } : {}),
+      },
+    });
+
+    const newImages: GameImage[] = response.data || [];
+
+    // Update the cache
+    const entry = updateCache(cacheKey, targetPage, newImages, limit);
+
+    if (!silent) {
+      // For non-silent fetches directly apply to component state
+      if (isReset) {
+        images = entry.images;
+      } else {
+        images = entry.images;
+      }
+      page = entry.nextPage;
+      hasMore = !entry.exhausted;
+    } else {
+      // Silent revalidation: swap in fresh data only after it arrives
+      images = entry.images;
+      page = entry.nextPage;
+      hasMore = !entry.exhausted;
+    }
+  }
+
+  /**
+   * Main fetch orchestrator. Supports:
+   *  - Hard reset (reset=true): clears cache, shows spinner, fetches from p0.
+   *  - Cache-first load (reset=false, page=0): serve cached data instantly,
+   *    then revalidate in background if stale.
+   *  - Infinite-scroll next page: fetch next page, append, cache.
+   */
   async function fetchImages(reset = false) {
     if (reset) {
+      // Hard refresh – invalidate cache and start over
+      invalidateCache(cacheKey);
       images = [];
       page = 0;
       hasMore = true;
+      loading = true;
+      error = null;
+
+      try {
+        await fetchPage(0, true, false);
+      } catch (e: any) {
+        console.error("Failed to load user images:", e);
+        error = e.message || "Failed to load images";
+      } finally {
+        loading = false;
+      }
+      return;
     }
-    if (!hasMore && !reset) return;
 
-    try {
-      if (reset) {
-        loading = true;
-      } else {
-        loadingMore = true;
+    // --- Infinite scroll: fetch the next page ---
+    if (page > 0 || images.length > 0) {
+      if (!hasMore) return;
+      loadingMore = true;
+      try {
+        await fetchPage(page, false, false);
+      } catch (e: any) {
+        console.error("Failed to load more images:", e);
+        error = e.message || "Failed to load images";
+      } finally {
+        loadingMore = false;
       }
+      return;
+    }
 
-      const client = get(dbClient);
-      if (!client) {
-        throw new Error("API Client not loaded");
-      }
-
-      const offset = page * limit;
-      // Query the API using direct axios path to support limit and offset variables
-      const response = await (client as any).get(`/users/${userId}/images`, {
-        params: {
-          limit: String(limit),
-          offset: String(offset),
-          ...(gameId !== undefined ? { gameId: String(gameId) } : {}),
-        },
-      });
-
-      const newImages = response.data || [];
-      if (reset) {
-        images = newImages;
-      } else {
-        images = [...images, ...newImages];
-      }
-
-      if (newImages.length < limit) {
-        hasMore = false;
-      } else {
-        page += 1;
-      }
-    } catch (e: any) {
-      console.error("Failed to load user images:", e);
-      error = e.message || "Failed to load images";
-    } finally {
+    // --- Initial mount: cache-first ---
+    const cached = getCached(cacheKey);
+    if (cached) {
+      // Serve stale data immediately so the UI paints at once
+      images = cached.images;
+      page = cached.nextPage;
+      hasMore = !cached.exhausted;
       loading = false;
-      loadingMore = false;
+
+      if (isStale(cached)) {
+        // Background revalidation – doesn't block UI
+        revalidating = true;
+        try {
+          await fetchPage(0, true, true);
+        } catch (e: any) {
+          console.error("Background revalidation failed:", e);
+          // Keep stale data visible; don't show an error banner
+        } finally {
+          revalidating = false;
+        }
+      }
+    } else {
+      // No cache yet – normal loading spinner
+      loading = true;
+      error = null;
+      try {
+        await fetchPage(0, true, false);
+      } catch (e: any) {
+        console.error("Failed to load user images:", e);
+        error = e.message || "Failed to load images";
+      } finally {
+        loading = false;
+      }
     }
+  }
+
+  /** Called by the "Refresh" button in the UI for a hard cache-busting reload. */
+  function hardRefresh() {
+    fetchImages(true);
   }
 
   // CORS-safe download trigger
@@ -194,6 +276,28 @@
       <p class="empty-text">No images generated in this session yet.</p>
     </div>
   {:else}
+    <!-- Grid header: revalidation indicator + refresh button -->
+    <div class="grid-header">
+      {#if revalidating}
+        <span class="revalidating-pill" aria-live="polite">
+          <span class="revalidating-dot"></span>
+          Refreshing
+        </span>
+      {:else}
+        <span></span>
+      {/if}
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <button
+        class="refresh-btn"
+        onclick={hardRefresh}
+        aria-label="Force refresh gallery"
+        title="Refresh gallery"
+        disabled={loading || revalidating}
+      >
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+    </div>
     <div class="grid">
       {#each images as img, i}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -333,6 +437,75 @@
     font-size: 1rem;
   }
 
+  /* Grid header (revalidation indicator + refresh button) */
+  .grid-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    min-height: 2rem;
+  }
+
+  .revalidating-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.2rem 0.65rem 0.2rem 0.45rem;
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .revalidating-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--m3c-primary, #80cbc4);
+    animation: pulse-dot 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .refresh-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: background 0.2s, color 0.2s, transform 0.3s;
+  }
+
+  .refresh-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    transform: rotate(180deg);
+  }
+
+  .refresh-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .refresh-btn svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+  }
+
   /* Responsive Grid styling */
   .grid {
     display: grid;
@@ -346,6 +519,7 @@
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
   }
+
 
   .grid-card {
     position: relative;
