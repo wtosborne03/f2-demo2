@@ -23,7 +23,7 @@
         {#each m_data.options as answer, index}
             <Button
                 size="l"
-                style="width:100%; margin-bottom: 1rem; margin-top: 1rem;"
+                style={`width:100%; margin-bottom: 1rem; margin-top: 1rem; box-shadow: 0 0 12px 4px ${m_data.player_color[index]}66, 0 0 4px 1px ${m_data.player_color[index]}44;`}
                 onclick={() => submit_answer(m_data.options.findIndex((a) => a == answer))}
             >
                 <div class=" text-xl mr-auto">{m_data.option_by[index]}</div>
