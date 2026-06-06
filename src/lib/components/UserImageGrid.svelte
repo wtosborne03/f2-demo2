@@ -47,7 +47,7 @@
   async function fetchPage(
     targetPage: number,
     isReset: boolean,
-    silent: boolean
+    silent: boolean,
   ) {
     const client = get(dbClient);
     if (!client) throw new Error("API Client not loaded");
@@ -64,7 +64,7 @@
     const newImages: GameImage[] = response.data || [];
 
     // Update the cache
-    const entry = updateCache(cacheKey, targetPage, newImages, limit);
+    const entry = await updateCache(cacheKey, targetPage, newImages, limit);
 
     if (!silent) {
       // For non-silent fetches directly apply to component state
@@ -127,7 +127,7 @@
     }
 
     // --- Initial mount: cache-first ---
-    const cached = getCached(cacheKey);
+    const cached = await getCached(cacheKey);
     if (cached) {
       // Serve stale data immediately so the UI paints at once
       images = cached.images;
@@ -177,10 +177,11 @@
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-      
-      const filename = url.substring(url.lastIndexOf("/") + 1) || "creation.png";
+
+      const filename =
+        url.substring(url.lastIndexOf("/") + 1) || "creation.png";
       const cleanedFilename = filename.split("?")[0];
-      
+
       const a = document.createElement("a");
       a.href = blobUrl;
       a.download = cleanedFilename;
@@ -189,7 +190,10 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      console.error("Failed to download natively, opening in new window instead:", err);
+      console.error(
+        "Failed to download natively, opening in new window instead:",
+        err,
+      );
       window.open(url, "_blank");
     }
   }
@@ -234,15 +238,18 @@
 
     // Set up Infinite Scroll observer
     if (typeof window !== "undefined" && window.IntersectionObserver) {
-      observer = new IntersectionObserver((entries) => {
-        const first = entries[0];
-        if (first.isIntersecting && !loading && !loadingMore && hasMore) {
-          fetchImages(false);
-        }
-      }, {
-        rootMargin: "200px" // Trigger loads early
-      });
-      
+      observer = new IntersectionObserver(
+        (entries) => {
+          const first = entries[0];
+          if (first.isIntersecting && !loading && !loadingMore && hasMore) {
+            fetchImages(false);
+          }
+        },
+        {
+          rootMargin: "200px", // Trigger loads early
+        },
+      );
+
       if (scrollAnchor) {
         observer.observe(scrollAnchor);
       }
@@ -295,7 +302,11 @@
         title="Refresh gallery"
         disabled={loading || revalidating}
       >
-        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        <svg viewBox="0 0 24 24"
+          ><path
+            d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+          /></svg
+        >
       </button>
     </div>
     <div class="grid">
@@ -304,11 +315,23 @@
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="grid-card" onclick={() => openLightbox(i)}>
           <div class="img-container">
-            <img src={img.content} alt={img.prompt || "Generated creation"} loading="lazy" />
+            <img
+              src={img.content}
+              alt={img.prompt || "Generated creation"}
+              loading="lazy"
+            />
           </div>
           <!-- Download Icon Overlay -->
-          <button class="card-download-btn" onclick={(e) => downloadImage(img.content, e)} aria-label="Download image">
-            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+          <button
+            class="card-download-btn"
+            onclick={(e) => downloadImage(img.content, e)}
+            aria-label="Download image"
+          >
+            <svg viewBox="0 0 24 24"
+              ><path
+                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"
+              /></svg
+            >
           </button>
           <div class="card-overlay">
             <span class="minigame-tag">{img.minigameName || "Minigame"}</span>
@@ -327,7 +350,9 @@
       <Spinner />
       <span class="loading-more-text">Loading more masterpieces...</span>
     {:else if !hasMore && images.length > 0}
-      <p class="end-gallery-text">You've reached the end of the gallery. Keep creating! 🚀</p>
+      <p class="end-gallery-text">
+        You've reached the end of the gallery. Keep creating! 🚀
+      </p>
     {/if}
   </div>
 </div>
@@ -336,28 +361,61 @@
 {#if activeIndex !== null && images[activeIndex]}
   {@const current = images[activeIndex]}
   <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <div class="lightbox" onclick={closeLightbox} role="dialog" aria-modal="true" tabindex="-1">
-    <button class="close-btn" onclick={closeLightbox} aria-label="Close lightbox">
-      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+  <div
+    class="lightbox"
+    onclick={closeLightbox}
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+  >
+    <button
+      class="close-btn"
+      onclick={closeLightbox}
+      aria-label="Close lightbox"
+    >
+      <svg viewBox="0 0 24 24"
+        ><path
+          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+        /></svg
+      >
     </button>
 
-    <button class="nav-btn prev-btn" onclick={prevImage} aria-label="Previous image">
-      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    <button
+      class="nav-btn prev-btn"
+      onclick={prevImage}
+      aria-label="Previous image"
+    >
+      <svg viewBox="0 0 24 24"
+        ><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg
+      >
     </button>
 
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <div class="lightbox-content" onclick={(e) => e.stopPropagation()} role="document">
+    <div
+      class="lightbox-content"
+      onclick={(e) => e.stopPropagation()}
+      role="document"
+    >
       <div class="lightbox-img-wrapper">
         <img src={current.content} alt={current.prompt || "Creation details"} />
       </div>
       <div class="lightbox-details">
         <div class="details-header">
           <span class="game-tag">Game #{current.game}</span>
-          <span class="minigame-tag-large">{current.minigameName || "Minigame"}</span>
+          <span class="minigame-tag-large"
+            >{current.minigameName || "Minigame"}</span
+          >
           <div class="spacer"></div>
           <!-- Lightbox Download Button -->
-          <button class="lightbox-download-btn" onclick={() => downloadImage(current.content)}>
-            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+          <button
+            class="lightbox-download-btn"
+            onclick={() => downloadImage(current.content)}
+          >
+            <svg viewBox="0 0 24 24"
+              ><path
+                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"
+              /></svg
+            >
             <span>Download</span>
           </button>
         </div>
@@ -365,16 +423,26 @@
           <p class="lightbox-prompt">"{current.prompt}"</p>
         {/if}
         <div class="details-footer">
-          <span class="date-text">{new Date(current.createdAt).toLocaleDateString()}</span>
+          <span class="date-text"
+            >{new Date(current.createdAt).toLocaleDateString()}</span
+          >
           {#if current.votes !== undefined && current.votes !== null}
-            <span class="votes-badge">⭐ {current.votes} {current.votes === 1 ? 'vote' : 'votes'}</span>
+            <span class="votes-badge"
+              >⭐ {current.votes} {current.votes === 1 ? "vote" : "votes"}</span
+            >
           {/if}
         </div>
       </div>
     </div>
 
-    <button class="nav-btn next-btn" onclick={nextImage} aria-label="Next image">
-      <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    <button
+      class="nav-btn next-btn"
+      onclick={nextImage}
+      aria-label="Next image"
+    >
+      <svg viewBox="0 0 24 24"
+        ><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" /></svg
+      >
     </button>
   </div>
 {/if}
@@ -385,7 +453,9 @@
     margin-top: 1rem;
   }
 
-  .spinner-container, .error-container, .empty-container {
+  .spinner-container,
+  .error-container,
+  .empty-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -470,8 +540,15 @@
   }
 
   @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.7);
+    }
   }
 
   .refresh-btn {
@@ -486,7 +563,10 @@
     justify-content: center;
     cursor: pointer;
     backdrop-filter: blur(5px);
-    transition: background 0.2s, color 0.2s, transform 0.3s;
+    transition:
+      background 0.2s,
+      color 0.2s,
+      transform 0.3s;
   }
 
   .refresh-btn:hover:not(:disabled) {
@@ -520,7 +600,6 @@
     }
   }
 
-
   .grid-card {
     position: relative;
     padding: 0;
@@ -535,9 +614,10 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-                border-color 0.2s;
+    transition:
+      transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.2s;
     /* Native browser rendering optimization for performance */
     content-visibility: auto;
     contain-intrinsic-size: 200px;
@@ -586,7 +666,10 @@
     backdrop-filter: blur(5px);
     opacity: 0;
     transform: scale(0.85);
-    transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s;
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease,
+      background 0.2s;
     z-index: 5;
   }
 
@@ -612,7 +695,12 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.5) 60%,
+      transparent 100%
+    );
     padding: 1.5rem 0.75rem 0.75rem 0.75rem;
     display: flex;
     flex-direction: column;
@@ -689,8 +777,12 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   .lightbox-content {
@@ -708,8 +800,12 @@
   }
 
   @keyframes scaleUp {
-    from { transform: scale(0.92); }
-    to { transform: scale(1); }
+    from {
+      transform: scale(0.92);
+    }
+    to {
+      transform: scale(1);
+    }
   }
 
   .lightbox-img-wrapper {
@@ -730,7 +826,11 @@
 
   .lightbox-details {
     padding: 1.5rem;
-    background: linear-gradient(to bottom, rgba(20, 20, 20, 0.4), rgba(10, 10, 10, 0.8));
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 20, 20, 0.4),
+      rgba(10, 10, 10, 0.8)
+    );
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -781,7 +881,9 @@
     gap: 0.4rem;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s, background 0.2s;
+    transition:
+      transform 0.2s,
+      background 0.2s;
   }
 
   .lightbox-download-btn:hover {
@@ -843,7 +945,9 @@
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(10px);
-    transition: background 0.2s, transform 0.2s;
+    transition:
+      background 0.2s,
+      transform 0.2s;
     z-index: 1010;
   }
 
@@ -867,7 +971,9 @@
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(10px);
-    transition: background 0.2s, transform 0.2s;
+    transition:
+      background 0.2s,
+      transform 0.2s;
     z-index: 1010;
   }
 
@@ -884,7 +990,8 @@
     right: 1.5rem;
   }
 
-  .close-btn svg, .nav-btn svg {
+  .close-btn svg,
+  .nav-btn svg {
     width: 1.5rem;
     height: 1.5rem;
     fill: currentColor;
