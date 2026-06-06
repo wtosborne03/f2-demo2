@@ -1,118 +1,144 @@
 import type { settings } from "../types/settings";
 
 interface QuestionData {
-    question: string;
-    answers: string[];
+  question: string;
+  answers: string[];
 }
 
 interface PromptData {
-    question: string;
+  question: string;
 }
 
 interface DilemmaData {
-    points: number;
+  points: number;
 }
 
 interface InstructionData {
-    instruction: string;
+  instruction: string;
 }
 
 interface VoteData {
-    options: string[];
+  options: string[];
 }
 
 interface adminStartData {
-    settings: settings;
+  settings: settings;
 }
 interface photoPickerData {
-    photo_amount: number;
-    photo_index: number;
+  photo_amount: number;
+  photo_index: number;
 }
 
 interface ListPromptData {
-    list_prompt: string,
+  list_prompt: string;
 }
 interface BallData {
-    color: string,
+  color: string;
 }
 interface BusData {
-    drinking: boolean,
+  drinking: boolean;
 }
 interface ProductPromptData {
-    category: string,
+  category: string;
 }
 
 interface matchPerson {
-    name: string,
-    age: number,
-    job: string,
-    description: string,
-    sketch: string,
+  name: string;
+  age: number;
+  job: string;
+  description: string;
+  sketch: string;
 }
 
 interface matchData {
-    matches: { [player: string]: { match: matchPerson, likes: number } },
+  matches: { [player: string]: { match: matchPerson; likes: number } };
 }
 
 interface photoVoteData {
-    photos: any
+  photos: any;
 }
 
 interface DrinkingPrompt {
-    prompt?: string,
+  prompt?: string;
 }
 
 interface RouletteData {
-    drinking: boolean,
-    players: string[],
-    player_colors: string[],
-    options: any,
+  drinking: boolean;
+  players: string[];
+  player_colors: string[];
+  options: any;
 }
 
 interface SpyVoteData {
-    option_by: string[];
-    options: string[];
+  option_by: string[];
+  player_color: string[];
+  options: string[];
 }
 
 interface BombData {
-    has_bomb: boolean;
+  has_bomb: boolean;
 }
 
 interface CharadesData {
-    prompt: string;
+  prompt: string;
 }
 
 interface CharadesResultsData {
-    guess: string;
-    comment: string;
-    score: number;
+  guess: string;
+  comment: string;
+  score: number;
 }
 
 interface DoodleData {
-    prompt: string;
+  prompt: string;
 }
 
 interface KnowData {
-    prompt: string;
+  prompt: string;
 }
 
 interface bunkerData {
-    locations: PointOfInterest[];
+  locations: PointOfInterest[];
 }
 interface PointOfInterest {
-    id: string;
-    name: string;
-    latitude: number;
-    longitude: number;
-    type: string;
-    icon: string;
-    thumbnail?: string; // Photo URL from Foursquare
-    address?: string;
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  type: string;
+  icon: string;
+  thumbnail?: string; // Photo URL from Foursquare
+  address?: string;
 }
-
 
 interface PickGameData {
-    options: string[];
+  options: string[];
 }
 
-export type { PickGameData, matchData, KnowData, DoodleData, CharadesResultsData, CharadesData, DilemmaData, BombData, RouletteData, SpyVoteData, DrinkingPrompt, photoVoteData, matchPerson, ProductPromptData, BusData, QuestionData, BallData, PromptData, VoteData, InstructionData, adminStartData, photoPickerData, ListPromptData, bunkerData, PointOfInterest };
+export type {
+  PickGameData,
+  matchData,
+  KnowData,
+  DoodleData,
+  CharadesResultsData,
+  CharadesData,
+  DilemmaData,
+  BombData,
+  RouletteData,
+  SpyVoteData,
+  DrinkingPrompt,
+  photoVoteData,
+  matchPerson,
+  ProductPromptData,
+  BusData,
+  QuestionData,
+  BallData,
+  PromptData,
+  VoteData,
+  InstructionData,
+  adminStartData,
+  photoPickerData,
+  ListPromptData,
+  bunkerData,
+  PointOfInterest,
+};
