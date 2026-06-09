@@ -8,7 +8,7 @@
     import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
     import { toaster } from "$lib/util/toaster";
     import { apiClient } from "$lib/backend/axios";
-    import { dbClient } from "../..stores/apiClient";
+    import { dbClient } from "../../stores/apiClient";
     import { browser } from "$app/environment";
 
     const session = authClient.useSession();
