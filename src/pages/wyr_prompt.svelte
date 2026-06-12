@@ -21,17 +21,21 @@
 <div
   class="container overflow-y-auto h-full md:max-w-140 mx-auto w-full flex flex-col justify-start items-center p-4"
 >
-  <form class="flex h-full flex-col justify-center items-center w-full max-w-md" on:submit|preventDefault={submit_prompt}>
-    <h2 class="text-xl font-bold mb-6 text-center text-slate-800 dark:text-slate-100">
+  <form
+    class="flex h-full flex-col justify-center items-center w-full max-w-md"
+    on:submit|preventDefault={submit_prompt}
+  >
+    <h2
+      class="text-xl font-bold mb-6 text-center text-slate-800 dark:text-slate-100"
+    >
       Create Your Dilemma
     </h2>
-    
+
     <div class="w-full flex flex-col gap-4 mb-6">
       <div>
-        <label class="block text-sm font-medium mb-1 text-slate-600 dark:text-slate-300">Option A</label>
         <div class="field-wrapper">
           <TextField
-            label="Eat a live spider..."
+            label="Option A"
             type="text"
             maxlength={50}
             bind:value={optionA}
@@ -40,10 +44,9 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium mb-1 text-slate-600 dark:text-slate-300">Option B</label>
         <div class="field-wrapper">
           <TextField
-            label="Drink hot sauce..."
+            label="Option B"
             type="text"
             maxlength={50}
             bind:value={optionB}
