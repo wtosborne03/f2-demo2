@@ -29,5 +29,4 @@ export default defineConfig({
         //     cert: fs.readFileSync("./localhost+2.pem"),
         // },
     },
-    mode: 'development',
 });

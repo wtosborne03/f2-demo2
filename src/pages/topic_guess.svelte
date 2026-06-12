@@ -4,7 +4,7 @@
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
   import { fly, scale, fade } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
 
   let m_data: any;
   m_data = get(gameState).page_data;
@@ -17,7 +17,9 @@
   let submitted = false;
   let direction = 1; // 1 for right (true), -1 for left (false) for exit animation
 
-  // Handle User Guess
+  let guessTimeoutId: any;
+
+  // Handle Guess
   function handleGuess(isTrue: boolean) {
     if (submitted) return;
 
@@ -32,13 +34,17 @@
 
     // Advance to next card after a brief delay to allow animation to start?
     // Actually svelte transitions work safely on reactive blocks.
-    setTimeout(() => {
+    guessTimeoutId = setTimeout(() => {
       currentIndex++;
       if (currentIndex >= facts.length) {
         submit_prompt();
       }
     }, 200);
   }
+
+  onDestroy(() => {
+    if (guessTimeoutId) clearTimeout(guessTimeoutId);
+  });
 
   function submit_prompt() {
     submitted = true;

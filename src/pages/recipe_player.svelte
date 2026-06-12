@@ -4,7 +4,7 @@
   import { fly, fade, scale } from "svelte/transition";
   import { elasticOut, cubicOut } from "svelte/easing";
   import Icon from "@iconify/svelte";
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount, afterUpdate, onDestroy } from "svelte";
 
   // Data Types
   interface RecipeStep {
@@ -58,6 +58,7 @@
   let isShaking = false;
   let feedbackMessage: string | null = null;
   let feedbackType: "success" | "error" | null = null;
+  let timeouts: any[] = [];
 
   // React to status changes for sound/feedback
   let prevStepsStatus: Record<number, string | undefined> = {};
@@ -79,7 +80,8 @@
         } else if (step.status === "wrong") {
           showFeedback("Yuck!", "error");
           isShaking = true;
-          setTimeout(() => (isShaking = false), 500);
+          const t1 = setTimeout(() => (isShaking = false), 500);
+          timeouts.push(t1);
           lastClickedStep = null; // Clear waiting state
         }
         prevStepsStatus[step.index] = step.status;
@@ -90,10 +92,11 @@
   function showFeedback(msg: string, type: "success" | "error") {
     feedbackMessage = msg;
     feedbackType = type;
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       feedbackMessage = null;
       feedbackType = null;
     }, 1000);
+    timeouts.push(t2);
   }
 
   function handleStepClick(step: RecipeStep) {
@@ -102,11 +105,12 @@
     lastClickedStep = step.index;
 
     // Safety timeout: if server doesn't respond in 1s, unlock
-    setTimeout(() => {
+    const t3 = setTimeout(() => {
       if (lastClickedStep === step.index) {
         lastClickedStep = null;
       }
     }, 1000);
+    timeouts.push(t3);
 
     // Optimistic UI handled by loading spinner, actual confirmation comes from 'status' prop
 
@@ -116,6 +120,10 @@
       playerName: $gameState.name,
     });
   }
+
+  onDestroy(() => {
+    timeouts.forEach(clearTimeout);
+  });
 </script>
 
 <svelte:head>

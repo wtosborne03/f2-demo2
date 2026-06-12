@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import Card from "$lib/components/card.svelte";
   import type { BusData } from "../types/page_data";
   import { get } from "svelte/store";
@@ -118,22 +118,25 @@
   let canContinue = false;
   let showSuccess = false;
 
+  let timeouts: any[] = [];
+
   const failRound = () => {
-    setTimeout(
+    const t1 = setTimeout(
       () => {
         canContinue = true;
       },
       m_data.drinking ? 4500 : 3000,
     );
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       gameClient.sendPlayerInput("photoReady");
       failed = true;
     }, 1500);
+    timeouts.push(t1, t2);
   };
 
   const progressRound = () => {
     showSuccess = true;
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       showSuccess = false;
     }, 800);
 
@@ -143,9 +146,10 @@
       gameClient.sendPlayerInput("confirm");
     }
     round_progress = -1;
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       round_progress = new_round;
     }, 1500);
+    timeouts.push(t1, t2);
   };
 
   const startGame = () => {
@@ -254,6 +258,10 @@
 
   onMount(() => {
     startGame();
+  });
+
+  onDestroy(() => {
+    timeouts.forEach(clearTimeout);
   });
 </script>
 

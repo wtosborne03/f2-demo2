@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import * as planck from "planck-js";
 
   let world: planck.World;
@@ -8,6 +8,7 @@
   let renderer: HTMLDivElement;
   let isDragging = false;
   let dragOffset: planck.Vec2;
+  let rafId: number;
 
   onMount(() => {
     // Create a world
@@ -51,12 +52,14 @@
 
       // Update the box position
       const position = box.getPosition();
-      renderer.style.transform = `translate(${position.x * 10}px, ${position.y * 10}px)`;
+      if (renderer) {
+        renderer.style.transform = `translate(${position.x * 10}px, ${position.y * 10}px)`;
+      }
 
-      requestAnimationFrame(step);
+      rafId = requestAnimationFrame(step);
     }
 
-    requestAnimationFrame(step);
+    rafId = requestAnimationFrame(step);
 
     // Handle mouse events for dragging
     renderer.addEventListener("mousedown", (event) => {
@@ -84,6 +87,15 @@
     renderer.addEventListener("mouseup", () => {
       isDragging = false;
     });
+  });
+
+  onDestroy(() => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+    }
+    if (renderer && renderer.parentNode) {
+      renderer.parentNode.removeChild(renderer);
+    }
   });
 </script>
 

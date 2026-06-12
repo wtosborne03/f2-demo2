@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/sveltekit';
 Sentry.init({
   dsn: 'https://1ae869ed00684c3b8e64b279b2de5a97@o4508370903957504.ingest.us.sentry.io/4508388916985856',
 
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.1,
 
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: import.meta.env.DEV,

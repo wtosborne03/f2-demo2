@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import type { PlayerInputPayload } from "$lib/wsapi/game";
+  import { onDestroy } from "svelte";
 
   // Keep it simple: list of available animations and an icon for each (Iconify ids)
   const animations: { label: string; value: string; icon: string }[] = [
@@ -13,6 +14,7 @@
   ];
 
   let sending = false;
+  let debounceTimeoutId: any;
 
   function playAnimation(animation: string) {
     if (sending) return;
@@ -25,9 +27,13 @@
       });
     } finally {
       // small debounce so UI doesn't spam
-      setTimeout(() => (sending = false), 600);
+      debounceTimeoutId = setTimeout(() => (sending = false), 600);
     }
   }
+
+  onDestroy(() => {
+    if (debounceTimeoutId) clearTimeout(debounceTimeoutId);
+  });
 </script>
 
 <!--

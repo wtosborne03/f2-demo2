@@ -5,18 +5,26 @@
   import Spinner from "$lib/components/spinner.svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { TextFieldOutlined, Button } from "m3-svelte";
+  import { onDestroy } from "svelte";
 
   let answer_text = "";
   let loading = false;
+  let submitTimeoutId: any;
 
   async function submit_prompt() {
     gameClient.sendPlayerInput("promptTextData", { answer: answer_text });
 
     loading = true;
     answer_text = "";
-    await new Promise((r) => setTimeout(r, 3000));
-    loading = false;
+    if (submitTimeoutId) clearTimeout(submitTimeoutId);
+    submitTimeoutId = setTimeout(() => {
+      loading = false;
+    }, 3000);
   }
+
+  onDestroy(() => {
+    if (submitTimeoutId) clearTimeout(submitTimeoutId);
+  });
 </script>
 
 <div

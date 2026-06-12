@@ -1,7 +1,7 @@
 <script lang="ts">
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { derived } from "svelte/store";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import Icon from "@iconify/svelte";
 
   // Derive points from the player state so the UI updates reactively
@@ -11,6 +11,7 @@
   let choice: "keep" | "steal" | null = null;
   let disabled = false;
   let hintVisible = true;
+  let hintTimeoutId: any;
 
   function sendChoice(answer: "keep" | "steal") {
     if (disabled) return;
@@ -26,9 +27,13 @@
   // Allow re-enabling for local dev if needed (no-op if server controls flow)
   onMount(() => {
     // keep hint visible briefly
-    setTimeout(() => {
+    hintTimeoutId = setTimeout(() => {
       hintVisible = false;
     }, 7000);
+  });
+
+  onDestroy(() => {
+    if (hintTimeoutId) clearTimeout(hintTimeoutId);
   });
 </script>
 
