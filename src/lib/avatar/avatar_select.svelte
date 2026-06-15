@@ -19,13 +19,13 @@
   let currentSelfieUrl: string | null = null;
   let loading = true;
 
-  onMount(async () => {
-    await loadCurrentAvatar();
-  });
+  $: if (!$session.isPending) {
+    loadCurrentAvatar();
+  }
 
   async function loadCurrentAvatar() {
     loading = true;
-    const user = get(session).data?.user;
+    const user = $session.data?.user;
 
     if (user) {
       try {

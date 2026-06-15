@@ -8,8 +8,9 @@
     import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
     import { toaster } from "$lib/util/toaster";
     import { apiClient } from "$lib/backend/axios";
-    import { dbClient } from "../../stores/apiClient";
     import { browser } from "$app/environment";
+    import Spinner from "$lib/components/spinner.svelte";
+    import { dbClient } from "../../stores/apiClient";
 
     const session = authClient.useSession();
     const { signIn } = authClient;
@@ -82,7 +83,11 @@
 
     <h1 class="gallery-title">Creation Gallery</h1>
 
-    {#if $session.data?.user}
+    {#if $session.isPending && (browser && document.cookie.includes("better-auth"))}
+        <div class="spinner-wrapper">
+            <Spinner />
+        </div>
+    {:else if $session.data?.user}
         <div class="grid-container w-full">
             <UserImageGrid userId={$session.data.user.id} />
         </div>
@@ -187,5 +192,13 @@
     .signin-options :global(button) {
         width: 100%;
         max-width: 15rem;
+    }
+
+    .spinner-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 4rem 0;
+        width: 100%;
     }
 </style>

@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { get } from "svelte/store";
     import { dbClient } from "../../stores/apiClient";
+    import { apiClient } from "$lib/backend/axios";
     import Spinner from "./spinner.svelte";
     import {
         getCacheKey,
@@ -45,7 +46,13 @@
      *                    for background revalidation so cached data stays visible).
      */
     async function fetchPage(targetPage: number, isReset: boolean, silent: boolean) {
-        const client = get(dbClient);
+        let client = get(dbClient);
+        if (!client) {
+            client = await apiClient;
+            if (client) {
+                dbClient.set(client);
+            }
+        }
         if (!client) throw new Error("API Client not loaded");
 
         const offset = targetPage * limit;

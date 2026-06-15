@@ -11,19 +11,28 @@
   const session = authClient.useSession();
 
   let stats: Paths.GetUsersStats.Responses.$200 | null = null;
+  let loadingStats = false;
 
   const loadStats = async () => {
+    if (loadingStats || stats) return;
     const client = await apiClient;
     if (!$session.data?.user) {
       return;
     }
-    const { data } = await client!.getUsersStats();
-    stats = data;
+    loadingStats = true;
+    try {
+      const { data } = await client!.getUsersStats();
+      stats = data;
+    } catch (e) {
+      console.error("Failed to load stats:", e);
+    } finally {
+      loadingStats = false;
+    }
   };
 
-  onMount(() => {
+  $: if ($session.data?.user) {
     loadStats();
-  });
+  }
 </script>
 
 <div class="stats-container">

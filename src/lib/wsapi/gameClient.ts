@@ -4,6 +4,7 @@ import { OpCode, encode, decode } from "./shared/protocol";
 import type { PlayerInput, PlayerState } from "./shared/types";
 import { toaster } from "$lib/util/toaster";
 import { dbClient } from "../../stores/apiClient";
+import { apiClient } from "$lib/backend/axios";
 
 const RECONNECT_DELAY_MS = 1500;
 const HEARTBEAT_INTERVAL_MS = 10000;
@@ -158,7 +159,14 @@ class GameClient {
     localStorage.setItem("couch_room", roomCode);
 
     try {
-      const { data: me } = await get(dbClient)!.getUsersMe();
+      let client = get(dbClient);
+      if (!client) {
+        client = await apiClient;
+        if (client) {
+          dbClient.set(client);
+        }
+      }
+      const { data: me } = await client!.getUsersMe();
       let landmarks = undefined;
       if (me.avatar_landmarks) {
         try {

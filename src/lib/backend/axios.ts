@@ -7,15 +7,32 @@ const instance = axios.create({
     withCredentials: true,
 });
 
-// Conditionally initialize to avoid SSR issues
-let apiClient: Promise<ApiClient> | null = null;
+let initializedApiPromise: Promise<ApiClient> | null = null;
 
-if (typeof window !== 'undefined') {
-    const api = new OpenAPIClientAxios({
-        definition: `${import.meta.env.VITE_PUBLIC_API_URL}/openapi/json`,
-        axiosInstance: instance
-    });
-    apiClient = api.init<ApiClient>();
-}
+const getApiPromise = (): Promise<ApiClient> => {
+    if (typeof window === 'undefined') {
+        return Promise.resolve(null as unknown as ApiClient);
+    }
+    if (!initializedApiPromise) {
+        const api = new OpenAPIClientAxios({
+            definition: `${import.meta.env.VITE_PUBLIC_API_URL}/openapi/json`,
+            axiosInstance: instance
+        });
+        initializedApiPromise = api.init<ApiClient>();
+    }
+    return initializedApiPromise;
+};
+
+const apiClient = {
+    then(onfulfilled?: (value: ApiClient) => any, onrejected?: (reason: any) => any) {
+        return getApiPromise().then(onfulfilled, onrejected);
+    },
+    catch(onrejected?: (reason: any) => any) {
+        return getApiPromise().catch(onrejected);
+    },
+    finally(onfinally?: () => void) {
+        return getApiPromise().finally(onfinally);
+    }
+} as Promise<ApiClient>;
 
 export { apiClient };

@@ -7,6 +7,8 @@
     import SpotifySignInButton from "./SpotifySignInButton.svelte";
     import { NavigationRail, NavigationRailItem } from "m3-svelte";
     import { page } from "$app/state";
+    import { browser } from "$app/environment";
+    import Spinner from "./spinner.svelte";
 
     import iconPerson from "@ktibow/iconset-material-symbols/person";
     import iconStorefront from "@ktibow/iconset-material-symbols/storefront";
@@ -89,7 +91,11 @@
 
 <div class="rail-wrapper" class:open={$sideBarOpen}>
     <NavigationRail bind:open={$sideBarOpen} collapse="full" modal>
-        {#if $session.data?.user}
+        {#if $session.isPending && (browser && document.cookie.includes("better-auth"))}
+            <div class="user-info py-4">
+                <Spinner />
+            </div>
+        {:else if $session.data?.user}
             <div class="user-info">
                 <span class="user-email">{$session.data?.user?.email}</span>
             </div>
@@ -110,7 +116,7 @@
             onclick={customizeAvatar}
         />
 
-        {#if $session.data?.user}
+        {#if $session.data?.user || ($session.isPending && (browser && document.cookie.includes("better-auth")))}
             <NavigationRailItem
                 label="Stats"
                 icon={iconLeaderboard}
