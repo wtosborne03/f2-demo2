@@ -132,7 +132,7 @@
     >
       <button
         on:click={() => handleGuess(false)}
-        class="group active:scale-95 transition-all duration-150 flex flex-col items-center justify-center bg-rose-300 hover:bg-rose-400 py-4 sm:py-6 rounded-2xl shadow-sm border-b-4 border-rose-400 active:border-b-0 active:translate-y-1"
+        class="group flex flex-col items-center justify-center bg-rose-300 hover:bg-rose-400 py-4 sm:py-6 rounded-2xl shadow-sm border-b-4 border-rose-400 active:border-b-0 active:translate-y-1"
       >
         <div
           class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full text-rose-500 flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform"
@@ -160,7 +160,7 @@
 
       <button
         on:click={() => handleGuess(true)}
-        class="group active:scale-95 transition-all duration-150 flex flex-col items-center justify-center bg-emerald-300 hover:bg-emerald-400 py-4 sm:py-6 rounded-2xl shadow-sm border-b-4 border-emerald-400 active:border-b-0 active:translate-y-1"
+        class="group flex flex-col items-center justify-center bg-emerald-300 hover:bg-emerald-400 py-4 sm:py-6 rounded-2xl shadow-sm border-b-4 border-emerald-400 active:border-b-0 active:translate-y-1"
       >
         <div
           class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full text-emerald-500 flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform"

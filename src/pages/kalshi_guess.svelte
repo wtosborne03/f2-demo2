@@ -87,7 +87,7 @@
       <div class="px-2">
         <button
           on:click={submitGuess}
-          class="w-full py-4 k-accent-bg active:scale-98 transition-all font-black tracking-wider uppercase rounded-lg text-center text-sm cursor-pointer"
+          class="w-full py-4 k-accent-bg font-black tracking-wider uppercase rounded-lg text-center text-sm cursor-pointer"
         >
           Lock In Guess
         </button>

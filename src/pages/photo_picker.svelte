@@ -41,7 +41,7 @@
     <div class="flex flex-row w-full justify-between items-center mb-8 gap-4">
       <button
         type="button"
-        class="transition-all active:scale-90 disabled:opacity-10 disabled:grayscale hover:text-indigo-400 text-zinc-400"
+        class="disabled:opacity-10 disabled:grayscale hover:text-indigo-400 text-zinc-400"
         disabled={s_data?.photo_index === 0}
         on:click={carouselLeft}
       >
@@ -58,7 +58,7 @@
 
       <button
         type="button"
-        class="transition-all active:scale-90 disabled:opacity-10 disabled:grayscale hover:text-indigo-400 text-zinc-400"
+        class="disabled:opacity-10 disabled:grayscale hover:text-indigo-400 text-zinc-400"
         disabled={s_data?.photo_index === s_data?.photo_amount - 1}
         on:click={carouselRight}
       >

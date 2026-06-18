@@ -35,7 +35,7 @@
         {#each categories as cat}
           <button
             on:click={() => selectCategory(cat.name)}
-            class="flex flex-col items-center justify-center p-5 rounded-lg bg-[#080c14]/10 hover:bg-[#080c14]/20 text-center active:scale-95 transition-all duration-150 h-32 cursor-pointer"
+            class="flex flex-col items-center justify-center p-5 rounded-lg bg-[#080c14]/10 hover:bg-[#080c14]/20 text-center h-32 cursor-pointer"
           >
             <span class="text-3xl mb-2">{cat.emoji}</span>
             <span class="font-bold text-xs sm:text-sm tracking-wide text-[#080c14]">{cat.name}</span>

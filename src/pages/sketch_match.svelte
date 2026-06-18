@@ -176,7 +176,7 @@
 
       <button
         type="submit"
-        class="w-full p-5 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] text-white border-none rounded-full text-xl font-bold cursor-pointer flex items-center justify-center gap-3 shadow-lg shadow-[#ff6b6b]/40 transition-all hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#ff6b6b]/50 active:translate-y-0 active:scale-95 mb-4 shrink-0"
+        class="w-full p-5 bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] text-white border-none rounded-full text-xl font-bold cursor-pointer flex items-center justify-center gap-3 shadow-lg shadow-[#ff6b6b]/40 mb-4 shrink-0"
       >
         <span class="text-2xl animate-pulse">❤️</span>
         <span class="font-bold tracking-wide">Let's Match!</span>

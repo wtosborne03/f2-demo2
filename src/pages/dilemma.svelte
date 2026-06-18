@@ -57,7 +57,7 @@
       <!-- SHARE card -->
       <button
         role="button"
-        class="choice-card flex-1 relative bg-gradient-to-br from-green-600/20 to-blue-600/10 border-4 border-green-400/40 rounded-2xl transform-gpu transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+        class="choice-card flex-1 relative bg-gradient-to-br from-green-600/20 to-blue-600/10 border-4 border-green-400/40 rounded-2xl cursor-pointer"
         on:click={() => sendChoice("keep")}
         aria-pressed={choice === "keep"}
         aria-disabled={disabled}
@@ -98,7 +98,7 @@
       <!-- STEAL card -->
       <button
         role="button"
-        class="choice-card flex-1 relative bg-gradient-to-br from-red-700/20 to-orange-600/10 border-4 border-red-400/40 rounded-2xl transform-gpu transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+        class="choice-card flex-1 relative bg-gradient-to-br from-red-700/20 to-orange-600/10 border-4 border-red-400/40 rounded-2xl cursor-pointer"
         on:click={() => sendChoice("steal")}
         aria-pressed={choice === "steal"}
         aria-disabled={disabled}

@@ -338,3 +338,47 @@ a.m3-container.xl.icon-full {
   padding: 0.75rem 1.5rem 0.75rem 1rem !important;
   height: 5.5rem !important;
 }
+
+/* ==========================================================================
+   Juicy, Springy Button Animations & Visual Feedback
+   ========================================================================== */
+
+/* Universal juicy button transitions */
+body button:not(.h-full.flex-1):not(:disabled),
+body [role="button"]:not(.h-full.flex-1):not([aria-disabled="true"]):not(.disabled),
+body .btn:not(.h-full.flex-1):not(:disabled),
+body button.m3-container:not(.h-full.flex-1):not(:disabled),
+body a.m3-container:not(.h-full.flex-1):not(:disabled) {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              background-color 0.2s ease, 
+              border-color 0.2s ease, 
+              filter 0.2s ease !important;
+  will-change: transform;
+}
+
+/* Hover state: float up, scale up, glow shadow, and brighten slightly */
+body button:not(.h-full.flex-1):not(:disabled):hover,
+body [role="button"]:not(.h-full.flex-1):not([aria-disabled="true"]):not(.disabled):hover,
+body .btn:not(.h-full.flex-1):not(:disabled):hover,
+body button.m3-container:not(.h-full.flex-1):not(:disabled):hover,
+body a.m3-container:not(.h-full.flex-1):not(:disabled):hover {
+  transform: translateY(-3px) scale(1.04) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), 
+              0 4px 10px rgba(0, 0, 0, 0.15) !important;
+  filter: brightness(1.08) contrast(1.02) !important;
+}
+
+/* Active state: snap down instantly, shrink shadow, and dim slightly */
+body button:not(.h-full.flex-1):not(:disabled):active,
+body [role="button"]:not(.h-full.flex-1):not([aria-disabled="true"]):not(.disabled):active,
+body .btn:not(.h-full.flex-1):not(:disabled):active,
+body button.m3-container:not(.h-full.flex-1):not(:disabled):active,
+body a.m3-container:not(.h-full.flex-1):not(:disabled):active {
+  transform: translateY(1px) scale(0.93) !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12) !important;
+  transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.08s cubic-bezier(0.25, 1, 0.5, 1), 
+              filter 0.08s ease !important;
+  filter: brightness(0.92) contrast(0.98) !important;
+}
