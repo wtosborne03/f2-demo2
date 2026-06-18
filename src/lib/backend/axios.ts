@@ -7,6 +7,18 @@ const instance = axios.create({
     withCredentials: true,
 });
 
+instance.interceptors.request.use((config) => {
+    if (typeof window !== "undefined") {
+        let tempUserId = localStorage.getItem("temp_user_id");
+        if (!tempUserId) {
+            tempUserId = "temp_" + crypto.randomUUID();
+            localStorage.setItem("temp_user_id", tempUserId);
+        }
+        config.headers["x-temp-user-id"] = tempUserId;
+    }
+    return config;
+});
+
 let initializedApiPromise: Promise<ApiClient> | null = null;
 
 const getApiPromise = (): Promise<ApiClient> => {

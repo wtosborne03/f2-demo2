@@ -85,7 +85,15 @@
         if (client) {
           const { data: me } = await client.getUsersMe();
           if (me.avatar_selfie) {
-            joinRoom(me.avatar_selfie);
+            let landmarks = undefined;
+            if (me.avatar_landmarks) {
+              try {
+                landmarks = JSON.parse(me.avatar_landmarks);
+              } catch (e) {
+                console.error("Failed to parse user landmarks:", e);
+              }
+            }
+            joinRoom(me.avatar_selfie, landmarks);
             return;
           }
         }
@@ -96,7 +104,16 @@
     } else {
       const localSelfie = localStorage.getItem("temp_selfie");
       if (localSelfie) {
-        joinRoom(localSelfie || undefined);
+        let landmarks = undefined;
+        const localLandmarksStr = localStorage.getItem("temp_landmarks");
+        if (localLandmarksStr) {
+          try {
+            landmarks = JSON.parse(localLandmarksStr);
+          } catch (e) {
+            console.error("Failed to parse local landmarks:", e);
+          }
+        }
+        joinRoom(localSelfie || undefined, landmarks);
         return;
       }
       step = "selfie";

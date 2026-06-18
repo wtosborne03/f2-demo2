@@ -25,20 +25,14 @@
 
   async function loadCurrentAvatar() {
     loading = true;
-    const user = $session.data?.user;
-
-    if (user) {
-      try {
-        const client = await apiClient;
-        if (client) {
-          const { data: me } = await client.getUsersMe();
-          currentSelfieUrl = me.avatar_selfie || null;
-        }
-      } catch (e) {
-        console.error("Failed to load avatar:", e);
+    try {
+      const client = await apiClient;
+      if (client) {
+        const { data: me } = await client.getUsersMe();
+        currentSelfieUrl = me.avatar_selfie || null;
       }
-    } else {
-      // Unauthenticated: check localStorage
+    } catch (e) {
+      console.error("Failed to load avatar from backend, falling back to localStorage:", e);
       if (browser) {
         currentSelfieUrl = localStorage.getItem("temp_selfie") || null;
       }
@@ -103,8 +97,7 @@
   }
 
   async function saveAvatar(selfieUrl: string, landmarks?: any) {
-    const user = get(session).data?.user;
-    if (user) {
+    try {
       const client = await apiClient;
       await client!.putUsersAvatar(null, {
         avatar_emote: 0,
@@ -114,14 +107,17 @@
         avatar_selfie: selfieUrl,
         avatar_landmarks: landmarks ? JSON.stringify(landmarks) : null,
       });
-    } else {
-      if (browser) {
-        localStorage.setItem("temp_selfie", selfieUrl);
-        if (landmarks) {
-          localStorage.setItem("temp_landmarks", JSON.stringify(landmarks));
-        } else {
-          localStorage.removeItem("temp_landmarks");
-        }
+    } catch (e) {
+      console.error("Failed to save avatar to backend:", e);
+    }
+
+    // Always mirror to localStorage as local fallback
+    if (browser) {
+      localStorage.setItem("temp_selfie", selfieUrl);
+      if (landmarks) {
+        localStorage.setItem("temp_landmarks", JSON.stringify(landmarks));
+      } else {
+        localStorage.removeItem("temp_landmarks");
       }
     }
 
