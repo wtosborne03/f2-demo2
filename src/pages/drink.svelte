@@ -11,17 +11,17 @@
     gameClient.sendPlayerInput("confirm");
   }
 
-  // Generate 35 bubbles for the background with randomized styling properties
-  const bubbles = Array.from({ length: 35 }, (_, i) => {
-    const size = Math.random() * 10 + 4; // size from 4px to 14px
+  // Optimize bubble count from 35 to 18 for rendering efficiency
+  const bubbles = Array.from({ length: 18 }, (_, i) => {
+    const size = Math.random() * 8 + 4; // size from 4px to 12px
     return {
       id: i,
       left: Math.random() * 100,
       size,
       delay: Math.random() * 4,
-      duration: Math.random() * 4 + 2, // 2s to 6s
-      opacity: Math.random() * 0.4 + 0.3,
-      sway: Math.random() * 30 - 15 // -15px to 15px
+      duration: Math.random() * 3 + 2, // 2s to 5s
+      opacity: Math.random() * 0.3 + 0.2,
+      sway: Math.random() * 20 - 10 // -10px to 10px
     };
   });
 </script>
@@ -67,7 +67,7 @@
 
   {#if get(gameState).admin}
     <div
-      class="card p-6 mt-8 w-full max-w-md mx-auto bg-white/80 dark:bg-gray-950/70 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-2xl flex flex-col gap-4 items-center text-center rounded-2xl z-10"
+      class="card p-6 mt-8 w-full max-w-md mx-auto bg-white/95 dark:bg-gray-950/95 border border-white/20 dark:border-white/10 shadow-2xl flex flex-col gap-4 items-center text-center rounded-2xl z-10"
     >
       <div>
         <h3 class="h3 font-bold text-primary underline">Admin</h3>
@@ -113,7 +113,6 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    /* Rich beer color gradient: deep amber at the bottom, glowing gold at the top */
     background: linear-gradient(
       to top,
       #9e4700 0%,
@@ -124,6 +123,7 @@
     );
     transform: translateY(100%);
     animation: fill-up-beer 4s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+    will-change: transform;
   }
 
   /* Rising animation for beer liquid */
@@ -143,21 +143,16 @@
     overflow: hidden;
   }
 
-  /* Individual bubble styling with glassy/glow gradients */
+  /* Optimized glassy bubble styling (no performance-heavy box-shadows or gradients) */
   .bubble {
     position: absolute;
     bottom: -20px;
-    background: radial-gradient(
-      circle at 30% 30%,
-      rgba(255, 255, 255, 0.6) 0%,
-      rgba(255, 255, 255, 0.1) 70%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: 50%;
-    box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.4),
-                0 0 8px rgba(255, 220, 100, 0.2);
     animation: bubble-rise infinite linear;
     pointer-events: none;
+    will-change: transform, opacity;
   }
 
   /* Bubble rise and pop animation */
@@ -167,13 +162,13 @@
       opacity: 0;
     }
     10% {
-      opacity: var(--bubble-opacity, 0.6);
+      opacity: var(--bubble-opacity, 0.4);
     }
     90% {
-      opacity: var(--bubble-opacity, 0.6);
+      opacity: var(--bubble-opacity, 0.4);
     }
     100% {
-      transform: translate3d(var(--bubble-sway, 15px), -102vh, 0) scale(1.1);
+      transform: translate3d(var(--bubble-sway, 10px), -102vh, 0) scale(1.1);
       opacity: 0;
     }
   }
@@ -186,10 +181,10 @@
     right: 0;
     height: 40px;
     background: #fdfcf7;
-    /* Soft border and glowing drop shadows to make foam look fluffy and illuminated */
     border-top: 1px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 -8px 25px rgba(255, 255, 255, 0.95),
-                inset 0 -8px 12px rgba(212, 106, 0, 0.18); /* Golden tint where liquid meets foam */
+    /* Simplified shadows for rendering performance */
+    box-shadow: 0 -4px 15px rgba(255, 255, 255, 0.9),
+                inset 0 -6px 8px rgba(212, 106, 0, 0.1); 
     z-index: 5;
   }
 
@@ -207,9 +202,9 @@
     position: absolute;
     background: #fdfcf7;
     border-radius: 50%;
-    box-shadow: 0 -4px 10px rgba(255, 255, 255, 0.8),
-                inset 0 -6px 8px rgba(212, 106, 0, 0.08);
+    box-shadow: 0 -2px 6px rgba(255, 255, 255, 0.8);
     animation: foam-wiggle 3s ease-in-out infinite alternate;
+    will-change: transform;
   }
 
   @keyframes foam-wiggle {
@@ -224,13 +219,12 @@
   /* Static/Drifting bubbles on foam surface */
   .foam-surface-bubble {
     position: absolute;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.9),
-                0 2px 5px rgba(0, 0, 0, 0.05);
     z-index: 6;
     animation: foam-bubble-drift 5s ease-in-out infinite alternate;
+    will-change: transform;
   }
 
   @keyframes foam-bubble-drift {
