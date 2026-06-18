@@ -105,7 +105,7 @@
 {#key $gameState.screen}
   <div
     id="main-background"
-    class="flex flex-col p-4 grow flex-1 overflow-hidden"
+    class="flex flex-col p-4 grow flex-1 overflow-hidden relative z-10"
   >
     <div
       in:scale|global={{ duration: 250, easing: cubicOut }}

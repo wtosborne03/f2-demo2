@@ -20,6 +20,7 @@ export interface PlayerState {
     color: string;
     team: string;
     avatar: Avatar;
+    paused?: boolean;
 }
 
 export interface PlayerInput {
