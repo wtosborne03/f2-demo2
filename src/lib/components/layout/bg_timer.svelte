@@ -94,6 +94,8 @@
       rgba(29, 78, 216, 0.45) 50px
     );
     background-size: 71px 71px; /* (50px * sqrt(2)) ~ 70.71px */
+    border-right: 4px solid rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
     animation: scrollStripes 3s linear infinite;
   }
 
@@ -114,6 +116,8 @@
       rgba(185, 28, 28, 0.65) 25px,
       rgba(185, 28, 28, 0.65) 50px
     );
+    border-right: 4px solid rgba(239, 68, 68, 0.9);
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.8);
     animation: scrollStripes 1s linear infinite, flashRed 0.5s ease-in-out infinite alternate;
   }
 
