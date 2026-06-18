@@ -74,10 +74,55 @@
   });
 </script>
 
-<div class="w-screen h-screen fixed opacity-20 col-span-3 bottom-0 z-0 pointer-events-none">
+<div class="w-screen h-screen fixed top-0 left-0 z-0 pointer-events-none opacity-15 overflow-hidden">
   <div
-    class="bg-blue-500 h-full text-white"
+    class="timer-bar h-full text-white"
+    class:critical={$remaining_time <= 10}
     style="width: {timer_duration > 0 ? ($remaining_time * (100 / timer_duration)) : 0}%;
-          transition: width 0.5s linear;"
+          transition: width 0.5s linear;
+          animation-play-state: {paused ? 'paused' : 'running'};"
   ></div>
 </div>
+
+<style>
+  .timer-bar {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(59, 130, 246, 0.25) 0px,
+      rgba(59, 130, 246, 0.25) 25px,
+      rgba(29, 78, 216, 0.45) 25px,
+      rgba(29, 78, 216, 0.45) 50px
+    );
+    background-size: 71px 71px; /* (50px * sqrt(2)) ~ 70.71px */
+    animation: scrollStripes 3s linear infinite;
+  }
+
+  @keyframes scrollStripes {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 71px 0;
+    }
+  }
+
+  .timer-bar.critical {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(239, 68, 68, 0.45) 0px,
+      rgba(239, 68, 68, 0.45) 25px,
+      rgba(185, 28, 28, 0.65) 25px,
+      rgba(185, 28, 28, 0.65) 50px
+    );
+    animation: scrollStripes 1s linear infinite, flashRed 0.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes flashRed {
+    0% {
+      filter: brightness(0.85);
+    }
+    100% {
+      filter: brightness(1.25);
+    }
+  }
+</style>
