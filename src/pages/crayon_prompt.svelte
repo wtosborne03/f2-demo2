@@ -3,102 +3,56 @@
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
   import { TextFieldOutlined } from "m3-svelte";
-  import Canvas from "../lib/components/canvas.svelte";
-  import Palette from "$lib/components/palette.svelte";
 
-  const colors = [
-    "#000000", // Black
-    "#FF6B6B", // Bright Red/Coral
-    "#4ECDC4", // Teal/Cyan
-    "#45B7D1", // Sky Blue
-    "#FFA07A", // Light Salmon/Peach
-    "#F7DC6F", // Sunny Yellow
-  ];
-  const background = "#fff";
-
-  let color = colors[0];
-  let paletteColor = color;
   let answer_text = "";
-  let submitting = false;
 
-  async function submit_prompt() {
-    if (submitting) return;
-    submitting = true;
+  // Track which twists are selected
+  let twistSweaty = false;
+  let twistOffice = false;
+  let twist3am = false;
 
-    const canvas = document.getElementById("draw-canvas") as HTMLCanvasElement;
-    if (!canvas) {
-      submitting = false;
-      return;
+  function submit_prompt() {
+    // Start with the player's core prompt
+    let finalPrompt = answer_text.trim();
+
+    // Dynamically append the "Urgent Twists" strings
+    if (twistSweaty) {
+      finalPrompt += ", hyper-detailed sweat drops, moist, intense panic";
     }
-    const base64Image = canvas.toDataURL("image/png");
-
-    let sketchUrl = "";
-    try {
-      const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload/base64`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ base64: base64Image }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed with status ${response.status}`);
-      }
-
-      const result = await response.json();
-      sketchUrl = result.url;
-    } catch (err) {
-      console.error("Sketch upload failed, falling back to base64:", err);
-      sketchUrl = base64Image;
+    if (twistOffice) {
+      finalPrompt +=
+        ", in a sad corporate office cubicle under depressing fluorescent lights";
+    }
+    if (twist3am) {
+      finalPrompt +=
+        ", grainy night-vision trail-cam footage, timestamp in corner 03:00 AM";
     }
 
     gameClient.sendInput({
       type: "promptTextData",
-      answer: answer_text,
-      sketch: sketchUrl,
+      answer: finalPrompt,
     });
   }
 </script>
 
 <div
-  class="w-screen min-h-screen overflow-y-auto flex flex-col items-center p-4 sm:p-8 overflow-x-hidden"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4 py-8"
 >
-  <div class="header-icon text-5xl mb-2">🎨</div>
+  <div class="header-icon text-5xl mb-4">🎨</div>
   <div class="subtitle-text">Prompt & Circumstance</div>
-  <div class="instruction-text mb-4">Draw a sketch and write what it is!</div>
+  <div class="instruction-text">Write a funny prompt for the AI to draw!</div>
 
-  <form class="flex flex-col justify-center items-center w-full max-w-md gap-4 pb-8" on:submit|preventDefault={submit_prompt}>
-    <div class="w-full max-w-sm rounded-3xl overflow-hidden shadow-xl mb-2 bg-white border-4 border-stone-400">
-      <Canvas {color} {background} square={true} />
-    </div>
-
-    <div class="mb-4 flex justify-center w-full">
-      <Palette
-        {paletteColor}
-        {colors}
-        {background}
-        on:color={({ detail }) => {
-          color = detail.color;
-        }}
-        on:clear={() => {
-          const canvas = document.getElementById("draw-canvas") as HTMLCanvasElement;
-          const ctx = canvas?.getContext("2d");
-          if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
-        }}
-      />
-    </div>
-
-    <div class="field-wrapper w-full mb-2">
+  <form
+    class="flex flex-col justify-center items-center w-full max-w-md gap-6"
+    on:submit|preventDefault={submit_prompt}
+  >
+    <!-- Core Prompt Input -->
+    <div class="field-wrapper w-full">
       <TextFieldOutlined
-        label="What is this supposed to be?"
+        label="Image Prompt"
         type="text"
         maxlength={128}
-        placeholder="e.g., A cat riding a skateboard"
+        placeholder="e.g., A cat riding a skateboard in space"
         bind:value={answer_text}
       />
       <div class="text-right text-xs text-stone-400 mt-1">
@@ -106,19 +60,50 @@
       </div>
     </div>
 
-    {#if submitting}
-      <button type="button" disabled class="w-full py-4 bg-stone-300 text-stone-600 rounded-full font-bold cursor-not-allowed">
-        Uploading sketch...
-      </button>
-    {:else}
-      <GameSubmit onSubmit={submit_prompt} />
-    {/if}
+    <!-- Urgent Twists Section -->
+    <div class="w-full flex flex-col gap-3 alignment-start">
+      <span class="label-text">Apply Urgent Twists:</span>
+
+      <div class="flex flex-col gap-2">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            bind:checked={twistSweaty}
+            class="custom-checkbox"
+          />
+          <span>🥵 Make it sweaty</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            bind:checked={twistOffice}
+            class="custom-checkbox"
+          />
+          <span>💼 Add corporate shame</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            bind:checked={twist3am}
+            class="custom-checkbox"
+          />
+          <span>📹 Set it at 3:00 AM (Trail Cam style)</span>
+        </label>
+      </div>
+    </div>
+
+    <GameSubmit onSubmit={submit_prompt} />
   </form>
 </div>
 
 <style>
   .subtitle-text {
-    font-family: var(--m3-font); font-size: 1rem; line-height: 1.5; font-weight: 500;
+    font-family: var(--m3-font);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 500;
     color: var(--m3c-primary);
     text-transform: uppercase;
     letter-spacing: 0.1rem;
@@ -126,9 +111,13 @@
   }
 
   .instruction-text {
-    font-family: var(--m3-font); font-size: 1.5rem; line-height: 1.333; font-weight: 600;
+    font-family: var(--m3-font);
+    font-size: 1.5rem;
+    line-height: 1.333;
+    font-weight: 600;
     text-align: center;
     color: var(--m3c-on-background);
+    margin-bottom: 2rem;
   }
 
   .field-wrapper {
@@ -137,5 +126,33 @@
 
   .field-wrapper > :global(*) {
     width: 100%;
+  }
+
+  /* Twist Checkbox Styles */
+  .label-text {
+    font-family: var(--m3-font);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--m3c-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--m3-font);
+    color: var(--m3c-on-background);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem 0;
+  }
+
+  .custom-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--m3c-primary);
+    cursor: pointer;
   }
 </style>
