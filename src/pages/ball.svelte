@@ -104,7 +104,11 @@
         const magnitude = Math.hypot(x, y);
         const isAtEdge = magnitude >= EDGE_THRESHOLD;
 
-        if (isAtEdge && !wasAtEdge && now - lastHapticTime > HAPTIC_COOLDOWN_MS) {
+        if (
+            isAtEdge &&
+            !wasAtEdge &&
+            now - lastHapticTime > HAPTIC_COOLDOWN_MS
+        ) {
             lastHapticTime = now;
             // Use the Vibration API — safe to call even on devices that don't support it
             if (navigator.vibrate) {
@@ -125,7 +129,8 @@
     <div
         bind:this={joystickContainer}
         class="w-60 h-60 opacity-100 border-8 fixed rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        style="background-color: {$gameState.color}; border-color: {$gameState.team === 'Black'
+        style="background-color: {$gameState.color}; border-color: {$gameState.team ===
+        'Black'
             ? 'black'
             : $gameState.team === 'White'
               ? 'white'
@@ -134,7 +139,10 @@
 </div>
 
 <style>
-    :global([class*="joystick-container-"]),
+    :global([class*="joystick-container-"]) {
+        touch-action: none !important;
+        z-index: 50 !important;
+    }
     :global([class*="joystick-controller-"]),
     :global([class*="joystick-"]) {
         touch-action: none !important;
