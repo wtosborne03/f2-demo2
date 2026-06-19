@@ -5,7 +5,8 @@
     import GoogleSignInButton from "./GoogleSignInButton.svelte";
     import { sideBarOpen } from "../../stores/sidebar";
     import SpotifySignInButton from "./SpotifySignInButton.svelte";
-    import { NavigationRail, NavigationRailItem } from "m3-svelte";
+    import { Icon, NavigationRail } from "m3-svelte";
+    import SideBarLink from "./SideBarLink.svelte";
     import { page } from "$app/state";
     import { browser } from "$app/environment";
     import Spinner from "./spinner.svelte";
@@ -54,7 +55,8 @@
         } catch (error) {
             toaster.error({
                 title: "Google Sign-In Failed",
-                description: error instanceof Error ? error.message : String(error),
+                description:
+                    error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -78,7 +80,8 @@
         } catch (error) {
             toaster.error({
                 title: "Spotify Sign-In Failed",
-                description: error instanceof Error ? error.message : String(error),
+                description:
+                    error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -91,7 +94,7 @@
 
 <div class="rail-wrapper" class:open={$sideBarOpen}>
     <NavigationRail bind:open={$sideBarOpen} collapse="full" modal>
-        {#if $session.isPending && (browser && document.cookie.includes("better-auth"))}
+        {#if $session.isPending && browser && document.cookie.includes("better-auth")}
             <div class="user-info py-4">
                 <Spinner />
             </div>
@@ -109,30 +112,38 @@
             </div>
         {/if}
 
-        <NavigationRailItem
+        <SideBarLink
             label="Avatar"
             icon={iconPerson}
             active={page.url.pathname === "/avatar"}
             onclick={customizeAvatar}
+            color="amber"
         />
 
-        {#if $session.data?.user || ($session.isPending && (browser && document.cookie.includes("better-auth")))}
-            <NavigationRailItem
+        {#if $session.data?.user || ($session.isPending && browser && document.cookie.includes("better-auth"))}
+            <SideBarLink
                 label="Stats"
                 icon={iconLeaderboard}
                 active={page.url.pathname === "/stats"}
                 onclick={goStats}
+                color="emerald"
             />
-            <NavigationRailItem
+            <SideBarLink
                 label="Gallery"
                 icon={iconImage}
                 active={page.url.pathname === "/gallery"}
                 onclick={goGallery}
+                color="purple"
             />
 
             <div class="spacer"></div>
 
-            <NavigationRailItem label="Sign Out" icon={iconLogout} onclick={() => signOut()} />
+            <SideBarLink
+                label="Sign Out"
+                icon={iconLogout}
+                onclick={() => signOut()}
+                color="rose"
+            />
         {/if}
     </NavigationRail>
 </div>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SvelteComponent } from "svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { scale } from "svelte/transition";
+  import { fly } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
   import Spinner from "$lib/components/spinner.svelte";
   import { browser } from "$app/environment";
@@ -102,14 +102,15 @@
   });
 </script>
 
-{#key $gameState.screen}
-  <div
-    id="main-background"
-    class="flex flex-col p-4 grow flex-1 overflow-hidden relative z-10"
-  >
+<div
+  id="main-background"
+  class="flex flex-col grow flex-1 overflow-hidden relative z-10"
+>
+  {#key $gameState.screen}
     <div
-      in:scale|global={{ duration: 250, easing: cubicOut }}
-      class={`flex flex-1 flex-col justify-center items-center ${page.url.pathname === "/" && $gameState.screen != "index" ? "pt-22 min-h-[calc(100vh-5.5rem)]" : ""}`}
+      in:fly={{ x: 300, duration: 400, easing: cubicOut }}
+      out:fly={{ x: -300, duration: 400, easing: cubicOut }}
+      class={`absolute inset-0 p-4 flex flex-1 flex-col justify-center items-center overflow-y-auto ${page.url.pathname === "/" && $gameState.screen != "index" ? "pt-22" : ""}`}
     >
       {#if debug}
         <div class="fixed bottom-5 right-5">
@@ -134,5 +135,5 @@
 
       <svelte:component this={Component} />
     </div>
-  </div>
-{/key}
+  {/key}
+</div>
