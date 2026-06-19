@@ -18,7 +18,8 @@
 
     // Dynamically append the "Urgent Twists" strings
     if (twistSweaty) {
-      addition += ", hyper-detailed sweat drops, moist, ";
+      addition +=
+        ", hyper-detailed sweat drops, moist, super sweaty and sticky";
     }
     if (twistOffice) {
       addition +=
