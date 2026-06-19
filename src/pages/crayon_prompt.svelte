@@ -39,8 +39,6 @@
   class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4 py-8"
 >
   <div class="header-icon text-5xl mb-4">🎨</div>
-  <div class="subtitle-text">Prompt & Circumstance</div>
-  <div class="instruction-text">Write a funny prompt for the AI to draw!</div>
 
   <form
     class="flex flex-col justify-center items-center w-full max-w-md gap-6"
@@ -51,19 +49,16 @@
       <TextFieldOutlined
         label="Image Prompt"
         type="text"
-        maxlength={128}
-        placeholder="e.g., A cat riding a skateboard in space"
+        maxlength={140}
         bind:value={answer_text}
       />
       <div class="text-right text-xs text-stone-400 mt-1">
-        {answer_text.length} / 128
+        {answer_text.length} / 140
       </div>
     </div>
 
     <!-- Urgent Twists Section -->
     <div class="w-full flex flex-col gap-3 alignment-start">
-      <span class="label-text">Apply Urgent Twists:</span>
-
       <div class="flex flex-col gap-2">
         <label class="checkbox-label">
           <input
@@ -80,7 +75,7 @@
             bind:checked={twistOffice}
             class="custom-checkbox"
           />
-          <span>💼 Add corporate shame</span>
+          <span>💼 Mr. John Corporate</span>
         </label>
 
         <label class="checkbox-label">
@@ -89,7 +84,7 @@
             bind:checked={twist3am}
             class="custom-checkbox"
           />
-          <span>📹 Set it at 3:00 AM (Trail Cam style)</span>
+          <span>📹 3AM type Beat</span>
         </label>
       </div>
     </div>
@@ -145,13 +140,13 @@
     font-family: var(--m3-font);
     color: var(--m3c-on-background);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.5rem;
     padding: 0.25rem 0;
   }
 
   .custom-checkbox {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
     accent-color: var(--m3c-primary);
     cursor: pointer;
   }
