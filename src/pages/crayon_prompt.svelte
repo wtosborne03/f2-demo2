@@ -14,23 +14,25 @@
   function submit_prompt() {
     // Start with the player's core prompt
     let finalPrompt = answer_text.trim();
+    let addition = "";
 
     // Dynamically append the "Urgent Twists" strings
     if (twistSweaty) {
-      finalPrompt += ", hyper-detailed sweat drops, moist, intense panic";
+      addition += ", hyper-detailed sweat drops, moist, ";
     }
     if (twistOffice) {
-      finalPrompt +=
+      addition +=
         ", in a sad corporate office cubicle under depressing fluorescent lights";
     }
     if (twist3am) {
-      finalPrompt +=
+      addition +=
         ", grainy night-vision trail-cam footage, timestamp in corner 03:00 AM";
     }
 
     gameClient.sendInput({
       type: "promptTextData",
       answer: finalPrompt,
+      addition: addition,
     });
   }
 </script>
