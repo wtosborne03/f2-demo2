@@ -4,14 +4,34 @@
   import { onMount, onDestroy } from "svelte";
   import Icon from "@iconify/svelte";
 
-  // Derive points from the player state so the UI updates reactively
-  const points = derived(gameState, ($p) => $p?.page_data?.points ?? 0);
+  // Derive page data from the player state
+  const pageData = derived(gameState, ($p) => $p?.page_data);
+  const points = derived(pageData, ($d) => $d?.points ?? 0);
+
+  // Reactive inputs
+  $: inputType = $pageData?.inputType ?? "CHOICES";
+  $: options = $pageData?.options ?? [];
+  $: slider = $pageData?.slider;
+
+  $: sliderMin = slider?.min ?? 0;
+  $: sliderMax = slider?.max ?? 100;
+  $: sliderStep = slider?.step ?? 5;
+  $: sliderUnit = slider?.unit ?? "";
+  $: sliderLeftLabel = slider?.leftLabel ?? "";
+  $: sliderRightLabel = slider?.rightLabel ?? "";
+  $: submitLabel = $pageData?.submitLabel ?? "Submit Option";
 
   // Local UI state
   let choice: string | null = null;
   let disabled = false;
   let hintVisible = true;
   let hintTimeoutId: any;
+  let sliderValue = 0;
+
+  // Sync initial slider value once page data is loaded
+  $: if (slider && sliderValue === 0) {
+    sliderValue = slider.min ?? 0;
+  }
 
   function sendChoice(answer: string) {
     if (disabled) return;
@@ -51,11 +71,46 @@
   <main
     class="container mx-auto h-fit flex flex-col items-center justify-center px-6 py-3"
   >
-    <!-- Prompt Card -->
-
     <div class="w-full flex h-full flex-col md:flex-row items-stretch gap-4">
-      {#if $gameState?.page_data?.options}
-        {#each $gameState.page_data.options as opt}
+      {#if inputType === "SLIDER"}
+        <div class="w-full bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col items-center gap-6">
+          <h3 class="text-2xl font-bold text-white tracking-wide">
+            Make Your Choice
+          </h3>
+          
+          <div class="w-full flex items-center justify-between text-yellow-300 font-extrabold text-xl">
+            <span>{sliderMin} {sliderUnit}</span>
+            <span class="text-4xl text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">
+              {sliderValue} {sliderUnit}
+            </span>
+            <span>{sliderMax} {sliderUnit}</span>
+          </div>
+
+          <input
+            type="range"
+            min={sliderMin}
+            max={sliderMax}
+            step={sliderStep}
+            bind:value={sliderValue}
+            disabled={disabled}
+            class="w-full h-3 bg-white/15 rounded-lg appearance-none cursor-pointer accent-yellow-400 disabled:opacity-50"
+          />
+
+          <div class="w-full flex justify-between text-xs text-white/50 px-1">
+            <span>{sliderLeftLabel}</span>
+            <span>{sliderRightLabel}</span>
+          </div>
+
+          <button
+            on:click={() => sendChoice(String(sliderValue))}
+            disabled={disabled}
+            class="mt-4 px-8 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:bg-white/10 text-amber-950 font-black rounded-full text-lg shadow-xl uppercase tracking-wider transition-all transform hover:scale-105 active:scale-95 disabled:pointer-events-none"
+          >
+            {submitLabel}
+          </button>
+        </div>
+      {:else}
+        {#each options as opt}
           <button
             role="button"
             class="choice-card flex-1 relative rounded-2xl cursor-pointer"
