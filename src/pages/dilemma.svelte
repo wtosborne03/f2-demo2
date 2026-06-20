@@ -8,12 +8,12 @@
   const points = derived(gameState, ($p) => $p?.page_data?.points ?? 0);
 
   // Local UI state
-  let choice: "keep" | "steal" | null = null;
+  let choice: string | null = null;
   let disabled = false;
   let hintVisible = true;
   let hintTimeoutId: any;
 
-  function sendChoice(answer: "keep" | "steal") {
+  function sendChoice(answer: string) {
     if (disabled) return;
     disabled = true;
     choice = answer;
@@ -54,86 +54,70 @@
     <!-- Prompt Card -->
 
     <div class="w-full flex h-full flex-col md:flex-row items-stretch gap-4">
-      <!-- SHARE card -->
-      <button
-        role="button"
-        class="choice-card flex-1 relative bg-gradient-to-br from-green-600/20 to-blue-600/10 border-4 border-green-400/40 rounded-2xl cursor-pointer"
-        on:click={() => sendChoice("keep")}
-        aria-pressed={choice === "keep"}
-        aria-disabled={disabled}
-        class:disabled
-      >
-        <div
-          class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-        >
-          <div class="inner-glow-left" />
-        </div>
-
-        <div class="relative z-10 flex flex-col items-center text-center">
-          <span class="flex flex-row justify-center items-center gap-6">
-            <div class="icon-bubble animate-wiggle text-yellow-400">
-              <Icon icon="dinkie-icons:banana" font-size="2rem" />
+      {#if $gameState?.page_data?.options}
+        {#each $gameState.page_data.options as opt}
+          <button
+            role="button"
+            class="choice-card flex-1 relative rounded-2xl cursor-pointer"
+            style="background-color: {opt.color}1c; border: 4px solid {opt.color}66;"
+            on:click={() => sendChoice(opt.id)}
+            aria-pressed={choice === opt.id}
+            aria-disabled={disabled}
+            class:disabled
+          >
+            <div
+              class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+            >
+              <div
+                class="absolute inset-0 opacity-25"
+                style="background: radial-gradient(circle at center, {opt.color}, transparent 60%);"
+              />
             </div>
-            <h2
-              class="text-xl md:text-2xl font-bold text-green-100 drop-shadow-md"
-            >
-              SHARE
-            </h2>
-          </span>
-          <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
-            Keep a few bananas and sell them for
-            <span
-              class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
-              >{$points}</span
-            >
-            doubloons
-          </p>
-        </div>
 
-        {#if choice === "keep"}
-          <div class="choice-badge">Selected</div>
-        {/if}
-      </button>
-
-      <!-- STEAL card -->
-      <button
-        role="button"
-        class="choice-card flex-1 relative bg-gradient-to-br from-red-700/20 to-orange-600/10 border-4 border-red-400/40 rounded-2xl cursor-pointer"
-        on:click={() => sendChoice("steal")}
-        aria-pressed={choice === "steal"}
-        aria-disabled={disabled}
-      >
-        <div
-          class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-        >
-          <div class="inner-glow-right" />
-        </div>
-
-        <div class="relative z-10 flex flex-col items-center text-center">
-          <span class="flex flex-row justify-center items-center gap-3">
-            <div class="icon-bubble animate-flip">
-              <Icon icon="dinkie-icons:dagger-knife" font-size="2rem" />
+            <div class="relative z-10 flex flex-col items-center text-center">
+              <span class="flex flex-row justify-center items-center gap-6">
+                {#if opt.emoji}
+                  <div class="icon-bubble animate-wiggle text-yellow-400">
+                    <span style="font-size: 2rem;">{opt.emoji}</span>
+                  </div>
+                {/if}
+                <h2
+                  class="text-xl md:text-2xl font-bold text-white drop-shadow-md"
+                >
+                  {opt.label}
+                </h2>
+              </span>
+              {#if opt.subtext}
+                <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
+                  {opt.subtext}
+                </p>
+              {:else if opt.id === "share"}
+                <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
+                  Keep a few bananas and sell them for
+                  <span
+                    class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
+                    >{$points}</span
+                  >
+                  doubloons
+                </p>
+              {:else if opt.id === "steal"}
+                <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
+                  Steal them all for
+                  <span
+                    class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
+                    >2000</span
+                  >
+                  doubloons — but beware the consequences.
+                </p>
+              {/if}
             </div>
-            <h2
-              class="text-xl md:text-2xl font-bold text-red-100 drop-shadow-md"
-            >
-              STEAL
-            </h2>
-          </span>
-          <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
-            Steal them all for
-            <span
-              class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
-              >2000</span
-            >
-            doubloons — but beware the consequences.
-          </p>
-        </div>
 
-        {#if choice === "steal"}
-          <div class="choice-badge">Selected</div>
-        {/if}
-      </button>
+            {#if choice === opt.id}
+              <div class="choice-badge">Selected</div>
+            {/if}
+          </button>
+        {/each}
+      {/if}
     </div>
 
     <!-- Warning and hint -->
@@ -147,8 +131,7 @@
           ⚠️ Warning
         </div>
         <p class="text-white/80 max-w-2xl">
-          If more than one monkey steals, everyone loses — mutually assured
-          destruction.
+          {$gameState?.page_data?.bottomWarningText || "If more than one monkey steals, everyone loses — mutually assured destruction."}
         </p>
       </div>
     </div>
@@ -167,39 +150,12 @@
       Arial;
   }
 
-  .glow-left {
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(
-      ellipse at center left,
-      rgba(34, 197, 94, 0.18) 0%,
-      rgba(59, 130, 246, 0.08) 30%,
-      transparent 60%
-    );
-    filter: blur(60px);
-    transform: translateX(-10%);
-    animation: slow-pulse 6s ease-in-out infinite;
-  }
-
-  .glow-right {
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(
-      ellipse at center right,
-      rgba(239, 68, 68, 0.22) 0%,
-      rgba(249, 115, 22, 0.08) 30%,
-      transparent 60%
-    );
-    filter: blur(60px);
-    transform: translateX(10%);
-    animation: slow-pulse 5s ease-in-out infinite;
-  }
-
   .choice-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 1.5rem;
+    min-height: 160px;
   }
 
   .choice-card .icon-bubble {
@@ -215,30 +171,6 @@
       rgba(255, 255, 255, 0.02)
     );
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
-  }
-
-  .inner-glow-left {
-    height: 60%;
-    width: 60%;
-    background: radial-gradient(
-      circle at top left,
-      rgba(34, 197, 94, 0.25),
-      transparent 60%
-    );
-    filter: blur(36px);
-    opacity: 0.9;
-  }
-
-  .inner-glow-right {
-    height: 60%;
-    width: 60%;
-    background: radial-gradient(
-      circle at top right,
-      rgba(239, 68, 68, 0.25),
-      transparent 60%
-    );
-    filter: blur(36px);
-    opacity: 0.95;
   }
 
   .choice-badge {
@@ -261,21 +193,6 @@
   }
 
   /* Animations */
-  @keyframes slow-pulse {
-    0% {
-      transform: translateX(0) scale(1);
-      opacity: 0.9;
-    }
-    50% {
-      transform: translateX(2%) scale(1.03);
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(0) scale(1);
-      opacity: 0.9;
-    }
-  }
-
   @keyframes wiggle {
     0% {
       transform: rotate(-6deg) scale(1);
@@ -288,23 +205,8 @@
     }
   }
 
-  @keyframes flip {
-    0% {
-      transform: rotateY(0deg) scale(1);
-    }
-    50% {
-      transform: rotateY(180deg) scale(1.05);
-    }
-    100% {
-      transform: rotateY(0deg) scale(1);
-    }
-  }
-
   .animate-wiggle {
     animation: wiggle 2.4s ease-in-out infinite;
-  }
-  .animate-flip {
-    animation: flip 3s ease-in-out infinite;
   }
 
   /* disabled visual */
@@ -315,10 +217,11 @@
 
   @media (max-width: 768px) {
     .choice-card {
+      min-height: 120px;
     }
     .icon-bubble {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
     }
   }
 </style>
