@@ -73,17 +73,22 @@
   >
     <div class="w-full flex h-full flex-col md:flex-row items-stretch gap-4">
       {#if inputType === "SLIDER"}
-        <div class="w-full bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col items-center gap-6">
+        <div
+          class="w-full bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col items-center gap-6"
+        >
           <h3 class="text-2xl font-bold text-white tracking-wide">
             Make Your Choice
           </h3>
-          
-          <div class="w-full flex items-center justify-between text-yellow-300 font-extrabold text-xl">
-            <span>{sliderMin} {sliderUnit}</span>
-            <span class="text-4xl text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">
-              {sliderValue} {sliderUnit}
+
+          <div
+            class="w-full flex items-center justify-between text-yellow-300 font-extrabold text-xl"
+          >
+            <span
+              class="text-4xl text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]"
+            >
+              {sliderValue}
+              {sliderUnit}
             </span>
-            <span>{sliderMax} {sliderUnit}</span>
           </div>
 
           <input
@@ -92,7 +97,7 @@
             max={sliderMax}
             step={sliderStep}
             bind:value={sliderValue}
-            disabled={disabled}
+            {disabled}
             class="w-full h-3 bg-white/15 rounded-lg appearance-none cursor-pointer accent-yellow-400 disabled:opacity-50"
           />
 
@@ -103,7 +108,7 @@
 
           <button
             on:click={() => sendChoice(String(sliderValue))}
-            disabled={disabled}
+            {disabled}
             class="mt-4 px-8 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:bg-white/10 text-amber-950 font-black rounded-full text-lg shadow-xl uppercase tracking-wider transition-all transform hover:scale-105 active:scale-95 disabled:pointer-events-none"
           >
             {submitLabel}
@@ -143,11 +148,15 @@
                 </h2>
               </span>
               {#if opt.subtext}
-                <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
+                <p
+                  class="mt-3 text-md md:text-lg text-white/90 leading-relaxed"
+                >
                   {opt.subtext}
                 </p>
               {:else if opt.id === "share"}
-                <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
+                <p
+                  class="mt-3 text-md md:text-lg text-white/90 leading-relaxed"
+                >
                   Keep a few bananas and sell them for
                   <span
                     class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
@@ -156,7 +165,9 @@
                   doubloons
                 </p>
               {:else if opt.id === "steal"}
-                <p class="mt-3 text-md md:text-lg text-white/90 leading-relaxed">
+                <p
+                  class="mt-3 text-md md:text-lg text-white/90 leading-relaxed"
+                >
                   Steal them all for
                   <span
                     class="ml-2 px-2 py-1 rounded-md bg-yellow-300 text-black font-semibold text-lg"
@@ -186,7 +197,8 @@
           ⚠️ Warning
         </div>
         <p class="text-white/80 max-w-2xl">
-          {$gameState?.page_data?.bottomWarningText || "If more than one monkey steals, everyone loses — mutually assured destruction."}
+          {$gameState?.page_data?.bottomWarningText ||
+            "If more than one monkey steals, everyone loses — mutually assured destruction."}
         </p>
       </div>
     </div>
