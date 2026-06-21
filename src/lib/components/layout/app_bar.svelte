@@ -10,6 +10,7 @@
   $: name = $gameState.name;
   $: admin = $gameState.admin;
   $: score = $gameState.score;
+  $: drinks = $gameState.drinks ?? 0;
   $: team = $gameState.team;
   $: color = $gameState.color;
   $: textColor = getContrastColor(color);
@@ -67,14 +68,29 @@
       </div>
     </span>
 
-    <span
-      class="text-xl flex flex-row items-center justify-end gap-2 w-20 h-12 flex-none score"
-      aria-live="polite"
-      aria-atomic="true"
+    <div
+      class="text-xl flex flex-row items-center justify-end gap-2.5 md:gap-3.5 min-w-20 h-12 flex-none font-semibold"
     >
-      {score}
-      <img class="object-contain w-auto h-full" src={doubloon} alt="coin" />
-    </span>
+      {#if drinks > 0}
+        <span
+          class="flex flex-row items-center gap-1.5 drinks-counter"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <span>{drinks}</span>
+          <span class="text-xl md:text-2xl leading-none">🍺</span>
+        </span>
+      {/if}
+
+      <span
+        class="flex flex-row items-center gap-1.5 score"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <span>{score}</span>
+        <img class="object-contain w-6 h-6 md:w-7 md:h-7" src={doubloon} alt="coin" />
+      </span>
+    </div>
   </div>
 
   {#if team != ""}
