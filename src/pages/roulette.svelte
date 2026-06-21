@@ -105,7 +105,7 @@
 </script>
 
 <div
-  class="w-full max-w-md mx-auto p-5 md:p-6 text-[var(--m3c-on-surface)] flex flex-col gap-5"
+  class="w-full max-w-md mx-auto p-1 md:p-2 text-[var(--m3c-on-surface)] flex flex-col gap-5"
 >
   <div class="text-center space-y-1">
     <h1 class="text-2xl font-bold tracking-tight text-[var(--m3c-on-surface)]">
@@ -129,7 +129,7 @@
         >
           <!-- EMOJI BADGE -->
           <span
-            class="flex items-center justify-center w-10 h-10 rounded-full mr-3 text-lg bg-[var(--m3c-surface-container-highest)] select-none"
+            class="flex items-center justify-center w-10 h-10 rounded-full mr-3 text-xl bg-[var(--m3c-surface-container-highest)] select-none"
           >
             {getChallengeEmoji(challenge)}
           </span>
