@@ -32,7 +32,10 @@
         currentSelfieUrl = me.avatar_selfie || null;
       }
     } catch (e) {
-      console.error("Failed to load avatar from backend, falling back to localStorage:", e);
+      console.error(
+        "Failed to load avatar from backend, falling back to localStorage:",
+        e,
+      );
       if (browser) {
         currentSelfieUrl = localStorage.getItem("temp_selfie") || null;
       }

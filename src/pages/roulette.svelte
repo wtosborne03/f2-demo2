@@ -3,6 +3,7 @@
   import { toaster } from "$lib/util/toaster";
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
   import { get } from "svelte/store";
+  import { fly } from "svelte/transition";
 
   let selected_challenge = "";
 
@@ -61,22 +62,75 @@
       short_challenge: challenges[selected_challenge],
     });
   }
+
+  function getChallengeEmoji(challenge: string): string {
+    const text = challenge.toLowerCase();
+    if (text.includes("shotgun")) return "⚡";
+    if (text.includes("shot")) return "🥃";
+    if (text.includes("drink") || text.includes("cup") || text.includes("down your")) return "🍺";
+    if (text.includes("compliment")) return "💬";
+    if (text.includes("wallet")) return "💳";
+    if (text.includes("clothing") || text.includes("clothes") || text.includes("off")) return "👕";
+    if (text.includes("law") || text.includes("crime")) return "⚖️";
+    if (text.includes("text") || text.includes("phone") || text.includes("family")) return "📱";
+    if (text.includes("unemployed")) return "💼";
+    if (text.includes("man") || text.includes("woman") || text.includes("slur")) return "👥";
+    if (text.includes("photo") || text.includes("camera") || text.includes("roll")) return "📸";
+    if (text.includes("social security") || text.includes("ssn")) return "🔒";
+    if (text.includes("screentime") || text.includes("screen")) return "⏱️";
+    if (text.includes("gambling") || text.includes("money")) return "🎲";
+    return "🔥";
+  }
 </script>
 
-<div class="flex flex-col items-center mt-10">
-  <h1 class="text-4xl font-bold mb-8">Add a punishment to the Wheel</h1>
-  {#each available_challenges as challenge}
-    <button
-      class={"btn preset-filled w-full mb-4 text-xl font-medium text-wrap" +
-        (selected_challenge === challenge
-          ? " preset-filled-primary-500 outline-4 outline-white"
-          : "")}
-      on:click={() => (selected_challenge = challenge)}
-    >
-      {challenge}
-    </button>
-  {/each}
-  <button class="btn preset-filled-secondary-500 mt-8" on:click={placeBet}
-    >Choose Challenge 🔥</button
+<div class="w-full max-w-md mx-auto p-5 md:p-6 bg-[var(--m3c-surface-container)] text-[var(--m3c-on-surface)] rounded-[28px] border border-[var(--m3c-outline-variant)] shadow-2xl flex flex-col gap-5">
+  <div class="text-center space-y-1">
+    <h1 class="text-2xl font-bold tracking-tight text-[var(--m3c-on-surface)]">
+      Add a punishment to the Wheel
+    </h1>
+    <p class="text-sm text-[var(--m3c-on-surface-variant)]">
+      Select a challenge to put on the host's wheel.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    {#each available_challenges as challenge, i (challenge)}
+      <div in:fly={{ y: 15, delay: i * 50, duration: 250 }}>
+        <button
+          type="button"
+          class="flex items-center w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer {selected_challenge === challenge ? 'bg-[var(--m3c-primary-container)] border-[var(--m3c-primary)] text-[var(--m3c-on-primary-container)]' : 'bg-[var(--m3c-surface-container-low)] border-[var(--m3c-outline-variant)] text-[var(--m3c-on-surface)] hover:bg-[var(--m3c-surface-container-high)]'}"
+          on:click={() => (selected_challenge = challenge)}
+        >
+          <!-- EMOJI BADGE -->
+          <span class="flex items-center justify-center w-10 h-10 rounded-full mr-3 text-lg bg-[var(--m3c-surface-container-highest)] select-none">
+            {getChallengeEmoji(challenge)}
+          </span>
+
+          <!-- CHALLENGE TEXT -->
+          <span class="flex-1 font-semibold text-base leading-snug pr-2 text-wrap">
+            {challenge}
+          </span>
+
+          <!-- RADIO CHECKMARK -->
+          <span class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 {selected_challenge === challenge ? 'border-[var(--m3c-primary)] bg-[var(--m3c-primary)]' : 'border-[var(--m3c-outline)]'}">
+            {#if selected_challenge === challenge}
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[var(--m3c-on-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            {/if}
+          </span>
+        </button>
+      </div>
+    {/each}
+  </div>
+
+  <button
+    type="button"
+    class="w-full py-4 font-bold text-lg rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer {selected_challenge !== '' ? 'bg-[var(--m3c-primary)] text-[var(--m3c-on-primary)] shadow-md hover:bg-[var(--m3c-primary-container)] hover:text-[var(--m3c-on-primary-container)]' : 'bg-[var(--m3c-surface-variant)] text-[var(--m3c-on-surface-variant)] opacity-50 cursor-not-allowed pointer-events-none'}"
+    on:click={placeBet}
+    disabled={selected_challenge === ""}
   >
+    Choose Challenge 🔥
+  </button>
 </div>
+
