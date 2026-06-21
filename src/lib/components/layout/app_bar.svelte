@@ -73,22 +73,26 @@
     >
       {#if drinks > 0}
         <span
-          class="flex flex-row items-center gap-1.5 drinks-counter"
+          class="flex flex-row items-center gap-1 drinks-counter"
           aria-live="polite"
           aria-atomic="true"
         >
           <span>{drinks}</span>
-          <span class="text-xl md:text-2xl leading-none">🍺</span>
+          <span class="text-2xl md:text-3xl leading-none">🍺</span>
         </span>
       {/if}
 
       <span
-        class="flex flex-row items-center gap-1.5 score"
+        class="flex flex-row items-center gap-1 score"
         aria-live="polite"
         aria-atomic="true"
       >
         <span>{score}</span>
-        <img class="object-contain w-6 h-6 md:w-7 md:h-7" src={doubloon} alt="coin" />
+        <img
+          class="object-contain w-8 h-8 md:w-10 md:h-10"
+          src={doubloon}
+          alt="coin"
+        />
       </span>
     </div>
   </div>
