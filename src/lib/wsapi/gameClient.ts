@@ -5,6 +5,8 @@ import type { PlayerInput, PlayerState } from "./shared/types";
 import { toaster } from "$lib/util/toaster";
 import { dbClient } from "../../stores/apiClient";
 import { apiClient } from "$lib/backend/axios";
+import { authClient } from "../../stores/authStore";
+
 
 const RECONNECT_DELAY_MS = 1500;
 const HEARTBEAT_INTERVAL_MS = 10000;
@@ -158,55 +160,77 @@ class GameClient {
     localStorage.setItem("name", this.name);
     localStorage.setItem("couch_room", roomCode);
 
-    try {
-      let client = get(dbClient);
-      if (!client) {
-        client = await apiClient;
-        if (client) {
-          dbClient.set(client);
+    const user = get(authClient.useSession()).data?.user;
+
+    if (user) {
+      try {
+        let client = get(dbClient);
+        if (!client) {
+          client = await apiClient;
+          if (client) {
+            dbClient.set(client);
+          }
         }
-      }
-      const { data: me } = await client!.getUsersMe();
-      let landmarks = undefined;
-      if (me.avatar_landmarks) {
-        try {
-          landmarks = JSON.parse(me.avatar_landmarks);
-        } catch (e) {
-          console.error("Failed to parse avatar landmarks:", e);
+        const { data: me } = await client!.getUsersMe();
+        let landmarks = undefined;
+        if (me.avatar_landmarks) {
+          try {
+            landmarks = JSON.parse(me.avatar_landmarks);
+          } catch (e) {
+            console.error("Failed to parse avatar landmarks:", e);
+          }
         }
-      }
-      const avatar = {
-        eyes: me.avatar_eyes || 0,
-        mouth: me.avatar_mouth || 0,
-        hair: me.avatar_hair || 0,
-        emote: me.avatar_emote || 0,
-        selfieUrl: me.avatar_selfie || "",
-        landmarks,
-      };
-      this.sendPlayerInput("avatarUpdate", { avatar });
-    } catch (error) {
-      console.error("Failed to get user:", error);
-      const sessionSelfie = (typeof window !== "undefined" && localStorage.getItem("temp_selfie")) || "";
-      const sessionLandmarksStr =
-        (typeof window !== "undefined" && localStorage.getItem("temp_landmarks")) || "";
-      let landmarks = undefined;
-      if (sessionLandmarksStr) {
-        try {
-          landmarks = JSON.parse(sessionLandmarksStr);
-        } catch (e) {
-          console.error("Failed to parse session landmarks:", e);
+        // Fallback to local storage if API returned blank/null selfie
+        const localSelfie = localStorage.getItem("temp_selfie") || "";
+        const localLandmarksStr = localStorage.getItem("temp_landmarks") || "";
+        let fallbackLandmarks = undefined;
+        if (localLandmarksStr) {
+          try {
+            fallbackLandmarks = JSON.parse(localLandmarksStr);
+          } catch (e) {
+            console.error("Failed to parse fallback landmarks:", e);
+          }
         }
+
+        const avatar = {
+          eyes: me.avatar_eyes || 3,
+          mouth: me.avatar_mouth || 0,
+          hair: me.avatar_hair || 0,
+          emote: me.avatar_emote || 0,
+          selfieUrl: me.avatar_selfie || localSelfie,
+          landmarks: landmarks || fallbackLandmarks,
+        };
+        this.sendPlayerInput("avatarUpdate", { avatar });
+      } catch (error) {
+        console.error("Failed to get user:", error);
+        this.sendGuestAvatar();
       }
-      const avatar = {
-        eyes: 3,
-        mouth: 0,
-        hair: 0,
-        emote: 0,
-        selfieUrl: sessionSelfie,
-        landmarks,
-      };
-      this.sendPlayerInput("avatarUpdate", { avatar });
+    } else {
+      this.sendGuestAvatar();
     }
+  }
+
+  private sendGuestAvatar() {
+    const sessionSelfie = (typeof window !== "undefined" && localStorage.getItem("temp_selfie")) || "";
+    const sessionLandmarksStr =
+      (typeof window !== "undefined" && localStorage.getItem("temp_landmarks")) || "";
+    let landmarks = undefined;
+    if (sessionLandmarksStr) {
+      try {
+        landmarks = JSON.parse(sessionLandmarksStr);
+      } catch (e) {
+        console.error("Failed to parse session landmarks:", e);
+      }
+    }
+    const avatar = {
+      eyes: 3,
+      mouth: 0,
+      hair: 0,
+      emote: 0,
+      selfieUrl: sessionSelfie,
+      landmarks,
+    };
+    this.sendPlayerInput("avatarUpdate", { avatar });
   }
 
   private handleGameEnded() {
