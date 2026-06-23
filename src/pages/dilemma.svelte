@@ -76,10 +76,6 @@
         <div
           class="w-full bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col items-center gap-6"
         >
-          <h3 class="text-2xl font-bold text-white tracking-wide">
-            Make Your Choice
-          </h3>
-
           <div
             class="w-full flex items-center justify-between text-yellow-300 font-extrabold text-xl"
           >
@@ -101,7 +97,7 @@
             class="w-full h-3 bg-white/15 rounded-lg appearance-none cursor-pointer accent-yellow-400 disabled:opacity-50"
           />
 
-          <div class="w-full flex justify-between text-xs text-white/50 px-1">
+          <div class="w-full flex justify-between text-md text-white/50 px-1">
             <span>{sliderLeftLabel}</span>
             <span>{sliderRightLabel}</span>
           </div>
@@ -114,16 +110,23 @@
             {submitLabel}
           </button>
 
-          <button
-            on:click={() => sendChoice("horse")}
-            {disabled}
-            class="mt-2 px-6 py-2.5 bg-gradient-to-r from-red-700 to-rose-700 hover:from-red-600 hover:to-rose-600 border border-red-500/30 text-white font-bold rounded-full text-md shadow-lg tracking-wider transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-          >
-            🐴 Throw a Horse into the Well
-          </button>
-          <p class="text-xs text-red-300 mt-1 max-w-[280px] text-center leading-tight font-semibold">
-            Throws a horse into the well, contaminating it so no one gets any bananas/points.
-          </p>
+          {#if options && options.some((o: any) => o.id === "horse")}
+            <button
+              on:click={() => sendChoice("horse")}
+              {disabled}
+              class="mt-2 px-6 py-2.5 bg-gradient-to-r from-red-700 to-rose-700 hover:from-red-600 hover:to-rose-600 border border-red-500/30 text-white font-bold rounded-full text-lg shadow-lg tracking-wider transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {options.find((o: any) => o.id === "horse").emoji || "🐴"}
+              {options.find((o: any) => o.id === "horse").label ||
+                "Throw a Horse into the Well"}
+            </button>
+            <p
+              class="text-xs text-red-300 mt-1 max-w-[280px] text-center leading-tight font-semibold"
+            >
+              {options.find((o: any) => o.id === "horse").subtext ||
+                "Throws a horse into the well, contaminating it so no one gets any bananas/points."}
+            </p>
+          {/if}
         </div>
       {:else}
         {#each options as opt}
@@ -198,21 +201,23 @@
     </div>
 
     <!-- Warning and hint -->
-    <div
-      class="mt-6 w-full flex flex-col md:flex-row items-center justify-between gap-4"
-    >
-      <div class="flex items-center gap-3">
-        <div
-          class="warning-pill bg-yellow-800/60 text-yellow-200 px-4 py-2 rounded-full text-center font-semibold drop-shadow-md"
-        >
-          ⚠️ Warning
+    {#if inputType === "CHOICES"}
+      <div
+        class="mt-6 w-full flex flex-col md:flex-row items-center justify-between gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="warning-pill bg-yellow-800/60 text-yellow-200 px-4 py-2 rounded-full text-center font-semibold drop-shadow-md"
+          >
+            ⚠️ Warning
+          </div>
+          <p class="text-white/80 max-w-2xl">
+            {$gameState?.page_data?.bottomWarningText ||
+              "If more than one monkey steals, everyone loses — mutually assured destruction."}
+          </p>
         </div>
-        <p class="text-white/80 max-w-2xl">
-          {$gameState?.page_data?.bottomWarningText ||
-            "If more than one monkey steals, everyone loses — mutually assured destruction."}
-        </p>
       </div>
-    </div>
+    {/if}
   </main>
 </div>
 
