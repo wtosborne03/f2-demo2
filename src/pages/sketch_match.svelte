@@ -31,6 +31,17 @@
   let isFullscreen = false;
   let previewImage: string | null = null;
 
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return {
+      destroy() {
+        if (node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
+      }
+    };
+  }
+
   function minimize() {
     isFullscreen = false;
     if (canvasComponent) {
@@ -194,6 +205,7 @@
 
 <!-- Fullscreen Drawing Overlay Modal -->
 <div 
+  use:portal
   class="fixed inset-0 z-[9999] flex flex-col items-center justify-between p-0 sm:p-4 bg-slate-950/95 backdrop-blur-md transition-all duration-300 {isFullscreen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'}"
 >
   <!-- Top bar / Header -->
@@ -251,4 +263,3 @@
     />
   </div>
 </div>
-
