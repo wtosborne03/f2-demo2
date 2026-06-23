@@ -103,22 +103,13 @@
   <div
     class="w-screen h-fit flex flex-col sm:w-full sm:max-w-lg rounded-3xl sm:shadow-2xl"
   >
-    <div
-      class="bg-linear-to-br from-[#ff6b6b] to-[#ff8e53] p-6 pb-4 text-center shadow-lg rounded-t-3xl shrink-0"
-    >
-      <div class="text-3xl animate-pulse inline-block">💕</div>
-      <h1 class="text-2xl font-extrabold text-white drop-shadow-md">
-        Create Your Profile
-      </h1>
-    </div>
-
     <form
       class="p-6 flex-1 flex flex-col gap-4 h-fit"
       on:submit|preventDefault={submit_prompt}
     >
       <div class="w-full">
         <input
-          class="w-full p-4 text-black border-2 border-gray-200 rounded-full text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02]"
+          class="w-full p-4 text-black placeholder-gray-400 border-2 border-gray-200 rounded-full text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02]"
           type="text"
           bind:value={name}
           maxlength="20"
@@ -134,7 +125,7 @@
             >Age</span
           >
           <input
-            class="border-none text-black bg-transparent py-4 flex-1 focus:ring-0 text-base outline-none"
+            class="border-none text-black placeholder-gray-400 bg-transparent py-4 flex-1 focus:ring-0 text-base outline-none"
             type="number"
             pattern="\d*"
             max="1000"
@@ -146,7 +137,7 @@
 
       <div class="w-full">
         <input
-          class="w-full p-4 text-black border-2 border-gray-200 rounded-full text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02]"
+          class="w-full p-4 text-black placeholder-gray-400 border-2 border-gray-200 rounded-full text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02]"
           type="text"
           maxlength="30"
           bind:value={job}
@@ -156,7 +147,7 @@
 
       <div class="w-full">
         <textarea
-          class="w-full p-4 border-2 text-black border-gray-200 rounded-3xl text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02] resize-none font-sans"
+          class="w-full p-4 border-2 text-black placeholder-gray-400 border-gray-200 rounded-3xl text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02] resize-none font-sans"
           maxlength="65"
           bind:value={description}
           placeholder="About you..."
@@ -165,10 +156,6 @@
       </div>
 
       <div class="mt-2 flex flex-col items-center px-7">
-        <h2 class="text-xl font-bold text-gray-800 text-center mb-2">
-          ✨ Your Portrait ✨
-        </h2>
-
         <!-- Interactive Preview Card -->
         <button
           type="button"
