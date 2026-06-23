@@ -4,6 +4,7 @@
     export let color: string = "#333";
     export let background: string = "#fff";
     export let square: boolean = false;
+    export let active: boolean = false;
 
     let canvas: HTMLCanvasElement;
     let context: CanvasRenderingContext2D | null = null;
@@ -13,6 +14,14 @@
     let bufferWidth: number = 320;
     let bufferHeight: number = 480;
     let containerElement: HTMLDivElement;
+
+    let drawingBackup: string | null = null;
+
+    const saveBackup = () => {
+        if (canvas) {
+            drawingBackup = canvas.toDataURL("image/png");
+        }
+    };
 
     /**
      * Initialize or resize the internal canvas buffer only when the computed
@@ -64,6 +73,15 @@
 
         // Fill background
         context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Restore backup if it exists
+        if (drawingBackup) {
+            const img = new Image();
+            img.onload = () => {
+                context?.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+            img.src = drawingBackup;
+        }
     };
 
     onMount(() => {
@@ -71,6 +89,11 @@
         // Second pass after layout settles (keeps behaviour similar to previous)
         setTimeout(initCanvas, 360);
     });
+
+    // react to active prop changes
+    $: if (active) {
+        setTimeout(initCanvas, 100);
+    }
 
     // react to color/background changes
     $: if (context) {
@@ -112,7 +135,7 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
             context.fillStyle = background;
             context.fillRect(0, 0, canvas.width, canvas.height);
-            // If you want the eraser to also start drawing after clearing, you could set isDrawing = true here.
+            drawingBackup = null;
             isDrawing = false;
             return;
         }
@@ -141,7 +164,10 @@
     };
 
     const handlePointerEnd = () => {
-        isDrawing = false;
+        if (isDrawing) {
+            isDrawing = false;
+            saveBackup();
+        }
     };
 
     // Touch handlers (convert touch -> client coords)
@@ -156,6 +182,7 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
             context.fillStyle = background;
             context.fillRect(0, 0, canvas.width, canvas.height);
+            drawingBackup = null;
             isDrawing = false;
             return;
         }
@@ -180,6 +207,19 @@
         context.stroke();
 
         start = coords;
+    };
+
+    // Exported APIs for Svelte bindings
+    export const clear = () => {
+        if (!canvas || !context) return;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = background;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        drawingBackup = null;
+    };
+
+    export const toDataURL = () => {
+        return canvas ? canvas.toDataURL("image/png") : "";
     };
 </script>
 

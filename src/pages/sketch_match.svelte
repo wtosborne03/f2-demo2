@@ -18,7 +18,6 @@
   const background = "#fff";
 
   let color = colors[0];
-  const paletteColor = color;
 
   let m_data: PromptData;
   m_data = get(gameState).page_data;
@@ -28,10 +27,21 @@
   let job = "";
   let description = "";
 
+  let canvasComponent: any;
+  let isFullscreen = false;
+  let previewImage: string | null = null;
+
+  function minimize() {
+    isFullscreen = false;
+    if (canvasComponent) {
+      previewImage = canvasComponent.toDataURL();
+    }
+  }
+
   async function submit_prompt() {
-    const canvas = document.getElementById("draw-canvas") as HTMLCanvasElement;
-    if (!canvas) return;
-    const base64Image = canvas.toDataURL("image/png");
+    if (!canvasComponent) return;
+    const base64Image = canvasComponent.toDataURL();
+    if (!base64Image) return;
 
     try {
       const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload/base64`, {
@@ -141,37 +151,33 @@
       </div>
 
       <div class="mt-2 flex flex-col items-center px-7">
-        <h2 class="text-xl font-bold text-gray-800 text-center mb-4">
-          ✨ Draw Your Portrait ✨
+        <h2 class="text-xl font-bold text-gray-800 text-center mb-2">
+          ✨ Your Portrait ✨
         </h2>
 
-        <div
-          class="w-full max-w-sm rounded-3xl overflow-hidden shadow-xl mb-4 bg-white border-4 border-gray-400"
+        <!-- Interactive Preview Card -->
+        <button
+          type="button"
+          class="relative w-full max-w-xs aspect-[2/3] rounded-3xl overflow-hidden shadow-lg mb-6 bg-slate-50 border-4 border-dashed border-gray-300 hover:border-[#ff6b6b] hover:bg-white hover:shadow-xl transition-all cursor-pointer group flex flex-col items-center justify-center p-1 text-left"
+          on:click={() => (isFullscreen = true)}
         >
-          <Canvas {color} {background} />
-        </div>
-
-        <div class="mb-6 flex justify-center">
-          <Palette
-            {paletteColor}
-            {colors}
-            {background}
-            on:color={({ detail }) => {
-              color = detail.color;
-            }}
-            on:clear={() => {
-              const canvas = document.getElementById(
-                "draw-canvas",
-              ) as HTMLCanvasElement;
-              const ctx = canvas?.getContext("2d");
-              if (ctx) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-              }
-            }}
-          />
-        </div>
+          {#if previewImage}
+            <img src={previewImage} alt="Portrait sketch" class="w-full h-full object-cover rounded-2xl" />
+          {:else}
+            <div class="flex flex-col items-center justify-center text-gray-400 gap-3 py-12">
+              <span class="text-5xl animate-bounce duration-1000">🎨</span>
+              <span class="font-bold text-base text-gray-500">Tap to Draw Portrait</span>
+              <span class="text-xs text-gray-400 px-4 text-center">Add a sketch to complete your profile</span>
+            </div>
+          {/if}
+          
+          <!-- Pencil Overlay Badge (Glassmorphic) -->
+          <div class="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-full border border-gray-200/50 shadow-md text-gray-700 hover:text-[#ff6b6b] transition-colors flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+            </svg>
+          </div>
+        </button>
       </div>
 
       <button
@@ -185,3 +191,64 @@
     </form>
   </div>
 </div>
+
+<!-- Fullscreen Drawing Overlay Modal -->
+<div 
+  class="fixed inset-0 z-50 flex flex-col items-center justify-between p-4 bg-slate-950/95 backdrop-blur-md transition-all duration-300 {isFullscreen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'}"
+>
+  <!-- Top bar / Header -->
+  <div class="w-full max-w-md flex justify-between items-center px-2 py-3 shrink-0">
+    <button
+      type="button"
+      class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 active:scale-95 transition-all"
+      on:click={minimize}
+      aria-label="Back"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+    </button>
+    <h3 class="text-xl font-extrabold text-white tracking-wide drop-shadow-md">
+      ✨ Draw Your Portrait ✨
+    </h3>
+    <button
+      type="button"
+      class="px-5 py-2.5 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] text-white font-extrabold rounded-full shadow-lg shadow-[#ff6b6b]/40 hover:scale-105 active:scale-95 transition-all text-sm flex items-center gap-1.5"
+      on:click={minimize}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+      Done
+    </button>
+  </div>
+
+  <!-- Drawing Area Card -->
+  <div class="flex-1 flex items-center justify-center w-full max-h-[60vh] p-2">
+    <div
+      class="w-full max-w-xs sm:max-w-sm rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in"
+    >
+      <Canvas bind:this={canvasComponent} {color} {background} active={isFullscreen} />
+    </div>
+  </div>
+
+  <!-- Bottom controls / Palette & Tools -->
+  <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-sm border border-slate-800/80 rounded-3xl p-4 flex flex-col items-center gap-3 shrink-0 shadow-2xl mb-4">
+    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Select Color & Brush</div>
+    <Palette
+      paletteColor={color}
+      {colors}
+      {background}
+      on:color={({ detail }) => {
+        color = detail.color;
+      }}
+      on:clear={() => {
+        if (canvasComponent) {
+          canvasComponent.clear();
+          previewImage = null;
+        }
+      }}
+    />
+  </div>
+</div>
+

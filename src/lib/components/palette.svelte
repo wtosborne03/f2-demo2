@@ -4,7 +4,7 @@
 
   export let colors = ["#d7c44c", "#d7c44c", "#4fa9cc", "#3f8d27"];
 
-  export let paletteColor;
+  export let paletteColor = "";
   export let background = "#fff";
 </script>
 
