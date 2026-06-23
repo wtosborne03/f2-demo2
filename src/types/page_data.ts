@@ -115,8 +115,15 @@ interface PickGameData {
   options: string[];
 }
 
+interface TrumpMadlibData {
+  predicament: string;
+  wordType: string;
+  description: string;
+}
+
 export type {
   PickGameData,
+  TrumpMadlibData,
   matchData,
   KnowData,
   DoodleData,
