@@ -100,9 +100,7 @@
 <div
   class="w-screen overflow-y-visible flex flex-col items-center p-0 m-0 sm:p-8 overflow-x-hidden"
 >
-  <div
-    class="w-screen h-fit flex flex-col sm:w-full sm:max-w-lg rounded-3xl sm:shadow-2xl"
-  >
+  <div class="w-full h-fit flex flex-col sm:w-full sm:max-w-lg rounded-3xl">
     <form
       class="p-6 flex-1 flex flex-col gap-4 h-fit"
       on:submit|preventDefault={submit_prompt}
