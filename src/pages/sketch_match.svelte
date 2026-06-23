@@ -106,13 +106,20 @@
       on:submit|preventDefault={submit_prompt}
     >
       <div class="w-full">
-        <input
-          class="w-full p-4 text-black placeholder-gray-400 border-2 border-gray-200 rounded-full text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02]"
-          type="text"
-          bind:value={name}
-          maxlength="20"
-          placeholder="Name"
-        />
+        <div
+          class="flex items-center gap-4 bg-gray-50 border-2 border-gray-200 rounded-full px-5 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
+        >
+          <span class="font-semibold text-gray-500 text-base whitespace-nowrap"
+            >Name</span
+          >
+          <input
+            class="border-none text-black placeholder-gray-400 bg-transparent py-4 flex-1 focus:ring-0 text-base outline-none"
+            type="text"
+            bind:value={name}
+            maxlength="20"
+            placeholder="John Doe"
+          />
+        </div>
       </div>
 
       <div class="w-full">
@@ -134,23 +141,37 @@
       </div>
 
       <div class="w-full">
-        <input
-          class="w-full p-4 text-black placeholder-gray-400 border-2 border-gray-200 rounded-full text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02]"
-          type="text"
-          maxlength="30"
-          bind:value={job}
-          placeholder="Occupation"
-        />
+        <div
+          class="flex items-center gap-4 bg-gray-50 border-2 border-gray-200 rounded-full px-5 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
+        >
+          <span class="font-semibold text-gray-500 text-base whitespace-nowrap"
+            >Occupation</span
+          >
+          <input
+            class="border-none text-black placeholder-gray-400 bg-transparent py-4 flex-1 focus:ring-0 text-base outline-none"
+            type="text"
+            maxlength="30"
+            bind:value={job}
+            placeholder="Software Engineer"
+          />
+        </div>
       </div>
 
       <div class="w-full">
-        <textarea
-          class="w-full p-4 border-2 text-black placeholder-gray-400 border-gray-200 rounded-3xl text-base transition-all bg-gray-50 focus:outline-none focus:border-[#ff6b6b] focus:bg-white focus:ring-4 focus:ring-[#ff6b6b]/10 transform focus:scale-[1.02] resize-none font-sans"
-          maxlength="65"
-          bind:value={description}
-          placeholder="About you..."
-          rows="2"
-        ></textarea>
+        <div
+          class="flex flex-col gap-2 bg-gray-50 border-2 border-gray-200 rounded-3xl p-4 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
+        >
+          <span class="font-semibold text-gray-500 text-base"
+            >Bio</span
+          >
+          <textarea
+            class="border-none text-black placeholder-gray-400 bg-transparent p-0 w-full focus:ring-0 text-base outline-none resize-none font-sans"
+            maxlength="65"
+            bind:value={description}
+            placeholder="About you..."
+            rows="2"
+          ></textarea>
+        </div>
       </div>
 
       <div class="mt-2 flex flex-col items-center px-7">
