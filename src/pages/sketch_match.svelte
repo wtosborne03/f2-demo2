@@ -161,9 +161,7 @@
         <div
           class="flex flex-col gap-2 bg-gray-50 border-2 border-gray-200 rounded-3xl p-4 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
         >
-          <span class="font-semibold text-gray-500 text-base"
-            >Bio</span
-          >
+          <span class="font-semibold text-gray-500 text-base">Bio</span>
           <textarea
             class="border-none text-black placeholder-gray-400 bg-transparent p-0 w-full focus:ring-0 text-base outline-none resize-none font-sans"
             maxlength="65"
@@ -267,7 +265,7 @@
         />
       </svg>
     </button>
-    <h3 class="text-xl font-extrabold text-white tracking-wide drop-shadow-md">
+    <h3 class="text-xl font-extrabold text-black tracking-wide">
       ✨ Draw Your Portrait ✨
     </h3>
     <button
