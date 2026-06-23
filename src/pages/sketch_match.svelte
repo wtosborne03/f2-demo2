@@ -223,7 +223,7 @@
 >
   <!-- Top bar / Header -->
   <div
-    class="w-full max-w-md flex justify-between items-center px-4 py-3 shrink-0 z-10 bg-slate-950/60 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none sm:px-2"
+    class="w-full max-w-md flex justify-between items-center px-4 py-3 shrink-0 z-10 sm:px-2"
   >
     <button
       type="button"
