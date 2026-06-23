@@ -38,7 +38,7 @@
         if (node.parentNode) {
           node.parentNode.removeChild(node);
         }
-      }
+      },
     };
   }
 
@@ -55,13 +55,16 @@
     if (!base64Image) return;
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload/base64`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_PUBLIC_API_URL}/upload/base64`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ base64: base64Image }),
         },
-        body: JSON.stringify({ base64: base64Image }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Upload failed with status ${response.status}`);
@@ -173,19 +176,42 @@
           on:click={() => (isFullscreen = true)}
         >
           {#if previewImage}
-            <img src={previewImage} alt="Portrait sketch" class="w-full h-full object-cover rounded-2xl" />
+            <img
+              src={previewImage}
+              alt="Portrait sketch"
+              class="w-full h-full object-cover rounded-2xl"
+            />
           {:else}
-            <div class="flex flex-col items-center justify-center text-gray-400 gap-3 py-12">
+            <div
+              class="flex flex-col items-center justify-center text-gray-400 gap-3 py-12"
+            >
               <span class="text-5xl animate-bounce duration-1000">🎨</span>
-              <span class="font-bold text-base text-gray-500">Tap to Draw Portrait</span>
-              <span class="text-xs text-gray-400 px-4 text-center">Add a sketch to complete your profile</span>
+              <span class="font-bold text-base text-gray-500"
+                >Tap to Draw Portrait</span
+              >
+              <span class="text-xs text-gray-400 px-4 text-center"
+                >Add a sketch to complete your profile</span
+              >
             </div>
           {/if}
-          
+
           <!-- Pencil Overlay Badge (Glassmorphic) -->
-          <div class="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-full border border-gray-200/50 shadow-md text-gray-700 hover:text-[#ff6b6b] transition-colors flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+          <div
+            class="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-full border border-gray-200/50 shadow-md text-gray-700 hover:text-[#ff6b6b] transition-colors flex items-center justify-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2.5"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+              />
             </svg>
           </div>
         </button>
@@ -204,20 +230,35 @@
 </div>
 
 <!-- Fullscreen Drawing Overlay Modal -->
-<div 
+<div
   use:portal
-  class="fixed inset-0 z-[9999] flex flex-col items-center justify-between p-0 sm:p-4 bg-slate-950/95 backdrop-blur-md transition-all duration-300 {isFullscreen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'}"
+  class="fixed inset-0 z-[9999] flex flex-col items-center justify-between p-0 sm:p-4 bg-slate-950/95 backdrop-blur-md transition-all duration-300 {isFullscreen
+    ? 'opacity-100 pointer-events-auto visible'
+    : 'opacity-0 pointer-events-none invisible'}"
 >
   <!-- Top bar / Header -->
-  <div class="w-full max-w-md flex justify-between items-center px-4 py-3 shrink-0 z-10 bg-slate-950/60 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none sm:px-2">
+  <div
+    class="w-full max-w-md flex justify-between items-center px-4 py-3 shrink-0 z-10 bg-slate-950/60 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none sm:px-2"
+  >
     <button
       type="button"
       class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 active:scale-95 transition-all"
       on:click={minimize}
       aria-label="Back"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2.5"
+        stroke="currentColor"
+        class="w-7 h-7"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M15.75 19.5L8.25 12l7.5-7.5"
+        />
       </svg>
     </button>
     <h3 class="text-xl font-extrabold text-white tracking-wide drop-shadow-md">
@@ -228,25 +269,44 @@
       class="px-5 py-2.5 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] text-white font-extrabold rounded-full shadow-lg shadow-[#ff6b6b]/40 hover:scale-105 active:scale-95 transition-all text-sm flex items-center gap-1.5"
       on:click={minimize}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="3"
+        stroke="currentColor"
+        class="w-4 h-4"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M4.5 12.75l6 6 9-13.5"
+        />
       </svg>
       Done
     </button>
   </div>
 
   <!-- Drawing Area Card -->
-  <div class="absolute inset-0 w-full h-full z-0 sm:relative sm:inset-auto sm:flex-1 sm:flex sm:items-center sm:justify-center sm:max-h-[60vh] sm:p-2">
+  <div
+    class="absolute inset-0 w-full h-full z-0 sm:relative sm:inset-auto sm:flex-1 sm:flex sm:items-center sm:justify-center sm:max-h-[60vh] sm:p-2"
+  >
     <div
       class="w-full h-full sm:w-full sm:max-w-sm sm:aspect-[2/3] sm:rounded-3xl overflow-hidden sm:shadow-2xl bg-white sm:border-4 sm:border-slate-800 animate-fade-in"
     >
-      <Canvas bind:this={canvasComponent} {color} {background} active={isFullscreen} />
+      <Canvas
+        bind:this={canvasComponent}
+        {color}
+        {background}
+        active={isFullscreen}
+      />
     </div>
   </div>
 
   <!-- Bottom controls / Palette & Tools -->
-  <div class="w-full max-w-md bg-slate-900/90 backdrop-blur-sm border-t border-slate-800/80 sm:border sm:rounded-3xl p-4 flex flex-col items-center gap-3 shrink-0 shadow-2xl z-10 mb-0 sm:mb-4">
-    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Select Color & Brush</div>
+  <div
+    class="w-full max-w-md p-4 flex flex-col items-center gap-3 shrink-0 z-10 mb-0 sm:mb-4"
+  >
     <Palette
       paletteColor={color}
       {colors}
