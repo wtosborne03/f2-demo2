@@ -28,7 +28,7 @@
      * size actually changes. Changing canvas.width / canvas.height clears the
      * drawing buffer, so avoid doing it unnecessarily. The visible CSS size
      * is kept responsive (100% width) while the internal buffer is adjusted
-     * only when the container's width changes.
+     * only when the container's width/height changes.
      */
     const initCanvas = () => {
         if (!canvas || !containerElement) return;
@@ -37,7 +37,7 @@
         const newBufferWidth = Math.max(1, Math.floor(rect.width));
         const newBufferHeight = square
             ? newBufferWidth
-            : Math.max(1, Math.floor(newBufferWidth * 1.5));
+            : Math.max(1, Math.floor(rect.height || rect.width * 1.5));
 
         // If size hasn't changed and we have a context, just update stroke style
         if (
@@ -58,8 +58,8 @@
         canvas.height = bufferHeight;
 
         // Ensure the visible element scales to the container
-        canvas.style.width = `${rect.width}px`;
-        canvas.style.height = `${square ? rect.width : Math.floor(rect.width * 1.5)}px`;
+        canvas.style.width = `100%`;
+        canvas.style.height = `${square ? rect.width : Math.floor(rect.height || rect.width * 1.5)}px`;
 
         context = canvas.getContext("2d");
         if (!context) return;
@@ -234,7 +234,7 @@
     <canvas
         id="draw-canvas"
         bind:this={canvas}
-        style="background: {background}; width: 100%; height: auto;"
+        style="background: {background};"
         on:mousedown={handlePointerStart}
         on:mouseup={handlePointerEnd}
         on:mouseleave={handlePointerEnd}
@@ -249,17 +249,17 @@
 <style>
     .canvas-container {
         width: 100%;
+        height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
     }
 
     #draw-canvas {
-        border-radius: 30px;
         user-select: none;
         touch-action: none;
-        max-width: 100%;
-        height: auto;
+        width: 100%;
+        height: 100%;
         display: block;
     }
 </style>

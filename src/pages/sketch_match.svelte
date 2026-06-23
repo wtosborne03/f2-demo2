@@ -194,10 +194,10 @@
 
 <!-- Fullscreen Drawing Overlay Modal -->
 <div 
-  class="fixed inset-0 z-50 flex flex-col items-center justify-between p-4 bg-slate-950/95 backdrop-blur-md transition-all duration-300 {isFullscreen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'}"
+  class="fixed inset-0 z-[9999] flex flex-col items-center justify-between p-0 sm:p-4 bg-slate-950/95 backdrop-blur-md transition-all duration-300 {isFullscreen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'}"
 >
   <!-- Top bar / Header -->
-  <div class="w-full max-w-md flex justify-between items-center px-2 py-3 shrink-0">
+  <div class="w-full max-w-md flex justify-between items-center px-4 py-3 shrink-0 z-10 bg-slate-950/60 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none sm:px-2">
     <button
       type="button"
       class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 active:scale-95 transition-all"
@@ -224,16 +224,16 @@
   </div>
 
   <!-- Drawing Area Card -->
-  <div class="flex-1 flex items-center justify-center w-full max-h-[60vh] p-2">
+  <div class="absolute inset-0 w-full h-full z-0 sm:relative sm:inset-auto sm:flex-1 sm:flex sm:items-center sm:justify-center sm:max-h-[60vh] sm:p-2">
     <div
-      class="w-full max-w-xs sm:max-w-sm rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in"
+      class="w-full h-full sm:w-full sm:max-w-sm sm:aspect-[2/3] sm:rounded-3xl overflow-hidden sm:shadow-2xl bg-white sm:border-4 sm:border-slate-800 animate-fade-in"
     >
       <Canvas bind:this={canvasComponent} {color} {background} active={isFullscreen} />
     </div>
   </div>
 
   <!-- Bottom controls / Palette & Tools -->
-  <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-sm border border-slate-800/80 rounded-3xl p-4 flex flex-col items-center gap-3 shrink-0 shadow-2xl mb-4">
+  <div class="w-full max-w-md bg-slate-900/90 backdrop-blur-sm border-t border-slate-800/80 sm:border sm:rounded-3xl p-4 flex flex-col items-center gap-3 shrink-0 shadow-2xl z-10 mb-0 sm:mb-4">
     <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Select Color & Brush</div>
     <Palette
       paletteColor={color}
