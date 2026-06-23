@@ -113,6 +113,14 @@
           >
             {submitLabel}
           </button>
+
+          <button
+            on:click={() => sendChoice("horse")}
+            {disabled}
+            class="mt-2 px-6 py-2.5 bg-gradient-to-r from-red-700 to-rose-700 hover:from-red-600 hover:to-rose-600 border border-red-500/30 text-white font-bold rounded-full text-md shadow-lg tracking-wider transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            🐴 Throw a Horse into the Well
+          </button>
         </div>
       {:else}
         {#each options as opt}

@@ -20,23 +20,30 @@
   const screens: Record<string, any> = import.meta.glob("../pages/*.svelte");
 
   let Component: typeof SvelteComponent | null = null;
+  let currentScreen = "";
 
   async function loadComponent(): Promise<void> {
-    const path = `../pages/${$gameState.screen}.svelte`;
+    const targetScreen = $gameState.screen;
+    currentScreen = targetScreen;
+    const path = `../pages/${targetScreen}.svelte`;
 
     if (screens[path]) {
       const module = await screens[path]();
+      if (currentScreen !== targetScreen) return;
 
       // Handle cases where import might return another function
       if (typeof module === "function") {
         const nestedModule = await module();
+        if (currentScreen !== targetScreen) return;
         Component = nestedModule.default;
       } else {
         Component = module.default;
       }
     } else {
-      console.error(`Screen not found: ${$gameState.screen}`);
-      Component = null;
+      console.error(`Screen not found: ${targetScreen}`);
+      if (currentScreen === targetScreen) {
+        Component = null;
+      }
     }
   }
 
