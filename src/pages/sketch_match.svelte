@@ -101,7 +101,7 @@
   class="w-screen overflow-y-visible flex flex-col items-center p-0 m-0 sm:p-8 overflow-x-hidden"
 >
   <div
-    class="w-screen h-fit bg-white flex flex-col sm:w-full sm:max-w-lg rounded-3xl sm:shadow-2xl"
+    class="w-screen h-fit flex flex-col sm:w-full sm:max-w-lg rounded-3xl sm:shadow-2xl"
   >
     <div
       class="bg-linear-to-br from-[#ff6b6b] to-[#ff8e53] p-6 pb-4 text-center shadow-lg rounded-t-3xl shrink-0"
