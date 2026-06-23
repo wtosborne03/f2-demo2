@@ -121,6 +121,9 @@
           >
             🐴 Throw a Horse into the Well
           </button>
+          <p class="text-xs text-red-300 mt-1 max-w-[280px] text-center leading-tight font-semibold">
+            Throws a horse into the well, contaminating it so no one gets any bananas/points.
+          </p>
         </div>
       {:else}
         {#each options as opt}
