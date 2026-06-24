@@ -12,7 +12,7 @@
   import { get } from "svelte/store";
 
   // Toggle this to enable automatic cycling through screens for debugging
-  const debug = true;
+  const debug = false;
 
   let paused = false;
 
