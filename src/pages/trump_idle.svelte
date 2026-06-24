@@ -43,9 +43,7 @@
   - "American government" colors via navy + red gradient background, serif headings
 -->
 
-<div
-  class="min-h-screen w-screen bg-linear-to-br from-sky-900 via-indigo-900 to-red-900 flex items-center justify-center p-6"
->
+<div class="h-full w-full flex items-center justify-center p-6">
   <main
     class="w-full max-w-lg bg-white/95 rounded-2xl shadow-2xl ring-1 ring-black/10 overflow-hidden"
     role="region"

@@ -20,48 +20,52 @@
   }
 
   // Parse template into parts
-  $: parts = parseTemplate(m_data?.template || "", m_data?.slots || [], m_data?.slotIndex ?? 0);
+  $: parts = parseTemplate(
+    m_data?.template || "",
+    m_data?.slots || [],
+    m_data?.slotIndex ?? 0,
+  );
 
   function parseTemplate(template: string, slots: any[], activeIndex: number) {
     if (!template) return [];
-    
+
     const regex = /\[(\d+)\]/g;
     const result: any[] = [];
     let lastIndex = 0;
     let match;
-    
+
     while ((match = regex.exec(template)) !== null) {
       const matchIndex = match.index;
       const slotNum = parseInt(match[1], 10);
-      
+
       // Push preceding text
       if (matchIndex > lastIndex) {
         result.push({
           text: template.substring(lastIndex, matchIndex),
-          isSlot: false
+          isSlot: false,
         });
       }
-      
+
       // Push slot info
       const slotType = slots[slotNum]?.type || "word";
       result.push({
         index: slotNum,
         isSlot: true,
         type: slotType,
-        isActive: slotNum === activeIndex
+        isActive: slotNum === activeIndex,
       });
-      
+
       lastIndex = regex.lastIndex;
     }
-    
+
     // Push trailing text
     if (lastIndex < template.length) {
       result.push({
         text: template.substring(lastIndex),
-        isSlot: false
+        isSlot: false,
       });
     }
-    
+
     return result;
   }
 </script>
@@ -70,12 +74,6 @@
   class="madlib-container h-full overflow-y-auto w-screen flex flex-col justify-center items-center p-3"
 >
   <div class="madlib-card w-full">
-    <div class="madlib-header text-center">
-      <span class="stars-decoration">★</span>
-      Final Predicament
-      <span class="stars-decoration">★</span>
-    </div>
-
     <div class="predicament-text text-center">
       "{m_data?.predicament || "Audience question loading..."}"
     </div>
@@ -99,10 +97,14 @@
     </div>
 
     <div class="prompt-instruction text-center">
-      Enter a <span class="highlight-speech">{m_data?.wordType || "word"}</span> ({m_data?.description || "creative word"}) to complete the solution!
+      Enter a <span class="highlight-speech">{m_data?.wordType || "word"}</span>
+      ({m_data?.description || "creative word"}) to complete the solution!
     </div>
 
-    <form class="flex flex-col justify-center items-center w-full" on:submit|preventDefault={submit_word}>
+    <form
+      class="flex flex-col justify-center items-center w-full"
+      on:submit|preventDefault={submit_word}
+    >
       <input
         id="trump-madlib-input"
         class="answer-input text-black"
@@ -118,8 +120,6 @@
 
 <style>
   .madlib-container {
-    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 50%, #7f1d1d 100%);
-    min-height: 100vh;
   }
 
   .madlib-card {

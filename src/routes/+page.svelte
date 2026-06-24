@@ -12,7 +12,7 @@
   import { get } from "svelte/store";
 
   // Toggle this to enable automatic cycling through screens for debugging
-  const debug = false;
+  const debug = true;
 
   let paused = false;
 
@@ -117,7 +117,7 @@
     <div
       in:fly={{ x: 300, duration: 400, easing: cubicOut }}
       out:fly={{ x: -300, duration: 400, easing: cubicOut }}
-      class={`absolute inset-0 p-4 flex flex-1 flex-col justify-center items-center overflow-y-auto ${page.url.pathname === "/" && $gameState.screen != "index" ? "pt-22" : ""}`}
+      class={`absolute inset-0 p-0 flex flex-1 flex-col justify-center items-center overflow-y-auto ${page.url.pathname === "/" && $gameState.screen != "index" ? "pt-22" : ""}`}
     >
       {#if debug}
         <div class="fixed bottom-5 right-5">

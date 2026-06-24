@@ -47,8 +47,6 @@
 
 <style>
   .debate-container {
-    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 50%, #7f1d1d 100%);
-    min-height: 100vh;
   }
 
   .debate-card {

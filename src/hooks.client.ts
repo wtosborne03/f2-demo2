@@ -19,4 +19,22 @@ Sentry.init({
 });
 
 // If you have a custom error handler, pass it to `handleErrorWithSentry`
-export const handleError = handleErrorWithSentry();
+export const handleError = handleErrorWithSentry(({ error, event }) => {
+  const errorMessage = (error as any)?.message || "";
+  
+  // Detect dynamic import chunk failures (usually caused by a new build deployment removing old hashes)
+  if (
+    errorMessage.includes("Failed to fetch dynamically imported module") ||
+    errorMessage.includes("Failed to fetch")
+  ) {
+    const lastReload = sessionStorage.getItem("last_chunk_reload");
+    const now = Date.now();
+    
+    // Throttled reload (at most once every 15s) to avoid infinite loops if network is actually offline
+    if (!lastReload || now - parseInt(lastReload, 10) > 15000) {
+      sessionStorage.setItem("last_chunk_reload", now.toString());
+      console.warn("Dynamic import failed (possibly due to deployment asset mismatch). Reloading page to fetch latest code...");
+      window.location.reload();
+    }
+  }
+});

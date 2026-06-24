@@ -3,15 +3,17 @@
   import type { PlayerState } from "../types/player_state";
   import type { ListPromptData, PromptData } from "../types/page_data";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import Icon from "@iconify/svelte";
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
   import { TextFieldOutlined, TextFieldOutlinedMultiline } from "m3-svelte";
 
-  let guess = "";
+  let m_data: ListPromptData;
+  m_data = get(gameState).page_data;
+
+  let survival_prompt = "";
 
   function submit_prompt() {
-    gameClient.sendPlayerInput("playerVoteData", {
-      answer: guess,
+    gameClient.sendPlayerInput("promptTextData", {
+      answer: survival_prompt,
     });
   }
 </script>
@@ -19,16 +21,15 @@
 <div
   class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4"
 >
-  <div class="subtitle-text">Think of a way out 🤔</div>
   <form
     class="flex flex-col justify-center items-center w-full max-w-md"
     on:submit|preventDefault={submit_prompt}
   >
     <div class="field-wrapper">
       <TextFieldOutlinedMultiline
-        label="Survival Attempt"
-        maxlength={78}
-        bind:value={guess}
+        label="Think of a way out"
+        maxlength={110}
+        bind:value={survival_prompt}
       />
     </div>
     <GameSubmit onSubmit={submit_prompt} />
@@ -36,14 +37,25 @@
 </div>
 
 <style>
-  .subtitle-text {
-    font-family: var(--m3-font);
-    font-size: 1.5rem;
-    line-height: 1.333;
-    font-weight: 400;
+  .alert-banner {
+    background-color: var(--m3c-error-container);
+    color: var(--m3c-on-error-container);
+    padding: 1rem;
+    border-radius: var(--m3-shape-medium);
     text-align: center;
-    color: var(--m3c-on-background);
+    width: 100%;
+    max-width: 28rem;
+    border: 1px solid var(--m3c-error);
     margin-bottom: 2rem;
+  }
+
+  .alert-banner h3 {
+    margin: 0;
+    font-family: var(--m3-font);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 400;
+    font-weight: 500;
   }
 
   .field-wrapper {
