@@ -40,7 +40,8 @@
       clearInterval(timerInterval);
       if (!timer_stamp) return;
 
-      const parsedStamp = timer_stamp instanceof Date ? timer_stamp : new Date(timer_stamp);
+      const parsedStamp =
+        timer_stamp instanceof Date ? timer_stamp : new Date(timer_stamp);
       const stampMs = parsedStamp.getTime();
       if (isNaN(stampMs)) return;
 
@@ -57,7 +58,8 @@
   };
 
   $: if (timer_duration > 0 && timer_stamp) {
-    const parsedStamp = timer_stamp instanceof Date ? timer_stamp : new Date(timer_stamp);
+    const parsedStamp =
+      timer_stamp instanceof Date ? timer_stamp : new Date(timer_stamp);
     const stampMs = parsedStamp.getTime();
     if (!isNaN(stampMs)) {
       const stampChanged = stampMs !== prev_timer_stamp;
@@ -78,7 +80,8 @@
     remaining_time.set(0);
   }
 
-  $: timerPercent = timer_duration > 0 ? ($remaining_time * 100) / timer_duration : 0;
+  $: timerPercent =
+    timer_duration > 0 ? ($remaining_time * 100) / timer_duration : 0;
   $: critical = $remaining_time <= 10 && $remaining_time > 0;
 
   // --- Score flash state ---
@@ -124,7 +127,9 @@
       <div
         class="timer-track"
         class:critical
-        style="width: {timerPercent}%; animation-play-state: {paused ? 'paused' : 'running'};"
+        style="width: {timerPercent}%; animation-play-state: {paused
+          ? 'paused'
+          : 'running'};"
       ></div>
     {/if}
 
@@ -195,9 +200,9 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 4px;
+    height: 6px;
     border-radius: 0 2px 2px 0;
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.85);
     transition: width 0.5s linear;
     pointer-events: none;
     z-index: 1;
