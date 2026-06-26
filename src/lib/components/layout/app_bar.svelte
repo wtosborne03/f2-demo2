@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { writable } from "svelte/store";
   import { sideBarOpen } from "../../../stores/sidebar";
   import doubloon from "$lib/assets/icons/doubloon.png";
   import Icon from "@iconify/svelte";
-  import { gameState } from "$lib/wsapi/gameClient";
+  import { gameState, serverTimeOffset } from "$lib/wsapi/gameClient";
   import { onMount, onDestroy } from "svelte";
   import { getContrastColor } from "$lib/util/color";
 
@@ -15,21 +16,85 @@
   $: color = $gameState.color;
   $: textColor = getContrastColor(color);
 
-  // flash state when score increases
+  // --- Timer state (moved from bg_timer) ---
+  $: timer_stamp = $gameState.timer_stamp;
+  $: timer_duration = $gameState.timer_duration;
+  $: paused = $gameState.paused;
+
+  const remaining_time = writable(0);
+
+  let timerInterval: NodeJS.Timeout;
+  let fetching = false;
+  let prev_timer_stamp: number | null = null;
+  let prev_timer_duration = 0;
+  let prev_paused = false;
+
+  const updateTimer = () => {
+    remaining_time.update((current) => Math.max(0, current - 0.5));
+  };
+
+  const fetchTimer = async () => {
+    if (fetching) return;
+    fetching = true;
+    try {
+      clearInterval(timerInterval);
+      if (!timer_stamp) return;
+
+      const parsedStamp = timer_stamp instanceof Date ? timer_stamp : new Date(timer_stamp);
+      const stampMs = parsedStamp.getTime();
+      if (isNaN(stampMs)) return;
+
+      const t_time = Date.now() + $serverTimeOffset;
+      const calculatedRemaining = (stampMs - t_time) / 1000;
+      remaining_time.set(Math.max(0, calculatedRemaining));
+
+      if (!paused) {
+        timerInterval = setInterval(updateTimer, 500);
+      }
+    } finally {
+      fetching = false;
+    }
+  };
+
+  $: if (timer_duration > 0 && timer_stamp) {
+    const parsedStamp = timer_stamp instanceof Date ? timer_stamp : new Date(timer_stamp);
+    const stampMs = parsedStamp.getTime();
+    if (!isNaN(stampMs)) {
+      const stampChanged = stampMs !== prev_timer_stamp;
+      const durationChanged = timer_duration !== prev_timer_duration;
+      const pausedChanged = !!paused !== prev_paused;
+      if (stampChanged || durationChanged || pausedChanged) {
+        prev_timer_stamp = stampMs;
+        prev_timer_duration = timer_duration;
+        prev_paused = !!paused;
+        fetchTimer();
+      }
+    }
+  } else {
+    prev_timer_stamp = null;
+    prev_timer_duration = 0;
+    prev_paused = false;
+    clearInterval(timerInterval);
+    remaining_time.set(0);
+  }
+
+  $: timerPercent = timer_duration > 0 ? ($remaining_time * 100) / timer_duration : 0;
+  $: critical = $remaining_time <= 10 && $remaining_time > 0;
+
+  // --- Score flash state ---
   let flash = false;
   let prevScore = 0;
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
 
   onMount(() => {
-    // avoid flashing on initial mount
     prevScore = $gameState.score ?? 0;
   });
 
   onDestroy(() => {
     if (flashTimeout) clearTimeout(flashTimeout);
+    clearInterval(timerInterval);
   });
 
-  // watch for score changes and trigger a short flash if it increased
   $: if (score !== undefined && score !== prevScore) {
     if (score > prevScore) {
       flash = true;
@@ -37,7 +102,7 @@
       flashTimeout = setTimeout(() => {
         flash = false;
         flashTimeout = null;
-      }, 700); // keep in sync with CSS animation duration
+      }, 700);
     }
     prevScore = score;
   }
@@ -50,10 +115,19 @@
     on:click={() => {
       sideBarOpen.set(true);
     }}
-    class="z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-80 cursor-pointer"
+    class="app-bar-container z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-80 cursor-pointer"
     class:flash
-    style="--app-color: {color}; background-color: color(from {color} srgb r g b / 1.0); color: {textColor};"
+    style="--app-color: {color}; --timer-percent: {timerPercent}%; background-color: color(from {color} srgb r g b / 1.0); color: {textColor};"
   >
+    <!-- Timer unfill bar (bottom of app bar) -->
+    {#if timer_duration > 0 && $remaining_time > 0}
+      <div
+        class="timer-track"
+        class:critical
+        style="width: {timerPercent}%; animation-play-state: {paused ? 'paused' : 'running'};"
+      ></div>
+    {/if}
+
     <!-- App Bar -->
     <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
       <Icon icon="material-symbols:menu-rounded" font-size="3rem" />
@@ -110,6 +184,41 @@
 </div>
 
 <style>
+  /* App bar needs relative positioning so the timer track can be absolute inside it */
+  .app-bar-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle unfilling timer bar at the bottom of the app bar */
+  .timer-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    border-radius: 0 2px 2px 0;
+    background: rgba(255, 255, 255, 0.45);
+    transition: width 0.5s linear;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .timer-track.critical {
+    height: 5px;
+    background: rgba(239, 68, 68, 0.85);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    animation: pulse-critical 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-critical {
+    0% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
   /* Container flash: gentle scale + glow */
   .flash {
     animation: appFlash 700ms cubic-bezier(0.2, 0.9, 0.2, 1);

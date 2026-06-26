@@ -5,7 +5,6 @@
   import "../../node_modules/m3-svelte/package/etc/tailwind-styles.css";
   import "m3-svelte/etc/layer";
   import AppBar from "$lib/components/layout/app_bar.svelte";
-  import BgTimer from "$lib/components/layout/bg_timer.svelte";
   import { Snackbar } from "m3-svelte";
   import SideBar from "$lib/components/SideBar.svelte";
   import { browser } from "$app/environment";
@@ -16,7 +15,6 @@
   import { gameState } from "$lib/wsapi/gameClient";
 
   const screen = $derived($gameState.screen);
-  const timer_duration = $derived($gameState.timer_duration);
 </script>
 
 <Snackbar />
@@ -25,12 +23,10 @@
 
 {#if page.url.pathname === "/" && screen != "index"}
   <AppBar />
-  {#if timer_duration > 0}
-    <BgTimer />
-  {/if}
 {/if}
 <!-- Page Route Content -->
 <slot />
 
 <!-- Global modal -->
 <Modal />
+
