@@ -209,8 +209,8 @@
   }
 
   .timer-track.critical {
-    height: 5px;
-    background: rgba(239, 68, 68, 0.85);
+    height: 7px;
+    background: rgba(239, 68, 68, 0.95);
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
     animation: pulse-critical 0.6s ease-in-out infinite alternate;
   }
