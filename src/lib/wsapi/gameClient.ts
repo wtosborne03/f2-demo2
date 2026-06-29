@@ -199,6 +199,7 @@ class GameClient {
           emote: me.avatar_emote || 0,
           selfieUrl: me.avatar_selfie || localSelfie,
           landmarks: landmarks || fallbackLandmarks,
+          gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
         };
         this.sendPlayerInput("avatarUpdate", { avatar });
       } catch (error) {
@@ -222,6 +223,7 @@ class GameClient {
         console.error("Failed to parse session landmarks:", e);
       }
     }
+    const sessionGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
     const avatar = {
       eyes: 3,
       mouth: 0,
@@ -229,6 +231,7 @@ class GameClient {
       emote: 0,
       selfieUrl: sessionSelfie,
       landmarks,
+      gender: sessionGender,
     };
     this.sendPlayerInput("avatarUpdate", { avatar });
   }

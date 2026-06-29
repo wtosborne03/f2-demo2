@@ -35,8 +35,8 @@
       maxHeight: 600,
       async success(result) {
         try {
-          const { url, landmarks } = await uploadSelfieImage(result);
-          await joinRoom(url, landmarks);
+          const { url, landmarks, gender } = await uploadSelfieImage(result);
+          await joinRoom(url, landmarks, gender);
         } catch (err: any) {
           console.error("Failed to upload selfie, falling back:", err);
           await joinRoom("");
@@ -93,7 +93,7 @@
                 console.error("Failed to parse user landmarks:", e);
               }
             }
-            joinRoom(me.avatar_selfie, landmarks);
+            joinRoom(me.avatar_selfie, landmarks, me.avatar_gender || undefined);
             return;
           }
         }
@@ -113,14 +113,15 @@
             console.error("Failed to parse local landmarks:", e);
           }
         }
-        joinRoom(localSelfie || undefined, landmarks);
+        const localGender = localStorage.getItem("temp_gender") || undefined;
+        joinRoom(localSelfie || undefined, landmarks, localGender);
         return;
       }
       step = "selfie";
     }
   };
 
-  const joinRoom = async (avatarSelfieUrl?: string, landmarks?: any) => {
+  const joinRoom = async (avatarSelfieUrl?: string, landmarks?: any, gender?: string) => {
     const user = get(session).data?.user;
     let userId = user?.id;
     if (!userId) {
@@ -144,6 +145,7 @@
             avatar_mouth: 0,
             avatar_selfie: avatarSelfieUrl,
             avatar_landmarks: landmarks ? JSON.stringify(landmarks) : null,
+            avatar_gender: gender || null,
           });
         } catch (e) {
           console.error("Failed to save avatar selfie:", e);
@@ -155,6 +157,11 @@
         } else {
           localStorage.removeItem("temp_landmarks");
         }
+        if (gender) {
+          localStorage.setItem("temp_gender", gender);
+        } else {
+          localStorage.removeItem("temp_gender");
+        }
       }
     }
     gameClient.join(roomCode.toUpperCase(), name, userId);
@@ -162,7 +169,7 @@
 
   async function uploadSelfieImage(
     file: File | Blob,
-  ): Promise<{ url: string; landmarks: any }> {
+  ): Promise<{ url: string; landmarks: any; gender?: string }> {
     const formData = new FormData();
     formData.append("file", file, "selfie.png");
 
