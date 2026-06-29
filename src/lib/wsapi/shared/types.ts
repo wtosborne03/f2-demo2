@@ -5,6 +5,7 @@ interface Avatar {
     emote: number,
     selfieUrl?: string,
     landmarks?: { x: number; y: number; z: number }[],
+    gender?: string,
 }
 
 export interface PlayerState {

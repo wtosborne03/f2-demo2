@@ -51,8 +51,8 @@
       maxHeight: 600,
       async success(result) {
         try {
-          const { url, landmarks } = await uploadSelfieImage(result);
-          await saveAvatar(url, landmarks);
+          const { url, landmarks, gender } = await uploadSelfieImage(result);
+          await saveAvatar(url, landmarks, gender);
           currentSelfieUrl = url;
           toaster.success({
             title: "Avatar Updated",
@@ -80,7 +80,7 @@
 
   async function uploadSelfieImage(
     file: File | Blob,
-  ): Promise<{ url: string; landmarks: any }> {
+  ): Promise<{ url: string; landmarks: any; gender?: string }> {
     const formData = new FormData();
     formData.append("file", file, "selfie.png");
 
@@ -99,7 +99,7 @@
     return await response.json();
   }
 
-  async function saveAvatar(selfieUrl: string, landmarks?: any) {
+  async function saveAvatar(selfieUrl: string, landmarks?: any, gender?: string) {
     try {
       const client = await apiClient;
       await client!.putUsersAvatar(null, {
@@ -109,6 +109,7 @@
         avatar_mouth: 0,
         avatar_selfie: selfieUrl,
         avatar_landmarks: landmarks ? JSON.stringify(landmarks) : null,
+        avatar_gender: gender || null,
       });
     } catch (e) {
       console.error("Failed to save avatar to backend:", e);
@@ -121,6 +122,11 @@
         localStorage.setItem("temp_landmarks", JSON.stringify(landmarks));
       } else {
         localStorage.removeItem("temp_landmarks");
+      }
+      if (gender) {
+        localStorage.setItem("temp_gender", gender);
+      } else {
+        localStorage.removeItem("temp_gender");
       }
     }
 
@@ -135,6 +141,7 @@
           emote: 0,
           selfieUrl: selfieUrl,
           landmarks,
+          gender,
         },
       });
     }
