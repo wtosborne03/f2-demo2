@@ -11,6 +11,8 @@
   let touchEndX = 0;
   let slideDirection = 1; // 1 for right (next), -1 for left (prev)
 
+  $: currentChoice = m_data?.answers?.[currentIndex];
+
   function handleTouchStart(e: TouchEvent) {
     touchStartX = e.changedTouches[0].screenX;
   }
@@ -61,7 +63,6 @@
 
   <!-- Swipeable Card -->
   {#if m_data?.answers && m_data.answers.length > 0}
-    {@const currentChoice = m_data.answers[currentIndex]}
     <div
       role="presentation"
       class="relative w-full flex-grow flex flex-col justify-between bg-gradient-to-br from-[#1e1b4b] to-[#0f172a] border-4 border-[#a855f7] rounded-3xl p-4 shadow-[0_0_25px_rgba(168,85,247,0.35)] overflow-hidden h-[62vh] select-none"
@@ -93,8 +94,17 @@
           {/if}
 
           <!-- Twist / Catch Footer -->
-          <div class="bg-[#2e0c1f]/75 border border-[#ec4899]/30 rounded-xl p-3 mt-3 text-center flex flex-col gap-1">
-            <span class="text-[10px] uppercase font-black text-[#f472b6] tracking-widest">The Twist</span>
+          <div class="bg-[#2e0c1f]/75 border border-[#ec4899]/30 rounded-xl p-3 mt-3 text-center flex flex-col gap-1.5">
+            <div class="flex items-center justify-center gap-2">
+              {#if currentChoice.saboteurSelfie}
+                <img src={currentChoice.saboteurSelfie} alt={currentChoice.saboteur} class="w-6 h-6 rounded-full object-cover border border-white/20" />
+              {:else}
+                <div class="w-6 h-6 rounded-full bg-pink-900 flex items-center justify-center text-[10px] font-bold border border-white/20 text-[#fca5a5]">
+                  {currentChoice.saboteur ? currentChoice.saboteur.charAt(0).toUpperCase() : ""}
+                </div>
+              {/if}
+              <span class="text-[10px] uppercase font-black text-[#f472b6] tracking-widest">The Twist by {currentChoice.saboteur}</span>
+            </div>
             <span class="text-sm text-[#fef08a] font-extrabold leading-snug">"{currentChoice.catch}"</span>
           </div>
         </div>
@@ -129,10 +139,13 @@
 
     <!-- Submit Vote Button -->
     <button
-      class="w-full py-3.5 bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#b55fe6] hover:to-[#f43f5e] text-white font-extrabold tracking-widest text-sm uppercase rounded-2xl shadow-xl hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] active:scale-[0.98] transition-all border border-[#f472b6]/30"
+      class="w-full py-3.5 bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#b55fe6] hover:to-[#f43f5e] text-white font-extrabold tracking-widest text-sm uppercase rounded-2xl shadow-xl hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] active:scale-[0.98] transition-all border border-[#f472b6]/30 flex items-center justify-center gap-2"
       on:click={submit_vote}
     >
-      Vote for this twist
+      {#if currentChoice?.saboteurSelfie}
+        <img src={currentChoice.saboteurSelfie} alt="" class="w-5 h-5 rounded-full object-cover border border-white/20" />
+      {/if}
+      Vote for {currentChoice?.saboteur || "this"}'s twist
     </button>
   </div>
 </div>

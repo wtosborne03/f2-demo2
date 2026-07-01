@@ -45,10 +45,17 @@
     <div class="flex flex-col gap-2.5 w-full">
       {#each m_data?.answers || [] as answer, idx}
         <button
-          class="w-full py-3 px-4 rounded-xl border-2 border-[#ef4444]/30 bg-[#18030e]/80 hover:bg-[#ef4444]/20 hover:border-[#ef4444] active:scale-95 transition-all text-white font-extrabold text-sm tracking-wide shadow-md flex items-center justify-center gap-2"
+          class="w-full py-3 px-4 rounded-xl border-2 border-[#ef4444]/30 bg-[#18030e]/80 hover:bg-[#ef4444]/20 hover:border-[#ef4444] active:scale-95 transition-all text-white font-extrabold text-sm tracking-wide shadow-md flex items-center justify-start pl-6 gap-3"
           on:click={() => submit_answer(idx)}
         >
-          <span class="text-xs text-[#fca5a5]">🐾</span> {answer}
+          {#if answer.selfieUrl}
+            <img src={answer.selfieUrl} alt={answer.name} class="w-8 h-8 rounded-full object-cover border border-white/20" />
+          {:else}
+            <div class="w-8 h-8 rounded-full bg-red-950 flex items-center justify-center text-xs font-bold border border-white/20 text-[#fca5a5]">
+              {answer.name ? answer.name.charAt(0).toUpperCase() : ""}
+            </div>
+          {/if}
+          <span>{answer.name}</span>
         </button>
       {/each}
     </div>
