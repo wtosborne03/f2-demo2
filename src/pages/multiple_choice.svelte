@@ -17,7 +17,7 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
+  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-3"
 >
   {#each m_data.answers as answer}
     <Button
