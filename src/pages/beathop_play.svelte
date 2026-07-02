@@ -7,7 +7,7 @@
   let isPressed = false;
   let showScorePop = false;
 
-  $: score = $gameState.score || 0;
+  $: score = $gameState.page_data?.roundScore || 0;
 
   // Pop score indicator when score increases
   $: {
