@@ -192,24 +192,23 @@
             }
           } else if (status === "holding") {
             if (isHolding) {
-              if (Math.random() < 0.25) {
-                const angle = (Math.random() - 0.5) * Math.PI * 0.5;
-                const speed = 1.5 + Math.random() * 2.0;
-                canvasParticles = [
-                  ...canvasParticles,
-                  {
-                    x: TARGET_X,
-                    y: canvas ? canvas.height >> 1 : 110,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    size: 2 + Math.random() * 3,
-                    alpha: 0.8,
-                    color: "#86efac",
-                    type: "circle",
-                    decay: 3.0,
-                  },
-                ];
+              const newParticles: UnifiedParticle[] = [];
+              for (let k = 0; k < 2; k++) {
+                const angle = (Math.random() - 0.5) * Math.PI * 0.4;
+                const speed = 2 + Math.random() * 3;
+                newParticles.push({
+                  x: TARGET_X,
+                  y: canvas ? canvas.height >> 1 : 110,
+                  vx: Math.cos(angle) * speed,
+                  vy: Math.sin(angle) * speed,
+                  size: 2 + Math.random() * 3,
+                  alpha: 0.8,
+                  color: "#86efac",
+                  type: "circle",
+                  decay: 3.0,
+                });
               }
+              canvasParticles = [...canvasParticles, ...newParticles];
 
               if (playhead >= obs.endTime) {
                 obs.processed.local = "completed";
@@ -285,6 +284,38 @@
       ctx.fillStyle = "#0c0714";
       ctx.fillRect(0, 0, W, H);
 
+      // Draw vertical grid lines (Guitar Hero fretboard style)
+      if (playhead > 0) {
+        const gridSpacing = 0.5;
+        const firstGridTime = Math.floor(playhead / gridSpacing) * gridSpacing;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.lineWidth = 1;
+        for (let t = firstGridTime; t < playhead + (W / OBSTACLE_SPEED); t += gridSpacing) {
+          const x = TARGET_X + (t - playhead) * OBSTACLE_SPEED;
+          if (x > TARGET_X && x < W) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, H);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw neon target line (Guitar Hero strike bar vertical glow)
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.15)";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(TARGET_X, 0);
+      ctx.lineTo(TARGET_X, H);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(TARGET_X, 0);
+      ctx.lineTo(TARGET_X, H);
+      ctx.stroke();
+
       // Handle Lane FX Pulses
       if (!paused) {
         pulses = pulses.filter((pulse) => {
@@ -308,9 +339,15 @@
       }
       ctx.globalAlpha = 1.0;
 
-      // Draw standard faint base lane line
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
-      ctx.lineWidth = BASE_LINE_WIDTH;
+      // Draw standard faint base lane line (glowing green if player is holding)
+      const isCurrentlyHolding = localObstacles.some(obs => obs.processed.local === "holding");
+      if (isCurrentlyHolding) {
+        ctx.strokeStyle = "rgba(74, 222, 128, 0.4)";
+        ctx.lineWidth = BASE_LINE_WIDTH + 4;
+      } else {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = BASE_LINE_WIDTH;
+      }
       ctx.beginPath();
       ctx.moveTo(0, centerY);
       ctx.lineTo(W, centerY);
@@ -349,8 +386,19 @@
         ctx.globalAlpha = 1.0;
       }
 
-      // Draw Obstacles (rounded neon capsules / hold trails)
+      // Draw Obstacles (rounded neon capsules / hold trails with glossy inner cylinder look)
       if (playhead > 0) {
+        const drawGlossHighlight = (sx: number, ex: number, hVal: number, rads: any) => {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(sx, centerY - hVal / 4, ex - sx, hVal / 2, rads);
+          } else {
+            ctx.rect(sx, centerY - hVal / 4, ex - sx, hVal / 2);
+          }
+          ctx.fill();
+        };
+
         localObstacles.forEach((obs) => {
           const startX = TARGET_X + (obs.startTime - playhead) * OBSTACLE_SPEED;
           const endX = TARGET_X + (obs.endTime - playhead) * OBSTACLE_SPEED;
@@ -380,6 +428,8 @@
               }
               ctx.fill();
               ctx.stroke();
+
+              drawGlossHighlight(startX, midX, h, [r / 2, 0, 0, r / 2]);
             }
 
             // Incoming segment (Original Color)
@@ -394,6 +444,8 @@
               }
               ctx.fill();
               ctx.stroke();
+
+              drawGlossHighlight(midX, endX, h, [0, r / 2, r / 2, 0]);
             }
           } else if (status === "completed") {
             ctx.fillStyle = "rgba(74, 222, 128, 0.6)";
@@ -406,6 +458,8 @@
             }
             ctx.fill();
             ctx.stroke();
+
+            drawGlossHighlight(startX, endX, h, r / 2);
           } else if (status === "missed") {
             ctx.fillStyle = "rgba(100, 100, 100, 0.2)";
             ctx.strokeStyle = "rgba(150, 150, 150, 0.4)";
@@ -428,6 +482,8 @@
             }
             ctx.fill();
             ctx.stroke();
+
+            drawGlossHighlight(startX, endX, h, r / 2);
           }
         });
       }
@@ -499,9 +555,9 @@
         style="left: {TARGET_X}px; top: 50%;"
       >
         <div
-          class="w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-150 {isHolding ? 'border-green-400 bg-green-500/20 shadow-[0_0_20px_rgba(74,222,128,0.8)] scale-110' : 'border-white/35 bg-white/5'}"
+          class="w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-150 {isHolding ? 'border-green-400 bg-green-500/20 shadow-[0_0_20px_rgba(74,222,128,0.8)] scale-110' : (laneIndex % 3 === 0 ? 'border-purple-500 bg-purple-950/40 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : (laneIndex % 3 === 1 ? 'border-cyan-500 bg-cyan-950/40 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'border-rose-500 bg-rose-950/40 shadow-[0_0_10px_rgba(244,63,94,0.5)]'))}"
         >
-          <div class="w-6 h-6 rounded-full border-2 {isHolding ? 'border-green-300' : 'border-white/20'}" />
+          <div class="w-6 h-6 rounded-full border-2 {isHolding ? 'border-green-300' : (laneIndex % 3 === 0 ? 'border-purple-300/40' : (laneIndex % 3 === 1 ? 'border-cyan-300/40' : 'border-rose-300/40'))}" />
         </div>
       </div>
     </div>
