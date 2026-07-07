@@ -59,6 +59,7 @@
   let animationFrameId: number;
   let lastTimestamp = performance.now();
   let localJumpStartTime = -1;
+  let holdDurationTracker = 0;
 
   interface Obstacle {
     id: number;
@@ -123,20 +124,48 @@
     }
   }
 
-  function getNeonColor(type: string): { fill: string; stroke: string; glow: string } {
+  function getNeonColor(type: string): {
+    fill: string;
+    stroke: string;
+    glow: string;
+  } {
     switch (type) {
       case "WIDE_BARRIER":
-        return { fill: "rgba(245, 158, 11, 0.8)", stroke: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)" };
+        return {
+          fill: "rgba(245, 158, 11, 0.8)",
+          stroke: "#f59e0b",
+          glow: "rgba(245, 158, 11, 0.4)",
+        };
       case "STANDARD_NOTE":
-        return { fill: "rgba(168, 85, 247, 0.8)", stroke: "#a855f7", glow: "rgba(168, 85, 247, 0.4)" };
+        return {
+          fill: "rgba(168, 85, 247, 0.8)",
+          stroke: "#a855f7",
+          glow: "rgba(168, 85, 247, 0.4)",
+        };
       case "CENTER_VOCAL_ORB":
-        return { fill: "rgba(6, 182, 212, 0.8)", stroke: "#06b6d4", glow: "rgba(6, 182, 212, 0.4)" };
+        return {
+          fill: "rgba(6, 182, 212, 0.8)",
+          stroke: "#06b6d4",
+          glow: "rgba(6, 182, 212, 0.4)",
+        };
       case "HIGH_DODGE":
-        return { fill: "rgba(16, 185, 129, 0.8)", stroke: "#10b981", glow: "rgba(16, 185, 129, 0.4)" };
+        return {
+          fill: "rgba(16, 185, 129, 0.8)",
+          stroke: "#10b981",
+          glow: "rgba(16, 185, 129, 0.4)",
+        };
       case "LOW_WALL_JUMP":
-        return { fill: "rgba(244, 63, 94, 0.8)", stroke: "#f43f5e", glow: "rgba(244, 63, 94, 0.4)" };
+        return {
+          fill: "rgba(244, 63, 94, 0.8)",
+          stroke: "#f43f5e",
+          glow: "rgba(244, 63, 94, 0.4)",
+        };
       default:
-        return { fill: "rgba(168, 85, 247, 0.8)", stroke: "#a855f7", glow: "rgba(168, 85, 247, 0.4)" };
+        return {
+          fill: "rgba(168, 85, 247, 0.8)",
+          stroke: "#a855f7",
+          glow: "rgba(168, 85, 247, 0.4)",
+        };
     }
   }
 
@@ -155,12 +184,50 @@
         playhead = (Date.now() + $serverTimeOffset - startTime) / 1000;
       }
 
+      const isCurrentlyWinningHold = localObstacles.some(
+        (obs) => obs.processed.local === "holding",
+      );
+
+      if (isHolding) {
+        holdDurationTracker += deltaTime;
+      } else {
+        holdDurationTracker = 0;
+      }
+
+      // Add severe cascading penalty particle sparks if holding down off-beat
+      if (isHolding && !isCurrentlyWinningHold && !paused) {
+        if (Math.random() < 0.35) {
+          const count = 2 + Math.floor(Math.random() * 3);
+          const penaltyParticles: UnifiedParticle[] = [];
+          for (let k = 0; k < count; k++) {
+            penaltyParticles.push({
+              x: TARGET_X + (Math.random() - 0.5) * 20,
+              y: canvas
+                ? (canvas.height >> 1) + (Math.random() - 0.5) * 30
+                : 110,
+              vx: -1.5 - Math.random() * 2.0,
+              vy: (Math.random() - 0.5) * 4.0,
+              size: 5 + Math.random() * 4,
+              alpha: 1.0,
+              color: "#f43f5e",
+              type: "square",
+              decay: 1.8 + Math.random() * 1.2,
+            });
+          }
+          canvasParticles = [...canvasParticles, ...penaltyParticles];
+        }
+      }
+
       if (playhead > 0 && localObstacles.length > 0 && !paused) {
         localObstacles.forEach((obs) => {
           const status = obs.processed.local;
 
           if (!status) {
-            if (isHolding && playhead >= obs.startTime - EARLY_HIT_WINDOW && playhead <= obs.startTime + HIT_WINDOW) {
+            if (
+              isHolding &&
+              playhead >= obs.startTime - EARLY_HIT_WINDOW &&
+              playhead <= obs.startTime + HIT_WINDOW
+            ) {
               obs.processed.local = "holding";
               pulses = [
                 {
@@ -188,24 +255,31 @@
               canvasParticles = [...canvasParticles, ...newParticles];
             } else if (playhead > obs.startTime + HIT_WINDOW) {
               obs.processed.local = "missed";
-              pulses = [{ alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH }];
+              pulses = [
+                { alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH },
+              ];
             }
           } else if (status === "holding") {
             if (isHolding) {
               const newParticles: UnifiedParticle[] = [];
               for (let k = 0; k < 2; k++) {
                 const angle = (Math.random() - 0.5) * Math.PI * 0.4;
-                const speed = 2 + Math.random() * 3;
+                // Boost speed and length dynamically based on hold length duration
+                const durationScalar = Math.min(
+                  1.0 + holdDurationTracker * 0.7,
+                  2.5,
+                );
+                const speed = (2 + Math.random() * 3) * durationScalar;
                 newParticles.push({
                   x: TARGET_X,
                   y: canvas ? canvas.height >> 1 : 110,
                   vx: Math.cos(angle) * speed,
                   vy: Math.sin(angle) * speed,
-                  size: 2 + Math.random() * 3,
+                  size: (2 + Math.random() * 3) * (durationScalar * 0.8),
                   alpha: 0.8,
                   color: "#86efac",
                   type: "circle",
-                  decay: 3.0,
+                  decay: Math.max(3.0 - holdDurationTracker * 0.3, 1.2),
                 });
               }
               canvasParticles = [...canvasParticles, ...newParticles];
@@ -235,7 +309,9 @@
               }
             } else {
               obs.processed.local = "missed";
-              pulses = [{ alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH }];
+              pulses = [
+                { alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH },
+              ];
               const newParticles: UnifiedParticle[] = [];
               for (let k = 0; k < 4; k++) {
                 newParticles.push({
@@ -257,16 +333,18 @@
       }
 
       if (avatarEl) {
-        const isCurrentlyWinningHold = localObstacles.some(
-          obs => obs.processed.local === "holding"
-        );
-
         if (isHolding && isCurrentlyWinningHold) {
           const shakeX = (Math.random() - 0.5) * 6;
           const shakeY = (Math.random() - 0.5) * 6;
           const scale = 1.15 + Math.sin(timestamp * 0.05) * 0.05;
           avatarEl.style.transform = `translate3d(calc(-50% + ${shakeX}px), calc(-50% + ${shakeY}px), 0) scale(${scale})`;
           avatarEl.style.filter = "drop-shadow(0 0 12px #4ade80)";
+        } else if (isHolding && !isCurrentlyWinningHold) {
+          // Off-beat pulse rumble aesthetic adjustments
+          const shakeX = (Math.random() - 0.5) * 4;
+          const shakeY = (Math.random() - 0.5) * 4;
+          avatarEl.style.transform = `translate3d(calc(-50% + ${shakeX}px), calc(-50% + ${shakeY}px), 0) scale(0.96)`;
+          avatarEl.style.filter = "drop-shadow(0 0 8px #f43f5e)";
         } else {
           avatarEl.style.transform = `translate3d(-50%, -50%, 0) scale(1.0)`;
           avatarEl.style.filter = "none";
@@ -281,16 +359,20 @@
       const H = canvas.height;
       const centerY = H >> 1;
 
-      ctx.fillStyle = "#0c0714";
+      ctx.fillStyle = "#171212";
       ctx.fillRect(0, 0, W, H);
 
       // Draw vertical grid lines (Guitar Hero fretboard style)
       if (playhead > 0) {
         const gridSpacing = 0.5;
         const firstGridTime = Math.floor(playhead / gridSpacing) * gridSpacing;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
         ctx.lineWidth = 1;
-        for (let t = firstGridTime; t < playhead + (W / OBSTACLE_SPEED); t += gridSpacing) {
+        for (
+          let t = firstGridTime;
+          t < playhead + W / OBSTACLE_SPEED;
+          t += gridSpacing
+        ) {
           const x = TARGET_X + (t - playhead) * OBSTACLE_SPEED;
           if (x > TARGET_X && x < W) {
             ctx.beginPath();
@@ -302,7 +384,7 @@
       }
 
       // Draw neon target line (Guitar Hero strike bar vertical glow)
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.15)";
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.12)";
       ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.moveTo(TARGET_X, 0);
@@ -331,7 +413,7 @@
           ctx.stroke();
 
           ctx.fillStyle = pulse.color;
-          ctx.globalAlpha = pulse.alpha * 0.15;
+          ctx.globalAlpha = pulse.alpha * 0.12;
           ctx.fillRect(0, 0, W, H);
 
           return true;
@@ -340,12 +422,17 @@
       ctx.globalAlpha = 1.0;
 
       // Draw standard faint base lane line (glowing green if player is holding)
-      const isCurrentlyHolding = localObstacles.some(obs => obs.processed.local === "holding");
+      const isCurrentlyHolding = localObstacles.some(
+        (obs) => obs.processed.local === "holding",
+      );
       if (isCurrentlyHolding) {
         ctx.strokeStyle = "rgba(74, 222, 128, 0.4)";
         ctx.lineWidth = BASE_LINE_WIDTH + 4;
+      } else if (isHolding && !isCurrentlyWinningHold) {
+        ctx.strokeStyle = "rgba(244, 63, 94, 0.4)";
+        ctx.lineWidth = BASE_LINE_WIDTH + 2;
       } else {
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
         ctx.lineWidth = BASE_LINE_WIDTH;
       }
       ctx.beginPath();
@@ -388,8 +475,13 @@
 
       // Draw Obstacles (rounded neon capsules / hold trails with glossy inner cylinder look)
       if (playhead > 0) {
-        const drawGlossHighlight = (sx: number, ex: number, hVal: number, rads: any) => {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+        const drawGlossHighlight = (
+          sx: number,
+          ex: number,
+          hVal: number,
+          rads: any,
+        ) => {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
           ctx.beginPath();
           if (ctx.roundRect) {
             ctx.roundRect(sx, centerY - hVal / 4, ex - sx, hVal / 2, rads);
@@ -415,14 +507,19 @@
 
           if (status === "holding") {
             const midX = Math.max(TARGET_X, startX);
-            
+
             // Held segment (Glowing Green)
             if (midX > startX) {
               ctx.fillStyle = "rgba(74, 222, 128, 0.75)";
               ctx.strokeStyle = "#4ade80";
               ctx.beginPath();
               if (ctx.roundRect) {
-                ctx.roundRect(startX, centerY - h / 2, midX - startX, h, [r, 0, 0, r]);
+                ctx.roundRect(startX, centerY - h / 2, midX - startX, h, [
+                  r,
+                  0,
+                  0,
+                  r,
+                ]);
               } else {
                 ctx.rect(startX, centerY - h / 2, midX - startX, h);
               }
@@ -438,7 +535,12 @@
               ctx.strokeStyle = colors.stroke;
               ctx.beginPath();
               if (ctx.roundRect) {
-                ctx.roundRect(midX, centerY - h / 2, endX - midX, h, [0, r, r, 0]);
+                ctx.roundRect(midX, centerY - h / 2, endX - midX, h, [
+                  0,
+                  r,
+                  r,
+                  0,
+                ]);
               } else {
                 ctx.rect(midX, centerY - h / 2, endX - midX, h);
               }
@@ -461,8 +563,8 @@
 
             drawGlossHighlight(startX, endX, h, r / 2);
           } else if (status === "missed") {
-            ctx.fillStyle = "rgba(100, 100, 100, 0.2)";
-            ctx.strokeStyle = "rgba(150, 150, 150, 0.4)";
+            ctx.fillStyle = "rgba(80, 80, 80, 0.2)";
+            ctx.strokeStyle = "rgba(120, 120, 120, 0.3)";
             ctx.beginPath();
             if (ctx.roundRect) {
               ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
@@ -555,9 +657,27 @@
         style="left: {TARGET_X}px; top: 50%;"
       >
         <div
-          class="w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-150 {isHolding ? 'border-green-400 bg-green-500/20 shadow-[0_0_20px_rgba(74,222,128,0.8)] scale-110' : (laneIndex % 3 === 0 ? 'border-purple-500 bg-purple-950/40 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : (laneIndex % 3 === 1 ? 'border-cyan-500 bg-cyan-950/40 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'border-rose-500 bg-rose-950/40 shadow-[0_0_10px_rgba(244,63,94,0.5)]'))}"
+          class="w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-150 {isHolding
+            ? localObstacles.some((obs) => obs.processed.local === 'holding')
+              ? 'border-green-400 bg-green-500/20 shadow-[0_0_20px_rgba(74,222,128,0.8)] scale-110'
+              : 'border-rose-500 bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.7)] scale-95'
+            : laneIndex % 3 === 0
+              ? 'border-purple-500 bg-purple-950/40 shadow-[0_0_10px_rgba(168,85,247,0.5)]'
+              : laneIndex % 3 === 1
+                ? 'border-cyan-500 bg-cyan-950/40 shadow-[0_0_10px_rgba(6,182,212,0.5)]'
+                : 'border-rose-500 bg-rose-950/40 shadow-[0_0_10px_rgba(244,63,94,0.5)]'}"
         >
-          <div class="w-6 h-6 rounded-full border-2 {isHolding ? 'border-green-300' : (laneIndex % 3 === 0 ? 'border-purple-300/40' : (laneIndex % 3 === 1 ? 'border-cyan-300/40' : 'border-rose-300/40'))}" />
+          <div
+            class="w-6 h-6 rounded-full border-2 {isHolding
+              ? localObstacles.some((obs) => obs.processed.local === 'holding')
+                ? 'border-green-300'
+                : 'border-rose-300'
+              : laneIndex % 3 === 0
+                ? 'border-purple-300/40'
+                : laneIndex % 3 === 1
+                  ? 'border-cyan-300/40'
+                  : 'border-rose-300/40'}"
+          />
         </div>
       </div>
     </div>
@@ -565,9 +685,9 @@
 
   <div class="overlay-container pointer-events-none">
     <header
-      class="w-full flex flex-col items-center gap-2 py-4 pointer-events-none"
+      class="w-full flex flex-col items-center gap-4 py-4 pointer-events-none"
     >
-      <div class="track-card">
+      <div class="track-card w-full max-w-md sm:max-w-xs">
         {#if $gameState.page_data?.thumbnail}
           <img
             src={$gameState.page_data.thumbnail}
@@ -578,8 +698,8 @@
           <div class="track-thumbnail-placeholder">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -598,10 +718,10 @@
         {/if}
         <div class="flex-1 min-w-0">
           <span
-            class="text-[9px] text-purple-400 font-bold uppercase tracking-widest block"
+            class="text-[10px] text-purple-400 font-bold uppercase tracking-widest block"
             >Now Playing</span
           >
-          <h2 class="text-xs font-bold text-zinc-100 truncate mt-0.5">
+          <h2 class="text-sm font-bold text-zinc-100 truncate mt-0.5">
             {$gameState.page_data?.title || "Music Video"}
           </h2>
         </div>
@@ -612,7 +732,12 @@
           class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest"
           >Your Score</span
         >
-        <span class="score-number" class:pop={scorePopClass}>
+        <span
+          class="score-number {score < 0
+            ? 'text-rose-500'
+            : 'text-emerald-400'}"
+          class:pop={scorePopClass}
+        >
           {score}
         </span>
         {#if showScorePop}
@@ -623,9 +748,10 @@
 
     <footer class="py-2 text-center pointer-events-none">
       <p
-        class="text-[11px] text-zinc-400 font-medium max-w-xs leading-relaxed bg-black/60 px-4 py-2 rounded-full border border-white/5 shadow-md"
+        class="text-[11px] text-zinc-400 font-medium max-w-xs leading-relaxed bg-[#1c1616]/90 px-4 py-2 rounded-full border border-white/5 shadow-md"
       >
-        Hold the screen exactly when notes cross the target line, and release at the end!
+        Hold the screen exactly when notes cross the target line, and release at
+        the end!
       </p>
     </footer>
   </div>
@@ -645,6 +771,7 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background-color: #171212;
     font-family: "Inter", system-ui, sans-serif;
   }
 
@@ -665,8 +792,7 @@
 
   .canvas-container {
     z-index: 5;
-    /* Removed heavy CSS dynamic blur filters completely */
-    background: #0c0714;
+    background: #171212;
   }
 
   .overlay-container {
@@ -684,30 +810,28 @@
   .track-card {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(25zed, 25, 35, 0.6);
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(28, 22, 22, 0.85);
     border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 100%;
-    max-width: 280px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .track-thumbnail {
-    width: 44px;
-    height: 34px;
+    width: 56px;
+    height: 42px;
     object-fit: cover;
-    border-radius: 0.25rem;
+    border-radius: 0.375rem;
   }
 
   .track-thumbnail-placeholder {
-    width: 44px;
-    height: 34px;
+    width: 56px;
+    height: 42px;
     display: flex;
     justify-content: center;
     align-items: center;
     background: rgba(139, 92, 246, 0.1);
-    border-radius: 0.25rem;
+    border-radius: 0.375rem;
   }
 
   .score-display {
@@ -718,10 +842,8 @@
   }
 
   .score-number {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 900;
-    color: #f43f5e;
-    /* Clean fallback coloring instead of text-fill clipping layers which cause repaints */
     transition: transform 0.1s ease-out;
     display: inline-block;
   }
