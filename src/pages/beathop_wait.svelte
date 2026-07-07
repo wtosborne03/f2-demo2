@@ -2,26 +2,35 @@
   import { gameState } from "$lib/wsapi/gameClient";
 </script>
 
-<div class="wait-container flex flex-col justify-center items-center w-full h-full p-6 text-white text-center">
+<div
+  class="wait-container flex flex-col justify-center items-center w-full h-full p-6 text-white text-center"
+>
   <div class="pulse-ring mb-8">
     <div class="inner-circle">🎵</div>
   </div>
-  
-  <h1 class="text-xl font-bold uppercase tracking-wider text-purple-400">Waiting for Song Selector</h1>
+
+  <h1 class="text-xl font-bold uppercase tracking-wider text-purple-400">
+    Waiting for Song Selector
+  </h1>
   <p class="text-zinc-400 text-sm mt-3 max-w-xs leading-relaxed">
     {#if $gameState.page_data?.selectorName}
-      <span class="font-extrabold text-white">{$gameState.page_data.selectorName}</span> is currently choosing the music video.
+      <span class="font-extrabold text-white"
+        >{$gameState.page_data.selectorName}</span
+      > is currently choosing the music video.
     {:else}
       A player is picking the music video.
     {/if}
   </p>
-  <p class="text-zinc-600 text-xs mt-10 uppercase tracking-widest font-semibold animate-pulse">Get ready to jump...</p>
+  <p
+    class="text-zinc-600 text-xs mt-10 uppercase tracking-widest font-semibold animate-pulse"
+  >
+    Get ready to jump...
+  </p>
 </div>
 
 <style>
   .wait-container {
     height: 100%;
-    background: radial-gradient(circle at center, #110d1f 0%, #06050a 100%);
     box-sizing: border-box;
   }
 
@@ -35,7 +44,7 @@
   }
 
   .pulse-ring::before {
-    content: '';
+    content: "";
     position: absolute;
     width: 100%;
     height: 100%;

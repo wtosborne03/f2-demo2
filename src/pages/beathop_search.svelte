@@ -23,43 +23,43 @@
       title: "Never Gonna Give You Up",
       channelTitle: "Rick Astley",
       thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg",
-      duration: "3:32"
+      duration: "3:32",
     },
     {
       videoId: "OPf0YbXqDm0",
       title: "Uptown Funk",
       channelTitle: "Mark Ronson ft. Bruno Mars",
       thumbnail: "https://i.ytimg.com/vi/OPf0YbXqDm0/mqdefault.jpg",
-      duration: "4:30"
+      duration: "4:30",
     },
     {
       videoId: "9bZkp7q19f0",
       title: "Gangnam Style",
       channelTitle: "PSY",
       thumbnail: "https://i.ytimg.com/vi/9bZkp7q19f0/mqdefault.jpg",
-      duration: "4:12"
+      duration: "4:12",
     },
     {
       videoId: "TUVcVfQe-qI",
       title: "Levitating",
       channelTitle: "Dua Lipa",
       thumbnail: "https://i.ytimg.com/vi/TUVcVfQe-qI/mqdefault.jpg",
-      duration: "3:23"
+      duration: "3:23",
     },
     {
       videoId: "4NRXx6U8ABQ",
       title: "Blinding Lights",
       channelTitle: "The Weeknd",
       thumbnail: "https://i.ytimg.com/vi/4NRXx6U8ABQ/mqdefault.jpg",
-      duration: "3:20"
+      duration: "3:20",
     },
     {
       videoId: "djV11Xbc914",
       title: "Take On Me",
       channelTitle: "a-ha",
       thumbnail: "https://i.ytimg.com/vi/djV11Xbc914/mqdefault.jpg",
-      duration: "3:40"
-    }
+      duration: "3:40",
+    },
   ];
 
   function handleSearch() {
@@ -67,7 +67,7 @@
     isSearching = true;
     gameClient.sendInput({
       type: "search",
-      query: searchQuery.trim()
+      query: searchQuery.trim(),
     });
   }
 
@@ -81,15 +81,21 @@
     gameClient.sendInput({
       type: "select_video",
       videoId,
-      title
+      title,
     });
   }
 </script>
 
-<div class="search-container flex flex-col w-full h-full px-4 py-6 overflow-y-auto">
+<div
+  class="search-container flex flex-col w-full h-full px-4 py-6 overflow-y-auto"
+>
   <header class="text-center mb-6">
-    <h1 class="text-2xl font-black text-white tracking-wide uppercase">Pick a Music Video</h1>
-    <p class="text-zinc-400 text-sm mt-1">Select a popular track or search for any video (1–7 minutes)</p>
+    <h1 class="text-2xl font-black text-white tracking-wide uppercase">
+      Pick a Music Video
+    </h1>
+    <p class="text-zinc-400 text-sm mt-1">
+      Select a popular track or search for any video (1–7 minutes)
+    </p>
   </header>
 
   <!-- Search Bar -->
@@ -102,7 +108,7 @@
         onkeydown={handleKeyPress}
       />
     </div>
-    <button 
+    <button
       class="search-btn bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 h-12 font-bold transition-all flex items-center justify-center shrink-0 active:scale-95"
       onclick={handleSearch}
       disabled={isSearching}
@@ -124,26 +130,45 @@
   {:else if $gameState.page_data?.results && $gameState.page_data.results.length > 0}
     <section class="results-section flex flex-col gap-4">
       <div class="flex flex-row justify-between items-center px-1">
-        <h2 class="text-sm font-bold text-purple-400 uppercase tracking-widest">Search Results</h2>
-        <button 
+        <h2 class="text-sm font-bold text-purple-400 uppercase tracking-widest">
+          Search Results
+        </h2>
+        <button
           class="text-xs text-zinc-500 hover:text-zinc-400 underline font-semibold"
-          onclick={() => { $gameState.page_data.results = []; searchQuery = ""; }}
+          onclick={() => {
+            $gameState.page_data.results = [];
+            searchQuery = "";
+          }}
         >
           Clear
         </button>
       </div>
       <div class="flex flex-col gap-3">
         {#each $gameState.page_data.results as item}
-          <button 
+          <button
             class="result-card flex flex-row items-center gap-3 p-3 bg-zinc-900/60 border border-zinc-800/80 rounded-xl hover:bg-zinc-800/60 text-left transition-all active:scale-[0.98]"
             onclick={() => selectSong(item.videoId, item.title)}
           >
-            <img src={item.thumbnail} alt={item.title} class="w-20 h-14 object-cover rounded-md bg-zinc-950" />
+            <img
+              src={item.thumbnail}
+              alt={item.title}
+              class="w-20 h-14 object-cover rounded-md bg-zinc-950"
+            />
             <div class="flex-1 min-w-0 flex flex-col">
-              <span class="text-white text-sm font-bold truncate line-clamp-1">{item.title}</span>
-              <span class="text-zinc-400 text-xs truncate mt-0.5">{item.channelTitle}</span>
-              <span class="duration-badge self-start text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded-full mt-1.5">
-                {Math.floor(item.durationSeconds / 60)}:{(item.durationSeconds % 60).toString().padStart(2, "0")}
+              <span class="text-white text-sm font-bold truncate line-clamp-1"
+                >{item.title}</span
+              >
+              <span class="text-zinc-400 text-xs truncate mt-0.5"
+                >{item.channelTitle}</span
+              >
+              <span
+                class="duration-badge self-start text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded-full mt-1.5"
+              >
+                {Math.floor(item.durationSeconds / 60)}:{(
+                  item.durationSeconds % 60
+                )
+                  .toString()
+                  .padStart(2, "0")}
               </span>
             </div>
           </button>
@@ -153,18 +178,32 @@
   {:else}
     <!-- Default suggestion songs -->
     <section class="suggestions-section flex flex-col gap-4">
-      <h2 class="text-sm font-bold text-zinc-500 uppercase tracking-widest px-1">Suggested Tracks</h2>
+      <h2
+        class="text-sm font-bold text-zinc-500 uppercase tracking-widest px-1"
+      >
+        Suggested Tracks
+      </h2>
       <div class="grid grid-cols-1 gap-3">
         {#each defaults as item}
-          <button 
+          <button
             class="result-card flex flex-row items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-800/50 rounded-xl hover:bg-zinc-800/40 text-left transition-all active:scale-[0.98]"
             onclick={() => selectSong(item.videoId, item.title)}
           >
-            <img src={item.thumbnail} alt={item.title} class="w-20 h-14 object-cover rounded-md bg-zinc-950" />
+            <img
+              src={item.thumbnail}
+              alt={item.title}
+              class="w-20 h-14 object-cover rounded-md bg-zinc-950"
+            />
             <div class="flex-1 min-w-0 flex flex-col">
-              <span class="text-white text-sm font-bold truncate line-clamp-1">{item.title}</span>
-              <span class="text-zinc-400 text-xs truncate mt-0.5">{item.channelTitle}</span>
-              <span class="duration-badge self-start text-[10px] bg-zinc-800 text-zinc-300 font-bold px-1.5 py-0.5 rounded-full mt-1.5">
+              <span class="text-white text-sm font-bold truncate line-clamp-1"
+                >{item.title}</span
+              >
+              <span class="text-zinc-400 text-xs truncate mt-0.5"
+                >{item.channelTitle}</span
+              >
+              <span
+                class="duration-badge self-start text-[10px] bg-zinc-800 text-zinc-300 font-bold px-1.5 py-0.5 rounded-full mt-1.5"
+              >
                 {item.duration}
               </span>
             </div>
@@ -178,7 +217,6 @@
 <style>
   .search-container {
     height: 100%;
-    background: radial-gradient(circle at top, #1c1033 0%, #0d0c12 100%);
     box-sizing: border-box;
   }
 
@@ -217,7 +255,7 @@
     font-size: 1rem !important;
     padding-inline-start: 1rem !important;
     border-radius: 8px !important;
-    background: rgba(255,255,255,0.03) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
   }
   :global(.search-container label) {
     font-size: 0.85rem !important;

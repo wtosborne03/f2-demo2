@@ -1,15 +1,16 @@
 <script lang="ts">
     import { get } from "svelte/store";
     import { gameState } from "$lib/wsapi/gameClient";
+    import { playerEmote } from "$lib/avatar/player_emote";
 
     const pageData = get(gameState).page_data;
 </script>
 
 <div
-    class="w-screen h-screen absolute top-0 left-0 flex flex-col items-center justify-center p-6 text-center"
-    style="background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%); color: #e0e0e0;"
+    class="container h-full mx-auto flex flex-col justify-center items-center"
+    on:click={playerEmote}
 >
-    <div class="text-2xl font-bold mb-4" style="color: #e0e0e0;">
+    <div class="text-2xl font-bold mb-4">
         {pageData?.message || "Waiting..."}
     </div>
 </div>

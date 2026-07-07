@@ -54,7 +54,9 @@
     <header class="control-header">
         <div class="status-indicator" class:armed={isArmed}>
             <div class="status-light"></div>
-            <span class="status-text">{isArmed ? "TARGET LOCKED" : "AWAITING TARGET"}</span>
+            <span class="status-text"
+                >{isArmed ? "TARGET LOCKED" : "AWAITING TARGET"}</span
+            >
         </div>
         <h1 class="header-title">SELECT TARGET ZONE</h1>
     </header>
@@ -80,7 +82,8 @@
                                     />
                                 {:else}
                                     <Icon
-                                        icon={location.icon || getLocationIcon(location.type)}
+                                        icon={location.icon ||
+                                            getLocationIcon(location.type)}
                                         class="target-icon"
                                     />
                                 {/if}
@@ -88,10 +91,13 @@
                             <div class="target-info">
                                 <span class="target-name">{location.name}</span>
                                 {#if location.address}
-                                    <span class="target-address">{location.address}</span>
+                                    <span class="target-address"
+                                        >{location.address}</span
+                                    >
                                 {/if}
                                 <span class="target-type"
-                                    >{location.type?.toUpperCase() || "LOCATION"}</span
+                                    >{location.type?.toUpperCase() ||
+                                        "LOCATION"}</span
                                 >
                             </div>
                             {#if selected_location_id === location.id}
@@ -140,7 +146,6 @@
         left: 0;
         width: 100vw;
         height: 100dvh;
-        background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -230,7 +235,11 @@
     /* Target Card */
     .target-card {
         position: relative;
-        background: linear-gradient(135deg, rgba(30, 30, 40, 0.9) 0%, rgba(20, 20, 30, 0.95) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(30, 30, 40, 0.9) 0%,
+            rgba(20, 20, 30, 0.95) 100%
+        );
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         padding: 16px;
@@ -243,7 +252,11 @@
     }
 
     .target-card.selected {
-        background: linear-gradient(135deg, rgba(255, 50, 50, 0.15) 0%, rgba(200, 30, 30, 0.1) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(255, 50, 50, 0.15) 0%,
+            rgba(200, 30, 30, 0.1) 100%
+        );
         border-color: rgba(255, 50, 50, 0.6);
     }
 
@@ -264,7 +277,11 @@
         width: 3.5rem;
         height: 3.5rem;
         border-radius: 10px;
-        background: linear-gradient(135deg, rgba(255, 100, 100, 0.15) 0%, rgba(255, 50, 50, 0.05) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(255, 100, 100, 0.15) 0%,
+            rgba(255, 50, 50, 0.05) 100%
+        );
         border: 1px solid rgba(255, 100, 100, 0.2);
         display: flex;
         align-items: center;
@@ -363,7 +380,11 @@
         position: relative;
         z-index: 10;
         flex-shrink: 0;
-        background: linear-gradient(0deg, rgba(10, 10, 15, 0.95) 0%, transparent 100%);
+        background: linear-gradient(
+            0deg,
+            rgba(10, 10, 15, 0.95) 0%,
+            transparent 100%
+        );
     }
 
     .launch-button {

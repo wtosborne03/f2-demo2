@@ -54,7 +54,9 @@
     <header class="control-header">
         <div class="status-indicator" class:ready={isReady}>
             <div class="status-light"></div>
-            <span class="status-text">{isReady ? "SHELTER SELECTED" : "SELECT SHELTER"}</span>
+            <span class="status-text"
+                >{isReady ? "SHELTER SELECTED" : "SELECT SHELTER"}</span
+            >
         </div>
         <h1 class="header-title">CHOOSE YOUR SHELTER</h1>
     </header>
@@ -80,18 +82,23 @@
                                     />
                                 {:else}
                                     <Icon
-                                        icon={location.icon || getShelterIcon(location.type)}
+                                        icon={location.icon ||
+                                            getShelterIcon(location.type)}
                                         class="shelter-icon"
                                     />
                                 {/if}
                             </div>
                             <div class="shelter-info">
-                                <span class="shelter-name">{location.name}</span>
+                                <span class="shelter-name">{location.name}</span
+                                >
                                 {#if location.address}
-                                    <span class="shelter-address">{location.address}</span>
+                                    <span class="shelter-address"
+                                        >{location.address}</span
+                                    >
                                 {/if}
                                 <span class="shelter-type"
-                                    >{location.type?.toUpperCase() || "SHELTER"}</span
+                                    >{location.type?.toUpperCase() ||
+                                        "SHELTER"}</span
                                 >
                             </div>
                             {#if selected_location_id === location.id}
@@ -140,7 +147,6 @@
         left: 0;
         width: 100vw;
         height: 100dvh;
-        background: linear-gradient(135deg, #0a0f14 0%, #0f1a2e 50%, #0a1020 100%);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -230,7 +236,11 @@
     /* Shelter Card */
     .shelter-card {
         position: relative;
-        background: linear-gradient(135deg, rgba(20, 30, 50, 0.9) 0%, rgba(15, 25, 40, 0.95) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(20, 30, 50, 0.9) 0%,
+            rgba(15, 25, 40, 0.95) 100%
+        );
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         padding: 16px;
@@ -243,7 +253,11 @@
     }
 
     .shelter-card.selected {
-        background: linear-gradient(135deg, rgba(50, 200, 100, 0.15) 0%, rgba(30, 150, 80, 0.1) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(50, 200, 100, 0.15) 0%,
+            rgba(30, 150, 80, 0.1) 100%
+        );
         border-color: rgba(50, 200, 100, 0.6);
     }
 
@@ -264,7 +278,11 @@
         width: 3.5rem;
         height: 3.5rem;
         border-radius: 10px;
-        background: linear-gradient(135deg, rgba(50, 150, 255, 0.15) 0%, rgba(50, 100, 200, 0.05) 100%);
+        background: linear-gradient(
+            135deg,
+            rgba(50, 150, 255, 0.15) 0%,
+            rgba(50, 100, 200, 0.05) 100%
+        );
         border: 1px solid rgba(50, 150, 255, 0.2);
         display: flex;
         align-items: center;
@@ -363,7 +381,11 @@
         position: relative;
         z-index: 10;
         flex-shrink: 0;
-        background: linear-gradient(0deg, rgba(10, 15, 25, 0.95) 0%, transparent 100%);
+        background: linear-gradient(
+            0deg,
+            rgba(10, 15, 25, 0.95) 0%,
+            transparent 100%
+        );
     }
 
     .confirm-button {
