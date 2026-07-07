@@ -159,6 +159,38 @@
             if (playhead > obs.startTime + HIT_WINDOW) {
               obs.processed.local = "missed";
             }
+          } else if (status === "holding") {
+            const isButtonHeld = buttonsPressed[obs.lane] === true;
+            if (!isButtonHeld) {
+              obs.processed.local = "missed";
+            } else {
+              // Add continuous points (+150 pts/sec)
+              addPoints(Math.round(150 * deltaTime));
+
+              // If we reached endTime, complete it and grant a +100 bonus
+              if (playhead >= obs.endTime) {
+                obs.processed.local = "completed";
+                addPoints(100);
+              }
+
+              // Spawn particles at target line during hold!
+              const newParticles: UnifiedParticle[] = [];
+              const laneY = (obs.lane + 0.5) * (canvas.height / 5);
+              const angle = Math.random() * Math.PI * 2;
+              const speed = 2 + Math.random() * 2;
+              newParticles.push({
+                x: TARGET_X,
+                y: laneY,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 3 + Math.random() * 3,
+                alpha: 0.9,
+                color: LANE_COLORS[obs.lane],
+                type: "circle",
+                decay: 2.0,
+              });
+              canvasParticles = [...canvasParticles, ...newParticles];
+            }
           }
         });
       }
@@ -322,7 +354,6 @@
           const h = 18;
           const r = h / 2;
           const centerY = (obs.lane + 0.5) * laneH;
-          const colors = getNeonColor(obs.type);
 
           const status = obs.processed ? obs.processed.local : undefined;
 
@@ -331,35 +362,34 @@
             return;
           }
 
-          ctx.lineWidth = 2.5;
+          let drawnStartX = startX;
+          let drawnEndX = endX;
+          let fillStyle = NEON_FILL_COLORS[obs.lane];
+          let strokeStyle = LANE_COLORS[obs.lane];
 
-          if (status === "missed") {
-            ctx.fillStyle = colors.fill;
-            ctx.strokeStyle = colors.stroke;
-            ctx.beginPath();
-            if (ctx.roundRect) {
-              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
-            } else {
-              ctx.rect(startX, centerY - h / 2, endX - startX, h);
-            }
-            ctx.fill();
-            ctx.stroke();
-
-            drawGlossHighlight(startX, endX, h, r / 2);
-          } else {
-            ctx.fillStyle = NEON_FILL_COLORS[obs.lane];
-            ctx.strokeStyle = LANE_COLORS[obs.lane];
-            ctx.beginPath();
-            if (ctx.roundRect) {
-              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
-            } else {
-              ctx.rect(startX, centerY - h / 2, endX - startX, h);
-            }
-            ctx.fill();
-            ctx.stroke();
-
-            drawGlossHighlight(startX, endX, h, r / 2);
+          if (status === "holding") {
+            drawnStartX = TARGET_X;
+            drawnEndX = endX;
+            fillStyle = "rgba(34, 197, 94, 0.85)";
+            strokeStyle = "#22c55e";
+          } else if (status === "missed") {
+            fillStyle = "rgba(100, 100, 100, 0.15)";
+            strokeStyle = "rgba(150, 150, 150, 0.3)";
           }
+
+          ctx.lineWidth = 2.5;
+          ctx.fillStyle = fillStyle;
+          ctx.strokeStyle = strokeStyle;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(drawnStartX, centerY - h / 2, drawnEndX - drawnStartX, h, r);
+          } else {
+            ctx.rect(drawnStartX, centerY - h / 2, drawnEndX - drawnStartX, h);
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          drawGlossHighlight(drawnStartX, drawnEndX, h, r / 2);
         });
       }
     };
@@ -410,8 +440,13 @@
             playhead >= obs.startTime - EARLY_HIT_WINDOW &&
             playhead <= obs.startTime + HIT_WINDOW
           ) {
-            obs.processed.local = "completed";
-            addPoints(100);
+            const isHold = (obs.endTime - obs.startTime) > 0.25;
+            if (isHold) {
+              obs.processed.local = "holding";
+            } else {
+              obs.processed.local = "completed";
+              addPoints(100);
+            }
 
             // Spawn success particles
             const newParticles: UnifiedParticle[] = [];

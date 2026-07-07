@@ -146,7 +146,7 @@
       <div class="flex flex-col gap-3">
         {#each $gameState.page_data.results as item}
           <button
-            class="result-card flex flex-row items-center gap-3 p-3 bg-zinc-900/60 border border-zinc-800/80 rounded-xl hover:bg-zinc-800/60 text-left transition-all active:scale-[0.98]"
+            class="result-card flex flex-row items-center gap-3 p-3 bg-zinc-900/60 rounded-xl hover:bg-zinc-800/60 text-left transition-all active:scale-[0.98] {item.hasCloneHeroChart ? 'border-2 border-emerald-500/25 shadow-[0_0_12px_rgba(16,185,129,0.08)] bg-emerald-950/5' : 'border border-zinc-800/80'}"
             onclick={() => selectSong(item.videoId, item.title)}
           >
             <img
@@ -161,15 +161,38 @@
               <span class="text-zinc-400 text-xs truncate mt-0.5"
                 >{item.channelTitle}</span
               >
-              <span
-                class="duration-badge self-start text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded-full mt-1.5"
-              >
-                {Math.floor(item.durationSeconds / 60)}:{(
-                  item.durationSeconds % 60
-                )
-                  .toString()
-                  .padStart(2, "0")}
-              </span>
+              <div class="flex flex-row gap-1.5 mt-1.5 items-center">
+                <span
+                  class="duration-badge text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded-full"
+                >
+                  {Math.floor(item.durationSeconds / 60)}:{(
+                    item.durationSeconds % 60
+                  )
+                    .toString()
+                    .padStart(2, "0")}
+                </span>
+                {#if item.hasCloneHeroChart}
+                  <span
+                    class="ch-badge text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 shadow-[0_0_8px_rgba(16,185,129,0.2)]"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="text-emerald-400"
+                    >
+                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    CH Chart
+                  </span>
+                {/if}
+              </div>
             </div>
           </button>
         {/each}
