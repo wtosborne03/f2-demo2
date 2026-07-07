@@ -207,7 +207,7 @@
       ctx.fillRect(0, 0, W, H);
 
       // Draw vertical grid lines (Guitar Hero fretboard style)
-      if (playhead > 0) {
+      if (playhead >= 0) {
         const gridSpacing = 0.5;
         const firstGridTime = Math.floor(playhead / gridSpacing) * gridSpacing;
         ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
@@ -328,7 +328,7 @@
       }
 
       // Draw Obstacles (rounded neon capsules with glossy inner cylinder look)
-      if (playhead > 0) {
+      if (playhead >= 0) {
         const drawGlossHighlight = (
           sx: number,
           ex: number,
