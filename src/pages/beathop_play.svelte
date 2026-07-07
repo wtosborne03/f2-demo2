@@ -39,8 +39,8 @@
   const BASE_LINE_WIDTH = 6;
   const SUCCESS_LINE_WIDTH_BOOST = 50;
 
-  const HIT_WINDOW = 0.25;
-  const EARLY_HIT_WINDOW = 0.6;
+  const HIT_WINDOW = 0.08;
+  const EARLY_HIT_WINDOW = 0.12;
 
   const OBSTACLE_TYPES = [
     "STANDARD_NOTE",
@@ -266,10 +266,10 @@
           const shakeX = (Math.random() - 0.5) * 6;
           const shakeY = (Math.random() - 0.5) * 6;
           const scale = 1.15 + Math.sin(timestamp * 0.05) * 0.05;
-          avatarEl.style.transform = `translate3d(calc(-50% + ${shakeX}px), calc(-50% - 28px + ${shakeY}px), 0) scale(${scale})`;
+          avatarEl.style.transform = `translate3d(calc(-50% + ${shakeX}px), calc(-50% + ${shakeY}px), 0) scale(${scale})`;
           avatarEl.style.filter = "drop-shadow(0 0 12px #4ade80)";
         } else {
-          avatarEl.style.transform = `translate3d(-50%, calc(-50% - 28px), 0) scale(1.0)`;
+          avatarEl.style.transform = `translate3d(-50%, -50%, 0) scale(1.0)`;
           avatarEl.style.filter = "none";
         }
       }
