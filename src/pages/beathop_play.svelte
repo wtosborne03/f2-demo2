@@ -11,23 +11,37 @@
   let isPressed = false;
   let showScorePop = false;
   let scorePopClass = false;
+  let score = 0;
+  let scorePopText = "+100";
+  let scoreTimeout: any;
+  let wasHolding = false;
 
-  $: score = $gameState.page_data?.roundScore || 0;
+  function addPoints(amount: number, isContinuous = false) {
+    score = Math.max(0, score + amount);
+    gameClient.sendInput({ type: "scoreUpdate", score });
 
-  // Snappy non-overlapping micro-timers for score bump
-  $: {
-    if (score > lastScore) {
+    if (!isContinuous) {
+      if (amount > 0) {
+        scorePopText = `+${amount}`;
+      } else {
+        scorePopText = `${amount}`;
+      }
       showScorePop = true;
       scorePopClass = true;
-      const t = setTimeout(() => {
+      if (scoreTimeout) clearTimeout(scoreTimeout);
+      scoreTimeout = setTimeout(() => {
         showScorePop = false;
-      }, 400);
-      const t2 = setTimeout(() => {
         scorePopClass = false;
-      }, 120);
-      lastScore = score;
-    } else if (score < lastScore) {
-      lastScore = score;
+      }, 500);
+    } else {
+      scorePopClass = true;
+      scorePopText = `+${amount}`;
+      showScorePop = true;
+      if (scoreTimeout) clearTimeout(scoreTimeout);
+      scoreTimeout = setTimeout(() => {
+        showScorePop = false;
+        scorePopClass = false;
+      }, 300);
     }
   }
 
@@ -194,6 +208,23 @@
         holdDurationTracker = 0;
       }
 
+      // Local off-beat tap penalty check
+      if (isHolding && !wasHolding && !paused) {
+        const hasValidNote = localObstacles.some((obs) => {
+          const status = obs.processed.local;
+          if (status) return false;
+          return (
+            playhead >= obs.startTime - EARLY_HIT_WINDOW &&
+            playhead <= obs.startTime + HIT_WINDOW
+          );
+        });
+
+        if (!hasValidNote) {
+          addPoints(-50);
+        }
+      }
+      wasHolding = isHolding;
+
       // Add severe cascading penalty particle sparks if holding down off-beat
       if (isHolding && !isCurrentlyWinningHold && !paused) {
         if (Math.random() < 0.35) {
@@ -264,10 +295,12 @@
             }
           } else if (status === "holding") {
             if (isHolding) {
+              // Continuous hold scoring (+150 pts/sec)
+              addPoints(Math.round(150 * deltaTime), true);
+
               const newParticles: UnifiedParticle[] = [];
               for (let k = 0; k < 2; k++) {
                 const angle = (Math.random() - 0.5) * Math.PI * 0.4;
-                // Boost speed and length dynamically based on hold length duration
                 const durationScalar = Math.min(
                   1.0 + holdDurationTracker * 0.7,
                   2.5,
@@ -289,6 +322,9 @@
 
               if (playhead >= obs.endTime) {
                 obs.processed.local = "completed";
+                // Hold completion bonus (+100 pts)
+                addPoints(100);
+
                 const newParticles: UnifiedParticle[] = [];
                 for (let k = 0; k < 10; k++) {
                   const angle = Math.random() * Math.PI * 2;
@@ -566,8 +602,8 @@
 
             drawGlossHighlight(startX, endX, h, r / 2);
           } else if (status === "missed") {
-            ctx.fillStyle = "rgba(80, 80, 80, 0.2)";
-            ctx.strokeStyle = "rgba(120, 120, 120, 0.3)";
+            ctx.fillStyle = colors.fill;
+            ctx.strokeStyle = colors.stroke;
             ctx.beginPath();
             if (ctx.roundRect) {
               ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
@@ -576,6 +612,8 @@
             }
             ctx.fill();
             ctx.stroke();
+
+            drawGlossHighlight(startX, endX, h, r / 2);
           } else {
             ctx.fillStyle = colors.fill;
             ctx.strokeStyle = colors.stroke;
