@@ -495,22 +495,14 @@
 
       <div
         bind:this={avatarEl}
-        class="absolute z-10 will-change-transform"
+        class="absolute z-10 will-change-transform pointer-events-none"
         style="left: {TARGET_X}px; top: 50%;"
       >
-        {#if $gameState.avatar?.selfieUrl}
-          <img
-            src={$gameState.avatar.selfieUrl}
-            alt="Avatar"
-            class="w-14 h-14 rounded-full object-cover border border-white/20 shadow-md"
-          />
-        {:else}
-          <div
-            class="w-14 h-14 rounded-full flex items-center justify-center border border-white/30 bg-zinc-800 text-white text-xl font-extrabold"
-          >
-            {$gameState.name ? $gameState.name.charAt(0).toUpperCase() : "?"}
-          </div>
-        {/if}
+        <div
+          class="w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-150 {isHolding ? 'border-green-400 bg-green-500/20 shadow-[0_0_20px_rgba(74,222,128,0.8)] scale-110' : 'border-white/35 bg-white/5'}"
+        >
+          <div class="w-6 h-6 rounded-full border-2 {isHolding ? 'border-green-300' : 'border-white/20'}" />
+        </div>
       </div>
     </div>
   </label>
