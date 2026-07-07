@@ -1,6 +1,6 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import { gameClient, gameState, serverTimeOffset } from "$lib/wsapi/gameClient";
   import { onMount } from "svelte";
 
   let lastScore = 0;
@@ -32,6 +32,351 @@
   let particles: Array<{ id: number; x: number; y: number; vx: number; vy: number; color: string; size: number }> = [];
   let rippleId = 0;
   let particleId = 0;
+
+  // Physics and logic constants matching host PlayScreen.tsx
+  const JUMP_DURATION = 0.3;
+  const JUMP_HEIGHT = 480; // Match host peak height (peak 120px)
+  const OBSTACLE_SPEED = 250;
+  const TARGET_X = 60;
+  const BASE_LINE_WIDTH = 6;
+  const SUCCESS_LINE_WIDTH_BOOST = 50;
+
+  // Timing windows matching host
+  const HIT_WINDOW = 0.25;
+  const EARLY_HIT_WINDOW = 0.6;
+
+  const OBSTACLE_TYPES = ["STANDARD_NOTE", "LOW_WALL_JUMP", "HIGH_DODGE", "CENTER_VOCAL_ORB", "WIDE_BARRIER"];
+  function mapNumToType(num: number): string {
+    const idx = Math.round(num);
+    return OBSTACLE_TYPES[idx] || "STANDARD_NOTE";
+  }
+
+  // Local game loop states
+  let canvas: HTMLCanvasElement;
+  let avatarEl: HTMLDivElement;
+  let animationFrameId: number;
+  let lastTimestamp = performance.now();
+  let localJumpStartTime = -1;
+
+  interface Obstacle {
+    id: number;
+    hitTime: number;
+    bass: number;
+    vocals: number;
+    treble: number;
+    lane: number;
+    type: string;
+    speedMultiplier: number;
+    processed: { local?: "dodged" | "hit" };
+  }
+
+  interface LanePulse {
+    alpha: number;
+    color: string;
+    lineWidth: number;
+  }
+
+  interface JumpParticle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    alpha: number;
+    color: string;
+    type: 'square' | 'circle';
+  }
+
+  let localObstacles: Obstacle[] = [];
+  let pulses: LanePulse[] = [];
+  let canvasParticles: JumpParticle[] = [];
+
+  // Track reactive states from page_data
+  $: startTime = $gameState.page_data?.startTime || 0;
+  $: paused = $gameState.page_data?.paused !== false;
+  $: pausedTime = $gameState.page_data?.pausedTime || 0;
+  $: laneIndex = $gameState.page_data?.laneIndex || 0;
+  $: rawBeats = $gameState.page_data?.beats || [];
+
+  // Rebuild localObstacles on beats change
+  $: {
+    if (rawBeats && rawBeats.length > 0) {
+      const decoded: Obstacle[] = [];
+      for (let i = 0; i < rawBeats.length; i += 6) {
+        decoded.push({
+          id: i / 6 + 1,
+          hitTime: rawBeats[i],
+          bass: rawBeats[i + 1],
+          vocals: rawBeats[i + 2],
+          treble: rawBeats[i + 3],
+          lane: laneIndex % 3,
+          type: mapNumToType(rawBeats[i + 4]),
+          speedMultiplier: rawBeats[i + 5],
+          processed: {},
+        });
+      }
+      localObstacles = decoded;
+    } else {
+      localObstacles = [];
+    }
+  }
+
+  // Playhead synchronization
+  let playhead = 0;
+  $: {
+    if (paused) {
+      playhead = pausedTime;
+    }
+  }
+
+  onMount(() => {
+    lastTimestamp = performance.now();
+
+    const tick = (timestamp: number) => {
+      animationFrameId = requestAnimationFrame(tick);
+
+      const deltaTime = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
+      lastTimestamp = timestamp;
+
+      // Update playhead
+      if (!paused && startTime > 0) {
+        const currentServerTime = Date.now() + $serverTimeOffset;
+        playhead = (currentServerTime - startTime) / 1000;
+      }
+
+      // 1. Auto-resolve passed obstacles that weren't hit/dodged locally
+      if (playhead > 0 && localObstacles.length > 0) {
+        localObstacles.forEach((obs) => {
+          if (!obs.processed.local && playhead > obs.hitTime + HIT_WINDOW) {
+            obs.processed.local = "hit";
+          }
+        });
+      }
+
+      // 2. Animate local avatar position (DOM translation)
+      if (avatarEl) {
+        let yOffset = 0;
+        if (localJumpStartTime > 0 && playhead > 0) {
+          const dt = playhead - localJumpStartTime;
+          if (dt >= 0 && dt < JUMP_DURATION) {
+            const u = dt / JUMP_DURATION;
+            yOffset = JUMP_HEIGHT * u * (1 - u);
+          } else {
+            localJumpStartTime = -1; // reset when jump ends
+          }
+        }
+        avatarEl.style.transform = `translate(-50%, -50%) translateY(-${yOffset}px)`;
+      }
+
+      // 3. Render phase
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d", { alpha: true });
+      if (!ctx) return;
+
+      const W = canvas.width;
+      const H = canvas.height;
+      const centerY = H / 2;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Handle Lane FX Pulses
+      if (!paused) {
+        pulses = pulses.filter(pulse => {
+          pulse.alpha -= deltaTime * 1.8;
+          if (pulse.alpha <= 0) return false;
+
+          const hexAlpha = Math.floor(pulse.alpha * 255).toString(16).padStart(2, '0');
+          const dynamicColor = `${pulse.color}${hexAlpha}`;
+
+          // Draw lane line pulse
+          ctx.strokeStyle = dynamicColor;
+          ctx.lineWidth = pulse.lineWidth;
+          ctx.beginPath();
+          ctx.moveTo(0, centerY);
+          ctx.lineTo(W, centerY);
+          ctx.stroke();
+
+          // Draw flash gradient
+          const gradient = ctx.createLinearGradient(0, 0, 0, H);
+          gradient.addColorStop(0, "transparent");
+          gradient.addColorStop(0.5, `${pulse.color}${Math.floor(pulse.alpha * 120).toString(16).padStart(2, '0')}`);
+          gradient.addColorStop(1, "transparent");
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, W, H);
+
+          return true;
+        });
+      }
+
+      // Draw standard faint base lane line
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = BASE_LINE_WIDTH;
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(W, centerY);
+      ctx.stroke();
+
+      // Render Active Canvas Particles
+      if (!paused) {
+        canvasParticles = canvasParticles.filter(p => {
+          p.x += p.vx * deltaTime * 60; // scale speeds to match host delta
+          p.y += p.vy * deltaTime * 60;
+          if (p.vx !== -30 && p.color === "#86efac") p.vy += deltaTime * 250;
+
+          p.alpha -= deltaTime * 2.5;
+          if (p.alpha <= 0) return false;
+
+          ctx.fillStyle = `${p.color}${Math.floor(p.alpha * 255).toString(16).padStart(2, '0')}`;
+
+          if (p.type === 'circle') {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+          }
+          return true;
+        });
+      }
+
+      // Draw Obstacles
+      if (playhead > 0) {
+        localObstacles.forEach((obs) => {
+          const x = TARGET_X + (obs.hitTime - playhead) * OBSTACLE_SPEED;
+          if (x < -50 || x > W + 50) return;
+
+          const bass = obs.bass ?? 0.3;
+          const vocals = obs.vocals ?? 0.3;
+          const treble = obs.treble ?? 0.3;
+
+          const isCeiling = treble > 0.6 && bass <= 0.7;
+          const spikeH = 32 + 60 * (isCeiling ? treble : bass);
+          const spikeW = 20 + 28 * vocals;
+
+          const status = obs.processed ? obs.processed.local : undefined;
+
+          if (status === "dodged") {
+            ctx.strokeStyle = "rgba(74, 222, 128, 0.9)";
+            ctx.fillStyle = "rgba(74, 222, 128, 0.85)";
+          } else if (status === "hit") {
+            ctx.strokeStyle = "rgba(248, 113, 113, 0.9)";
+            ctx.fillStyle = "rgba(248, 113, 113, 0.85)";
+          } else {
+            const r = (130 + 125 * vocals) | 0;
+            const g = (50 + 180 * bass) | 0;
+            const b = (80 + 175 * treble) | 0;
+            ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
+          }
+
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+
+          if (isCeiling) {
+            const cy = centerY - 36;
+            ctx.moveTo(x - spikeW, cy);
+            ctx.quadraticCurveTo(x - spikeW / 2, cy + spikeH / 2, x, cy + spikeH);
+            ctx.quadraticCurveTo(x + spikeW / 2, cy + spikeH / 2, x + spikeW, cy);
+          } else {
+            ctx.moveTo(x - spikeW, centerY);
+            ctx.quadraticCurveTo(x - spikeW / 2, centerY - spikeH / 2, x, centerY - spikeH);
+            ctx.quadraticCurveTo(x + spikeW / 2, centerY - spikeH / 2, x + spikeW, centerY);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(tick);
+
+    // Resize observer to auto-resize canvas
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        canvas.width = width;
+        canvas.height = height;
+      }
+    });
+    if (canvas) resizeObserver.observe(canvas);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      resizeObserver.disconnect();
+    };
+  });
+
+  function checkLocalJump() {
+    if (playhead <= 0 || localObstacles.length === 0) return;
+
+    // Find nearby obstacle matching hit windows
+    const nearbyObstacle = localObstacles.find(obs => {
+      if (obs.processed && obs.processed.local) return false;
+
+      const diff = obs.hitTime - playhead;
+      if (diff >= 0) {
+        return diff <= EARLY_HIT_WINDOW;
+      } else {
+        return Math.abs(diff) <= HIT_WINDOW;
+      }
+    });
+
+    const centerY = canvas ? canvas.height / 2 : 110;
+
+    if (nearbyObstacle) {
+      if (!nearbyObstacle.processed) nearbyObstacle.processed = {};
+      nearbyObstacle.processed.local = "dodged";
+
+      // Replicate PlayScreen.tsx dramatic success FX
+      pulses = [...pulses, {
+        alpha: 0.6,
+        color: "#4ade80",
+        lineWidth: BASE_LINE_WIDTH + SUCCESS_LINE_WIDTH_BOOST
+      }];
+
+      const newParticles: JumpParticle[] = [];
+      const particleColor = "#86efac";
+      for (let k = 0; k < 15; k++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 3.5; // Scaled down slightly for mobile
+        newParticles.push({
+          x: TARGET_X,
+          y: centerY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 4 + Math.random() * 8,
+          alpha: 1.0,
+          color: particleColor,
+          type: Math.random() > 0.4 ? 'circle' : 'square'
+        });
+      }
+      canvasParticles = [...canvasParticles, ...newParticles];
+    } else {
+      // Missed jump FX
+      pulses = [...pulses, {
+        alpha: 0.35,
+        color: "#ef4444",
+        lineWidth: BASE_LINE_WIDTH
+      }];
+
+      const newParticles: JumpParticle[] = [];
+      for (let k = 0; k < 5; k++) {
+        newParticles.push({
+          x: TARGET_X + (Math.random() - 0.5) * 20,
+          y: centerY,
+          vx: -0.5 - Math.random() * 0.7,
+          vy: 1.0 + Math.random() * 1.0,
+          size: 4 + Math.random() * 4,
+          alpha: 0.9,
+          color: "#ef4444",
+          type: 'square'
+        });
+      }
+      canvasParticles = [...canvasParticles, ...newParticles];
+    }
+  }
 
   function spawnParticles(x: number, y: number) {
     const colors = ["#a78bfa", "#f472b6", "#60a5fa", "#34d399", "#fbbf24", "#ec4899", "#22d3ee"];
@@ -119,6 +464,10 @@
     // Spawn particles
     spawnParticles(x, y);
 
+    // Local jump timeline trigger
+    localJumpStartTime = playhead;
+    checkLocalJump();
+
     // Send high-priority jump input to the host
     gameClient.sendInput({
       type: "jump"
@@ -162,12 +511,31 @@
       ></div>
     {/each}
 
-    <!-- Center Prompt -->
-    <div class="center-content pointer-events-none">
-      <div class="jump-prompt-ring">
-        <div class="glow-ring"></div>
-        <span class="jump-text font-black uppercase tracking-wider">JUMP!</span>
-        <span class="tap-hint text-purple-300 text-xs font-semibold uppercase mt-2 opacity-70">Tap screen</span>
+    <!-- Real-time Obstacle Track replicating PlayScreen -->
+    <div class="canvas-container relative w-full h-[220px] overflow-visible border-y border-white/10 bg-black/40 backdrop-blur-md my-auto pointer-events-none">
+      <canvas bind:this={canvas} class="w-full h-full block" />
+      
+      <!-- Jumping Avatar -->
+      <div
+        bind:this={avatarEl}
+        class="absolute z-10 will-change-transform"
+        style="left: {TARGET_X}px; top: 50%;"
+      >
+        {#if $gameState.avatar?.selfieUrl}
+          <img
+            src={$gameState.avatar.selfieUrl}
+            alt="Avatar"
+            class="w-14 h-14 rounded-full object-cover border-2 shadow-lg"
+            style="border-color: {$gameState.color || '#a78bfa'};"
+          />
+        {:else}
+          <div
+            class="w-14 h-14 rounded-full flex items-center justify-center border-2 shadow-lg text-white text-xl font-extrabold"
+            style="background-color: {$gameState.color || '#6b7280'}; border-color: rgba(255,255,255,0.4);"
+          >
+            {$gameState.name ? $gameState.name.charAt(0).toUpperCase() : "?"}
+          </div>
+        {/if}
       </div>
     </div>
   </label>
@@ -208,7 +576,7 @@
     <!-- Bottom Tip -->
     <footer class="py-2 text-center pointer-events-none">
       <p class="text-[11px] text-zinc-400 font-medium max-w-xs leading-relaxed bg-black/45 px-4 py-2.5 rounded-full border border-white/5 shadow-lg backdrop-blur-md">
-        Watch the main screen and jump exactly when the obstacle crosses your avatar's target line!
+        Tap the screen to jump exactly when the obstacle crosses your avatar's target line!
       </p>
     </footer>
   </div>
@@ -243,6 +611,7 @@
     outline: none;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     overflow: hidden;
@@ -299,71 +668,19 @@
     }
   }
 
-  .center-content {
+  .canvas-container {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-  }
-
-  .jump-prompt-ring {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: 3px solid rgba(139, 92, 246, 0.4);
-    background: rgba(15, 10, 25, 0.65);
-    box-shadow: 0 0 35px rgba(139, 92, 246, 0.25),
-                inset 0 0 25px rgba(139, 92, 246, 0.15);
-    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .pressed .jump-prompt-ring {
-    transform: scale(0.9);
-    border-color: rgba(236, 72, 153, 0.8);
-    box-shadow: 0 0 45px rgba(236, 72, 153, 0.6),
-                inset 0 0 30px rgba(236, 72, 153, 0.3);
-  }
-
-  .glow-ring {
-    position: absolute;
-    inset: -12px;
-    border-radius: 50%;
-    border: 2px dashed rgba(167, 139, 250, 0.4);
-    animation: rotate 20s linear infinite;
-    pointer-events: none;
-    transition: border-color 0.2s;
-  }
-  
-  .pressed .glow-ring {
-    border-color: rgba(244, 114, 182, 0.6);
-    animation-duration: 8s;
-  }
-
-  @keyframes rotate {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .jump-text {
-    font-size: 2.25rem;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(139, 92, 246, 0.8);
-    transition: text-shadow 0.1s, color 0.1s;
-  }
-
-  .pressed .jump-text {
-    color: #fff;
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 25px rgba(236, 72, 153, 1);
+    width: 100%;
+    height: 220px;
+    margin-top: auto;
+    margin-bottom: auto;
+    overflow: visible;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 5;
   }
 
   .ripple-effect {
