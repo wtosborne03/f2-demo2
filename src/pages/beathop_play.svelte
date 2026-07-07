@@ -253,7 +253,10 @@
                 });
               }
               canvasParticles = [...canvasParticles, ...newParticles];
-            } else if (playhead > obs.startTime + HIT_WINDOW) {
+            } else if (
+              playhead > obs.startTime + HIT_WINDOW &&
+              status !== "holding"
+            ) {
               obs.processed.local = "missed";
               pulses = [
                 { alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH },
@@ -529,10 +532,10 @@
               drawGlossHighlight(startX, midX, h, [r / 2, 0, 0, r / 2]);
             }
 
-            // Incoming segment (Original Color)
+            // Incoming segment (Keep active neon green instead of flipping back to unhit colors)
             if (endX > midX) {
-              ctx.fillStyle = colors.fill;
-              ctx.strokeStyle = colors.stroke;
+              ctx.fillStyle = "rgba(74, 222, 128, 0.45)";
+              ctx.strokeStyle = "#4ade80";
               ctx.beginPath();
               if (ctx.roundRect) {
                 ctx.roundRect(midX, centerY - h / 2, endX - midX, h, [
