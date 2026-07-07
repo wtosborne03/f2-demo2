@@ -62,14 +62,11 @@
 
   interface Obstacle {
     id: number;
-    hitTime: number;
-    bass: number;
-    vocals: number;
-    treble: number;
+    startTime: number;
+    endTime: number;
     lane: number;
     type: string;
-    speedMultiplier: number;
-    processed: { local?: "dodged" | "hit" };
+    processed: { local?: "holding" | "missed" | "completed" };
   }
 
   interface LanePulse {
@@ -78,7 +75,6 @@
     lineWidth: number;
   }
 
-  // Consolidated canvas particle footprint
   interface UnifiedParticle {
     x: number;
     y: number;
@@ -88,7 +84,6 @@
     alpha: number;
     color: string;
     type: "square" | "circle";
-    isTapFX?: boolean;
     decay: number;
   }
 
@@ -108,13 +103,10 @@
       for (let i = 0; i < rawBeats.length; i += 6) {
         decoded.push({
           id: i / 6 + 1,
-          hitTime: rawBeats[i],
-          bass: rawBeats[i + 1],
-          vocals: rawBeats[i + 2],
-          treble: rawBeats[i + 3],
-          lane: laneIndex % 3,
-          type: mapNumToType(rawBeats[i + 4]),
-          speedMultiplier: rawBeats[i + 5],
+          startTime: rawBeats[i],
+          endTime: rawBeats[i + 1],
+          lane: rawBeats[i + 2],
+          type: mapNumToType(rawBeats[i + 3]),
           processed: {},
         });
       }
@@ -131,6 +123,25 @@
     }
   }
 
+  function getNeonColor(type: string): { fill: string; stroke: string; glow: string } {
+    switch (type) {
+      case "WIDE_BARRIER":
+        return { fill: "rgba(245, 158, 11, 0.8)", stroke: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)" };
+      case "STANDARD_NOTE":
+        return { fill: "rgba(168, 85, 247, 0.8)", stroke: "#a855f7", glow: "rgba(168, 85, 247, 0.4)" };
+      case "CENTER_VOCAL_ORB":
+        return { fill: "rgba(6, 182, 212, 0.8)", stroke: "#06b6d4", glow: "rgba(6, 182, 212, 0.4)" };
+      case "HIGH_DODGE":
+        return { fill: "rgba(16, 185, 129, 0.8)", stroke: "#10b981", glow: "rgba(16, 185, 129, 0.4)" };
+      case "LOW_WALL_JUMP":
+        return { fill: "rgba(244, 63, 94, 0.8)", stroke: "#f43f5e", glow: "rgba(244, 63, 94, 0.4)" };
+      default:
+        return { fill: "rgba(168, 85, 247, 0.8)", stroke: "#a855f7", glow: "rgba(168, 85, 247, 0.4)" };
+    }
+  }
+
+  let isHolding = false;
+
   onMount(() => {
     lastTimestamp = performance.now();
 
@@ -144,31 +155,126 @@
         playhead = (Date.now() + $serverTimeOffset - startTime) / 1000;
       }
 
-      if (playhead > 0 && localObstacles.length > 0) {
+      if (playhead > 0 && localObstacles.length > 0 && !paused) {
         localObstacles.forEach((obs) => {
-          if (!obs.processed.local && playhead > obs.hitTime + HIT_WINDOW) {
-            obs.processed.local = "hit";
+          const status = obs.processed.local;
+
+          if (!status) {
+            if (isHolding && playhead >= obs.startTime - EARLY_HIT_WINDOW && playhead <= obs.startTime + HIT_WINDOW) {
+              obs.processed.local = "holding";
+              pulses = [
+                {
+                  alpha: 0.6,
+                  color: "#4ade80",
+                  lineWidth: BASE_LINE_WIDTH + SUCCESS_LINE_WIDTH_BOOST,
+                },
+              ];
+              const newParticles: UnifiedParticle[] = [];
+              for (let k = 0; k < 6; k++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 3;
+                newParticles.push({
+                  x: TARGET_X,
+                  y: canvas ? canvas.height >> 1 : 110,
+                  vx: Math.cos(angle) * speed,
+                  vy: Math.sin(angle) * speed,
+                  size: 4 + Math.random() * 5,
+                  alpha: 1.0,
+                  color: "#86efac",
+                  type: Math.random() > 0.4 ? "circle" : "square",
+                  decay: 2.5,
+                });
+              }
+              canvasParticles = [...canvasParticles, ...newParticles];
+            } else if (playhead > obs.startTime + HIT_WINDOW) {
+              obs.processed.local = "missed";
+              pulses = [{ alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH }];
+            }
+          } else if (status === "holding") {
+            if (isHolding) {
+              if (Math.random() < 0.25) {
+                const angle = (Math.random() - 0.5) * Math.PI * 0.5;
+                const speed = 1.5 + Math.random() * 2.0;
+                canvasParticles = [
+                  ...canvasParticles,
+                  {
+                    x: TARGET_X,
+                    y: canvas ? canvas.height >> 1 : 110,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 2 + Math.random() * 3,
+                    alpha: 0.8,
+                    color: "#86efac",
+                    type: "circle",
+                    decay: 3.0,
+                  },
+                ];
+              }
+
+              if (playhead >= obs.endTime) {
+                obs.processed.local = "completed";
+                const newParticles: UnifiedParticle[] = [];
+                for (let k = 0; k < 10; k++) {
+                  const angle = Math.random() * Math.PI * 2;
+                  const speed = 3 + Math.random() * 3;
+                  newParticles.push({
+                    x: TARGET_X,
+                    y: canvas ? canvas.height >> 1 : 110,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 5 + Math.random() * 6,
+                    alpha: 1.0,
+                    color: "#4ade80",
+                    type: Math.random() > 0.3 ? "circle" : "square",
+                    decay: 2.0,
+                  });
+                }
+                canvasParticles = [...canvasParticles, ...newParticles];
+                if (typeof navigator !== "undefined" && navigator.vibrate) {
+                  navigator.vibrate([40, 30, 40]);
+                }
+              }
+            } else {
+              obs.processed.local = "missed";
+              pulses = [{ alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH }];
+              const newParticles: UnifiedParticle[] = [];
+              for (let k = 0; k < 4; k++) {
+                newParticles.push({
+                  x: TARGET_X + (Math.random() - 0.5) * 15,
+                  y: canvas ? canvas.height >> 1 : 110,
+                  vx: -0.5 - Math.random() * 0.7,
+                  vy: 1.0 + Math.random() * 1.0,
+                  size: 4 + Math.random() * 3,
+                  alpha: 0.9,
+                  color: "#ef4444",
+                  type: "square",
+                  decay: 2.5,
+                });
+              }
+              canvasParticles = [...canvasParticles, ...newParticles];
+            }
           }
         });
       }
 
-      // Animate avatar (Using transform + will-change handles this outside normal layout layers)
       if (avatarEl) {
-        let yOffset = 0;
-        if (localJumpStartTime > 0 && playhead > 0) {
-          const dt = playhead - localJumpStartTime;
-          if (dt >= 0 && dt < JUMP_DURATION) {
-            const u = dt / JUMP_DURATION;
-            yOffset = JUMP_HEIGHT * u * (1 - u);
-          } else {
-            localJumpStartTime = -1;
-          }
+        const isCurrentlyWinningHold = localObstacles.some(
+          obs => obs.processed.local === "holding"
+        );
+
+        if (isHolding && isCurrentlyWinningHold) {
+          const shakeX = (Math.random() - 0.5) * 6;
+          const shakeY = (Math.random() - 0.5) * 6;
+          const scale = 1.15 + Math.sin(timestamp * 0.05) * 0.05;
+          avatarEl.style.transform = `translate3d(calc(-50% + ${shakeX}px), calc(-50% - 28px + ${shakeY}px), 0) scale(${scale})`;
+          avatarEl.style.filter = "drop-shadow(0 0 12px #4ade80)";
+        } else {
+          avatarEl.style.transform = `translate3d(-50%, calc(-50% - 28px), 0) scale(1.0)`;
+          avatarEl.style.filter = "none";
         }
-        avatarEl.style.transform = `translate3d(-50%, calc(-50% - ${yOffset}px), 0)`;
       }
 
       if (!canvas) return;
-      // Low-overhead frame backing
       const ctx = canvas.getContext("2d", { alpha: false });
       if (!ctx) return;
 
@@ -176,7 +282,6 @@
       const H = canvas.height;
       const centerY = H >> 1;
 
-      // Draw explicit solid background over clearRect to prevent composite redraw blending overhead
       ctx.fillStyle = "#0c0714";
       ctx.fillRect(0, 0, W, H);
 
@@ -194,7 +299,6 @@
           ctx.lineTo(W, centerY);
           ctx.stroke();
 
-          // Performance hack: simplified single fill box fallback over linear canvas gradient
           ctx.fillStyle = pulse.color;
           ctx.globalAlpha = pulse.alpha * 0.15;
           ctx.fillRect(0, 0, W, H);
@@ -218,10 +322,7 @@
           p.x += p.vx * deltaTime * 60;
           p.y += p.vy * deltaTime * 60;
 
-          if (p.isTapFX) {
-            p.vy += 0.18 * 60 * deltaTime; // low-overhead gravity step
-            p.vx *= 0.97;
-          } else if (p.vx !== -30 && p.color === "#86efac") {
+          if (p.vx !== -30 && p.color === "#86efac") {
             p.vy += deltaTime * 250;
           }
 
@@ -248,67 +349,86 @@
         ctx.globalAlpha = 1.0;
       }
 
-      // Draw Obstacles
+      // Draw Obstacles (rounded neon capsules / hold trails)
       if (playhead > 0) {
         localObstacles.forEach((obs) => {
-          const x = TARGET_X + (obs.hitTime - playhead) * OBSTACLE_SPEED;
-          if (x < -40 || x > W + 40) return;
+          const startX = TARGET_X + (obs.startTime - playhead) * OBSTACLE_SPEED;
+          const endX = TARGET_X + (obs.endTime - playhead) * OBSTACLE_SPEED;
 
-          const bass = obs.bass ?? 0.3;
-          const vocals = obs.vocals ?? 0.3;
-          const treble = obs.treble ?? 0.3;
+          if (endX < -40 || startX > W + 40) return;
 
-          const isCeiling = treble > 0.6 && bass <= 0.7;
-          const spikeH = 32 + 60 * (isCeiling ? treble : bass);
-          const spikeW = 20 + 28 * vocals;
+          const h = 20; // Capsule height
+          const r = h / 2;
+          const colors = getNeonColor(obs.type);
+
           const status = obs.processed ? obs.processed.local : undefined;
 
-          if (status === "dodged") {
-            ctx.fillStyle = "#4ade80";
-            ctx.strokeStyle = "#22c55e";
-          } else if (status === "hit") {
-            ctx.fillStyle = "#f87171";
-            ctx.strokeStyle = "#ef4444";
-          } else {
-            ctx.fillStyle = `rgb(${(130 + 125 * vocals) | 0}, ${(50 + 180 * bass) | 0}, ${(80 + 175 * treble) | 0})`;
-            ctx.strokeStyle = "rgba(255,255,255,0.2)";
-          }
-
           ctx.lineWidth = 2;
-          ctx.beginPath();
-          if (isCeiling) {
-            const cy = centerY - 36;
-            ctx.moveTo(x - spikeW, cy);
-            ctx.quadraticCurveTo(
-              x - spikeW * 0.5,
-              cy + spikeH * 0.5,
-              x,
-              cy + spikeH,
-            );
-            ctx.quadraticCurveTo(
-              x + spikeW * 0.5,
-              cy + spikeH * 0.5,
-              x + spikeW,
-              cy,
-            );
+
+          if (status === "holding") {
+            const midX = Math.max(TARGET_X, startX);
+            
+            // Held segment (Glowing Green)
+            if (midX > startX) {
+              ctx.fillStyle = "rgba(74, 222, 128, 0.75)";
+              ctx.strokeStyle = "#4ade80";
+              ctx.beginPath();
+              if (ctx.roundRect) {
+                ctx.roundRect(startX, centerY - h / 2, midX - startX, h, [r, 0, 0, r]);
+              } else {
+                ctx.rect(startX, centerY - h / 2, midX - startX, h);
+              }
+              ctx.fill();
+              ctx.stroke();
+            }
+
+            // Incoming segment (Original Color)
+            if (endX > midX) {
+              ctx.fillStyle = colors.fill;
+              ctx.strokeStyle = colors.stroke;
+              ctx.beginPath();
+              if (ctx.roundRect) {
+                ctx.roundRect(midX, centerY - h / 2, endX - midX, h, [0, r, r, 0]);
+              } else {
+                ctx.rect(midX, centerY - h / 2, endX - midX, h);
+              }
+              ctx.fill();
+              ctx.stroke();
+            }
+          } else if (status === "completed") {
+            ctx.fillStyle = "rgba(74, 222, 128, 0.6)";
+            ctx.strokeStyle = "#4ade80";
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
+            } else {
+              ctx.rect(startX, centerY - h / 2, endX - startX, h);
+            }
+            ctx.fill();
+            ctx.stroke();
+          } else if (status === "missed") {
+            ctx.fillStyle = "rgba(100, 100, 100, 0.2)";
+            ctx.strokeStyle = "rgba(150, 150, 150, 0.4)";
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
+            } else {
+              ctx.rect(startX, centerY - h / 2, endX - startX, h);
+            }
+            ctx.fill();
+            ctx.stroke();
           } else {
-            ctx.moveTo(x - spikeW, centerY);
-            ctx.quadraticCurveTo(
-              x - spikeW * 0.5,
-              centerY - spikeH * 0.5,
-              x,
-              centerY - spikeH,
-            );
-            ctx.quadraticCurveTo(
-              x + spikeW * 0.5,
-              centerY - spikeH * 0.5,
-              x + spikeW,
-              centerY,
-            );
+            ctx.fillStyle = colors.fill;
+            ctx.strokeStyle = colors.stroke;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
+            } else {
+              ctx.rect(startX, centerY - h / 2, endX - startX, h);
+            }
+            ctx.fill();
+            ctx.stroke();
           }
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
         });
       }
     };
@@ -329,135 +449,25 @@
     };
   });
 
-  function checkLocalJump() {
-    if (playhead <= 0 || localObstacles.length === 0) return;
-
-    const nearbyObstacle = localObstacles.find((obs) => {
-      if (obs.processed && obs.processed.local) return false;
-      const diff = obs.hitTime - playhead;
-      return diff >= 0
-        ? diff <= EARLY_HIT_WINDOW
-        : Math.abs(diff) <= HIT_WINDOW;
-    });
-
-    const centerY = canvas ? canvas.height >> 1 : 110;
-    const newParticles: UnifiedParticle[] = [];
-
-    if (nearbyObstacle) {
-      if (!nearbyObstacle.processed) nearbyObstacle.processed = {};
-      nearbyObstacle.processed.local = "dodged";
-
-      pulses = [
-        {
-          alpha: 0.6,
-          color: "#4ade80",
-          lineWidth: BASE_LINE_WIDTH + SUCCESS_LINE_WIDTH_BOOST,
-        },
-      ];
-
-      // Dropped maximum particle limits down for lightweight loop execution
-      for (let k = 0; k < 10; k++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * 3;
-        newParticles.push({
-          x: TARGET_X,
-          y: centerY,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          size: 4 + Math.random() * 6,
-          alpha: 1.0,
-          color: "#86efac",
-          type: Math.random() > 0.4 ? "circle" : "square",
-          decay: 2.5,
-        });
-      }
-    } else {
-      pulses = [{ alpha: 0.4, color: "#ef4444", lineWidth: BASE_LINE_WIDTH }];
-      for (let k = 0; k < 4; k++) {
-        newParticles.push({
-          x: TARGET_X + (Math.random() - 0.5) * 15,
-          y: centerY,
-          vx: -0.5 - Math.random() * 0.7,
-          vy: 1.0 + Math.random() * 1.0,
-          size: 4 + Math.random() * 3,
-          alpha: 0.9,
-          color: "#ef4444",
-          type: "square",
-          decay: 2.5,
-        });
-      }
-    }
-    canvasParticles = [...canvasParticles, ...newParticles];
-  }
-
-  function spawnCanvasTapFX(x: number, y: number) {
-    const colors = ["#a78bfa", "#f472b6", "#60a5fa", "#34d399", "#fbbf24"];
-    const count = 8; // Dropped count from 14 to 8 elements
-    const tapFX: UnifiedParticle[] = Array.from({ length: count }).map(() => {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 3.5;
-      return {
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1.2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        size: 4 + Math.random() * 4,
-        alpha: 1.0,
-        type: "circle",
-        isTapFX: true,
-        decay: 1.8,
-      };
-    });
-
-    canvasParticles = [...canvasParticles, ...tapFX];
-  }
-
-  function handleJump(event: MouseEvent | TouchEvent) {
+  function handlePointerDown(event: PointerEvent) {
     if (event.target && (event.target as HTMLElement).id === "haptic-switch")
       return;
 
+    isHolding = true;
     isPressed = true;
-    setTimeout(() => {
-      isPressed = false;
-    }, 100);
 
-    let clientX = 0;
-    let clientY = 0;
-
-    if (typeof TouchEvent !== "undefined" && event instanceof TouchEvent) {
-      if (event.touches.length > 0) {
-        clientX = event.touches[0].clientX;
-        clientY = event.touches[0].clientY;
-      }
-    } else if (event instanceof MouseEvent) {
-      clientX = event.clientX;
-      clientY = event.clientY;
-    }
-
-    const rect = event.currentTarget
-      ? (event.currentTarget as HTMLElement).getBoundingClientRect()
-      : {
-          left: 0,
-          top: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        };
-
-    const x = clientX !== 0 ? clientX - rect.left : rect.width * 0.5;
-    const y = clientY !== 0 ? clientY - rect.top : rect.height * 0.5;
-
-    // Direct push down to shared non-DOM loop pipeline
-    spawnCanvasTapFX(x, y);
-
-    localJumpStartTime = playhead;
-    checkLocalJump();
-
-    gameClient.sendInput({ type: "jump" });
+    gameClient.sendInput({ type: "hold", value: true });
 
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(30);
     }
+  }
+
+  function handlePointerUp(event: PointerEvent) {
+    if (!isHolding) return;
+    isHolding = false;
+    isPressed = false;
+    gameClient.sendInput({ type: "hold", value: false });
   }
 </script>
 
@@ -472,8 +482,11 @@
   <label
     for="haptic-switch"
     class="fullscreen-jump-button"
-    onclick={handleJump}
-    aria-label="Jump Button"
+    onpointerdown={handlePointerDown}
+    onpointerup={handlePointerUp}
+    onpointercancel={handlePointerUp}
+    onpointerleave={handlePointerUp}
+    aria-label="Hold Button"
   >
     <div
       class="canvas-container relative w-full h-[220px] overflow-visible border-y border-white/5 my-auto pointer-events-none"
@@ -564,7 +577,7 @@
       <p
         class="text-[11px] text-zinc-400 font-medium max-w-xs leading-relaxed bg-black/60 px-4 py-2 rounded-full border border-white/5 shadow-md"
       >
-        Tap screen to jump exactly when obstacles cross your target line!
+        Hold the screen exactly when notes cross the target line, and release at the end!
       </p>
     </footer>
   </div>
