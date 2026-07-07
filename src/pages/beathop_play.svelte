@@ -563,47 +563,29 @@
 
             drawGlossHighlight(startX, endX, h, r / 2);
           } else if (status === "missed") {
-            const midX = Math.max(TARGET_X, startX);
-
-            // Passed/Missed segment to the left of the target line (Dull Gray)
-            if (midX > startX) {
-              ctx.fillStyle = "rgba(80, 80, 80, 0.2)";
-              ctx.strokeStyle = "rgba(120, 120, 120, 0.3)";
-              ctx.beginPath();
-              if (ctx.roundRect) {
-                ctx.roundRect(startX, centerY - h / 2, midX - startX, h, [
-                  r,
-                  0,
-                  0,
-                  r,
-                ]);
-              } else {
-                ctx.rect(startX, centerY - h / 2, midX - startX, h);
-              }
-              ctx.fill();
-              ctx.stroke();
+            ctx.fillStyle = "rgba(80, 80, 80, 0.2)";
+            ctx.strokeStyle = "rgba(120, 120, 120, 0.3)";
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
+            } else {
+              ctx.rect(startX, centerY - h / 2, endX - startX, h);
             }
-
-            // Incoming segment to the right of the target line (Retains vibrant color)
-            if (endX > midX) {
-              ctx.fillStyle = colors.fill;
-              ctx.strokeStyle = colors.stroke;
-              ctx.beginPath();
-              if (ctx.roundRect) {
-                ctx.roundRect(midX, centerY - h / 2, endX - midX, h, [
-                  0,
-                  r,
-                  r,
-                  0,
-                ]);
-              } else {
-                ctx.rect(midX, centerY - h / 2, endX - midX, h);
-              }
-              ctx.fill();
-              ctx.stroke();
-
-              drawGlossHighlight(midX, endX, h, [0, r / 2, r / 2, 0]);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = colors.fill;
+            ctx.strokeStyle = colors.stroke;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(startX, centerY - h / 2, endX - startX, h, r);
+            } else {
+              ctx.rect(startX, centerY - h / 2, endX - startX, h);
             }
+            ctx.fill();
+            ctx.stroke();
+
+            drawGlossHighlight(startX, endX, h, r / 2);
           }
         });
       }
@@ -647,7 +629,7 @@
   }
 </script>
 
-<div class="gameplay-container text-white select-none">
+<div class="gameplay-container text-white select-none beathop-play-page">
   <input
     type="checkbox"
     id="haptic-switch"
