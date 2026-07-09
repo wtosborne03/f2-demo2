@@ -86,11 +86,23 @@
         <!-- 4 Multiple Choice buttons -->
         <div class="flex flex-col gap-3 w-full max-w-md">
           {#each options as option, idx}
+            {@const btnColors = [
+              "border-rose-500/15 bg-rose-950/5 hover:border-rose-500/50 hover:bg-rose-950/10",
+              "border-blue-500/15 bg-blue-950/5 hover:border-blue-500/50 hover:bg-blue-950/10",
+              "border-emerald-500/15 bg-emerald-950/5 hover:border-emerald-500/50 hover:bg-emerald-950/10",
+              "border-amber-500/15 bg-amber-950/5 hover:border-amber-500/50 hover:bg-amber-950/10"
+            ][idx]}
+            {@const badgeColors = [
+              "bg-rose-950/80 text-rose-300 border-rose-500/35",
+              "bg-blue-950/80 text-blue-300 border-blue-500/35",
+              "bg-emerald-950/80 text-emerald-300 border-emerald-500/35",
+              "bg-amber-950/80 text-amber-300 border-amber-500/35"
+            ][idx]}
             <button
-              class="option-btn flex items-center gap-4 w-full p-4 bg-white/5 border border-white/10 hover:border-purple-500/50 rounded-2xl text-left transition-all active:scale-95 duration-100"
+              class="option-btn flex items-center gap-4 w-full p-4 border {btnColors} rounded-2xl text-left transition-all active:scale-95 duration-100"
               on:click={() => submitAnswer(option)}
             >
-              <span class="option-badge flex items-center justify-center w-8 h-8 rounded-xl font-black text-xs bg-purple-950 text-purple-300 border border-purple-500/25 shrink-0">
+              <span class="option-badge flex items-center justify-center w-8 h-8 rounded-xl font-black text-xs border {badgeColors} shrink-0">
                 {optionLabels[idx]}
               </span>
               <span class="text-sm font-extrabold text-zinc-100 truncate line-clamp-1">{option}</span>
