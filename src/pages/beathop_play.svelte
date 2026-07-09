@@ -3,737 +3,311 @@
   import {
     gameClient,
     gameState,
-    serverTimeOffset,
   } from "$lib/wsapi/gameClient";
   import { onMount } from "svelte";
 
-  let lastScore = 0;
-  let isPressed = false;
-  let showScorePop = false;
-  let scorePopClass = false;
-  let score = 0;
-  let scorePopText = "+100";
-  let scoreTimeout: any;
-  let wasHolding = false;
+  $: subState = $gameState.page_data?.subState || "listening";
+  $: title = $gameState.page_data?.title || "Music Video";
+  $: thumbnail = $gameState.page_data?.thumbnail || "";
+  $: prompt = $gameState.page_data?.prompt || "";
+  $: options = $gameState.page_data?.options || [];
+  $: correctAnswer = $gameState.page_data?.correctAnswer || "";
+  $: selectedAnswer = $gameState.page_data?.selectedAnswer || "";
+  $: isCorrect = $gameState.page_data?.isCorrect === true;
+  $: pointsGained = $gameState.page_data?.pointsGained || 0;
+  $: roundScore = $gameState.page_data?.roundScore || 0;
 
-  function addPoints(amount: number) {
-    score = Math.max(0, score + amount);
-    gameClient.sendInput({ type: "scoreUpdate", score });
-
-    if (amount > 0) {
-      scorePopText = `+${amount}`;
-    } else {
-      scorePopText = `${amount}`;
-    }
-    showScorePop = true;
-    scorePopClass = true;
-    if (scoreTimeout) clearTimeout(scoreTimeout);
-    scoreTimeout = setTimeout(() => {
-      showScorePop = false;
-      scorePopClass = false;
-    }, 500);
-  }
-
-  const OBSTACLE_SPEED = 250;
-  const TARGET_X = 60;
-  const BASE_LINE_WIDTH = 4;
-
-  const HIT_WINDOW = 0.08;
-  const EARLY_HIT_WINDOW = 0.12;
-
-  const LANE_COLORS = [
-    "#22c55e", // Green
-    "#ef4444", // Red
-    "#eab308", // Yellow
-    "#3b82f6", // Blue
-    "#f97316"  // Orange
-  ];
-  const NEON_FILL_COLORS = [
-    "rgba(34, 197, 94, 0.85)",
-    "rgba(239, 68, 68, 0.85)",
-    "rgba(234, 179, 8, 0.85)",
-    "rgba(59, 130, 246, 0.85)",
-    "rgba(249, 115, 22, 0.85)"
-  ];
-
-  const OBSTACLE_TYPES = [
-    "STANDARD_NOTE",
-    "LOW_WALL_JUMP",
-    "HIGH_DODGE",
-    "CENTER_VOCAL_ORB",
-    "WIDE_BARRIER",
-  ];
-  function mapNumToType(num: number): string {
-    const idx = Math.round(num);
-    return OBSTACLE_TYPES[idx] || "STANDARD_NOTE";
-  }
-
-  let canvas: HTMLCanvasElement;
-  let animationFrameId: number;
-  let lastTimestamp = performance.now();
-
-  interface Obstacle {
-    id: number;
-    startTime: number;
-    endTime: number;
-    lane: number;
-    type: string;
-    processed: { local?: "completed" | "missed" };
-  }
-
-  interface LanePulse {
-    alpha: number;
-    color: string;
-    lineWidth: number;
-  }
-
-  interface UnifiedParticle {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    size: number;
-    alpha: number;
-    color: string;
-    type: "square" | "circle";
-    decay: number;
-  }
-
-  let localObstacles: Obstacle[] = [];
-  let pulses: LanePulse[] = [];
-  let canvasParticles: UnifiedParticle[] = [];
-
-  // Fret buttons pressed state
-  let buttonsPressed = [false, false, false, false, false];
-
-  $: startTime = $gameState.page_data?.startTime || 0;
-  $: paused = $gameState.page_data?.paused !== false;
-  $: pausedTime = $gameState.page_data?.pausedTime || 0;
-  $: laneIndex = $gameState.page_data?.laneIndex || 0;
-  $: rawBeats = $gameState.page_data?.beats || [];
-
-  $: {
-    if (rawBeats && rawBeats.length > 0) {
-      const decoded: Obstacle[] = [];
-      for (let i = 0; i < rawBeats.length; i += 6) {
-        decoded.push({
-          id: i / 6 + 1,
-          startTime: rawBeats[i],
-          endTime: rawBeats[i + 1],
-          lane: Math.round(rawBeats[i + 2]),
-          type: mapNumToType(rawBeats[i + 3]),
-          processed: {},
-        });
-      }
-      localObstacles = decoded;
-    } else {
-      localObstacles = [];
-    }
-  }
-
-  let playhead = 0;
-  $: {
-    if (paused) {
-      playhead = pausedTime;
-    }
-  }
-
-  onMount(() => {
-    lastTimestamp = performance.now();
-
-    const tick = (timestamp: number) => {
-      animationFrameId = requestAnimationFrame(tick);
-
-      const deltaTime = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
-      lastTimestamp = timestamp;
-
-      if (!paused && startTime > 0) {
-        playhead = (Date.now() + $serverTimeOffset - startTime) / 1000;
-      }
-
-      if (playhead > 0 && localObstacles.length > 0 && !paused) {
-        localObstacles.forEach((obs) => {
-          const status = obs.processed.local;
-
-          if (!status) {
-            if (playhead > obs.startTime + HIT_WINDOW) {
-              obs.processed.local = "missed";
-            }
-          } else if (status === "holding") {
-            const isButtonHeld = buttonsPressed[obs.lane] === true;
-            if (!isButtonHeld) {
-              obs.processed.local = "missed";
-            } else {
-              // Add continuous points (+150 pts/sec)
-              addPoints(Math.round(150 * deltaTime));
-
-              // If we reached endTime, complete it and grant a +100 bonus
-              if (playhead >= obs.endTime) {
-                obs.processed.local = "completed";
-                addPoints(100);
-              }
-
-              // Spawn particles at target line during hold!
-              const newParticles: UnifiedParticle[] = [];
-              const laneY = (obs.lane + 0.5) * (canvas.height / 5);
-              const angle = Math.random() * Math.PI * 2;
-              const speed = 2 + Math.random() * 2;
-              newParticles.push({
-                x: TARGET_X,
-                y: laneY,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                size: 3 + Math.random() * 3,
-                alpha: 0.9,
-                color: LANE_COLORS[obs.lane],
-                type: "circle",
-                decay: 2.0,
-              });
-              canvasParticles = [...canvasParticles, ...newParticles];
-            }
-          }
-        });
-      }
-
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d", { alpha: false });
-      if (!ctx) return;
-
-      const W = canvas.width;
-      const H = canvas.height;
-      const laneH = H / 5;
-
-      ctx.fillStyle = "#171212";
-      ctx.fillRect(0, 0, W, H);
-
-      // Draw vertical grid lines (Guitar Hero fretboard style)
-      if (playhead >= 0) {
-        const gridSpacing = 0.5;
-        const firstGridTime = Math.floor(playhead / gridSpacing) * gridSpacing;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
-        ctx.lineWidth = 1;
-        for (
-          let t = firstGridTime;
-          t < playhead + W / OBSTACLE_SPEED;
-          t += gridSpacing
-        ) {
-          const x = TARGET_X + (t - playhead) * OBSTACLE_SPEED;
-          if (x > TARGET_X && x < W) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, H);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // Draw neon target line (Guitar Hero strike bar vertical glow)
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.12)";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(TARGET_X, 0);
-      ctx.lineTo(TARGET_X, H);
-      ctx.stroke();
-
-      ctx.strokeStyle = "#a855f7";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(TARGET_X, 0);
-      ctx.lineTo(TARGET_X, H);
-      ctx.stroke();
-
-      // Draw Player highway separation lines
-      for (let l = 1; l < 5; l++) {
-        const lineY = l * laneH;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, lineY); ctx.lineTo(W, lineY); ctx.stroke();
-      }
-
-      // Draw standard base lane lines (glowing if button pressed)
-      for (let l = 0; l < 5; l++) {
-        const laneY = (l + 0.5) * laneH;
-        const isPressed = buttonsPressed[l] === true;
-
-        if (isPressed) {
-          ctx.strokeStyle = `${LANE_COLORS[l]}55`;
-          ctx.lineWidth = BASE_LINE_WIDTH + 2;
-        } else {
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-          ctx.lineWidth = BASE_LINE_WIDTH;
-        }
-        ctx.beginPath();
-        ctx.moveTo(0, laneY);
-        ctx.lineTo(W, laneY);
-        ctx.stroke();
-      }
-
-      // Draw Target buttons for each lane
-      for (let l = 0; l < 5; l++) {
-        const laneY = (l + 0.5) * laneH;
-        const isPressed = buttonsPressed[l] === true;
-        const baseColor = LANE_COLORS[l];
-
-        ctx.lineWidth = 3;
-        if (isPressed) {
-          ctx.fillStyle = baseColor;
-          ctx.beginPath();
-          ctx.arc(TARGET_X, laneY, 11, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-          ctx.beginPath();
-          ctx.arc(TARGET_X, laneY, 14, 0, Math.PI * 2);
-          ctx.stroke();
-        } else {
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-          ctx.beginPath();
-          ctx.arc(TARGET_X, laneY, 9, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.strokeStyle = baseColor;
-          ctx.beginPath();
-          ctx.arc(TARGET_X, laneY, 5, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-      }
-
-      // Unified Particle System Engine updates
-      if (!paused && canvasParticles.length > 0) {
-        canvasParticles = canvasParticles.filter((p) => {
-          p.x += p.vx * deltaTime * 60;
-          p.y += p.vy * deltaTime * 60;
-
-          p.alpha -= deltaTime * p.decay;
-          if (p.alpha <= 0) return false;
-
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = p.alpha;
-
-          if (p.type === "circle") {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-          } else {
-            ctx.fillRect(
-              p.x - p.size * 0.5,
-              p.y - p.size * 0.5,
-              p.size,
-              p.size,
-            );
-          }
-          return true;
-        });
-        ctx.globalAlpha = 1.0;
-      }
-
-      // Draw Obstacles (rounded neon capsules with glossy inner cylinder look)
-      if (playhead >= 0) {
-        const drawGlossHighlight = (
-          sx: number,
-          ex: number,
-          hVal: number,
-          rads: any,
-        ) => {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-          ctx.beginPath();
-          if (ctx.roundRect) {
-            ctx.roundRect(sx, centerY - hVal / 4, ex - sx, hVal / 2, rads);
-          } else {
-            ctx.rect(sx, centerY - hVal / 4, ex - sx, hVal / 2);
-          }
-          ctx.fill();
-        };
-
-        localObstacles.forEach((obs) => {
-          const startX = TARGET_X + (obs.startTime - playhead) * OBSTACLE_SPEED;
-          const endX = TARGET_X + (obs.endTime - playhead) * OBSTACLE_SPEED;
-
-          if (endX < -40 || startX > W + 40) return;
-
-          const h = 18;
-          const r = h / 2;
-          const centerY = (obs.lane + 0.5) * laneH;
-
-          const status = obs.processed ? obs.processed.local : undefined;
-
-          if (status === "completed") {
-            // Successfully played notes disappear!
-            return;
-          }
-
-          let drawnStartX = startX;
-          let drawnEndX = endX;
-          let fillStyle = NEON_FILL_COLORS[obs.lane];
-          let strokeStyle = LANE_COLORS[obs.lane];
-
-          if (status === "holding") {
-            drawnStartX = TARGET_X;
-            drawnEndX = endX;
-            fillStyle = "rgba(34, 197, 94, 0.85)";
-            strokeStyle = "#22c55e";
-          } else if (status === "missed") {
-            fillStyle = "rgba(100, 100, 100, 0.15)";
-            strokeStyle = "rgba(150, 150, 150, 0.3)";
-          }
-
-          ctx.lineWidth = 2.5;
-          ctx.fillStyle = fillStyle;
-          ctx.strokeStyle = strokeStyle;
-          ctx.beginPath();
-          if (ctx.roundRect) {
-            ctx.roundRect(drawnStartX, centerY - h / 2, drawnEndX - drawnStartX, h, r);
-          } else {
-            ctx.rect(drawnStartX, centerY - h / 2, drawnEndX - drawnStartX, h);
-          }
-          ctx.fill();
-          ctx.stroke();
-
-          drawGlossHighlight(drawnStartX, drawnEndX, h, r / 2);
-        });
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(tick);
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        canvas.width = entry.contentRect.width;
-        canvas.height = entry.contentRect.height;
-      }
-    });
-    if (canvas) resizeObserver.observe(canvas);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      resizeObserver.disconnect();
-    };
-  });
-
-  function handleFretDown(l: number, event: PointerEvent) {
-    if (event.button !== 0) return;
-    buttonsPressed[l] = true;
-    buttonsPressed = [...buttonsPressed];
-
-    gameClient.sendInput({ type: "buttonState", lane: l, pressed: true });
-
+  function submitAnswer(answer: string) {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(30);
     }
-
-    // Tap timing validation
-    const hasValidNote = localObstacles.some((obs) => {
-      if (obs.lane !== l) return false;
-      const status = obs.processed.local;
-      if (status) return false;
-      return (
-        playhead >= obs.startTime - EARLY_HIT_WINDOW &&
-        playhead <= obs.startTime + HIT_WINDOW
-      );
+    gameClient.sendInput({
+      type: "submit_lyric_answer",
+      answer,
     });
-
-    if (hasValidNote) {
-      localObstacles.forEach((obs) => {
-        if (obs.lane !== l) return;
-        if (!obs.processed.local) {
-          if (
-            playhead >= obs.startTime - EARLY_HIT_WINDOW &&
-            playhead <= obs.startTime + HIT_WINDOW
-          ) {
-            const isHold = (obs.endTime - obs.startTime) > 0.25;
-            if (isHold) {
-              obs.processed.local = "holding";
-            } else {
-              obs.processed.local = "completed";
-              addPoints(100);
-            }
-
-            // Spawn success particles
-            const newParticles: UnifiedParticle[] = [];
-            const laneH = canvas ? canvas.height / 5 : 44;
-            const laneY = (l + 0.5) * laneH;
-            for (let k = 0; k < 8; k++) {
-              const angle = Math.random() * Math.PI * 2;
-              const speed = 2 + Math.random() * 3;
-              newParticles.push({
-                x: TARGET_X,
-                y: laneY,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                size: 4 + Math.random() * 5,
-                alpha: 1.0,
-                color: LANE_COLORS[l],
-                type: Math.random() > 0.4 ? "circle" : "square",
-                decay: 2.5,
-              });
-            }
-            canvasParticles = [...canvasParticles, ...newParticles];
-          }
-        }
-      });
-    } else {
-      addPoints(-50);
-
-      // Trigger red warning particles
-      const newParticles: UnifiedParticle[] = [];
-      const laneH = canvas ? canvas.height / 5 : 44;
-      const laneY = (l + 0.5) * laneH;
-      for (let k = 0; k < 5; k++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 1.5 + Math.random() * 2.0;
-        newParticles.push({
-          x: TARGET_X,
-          y: laneY,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          size: 4 + Math.random() * 4,
-          alpha: 0.8,
-          color: "#ef4444",
-          type: "square",
-          decay: 2.0,
-        });
-      }
-      canvasParticles = [...canvasParticles, ...newParticles];
-    }
   }
 
-  function handleFretUp(l: number, event: PointerEvent) {
-    if (!buttonsPressed[l]) return;
-    buttonsPressed[l] = false;
-    buttonsPressed = [...buttonsPressed];
-    gameClient.sendInput({ type: "buttonState", lane: l, pressed: false });
-  }
-
-  function getNeonColor(type: string): { fill: string; stroke: string; glow: string } {
-    return {
-      fill: "rgba(168, 85, 247, 0.8)",
-      stroke: "#a855f7",
-      glow: "rgba(168, 85, 247, 0.4)",
-    };
-  }
+  const optionLabels = ["A", "B", "C", "D"];
 </script>
 
-<div class="gameplay-container text-white select-none beathop-play-page">
-  <input
-    type="checkbox"
-    id="haptic-switch"
-    {...{ switch: true }}
-    class="haptic-checkbox"
-  />
-
-  <div class="flex flex-col w-full h-full justify-between items-center my-auto py-2">
-    <!-- 5-Lane Canvas highway -->
-    <div
-      class="canvas-container relative w-full h-[220px] overflow-visible border-y border-white/5 pointer-events-none"
-    >
-      <canvas bind:this={canvas} class="w-full h-full block" />
+<div class="gameplay-container text-white select-none beathop-play-page flex flex-col justify-between h-full w-full p-6">
+  
+  <!-- Top Section: Header & Song Metadata -->
+  <header class="w-full flex items-center gap-4 bg-zinc-950/40 backdrop-blur-md p-4 rounded-2xl border border-white/5 shadow-md">
+    {#if thumbnail}
+      <img
+        src={thumbnail}
+        alt="Video Thumbnail"
+        class="w-16 h-12 object-cover rounded-lg border border-white/10"
+      />
+    {:else}
+      <div class="w-16 h-12 flex justify-center items-center bg-purple-950/50 rounded-lg border border-purple-500/20">
+        <span class="text-xl">🎵</span>
+      </div>
+    {/if}
+    <div class="flex-1 min-w-0">
+      <span class="text-[9px] text-purple-400 font-extrabold uppercase tracking-widest block">Lyric Challenge</span>
+      <h2 class="text-sm font-bold text-zinc-100 truncate mt-0.5">{title}</h2>
+      <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Round Score: {roundScore} pts</div>
     </div>
+  </header>
 
-    <!-- 5 Colored Fret Buttons -->
-    <div class="fret-buttons-container flex justify-around w-full max-w-md px-4 mt-6">
-      {#each [0, 1, 2, 3, 4] as l}
-        <button
-          class="fret-button fret-button-{l} w-[68px] h-[68px] rounded-full border-4 flex items-center justify-center transition-all active:scale-90 duration-75"
-          style="border-color: {LANE_COLORS[l]}; background-color: {buttonsPressed[l] ? LANE_COLORS[l] : 'rgba(28,22,22,0.6)'}; box-shadow: {buttonsPressed[l] ? `0 0 20px ${LANE_COLORS[l]}` : 'none'};"
-          on:pointerdown={(e) => handleFretDown(l, e)}
-          on:pointerup={(e) => handleFretUp(l, e)}
-          on:pointercancel={(e) => handleFretUp(l, e)}
-          on:pointerleave={(e) => handleFretUp(l, e)}
-        >
-          <div class="inner-circle w-6 h-6 rounded-full border-2 border-white/20" />
-        </button>
-      {/each}
-    </div>
-  </div>
+  <!-- Middle Section: Dynamic state-based layouts -->
+  <main class="flex-1 flex flex-col justify-center items-center w-full my-6 overflow-y-auto">
+    
+    <!-- 1. LISTENING STATE -->
+    {#if subState === "listening"}
+      <div class="flex flex-col items-center text-center animate-fade-in p-4 w-full">
+        <!-- Equalizer animation -->
+        <div class="listening-eq flex items-end gap-2 h-16 w-32 justify-center mb-8">
+          {#each [1, 2, 3, 4, 5, 6] as bar}
+            <span class="eq-bar eq-bar-{bar} w-1.5 bg-gradient-to-t from-purple-500 via-pink-500 to-amber-400 rounded-full"></span>
+          {/each}
+        </div>
+        <h1 class="text-xl font-black tracking-wide uppercase text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+          Listen Carefully!
+        </h1>
+        <p class="text-zinc-400 text-sm mt-3 max-w-xs leading-relaxed">
+          The song is playing on the big screen. Follow the lyrics closely!
+        </p>
+      </div>
 
-  <div class="overlay-container pointer-events-none">
-    <header
-      class="w-full flex flex-col items-center gap-4 py-4 pointer-events-none"
-    >
-      <div class="track-card w-full max-w-md sm:max-w-xs">
-        {#if $gameState.page_data?.thumbnail}
-          <img
-            src={$gameState.page_data.thumbnail}
-            alt="Video Thumbnail"
-            class="track-thumbnail"
-          />
-        {:else}
-          <div class="track-thumbnail-placeholder">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-music text-purple-400"
+    <!-- 2. QUESTION PROMPTING STATE -->
+    {:else if subState === "question"}
+      <div class="flex flex-col items-center w-full animate-fade-in gap-5">
+        <!-- Question prompt bubble -->
+        <div class="w-full bg-zinc-900/60 backdrop-blur-lg border border-white/10 rounded-2xl p-5 shadow-lg text-center">
+          <span class="text-[10px] text-purple-400 font-black uppercase tracking-widest">Complete the line:</span>
+          <p class="text-lg font-black text-white leading-relaxed mt-2 italic">
+            "{prompt}"
+          </p>
+        </div>
+
+        <!-- 4 Multiple Choice buttons -->
+        <div class="flex flex-col gap-3 w-full max-w-md">
+          {#each options as option, idx}
+            <button
+              class="option-btn flex items-center gap-4 w-full p-4 bg-white/5 border border-white/10 hover:border-purple-500/50 rounded-2xl text-left transition-all active:scale-95 duration-100"
+              on:click={() => submitAnswer(option)}
             >
-              <path d="M9 18V5l12-2v13" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
-          </div>
-        {/if}
-        <div class="flex-1 min-w-0">
-          <span
-            class="text-[10px] text-purple-400 font-bold uppercase tracking-widest block"
-            >Now Playing</span
-          >
-          <h2 class="text-sm font-bold text-zinc-100 truncate mt-0.5">
-            {$gameState.page_data?.title || "Music Video"}
-          </h2>
+              <span class="option-badge flex items-center justify-center w-8 h-8 rounded-xl font-black text-xs bg-purple-950 text-purple-300 border border-purple-500/25 shrink-0">
+                {optionLabels[idx]}
+              </span>
+              <span class="text-sm font-extrabold text-zinc-100 truncate line-clamp-1">{option}</span>
+            </button>
+          {/each}
         </div>
       </div>
 
-      <div class="score-display">
-        <span
-          class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest"
-          >Your Score</span
-        >
-        <span
-          class="score-number {score < 0
-            ? 'text-rose-500'
-            : 'text-emerald-400'}"
-          class:pop={scorePopClass}
-        >
-          {score}
-        </span>
-        {#if showScorePop}
-          <span class="score-pop">{scorePopText}</span>
+    <!-- 3. ANSWERED / WAITING STATE -->
+    {:else if subState === "answered"}
+      <div class="flex flex-col items-center text-center animate-fade-in p-4">
+        <div class="pulse-ring-loader mb-8">
+          <div class="inner-loader-circle">✓</div>
+        </div>
+        <h1 class="text-lg font-black uppercase tracking-wider text-emerald-400">
+          Answer Submitted!
+        </h1>
+        <p class="text-zinc-400 text-sm mt-2 max-w-xs leading-relaxed">
+          Waiting for other players to finish their guesses...
+        </p>
+        {#if selectedAnswer}
+          <div class="mt-6 px-4 py-2 bg-white/5 border border-white/10 rounded-xl max-w-xs text-xs font-semibold text-zinc-300 truncate">
+            Your guess: <span class="text-purple-300">"{selectedAnswer}"</span>
+          </div>
         {/if}
       </div>
-    </header>
 
-    <footer class="py-2 text-center pointer-events-none">
-      <p
-        class="text-[11px] text-zinc-400 font-medium max-w-xs leading-relaxed bg-[#1c1616]/90 px-4 py-2 rounded-full border border-white/5 shadow-md"
-      >
-        Tap the 5 colored fret buttons exactly when notes cross the target line!
-      </p>
-    </footer>
-  </div>
+    <!-- 4. OUTCOME STATE (CORRECT/INCORRECT) -->
+    {:else if subState === "outcome"}
+      <div class="flex flex-col items-center text-center w-full animate-fade-in p-4 gap-6">
+        
+        {#if isCorrect}
+          <!-- Correct outcome -->
+          <div class="flex flex-col items-center">
+            <div class="outcome-success-ring mb-4">
+              <span class="text-3xl">✓</span>
+            </div>
+            <h1 class="text-3xl font-black uppercase tracking-widest text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.4)]">
+              Correct!
+            </h1>
+            <span class="text-xl font-extrabold text-white mt-2 animate-bounce">
+              +{pointsGained} PTS
+            </span>
+          </div>
+        {:else}
+          <!-- Incorrect outcome -->
+          <div class="flex flex-col items-center w-full">
+            <div class="outcome-fail-ring mb-4">
+              <span class="text-3xl">✗</span>
+            </div>
+            <h1 class="text-3xl font-black uppercase tracking-widest text-rose-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+              Incorrect
+            </h1>
+            <span class="text-sm font-extrabold text-zinc-500 mt-2">
+              +0 PTS
+            </span>
+          </div>
+        {/if}
+
+        <!-- Lyric details card -->
+        <div class="w-full max-w-md bg-zinc-950/50 border border-white/5 rounded-2xl p-5 mt-4 text-left flex flex-col gap-3">
+          <div>
+            <span class="text-[9px] text-zinc-500 font-extrabold uppercase tracking-widest block">Original Prompt:</span>
+            <p class="text-xs text-zinc-400 italic mt-0.5">"{prompt}"</p>
+          </div>
+          
+          <div class="border-t border-white/5 pt-3">
+            <span class="text-[9px] text-emerald-400 font-extrabold uppercase tracking-widest block">Correct Lyrics:</span>
+            <p class="text-sm font-bold text-emerald-400 mt-0.5">"{correctAnswer}"</p>
+          </div>
+
+          {#if !isCorrect && selectedAnswer}
+            <div class="border-t border-white/5 pt-3">
+              <span class="text-[9px] text-rose-400 font-extrabold uppercase tracking-widest block">Your Guess:</span>
+              <p class="text-sm font-bold text-rose-400 mt-0.5 line-through">"{selectedAnswer}"</p>
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
+  </main>
+
+  <!-- Bottom Section: Info Footer -->
+  <footer class="w-full flex justify-center py-2">
+    <p class="text-[10px] text-zinc-500 font-semibold tracking-wider uppercase bg-zinc-950/20 px-4 py-2 rounded-full border border-white/5">
+      BeatHop: Lyric Edition
+    </p>
+  </footer>
+
 </div>
 
 <style>
-  .haptic-checkbox {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-  }
-
   .gameplay-container {
-    position: relative;
-    width: 100%;
     height: 100%;
-    overflow: hidden;
+    box-sizing: border-box;
     font-family: "Inter", system-ui, sans-serif;
+    background-color: #0b0a0f !important;
   }
   :global(body:has(.beathop-play-page)) {
-    background-color: #171212 !important;
+    background-color: #0b0a0f !important;
   }
 
-  .canvas-container {
-    z-index: 5;
-    background: #171212;
+  /* Equalizer Animation */
+  .listening-eq {
+    perspective: 1000px;
   }
 
-  .overlay-container {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    box-sizing: border-box;
-    z-index: 10;
+  .eq-bar {
+    height: 100%;
+    transform-origin: bottom;
+    animation: eqPulse 1s ease-in-out infinite alternate;
   }
 
-  .track-card {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba(28, 22, 22, 0.85);
-    border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+  .eq-bar-1 { animation-duration: 0.6s; animation-delay: 0.1s; }
+  .eq-bar-2 { animation-duration: 0.8s; animation-delay: 0.3s; }
+  .eq-bar-3 { animation-duration: 0.5s; animation-delay: 0.0s; }
+  .eq-bar-4 { animation-duration: 0.9s; animation-delay: 0.4s; }
+  .eq-bar-5 { animation-duration: 0.7s; animation-delay: 0.2s; }
+  .eq-bar-6 { animation-duration: 0.6s; animation-delay: 0.5s; }
+
+  @keyframes eqPulse {
+    0% { transform: scaleY(0.15); }
+    100% { transform: scaleY(1); }
   }
 
-  .track-thumbnail {
-    width: 56px;
-    height: 42px;
-    object-fit: cover;
-    border-radius: 0.375rem;
+  /* Fade-in Animation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  .track-thumbnail-placeholder {
-    width: 56px;
-    height: 42px;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Pulse Ring Loader */
+  .pulse-ring-loader {
+    position: relative;
+    width: 64px;
+    height: 64px;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(139, 92, 246, 0.1);
-    border-radius: 0.375rem;
   }
 
-  .score-display {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-
-  .score-number {
-    font-size: 3.5rem;
-    font-weight: 900;
-    transition: transform 0.1s ease-out;
-    display: inline-block;
-  }
-
-  .score-number.pop {
-    transform: scale(1.15);
-  }
-
-  .score-pop {
+  .pulse-ring-loader::before {
+    content: "";
     position: absolute;
-    right: -2.2rem;
-    top: 1.2rem;
-    color: #34d399;
-    font-weight: 900;
-    font-size: 1.2rem;
-    animation: popUp 0.4s ease-out forwards;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.2);
+    animation: pulseLoaderRing 1.8s ease-out infinite;
   }
 
-  .fret-buttons-container {
-    z-index: 10;
+  .inner-loader-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #10b981;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    z-index: 2;
   }
 
-  .fret-button {
-    outline: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .inner-circle {
-    box-sizing: border-box;
-  }
-
-  @keyframes popUp {
+  @keyframes pulseLoaderRing {
     0% {
-      opacity: 0;
-      transform: translateY(8px) scale(0.8);
-    }
-    30% {
-      opacity: 1;
-      transform: translateY(-2px) scale(1.05);
+      transform: scale(0.8);
+      opacity: 0.8;
     }
     100% {
+      transform: scale(1.8);
       opacity: 0;
-      transform: translateY(-15px);
     }
+  }
+
+  /* Outcome Success Ring */
+  .outcome-success-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #10b981;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+  }
+
+  /* Outcome Fail Ring */
+  .outcome-fail-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #ef4444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+  }
+
+  /* Option Buttons Styling */
+  .option-btn {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
   }
 </style>

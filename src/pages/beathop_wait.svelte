@@ -24,9 +24,10 @@
   <p
     class="text-zinc-600 text-xs mt-10 uppercase tracking-widest font-semibold animate-pulse"
   >
-    Get ready to jump...
+    Get ready to guess the lyrics...
   </p>
 </div>
+
 
 <style>
   .wait-container {
