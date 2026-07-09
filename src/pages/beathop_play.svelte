@@ -35,9 +35,12 @@
     <div class="header-track-info">
       <h2 class="track-title" {title}>{title}</h2>
     </div>
-    <div class="score-badge">
-      <span class="score-value">{roundScore}</span>
-    </div>
+    {#if thumbnail}
+      <div class="banner-thumbnail-wrapper">
+        <img src={thumbnail} alt="" class="banner-thumbnail" />
+        <div class="banner-overlay"></div>
+      </div>
+    {/if}
   </header>
 
   <!-- Main Interaction Area -->
@@ -71,12 +74,6 @@
       <!-- Lyric Question Mode -->
       <div class="question-view animate-fade-in">
         <!-- Compact Banner Thumbnail -->
-        {#if thumbnail}
-          <div class="banner-thumbnail-wrapper">
-            <img src={thumbnail} alt="" class="banner-thumbnail" />
-            <div class="banner-overlay"></div>
-          </div>
-        {/if}
 
         <!-- Prompt Card -->
         <Card variant="outlined" class="prompt-card-override">
@@ -339,8 +336,8 @@
 
   .banner-thumbnail-wrapper {
     position: relative;
-    width: 100%;
-    height: 5.5rem;
+    width: 9rem;
+    height: 5rem;
     border-radius: var(--m3-shape-large);
     overflow: hidden;
     border: 1px solid var(--m3c-outline-variant);
@@ -410,6 +407,7 @@
   .option-text {
     @apply --m3-title-small;
     font-weight: 700;
+    font-size: large;
     line-clamp: 2;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -420,20 +418,20 @@
   .opt-rose {
     background: linear-gradient(
       135deg,
-      rgba(251, 113, 133, 0.12) 0%,
-      rgba(225, 29, 72, 0.05) 100%
+      rgba(251, 113, 133, 0.52) 0%,
+      rgba(225, 29, 72, 0.87) 100%
     );
-    border-color: rgba(251, 113, 133, 0.3);
+    border-color: rgba(251, 113, 133, 1);
     color: #fda4af;
     text-shadow: 0 0 8px rgba(251, 113, 133, 0.25);
   }
   .opt-rose:hover {
     background: linear-gradient(
       135deg,
-      rgba(251, 113, 133, 0.22) 0%,
-      rgba(225, 29, 72, 0.1) 100%
+      rgba(251, 113, 133, 0.9) 0%,
+      rgba(225, 29, 72, 1) 100%
     );
-    border-color: rgba(251, 113, 133, 0.6);
+    border-color: rgba(251, 113, 133, 1);
     box-shadow: 0 0 12px rgba(251, 113, 133, 0.15);
   }
 
@@ -441,20 +439,20 @@
   .opt-blue {
     background: linear-gradient(
       135deg,
-      rgba(96, 165, 250, 0.12) 0%,
-      rgba(37, 99, 235, 0.05) 100%
+      rgba(96, 165, 250, 0.52) 0%,
+      rgba(37, 99, 235, 0.87) 100%
     );
-    border-color: rgba(96, 165, 250, 0.3);
+    border-color: rgba(96, 165, 250, 1);
     color: #93c5fd;
     text-shadow: 0 0 8px rgba(96, 165, 250, 0.25);
   }
   .opt-blue:hover {
     background: linear-gradient(
       135deg,
-      rgba(96, 165, 250, 0.22) 0%,
-      rgba(37, 99, 235, 0.1) 100%
+      rgba(96, 165, 250, 0.9) 0%,
+      rgba(37, 99, 235, 1) 100%
     );
-    border-color: rgba(96, 165, 250, 0.6);
+    border-color: rgba(96, 165, 250, 1);
     box-shadow: 0 0 12px rgba(96, 165, 250, 0.15);
   }
 
@@ -462,20 +460,20 @@
   .opt-green {
     background: linear-gradient(
       135deg,
-      rgba(52, 211, 153, 0.12) 0%,
-      rgba(5, 150, 105, 0.05) 100%
+      rgba(52, 211, 153, 0.52) 0%,
+      rgba(5, 150, 105, 0.87) 100%
     );
-    border-color: rgba(52, 211, 153, 0.3);
+    border-color: rgba(52, 211, 153, 1);
     color: #a7f3d0;
     text-shadow: 0 0 8px rgba(52, 211, 153, 0.25);
   }
   .opt-green:hover {
     background: linear-gradient(
       135deg,
-      rgba(52, 211, 153, 0.22) 0%,
-      rgba(5, 150, 105, 0.1) 100%
+      rgba(52, 211, 153, 0.9) 0%,
+      rgba(5, 150, 105, 1) 100%
     );
-    border-color: rgba(52, 211, 153, 0.6);
+    border-color: rgba(52, 211, 153, 1);
     box-shadow: 0 0 12px rgba(52, 211, 153, 0.15);
   }
 
@@ -483,20 +481,20 @@
   .opt-amber {
     background: linear-gradient(
       135deg,
-      rgba(251, 191, 36, 0.12) 0%,
-      rgba(217, 119, 6, 0.05) 100%
+      rgba(251, 191, 36, 0.52) 0%,
+      rgba(217, 119, 6, 0.87) 100%
     );
-    border-color: rgba(251, 191, 36, 0.3);
+    border-color: rgba(251, 191, 36, 1);
     color: #fde68a;
     text-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
   }
   .opt-amber:hover {
     background: linear-gradient(
       135deg,
-      rgba(251, 191, 36, 0.22) 0%,
-      rgba(217, 119, 6, 0.1) 100%
+      rgba(251, 191, 36, 0.9) 0%,
+      rgba(217, 119, 6, 1) 100%
     );
-    border-color: rgba(251, 191, 36, 0.6);
+    border-color: rgba(251, 191, 36, 1);
     box-shadow: 0 0 12px rgba(251, 191, 36, 0.15);
   }
 

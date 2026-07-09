@@ -88,10 +88,7 @@
 
 <div class="search-container">
   <header class="search-header">
-    <h1 class="title">Pick a Music Video</h1>
-    <p class="subtitle">
-      Choose a suggested track or search for any music video (1–7 minutes)
-    </p>
+    <h1 class="title">Select a Music Video</h1>
   </header>
 
   <!-- Input Area -->
