@@ -6,7 +6,6 @@
   let searchQuery = "";
   let isSearching = false;
 
-  // React to page data changes to reset loading state
   let lastPageData: any = null;
   $: {
     const currentData = $gameState.page_data;
@@ -19,11 +18,11 @@
   // Pre-configured hit songs
   const defaults = [
     {
-      videoId: "dQw4w9WgXcQ",
-      title: "Never Gonna Give You Up",
-      channelTitle: "Rick Astley",
-      thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg",
-      duration: "3:32",
+      videoId: "ila-hAUXR5U",
+      title: "Kanye West - Flashing Lights ft. Dwele",
+      channelTitle: "Kanye West",
+      thumbnail: "https://i.ytimg.com/vi/ila-hAUXR5U/mqdefault.jpg",
+      duration: "2:53",
     },
     {
       videoId: "OPf0YbXqDm0",
@@ -40,11 +39,11 @@
       duration: "4:12",
     },
     {
-      videoId: "TUVcVfQe-qI",
-      title: "Levitating",
-      channelTitle: "Dua Lipa",
-      thumbnail: "https://i.ytimg.com/vi/TUVcVfQe-qI/mqdefault.jpg",
-      duration: "3:23",
+      videoId: "KWoTyfPsqbE",
+      title: "Sabrina Carpenter - House Tour (Official Video)",
+      channelTitle: "Sabrina Carpenter",
+      thumbnail: "https://i.ytimg.com/vi/KWoTyfPsqbE/mqdefault.jpg",
+      duration: "3:34",
     },
     {
       videoId: "4NRXx6U8ABQ",
@@ -54,11 +53,11 @@
       duration: "3:20",
     },
     {
-      videoId: "djV11Xbc914",
-      title: "Take On Me",
-      channelTitle: "a-ha",
-      thumbnail: "https://i.ytimg.com/vi/djV11Xbc914/mqdefault.jpg",
-      duration: "3:40",
+      videoId: "dI3xkL7qUAc",
+      title: "Doja Cat - Need to Know (Official Video)",
+      channelTitle: "Doja Cat",
+      thumbnail: "https://i.ytimg.com/vi/dI3xkL7qUAc/mqdefault.jpg",
+      duration: "3:39",
     },
   ];
 
@@ -87,54 +86,61 @@
 </script>
 
 <div
-  class="search-container flex flex-col w-full h-full px-4 py-6 overflow-y-auto"
+  class="flex flex-col w-full h-full px-4 py-6 overflow-y-auto font-sans text-zinc-100"
 >
-  <header class="text-center mb-6">
-    <h1 class="text-2xl font-black text-white tracking-wide uppercase">
+  <header class="mb-6">
+    <h1 class="text-lg font-semibold tracking-tight text-zinc-200">
       Pick a Music Video
     </h1>
-    <p class="text-zinc-400 text-sm mt-1">
-      Select a popular track or search for any video (1–7 minutes)
+    <p class="text-xs text-zinc-400 mt-1">
+      Choose a track or search for any music video (1–7 minutes)
     </p>
   </header>
 
-  <!-- Search Bar -->
-  <div class="flex flex-row gap-2 items-center mb-6">
+  <!-- Input Area -->
+  <div class="flex items-center gap-2 mb-6 search-box-wrapper">
     <div class="grow">
       <TextFieldOutlined
         label="Search YouTube"
-        placeholder="Enter artist or song name"
+        placeholder="Artist or song name..."
         bind:value={searchQuery}
         onkeydown={handleKeyPress}
       />
     </div>
     <button
-      class="search-btn bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 h-12 font-bold transition-all flex items-center justify-center shrink-0 active:scale-95"
+      class="border border-zinc-700 bg-zinc-800/40 hover:bg-zinc-800 text-zinc-200 rounded-xl px-4 h-12 text-sm font-medium transition-all flex items-center justify-center shrink-0 active:scale-[0.98] disabled:opacity-50"
       onclick={handleSearch}
       disabled={isSearching}
     >
       {#if isSearching}
-        <span class="spinner"></span>
+        <div
+          class="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin"
+        ></div>
       {:else}
         Search
       {/if}
     </button>
   </div>
 
-  <!-- Search Results vs Suggestions -->
+  <!-- Dynamic Content Area -->
   {#if isSearching}
-    <div class="flex flex-col items-center justify-center py-10 gap-2">
-      <span class="spinner-large"></span>
-      <p class="text-zinc-400 text-sm animate-pulse">Querying YouTube...</p>
+    <div class="flex-1 flex flex-col items-center justify-center py-12 gap-3">
+      <div
+        class="w-6 h-6 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin"
+      ></div>
+      <p class="text-xs text-zinc-500 font-mono animate-pulse">Searching...</p>
     </div>
   {:else if $gameState.page_data?.results && $gameState.page_data.results.length > 0}
-    <section class="results-section flex flex-col gap-4">
-      <div class="flex flex-row justify-between items-center px-1">
-        <h2 class="text-sm font-bold text-purple-400 uppercase tracking-widest">
+    <!-- Results list -->
+    <section class="flex flex-col gap-4">
+      <div class="flex items-center justify-between px-1">
+        <h2
+          class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+        >
           Search Results
         </h2>
         <button
-          class="text-xs text-zinc-500 hover:text-zinc-400 underline font-semibold"
+          class="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
           onclick={() => {
             $gameState.page_data.results = [];
             searchQuery = "";
@@ -143,68 +149,68 @@
           Clear
         </button>
       </div>
-      <div class="flex flex-col gap-3">
+
+      <div class="flex flex-col gap-2">
         {#each $gameState.page_data.results as item}
           <button
-            class="result-card flex flex-row items-center gap-3 p-3 bg-zinc-900/60 border border-zinc-800/80 rounded-xl hover:bg-zinc-800/60 text-left transition-all active:scale-[0.98]"
+            class="flex items-center gap-4 p-3 border border-zinc-800/60 bg-zinc-900/10 rounded-xl hover:bg-zinc-800/30 text-left transition-all active:scale-[0.99]"
             onclick={() => selectSong(item.videoId, item.title)}
           >
             <img
               src={item.thumbnail}
-              alt={item.title}
-              class="w-20 h-14 object-cover rounded-md bg-zinc-950"
+              alt=""
+              class="w-16 h-12 object-cover rounded bg-zinc-900 shrink-0"
             />
-            <div class="flex-1 min-w-0 flex flex-col">
-              <span class="text-white text-sm font-bold truncate line-clamp-1"
+            <div class="min-w-0 flex-1 flex flex-col">
+              <span class="text-sm font-medium text-zinc-200 truncate"
                 >{item.title}</span
               >
-              <span class="text-zinc-400 text-xs truncate mt-0.5"
+              <span class="text-xs text-zinc-400 truncate mt-0.5"
                 >{item.channelTitle}</span
               >
-              <div class="flex flex-row gap-1.5 mt-1.5 items-center">
-                <span
-                  class="duration-badge text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded-full"
-                >
-                  {Math.floor(item.durationSeconds / 60)}:{(
-                    item.durationSeconds % 60
-                  )
-                    .toString()
-                    .padStart(2, "0")}
-                </span>
-              </div>
+              <span
+                class="self-start text-[10px] bg-zinc-800/60 text-zinc-400 font-mono px-1.5 py-0.5 rounded-md mt-1.5"
+              >
+                {Math.floor(item.durationSeconds / 60)}:{(
+                  item.durationSeconds % 60
+                )
+                  .toString()
+                  .padStart(2, "0")}
+              </span>
             </div>
           </button>
         {/each}
       </div>
     </section>
   {:else}
-    <!-- Default suggestion songs -->
-    <section class="suggestions-section flex flex-col gap-4">
+    <!-- Suggested Tracks list -->
+    <section class="flex flex-col gap-4">
       <h2
-        class="text-sm font-bold text-zinc-500 uppercase tracking-widest px-1"
+        class="text-xs font-semibold uppercase tracking-wider text-zinc-500 px-1"
       >
         Suggested Tracks
       </h2>
-      <div class="grid grid-cols-1 gap-3">
+
+      <div class="flex flex-col gap-2">
         {#each defaults as item}
           <button
-            class="result-card flex flex-row items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-800/50 rounded-xl hover:bg-zinc-800/40 text-left transition-all active:scale-[0.98]"
+            class="flex items-center gap-4 p-3 border border-zinc-800/60 bg-zinc-900/10 rounded-xl hover:bg-zinc-800/30 text-left transition-all active:scale-[0.99]"
             onclick={() => selectSong(item.videoId, item.title)}
           >
             <img
               src={item.thumbnail}
-              alt={item.title}
-              class="w-20 h-14 object-cover rounded-md bg-zinc-950"
+              alt=""
+              class="w-16 h-12 object-cover rounded bg-zinc-900 shrink-0"
             />
-            <div class="flex-1 min-w-0 flex flex-col">
-              <span class="text-white text-sm font-bold truncate line-clamp-1"
+            <div class="min-w-0 flex-1 flex flex-col">
+              <span class="text-sm font-medium text-zinc-200 truncate"
                 >{item.title}</span
               >
-              <span class="text-zinc-400 text-xs truncate mt-0.5"
+              <span class="text-xs text-zinc-400 truncate mt-0.5"
                 >{item.channelTitle}</span
               >
               <span
-                class="duration-badge self-start text-[10px] bg-zinc-800 text-zinc-300 font-bold px-1.5 py-0.5 rounded-full mt-1.5"
+                class="self-start text-[10px] bg-zinc-800/60 text-zinc-400 font-mono px-1.5 py-0.5 rounded-md mt-1.5"
               >
                 {item.duration}
               </span>
@@ -217,50 +223,19 @@
 </div>
 
 <style>
-  .search-container {
-    height: 100%;
-    box-sizing: border-box;
-  }
-
-  /* Custom Loading Spinner */
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 0.8s linear infinite;
-  }
-
-  .spinner-large {
-    width: 36px;
-    height: 36px;
-    border: 3px solid rgba(147, 51, 234, 0.2);
-    border-radius: 50%;
-    border-top-color: rgb(147, 51, 234);
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 0.5rem;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  /* Force responsive fields in Svelte */
-  :global(.search-container .m3-container) {
+  /* Svelte-isolated input overwrites for cleaner layout matches */
+  :global(.search-box-wrapper .m3-container) {
     width: 100% !important;
     height: 3rem !important;
   }
-  :global(.search-container input) {
-    font-size: 1rem !important;
+  :global(.search-box-wrapper input) {
+    font-size: 0.875rem !important;
     padding-inline-start: 1rem !important;
-    border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
   }
-  :global(.search-container label) {
-    font-size: 0.85rem !important;
+  :global(.search-box-wrapper label) {
+    font-size: 0.75rem !important;
     inset-inline-start: 0.75rem !important;
   }
 </style>
