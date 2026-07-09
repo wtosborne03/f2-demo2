@@ -26,17 +26,7 @@
         <div class="selector-badge">
           <span class="selector-name">{$gameState.page_data.selectorName}</span>
         </div>
-        <p class="wait-description">is picking the perfect music video.</p>
-      {:else}
-        <p class="wait-description">A player is picking the music video.</p>
       {/if}
-
-      <!-- M3 Loading indicator -->
-      <div class="loading-wrapper">
-        <LoadingIndicator size={48} aria-label="loading" />
-      </div>
-
-      <p class="footer-prompt">Get ready to guess the lyrics...</p>
     </div>
   </Card>
 </div>
@@ -88,7 +78,9 @@
     background: radial-gradient(circle, #2d2a37 0%, #0c0a12 100%);
     border-radius: 50%;
     position: relative;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(255, 255, 255, 0.03);
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.5),
+      0 0 0 6px rgba(255, 255, 255, 0.03);
     animation: spin 4s linear infinite;
     display: flex;
     align-items: center;
@@ -113,13 +105,19 @@
   .vinyl-center {
     width: 2.25rem;
     height: 2.25rem;
-    background: linear-gradient(135deg, var(--m3c-primary) 0%, var(--m3c-tertiary) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--m3c-primary) 0%,
+      var(--m3c-tertiary) 100%
+    );
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.3);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   .vinyl-icon {
@@ -206,7 +204,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   @keyframes floatNote {
@@ -227,7 +227,12 @@
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 </style>

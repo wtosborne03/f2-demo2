@@ -33,11 +33,9 @@
   <!-- Sleek Header -->
   <header class="play-header">
     <div class="header-track-info">
-      <span class="category-label">BeatHop</span>
-      <h2 class="track-title" title={title}>{title}</h2>
+      <h2 class="track-title" {title}>{title}</h2>
     </div>
     <div class="score-badge">
-      <span class="score-label">Score</span>
       <span class="score-value">{roundScore}</span>
     </div>
   </header>
@@ -54,7 +52,7 @@
             <div class="thumbnail-placeholder">🎵</div>
           {/if}
         </div>
-        
+
         <h3 class="status-msg">Listening closely...</h3>
         <p class="status-sub">Follow the lyrics on the main screen</p>
 
@@ -63,12 +61,12 @@
           {#each [1, 2, 3, 4, 5, 6, 7] as bar}
             <span
               class="eq-bar"
-              style="animation-delay: {bar * 0.15}s; height: {30 + (bar % 3) * 25}%"
+              style="animation-delay: {bar * 0.15}s; height: {30 +
+                (bar % 3) * 25}%"
             ></span>
           {/each}
         </div>
       </div>
-
     {:else if subState === "question"}
       <!-- Lyric Question Mode -->
       <div class="question-view animate-fade-in">
@@ -99,38 +97,54 @@
           {/each}
         </div>
       </div>
-
     {:else if subState === "answered"}
       <!-- Answered and locking state -->
       <div class="answered-view animate-fade-in">
         <div class="loader-container">
           <LoadingIndicator size={56} />
         </div>
-        
+
         <h3 class="status-msg">Locked in!</h3>
         <p class="status-sub">Waiting for other players...</p>
 
         {#if selectedAnswer}
-          <div class="submitted-answer-capsule {selectedIdx !== -1 ? optionClasses[selectedIdx] : ''}">
+          <div
+            class="submitted-answer-capsule {selectedIdx !== -1
+              ? optionClasses[selectedIdx]
+              : ''}"
+          >
             <span class="submitted-label">Your Guess:</span>
             <p class="submitted-text">“{selectedAnswer}”</p>
           </div>
         {/if}
       </div>
-
     {:else if subState === "outcome"}
       <!-- Outcome (Correct/Incorrect) State -->
       <div class="outcome-view animate-fade-in">
-        <div class="outcome-status-wrapper {isCorrect ? 'status-correct' : 'status-incorrect'}">
+        <div
+          class="outcome-status-wrapper {isCorrect
+            ? 'status-correct'
+            : 'status-incorrect'}"
+        >
           <div class="status-icon-circle">
             {#if isCorrect}
-              <svg viewBox="0 0 24 24" class="icon-svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <svg viewBox="0 0 24 24" class="icon-svg"
+                ><path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                /></svg
+              >
             {:else}
-              <svg viewBox="0 0 24 24" class="icon-svg"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              <svg viewBox="0 0 24 24" class="icon-svg"
+                ><path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                /></svg
+              >
             {/if}
           </div>
-          <h1 class="outcome-title">{isCorrect ? 'Correct' : 'Incorrect'}</h1>
-          <span class="points-earned font-mono">{isCorrect ? `+${pointsGained} PTS` : '+0 PTS'}</span>
+          <h1 class="outcome-title">{isCorrect ? "Correct" : "Incorrect"}</h1>
+          <span class="points-earned font-mono"
+            >{isCorrect ? `+${pointsGained} PTS` : "+0 PTS"}</span
+          >
         </div>
 
         <!-- Detailed Breakdown Card -->
@@ -160,11 +174,6 @@
       </div>
     {/if}
   </main>
-
-  <!-- Sleek Footer -->
-  <footer class="play-footer">
-    <span class="brand-text">BeatHop Lyric challenge</span>
-  </footer>
 </div>
 
 <style>
@@ -291,6 +300,7 @@
 
   .status-msg {
     @apply --m3-title-medium;
+    font-size: large;
     font-weight: 700;
     color: var(--m3c-on-surface);
     margin: 0;
@@ -298,6 +308,7 @@
 
   .status-sub {
     @apply --m3-body-medium;
+    font-size: large;
     color: var(--m3c-on-surface-variant);
     margin: 0;
   }
@@ -346,7 +357,7 @@
   .banner-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
   }
 
   :global(.prompt-card-override) {
@@ -407,52 +418,84 @@
 
   /* Color 0: Rose (Red) */
   .opt-rose {
-    background: linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(225, 29, 72, 0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(251, 113, 133, 0.12) 0%,
+      rgba(225, 29, 72, 0.05) 100%
+    );
     border-color: rgba(251, 113, 133, 0.3);
     color: #fda4af;
     text-shadow: 0 0 8px rgba(251, 113, 133, 0.25);
   }
   .opt-rose:hover {
-    background: linear-gradient(135deg, rgba(251, 113, 133, 0.22) 0%, rgba(225, 29, 72, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(251, 113, 133, 0.22) 0%,
+      rgba(225, 29, 72, 0.1) 100%
+    );
     border-color: rgba(251, 113, 133, 0.6);
     box-shadow: 0 0 12px rgba(251, 113, 133, 0.15);
   }
 
   /* Color 1: Blue */
   .opt-blue {
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.12) 0%, rgba(37, 99, 235, 0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(96, 165, 250, 0.12) 0%,
+      rgba(37, 99, 235, 0.05) 100%
+    );
     border-color: rgba(96, 165, 250, 0.3);
     color: #93c5fd;
     text-shadow: 0 0 8px rgba(96, 165, 250, 0.25);
   }
   .opt-blue:hover {
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.22) 0%, rgba(37, 99, 235, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(96, 165, 250, 0.22) 0%,
+      rgba(37, 99, 235, 0.1) 100%
+    );
     border-color: rgba(96, 165, 250, 0.6);
     box-shadow: 0 0 12px rgba(96, 165, 250, 0.15);
   }
 
   /* Color 2: Green */
   .opt-green {
-    background: linear-gradient(135deg, rgba(52, 211, 153, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(52, 211, 153, 0.12) 0%,
+      rgba(5, 150, 105, 0.05) 100%
+    );
     border-color: rgba(52, 211, 153, 0.3);
     color: #a7f3d0;
     text-shadow: 0 0 8px rgba(52, 211, 153, 0.25);
   }
   .opt-green:hover {
-    background: linear-gradient(135deg, rgba(52, 211, 153, 0.22) 0%, rgba(5, 150, 105, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(52, 211, 153, 0.22) 0%,
+      rgba(5, 150, 105, 0.1) 100%
+    );
     border-color: rgba(52, 211, 153, 0.6);
     box-shadow: 0 0 12px rgba(52, 211, 153, 0.15);
   }
 
   /* Color 3: Amber (Yellow) */
   .opt-amber {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(217, 119, 6, 0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(251, 191, 36, 0.12) 0%,
+      rgba(217, 119, 6, 0.05) 100%
+    );
     border-color: rgba(251, 191, 36, 0.3);
     color: #fde68a;
     text-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
   }
   .opt-amber:hover {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.22) 0%, rgba(217, 119, 6, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(251, 191, 36, 0.22) 0%,
+      rgba(217, 119, 6, 0.1) 100%
+    );
     border-color: rgba(251, 191, 36, 0.6);
     box-shadow: 0 0 12px rgba(251, 191, 36, 0.15);
   }
@@ -480,7 +523,7 @@
     padding: 1.25rem;
     border-radius: var(--m3-shape-large);
     margin-top: 1.5rem;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -541,7 +584,7 @@
     border: 2px solid rgba(16, 185, 129, 0.4);
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
   }
-  
+
   .status-correct .outcome-title {
     color: #34d399;
     text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
@@ -665,17 +708,29 @@
   }
 
   @keyframes audioWave {
-    from { transform: scaleY(0.4); }
-    to { transform: scaleY(1); }
+    from {
+      transform: scaleY(0.4);
+    }
+    to {
+      transform: scaleY(1);
+    }
   }
 
   @keyframes glowPulse {
-    from { box-shadow: 0 0 15px rgba(var(--m3c-primary-rgb), 0.1); }
-    to { box-shadow: 0 0 30px rgba(var(--m3c-primary-rgb), 0.3); }
+    from {
+      box-shadow: 0 0 15px rgba(var(--m3c-primary-rgb), 0.1);
+    }
+    to {
+      box-shadow: 0 0 30px rgba(var(--m3c-primary-rgb), 0.3);
+    }
   }
 
   @keyframes lockPulse {
-    from { border-color: rgba(255, 255, 255, 0.05); }
-    to { border-color: var(--m3c-outline-variant); }
+    from {
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+    to {
+      border-color: var(--m3c-outline-variant);
+    }
   }
 </style>

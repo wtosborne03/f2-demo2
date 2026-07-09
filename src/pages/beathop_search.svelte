@@ -110,7 +110,7 @@
         variant="filled"
         onclick={handleSearch}
         disabled={isSearching}
-        size="l"
+        size="m"
       >
         {#if isSearching}
           <div class="spinner-small"></div>
@@ -149,11 +149,7 @@
             class="song-card"
             onclick={() => selectSong(item.videoId, item.title)}
           >
-            <img
-              src={item.thumbnail}
-              alt=""
-              class="song-thumbnail"
-            />
+            <img src={item.thumbnail} alt="" class="song-thumbnail" />
             <div class="song-info">
               <span class="song-title">{item.title}</span>
               <span class="song-channel">{item.channelTitle}</span>
@@ -180,11 +176,7 @@
             class="song-card"
             onclick={() => selectSong(item.videoId, item.title)}
           >
-            <img
-              src={item.thumbnail}
-              alt=""
-              class="song-thumbnail"
-            />
+            <img src={item.thumbnail} alt="" class="song-thumbnail" />
             <div class="song-info">
               <span class="song-title">{item.title}</span>
               <span class="song-channel">{item.channelTitle}</span>
@@ -234,7 +226,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
     width: 100%;
   }
 
@@ -289,15 +281,15 @@
   .songs-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: 100%;
   }
 
   .song-card {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
     background-color: var(--m3c-surface-container-low);
     border: 1px solid var(--m3c-outline-variant);
     border-radius: var(--m3-shape-large);
@@ -320,8 +312,8 @@
   }
 
   .song-thumbnail {
-    width: 5rem;
-    height: 3.75rem;
+    width: 9rem;
+    height: 5.25rem;
     object-fit: cover;
     border-radius: var(--m3-shape-medium);
     background-color: var(--m3c-surface-container-highest);
@@ -399,11 +391,18 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 </style>
