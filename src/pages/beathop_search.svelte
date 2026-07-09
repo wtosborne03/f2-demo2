@@ -2,6 +2,7 @@
   import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { Button, TextFieldOutlined } from "m3-svelte";
+  import iconSearch from "@ktibow/iconset-material-symbols/search";
 
   let searchQuery = "";
   let isSearching = false;
@@ -85,62 +86,54 @@
   }
 </script>
 
-<div
-  class="flex flex-col w-full h-full px-4 py-6 overflow-y-auto font-sans text-zinc-100"
->
-  <header class="mb-6">
-    <h1 class="text-lg font-semibold tracking-tight text-zinc-200">
-      Pick a Music Video
-    </h1>
-    <p class="text-xs text-zinc-400 mt-1">
-      Choose a track or search for any music video (1–7 minutes)
+<div class="search-container">
+  <header class="search-header">
+    <h1 class="title">Pick a Music Video</h1>
+    <p class="subtitle">
+      Choose a suggested track or search for any music video (1–7 minutes)
     </p>
   </header>
 
   <!-- Input Area -->
-  <div class="flex items-center gap-2 mb-6 search-box-wrapper">
-    <div class="grow">
+  <div class="search-box-wrapper">
+    <div class="input-grow">
       <TextFieldOutlined
         label="Search YouTube"
         placeholder="Artist or song name..."
+        leadingIcon={iconSearch}
         bind:value={searchQuery}
         onkeydown={handleKeyPress}
       />
     </div>
-    <button
-      class="border border-zinc-700 bg-zinc-800/40 hover:bg-zinc-800 text-zinc-200 rounded-xl px-4 h-12 text-sm font-medium transition-all flex items-center justify-center shrink-0 active:scale-[0.98] disabled:opacity-50"
-      onclick={handleSearch}
-      disabled={isSearching}
-    >
-      {#if isSearching}
-        <div
-          class="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin"
-        ></div>
-      {:else}
-        Search
-      {/if}
-    </button>
+    <div class="search-button-wrapper">
+      <Button
+        variant="filled"
+        onclick={handleSearch}
+        disabled={isSearching}
+        size="l"
+      >
+        {#if isSearching}
+          <div class="spinner-small"></div>
+        {:else}
+          Search
+        {/if}
+      </Button>
+    </div>
   </div>
 
   <!-- Dynamic Content Area -->
   {#if isSearching}
-    <div class="flex-1 flex flex-col items-center justify-center py-12 gap-3">
-      <div
-        class="w-6 h-6 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin"
-      ></div>
-      <p class="text-xs text-zinc-500 font-mono animate-pulse">Searching...</p>
+    <div class="loading-state">
+      <div class="spinner-large"></div>
+      <p class="loading-text">Searching YouTube...</p>
     </div>
   {:else if $gameState.page_data?.results && $gameState.page_data.results.length > 0}
     <!-- Results list -->
-    <section class="flex flex-col gap-4">
-      <div class="flex items-center justify-between px-1">
-        <h2
-          class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
-        >
-          Search Results
-        </h2>
+    <section class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">Search Results</h2>
         <button
-          class="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+          class="clear-button"
           onclick={() => {
             $gameState.page_data.results = [];
             searchQuery = "";
@@ -150,27 +143,21 @@
         </button>
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="songs-grid">
         {#each $gameState.page_data.results as item}
           <button
-            class="flex items-center gap-4 p-3 border border-zinc-800/60 bg-zinc-900/10 rounded-xl hover:bg-zinc-800/30 text-left transition-all active:scale-[0.99]"
+            class="song-card"
             onclick={() => selectSong(item.videoId, item.title)}
           >
             <img
               src={item.thumbnail}
               alt=""
-              class="w-16 h-12 object-cover rounded bg-zinc-900 shrink-0"
+              class="song-thumbnail"
             />
-            <div class="min-w-0 flex-1 flex flex-col">
-              <span class="text-sm font-medium text-zinc-200 truncate"
-                >{item.title}</span
-              >
-              <span class="text-xs text-zinc-400 truncate mt-0.5"
-                >{item.channelTitle}</span
-              >
-              <span
-                class="self-start text-[10px] bg-zinc-800/60 text-zinc-400 font-mono px-1.5 py-0.5 rounded-md mt-1.5"
-              >
+            <div class="song-info">
+              <span class="song-title">{item.title}</span>
+              <span class="song-channel">{item.channelTitle}</span>
+              <span class="song-duration">
                 {Math.floor(item.durationSeconds / 60)}:{(
                   item.durationSeconds % 60
                 )
@@ -184,36 +171,24 @@
     </section>
   {:else}
     <!-- Suggested Tracks list -->
-    <section class="flex flex-col gap-4">
-      <h2
-        class="text-xs font-semibold uppercase tracking-wider text-zinc-500 px-1"
-      >
-        Suggested Tracks
-      </h2>
+    <section class="section-container">
+      <h2 class="section-title">Suggested Tracks</h2>
 
-      <div class="flex flex-col gap-2">
+      <div class="songs-grid">
         {#each defaults as item}
           <button
-            class="flex items-center gap-4 p-3 border border-zinc-800/60 bg-zinc-900/10 rounded-xl hover:bg-zinc-800/30 text-left transition-all active:scale-[0.99]"
+            class="song-card"
             onclick={() => selectSong(item.videoId, item.title)}
           >
             <img
               src={item.thumbnail}
               alt=""
-              class="w-16 h-12 object-cover rounded bg-zinc-900 shrink-0"
+              class="song-thumbnail"
             />
-            <div class="min-w-0 flex-1 flex flex-col">
-              <span class="text-sm font-medium text-zinc-200 truncate"
-                >{item.title}</span
-              >
-              <span class="text-xs text-zinc-400 truncate mt-0.5"
-                >{item.channelTitle}</span
-              >
-              <span
-                class="self-start text-[10px] bg-zinc-800/60 text-zinc-400 font-mono px-1.5 py-0.5 rounded-md mt-1.5"
-              >
-                {item.duration}
-              </span>
+            <div class="song-info">
+              <span class="song-title">{item.title}</span>
+              <span class="song-channel">{item.channelTitle}</span>
+              <span class="song-duration">{item.duration}</span>
             </div>
           </button>
         {/each}
@@ -223,19 +198,212 @@
 </div>
 
 <style>
-  /* Svelte-isolated input overwrites for cleaner layout matches */
-  :global(.search-box-wrapper .m3-container) {
+  .search-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    box-sizing: border-box;
+    font-family: var(--m3-font, system-ui);
+    background-color: var(--m3c-surface);
+    color: var(--m3c-on-surface);
+  }
+
+  .search-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .search-header .title {
+    @apply --m3-headline-medium;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.02em;
+    color: var(--m3c-on-surface);
+  }
+
+  .search-header .subtitle {
+    @apply --m3-body-medium;
+    color: var(--m3c-on-surface-variant);
+    margin-top: 0.5rem;
+  }
+
+  .search-box-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    width: 100%;
+  }
+
+  .input-grow {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .search-button-wrapper {
+    flex-shrink: 0;
+  }
+
+  /* Force m3-svelte TextField to take 100% width */
+  :global(.input-grow .m3-container) {
     width: 100% !important;
-    height: 3rem !important;
   }
-  :global(.search-box-wrapper input) {
-    font-size: 0.875rem !important;
-    padding-inline-start: 1rem !important;
-    border-radius: 12px !important;
-    background: rgba(255, 255, 255, 0.02) !important;
+
+  .section-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
-  :global(.search-box-wrapper label) {
-    font-size: 0.75rem !important;
-    inset-inline-start: 0.75rem !important;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-inline: 0.25rem;
+  }
+
+  .section-title {
+    @apply --m3-title-medium;
+    font-weight: 600;
+    color: var(--m3c-secondary);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .clear-button {
+    @apply --m3-label-large;
+    color: var(--m3c-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .clear-button:hover {
+    opacity: 0.8;
+  }
+
+  .songs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .song-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background-color: var(--m3c-surface-container-low);
+    border: 1px solid var(--m3c-outline-variant);
+    border-radius: var(--m3-shape-large);
+    text-align: left;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    cursor: pointer;
+    width: 100%;
+    outline: none;
+  }
+
+  .song-card:hover {
+    background-color: var(--m3c-surface-container-high);
+    border-color: var(--m3c-outline);
+    box-shadow: var(--m3-elevation-1);
+    transform: translateY(-1px);
+  }
+
+  .song-card:active {
+    transform: scale(0.98);
+  }
+
+  .song-thumbnail {
+    width: 5rem;
+    height: 3.75rem;
+    object-fit: cover;
+    border-radius: var(--m3-shape-medium);
+    background-color: var(--m3c-surface-container-highest);
+    flex-shrink: 0;
+  }
+
+  .song-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex-grow: 1;
+  }
+
+  .song-title {
+    @apply --m3-title-small;
+    font-weight: 600;
+    color: var(--m3c-on-surface);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .song-channel {
+    @apply --m3-body-small;
+    color: var(--m3c-on-surface-variant);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.15rem;
+  }
+
+  .song-duration {
+    @apply --m3-label-small;
+    background-color: var(--m3c-surface-container-highest);
+    color: var(--m3c-on-surface-variant);
+    align-self: start;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--m3-shape-small);
+    font-family: monospace;
+    margin-top: 0.4rem;
+  }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    gap: 1rem;
+  }
+
+  .loading-text {
+    @apply --m3-body-medium;
+    color: var(--m3c-on-surface-variant);
+    animation: pulse 1.5s infinite;
+  }
+
+  /* CSS Spinners matching M3 aesthetic */
+  .spinner-small {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--m3c-on-primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .spinner-large {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid var(--m3c-primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
   }
 </style>
