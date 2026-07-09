@@ -422,7 +422,7 @@
       rgba(225, 29, 72, 0.87) 100%
     );
     border-color: rgba(251, 113, 133, 1);
-    color: #fda4af;
+    color: #000000;
     text-shadow: 0 0 8px rgba(251, 113, 133, 0.25);
   }
   .opt-rose:hover {
@@ -443,7 +443,7 @@
       rgba(37, 99, 235, 0.87) 100%
     );
     border-color: rgba(96, 165, 250, 1);
-    color: #93c5fd;
+    color: #000000;
     text-shadow: 0 0 8px rgba(96, 165, 250, 0.25);
   }
   .opt-blue:hover {
@@ -464,7 +464,7 @@
       rgba(5, 150, 105, 0.87) 100%
     );
     border-color: rgba(52, 211, 153, 1);
-    color: #a7f3d0;
+    color: #000000;
     text-shadow: 0 0 8px rgba(52, 211, 153, 0.25);
   }
   .opt-green:hover {
@@ -485,7 +485,7 @@
       rgba(217, 119, 6, 0.87) 100%
     );
     border-color: rgba(251, 191, 36, 1);
-    color: #fde68a;
+    color: #000000;
     text-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
   }
   .opt-amber:hover {
