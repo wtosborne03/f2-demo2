@@ -114,7 +114,7 @@
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
-            class="carousel-card absolute h-[60vh] aspect-57/74 transform-3d overflow-hidden rounded-[1.25rem] border-[3px] border-white/10 bg-neutral-900 shadow-xl transition-[border-color,box-shadow] duration-300 will-change-transform {activeIndex ===
+            class="carousel-card absolute h-[45vh] aspect-57/74 transform-3d overflow-hidden rounded-[1.25rem] border-[3px] border-white/10 bg-neutral-900 shadow-xl transition-[border-color,box-shadow] duration-300 will-change-transform {activeIndex ===
             i
               ? 'border-primary shadow-primary/30 shadow-2xl'
               : ''}"
