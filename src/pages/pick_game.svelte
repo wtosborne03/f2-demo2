@@ -21,8 +21,8 @@
 
   // Spring store for physical carousel movement
   const offset = spring(activeIndex, {
-    stiffness: 0.12,
-    damping: 0.58,
+    stiffness: 0.08,
+    damping: 0.45,
   });
 
   // Update spring target when activeIndex changes
@@ -54,35 +54,63 @@
   // Swipe / Drag controls
   let isDragging = false;
   let startX = 0;
+  let currentX = 0;
   let startOffset = activeIndex;
+  let dragStartTime = 0;
 
   function handleDragStart(e: MouseEvent | TouchEvent) {
     isDragging = true;
-    startX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    startX = clientX;
+    currentX = clientX;
     startOffset = activeIndex;
+    dragStartTime = Date.now();
   }
 
   function handleDragMove(e: MouseEvent | TouchEvent) {
     if (!isDragging) return;
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    currentX = clientX;
     const dx = clientX - startX;
-    // Spacing of slides in relative mapping (approx 10rem / 160px drag = 1 slide)
+    // Spacing of slides in relative mapping (approx 160px drag = 1 slide)
     const offsetShift = dx / 160;
-    offset.set(startOffset - offsetShift, { hard: false });
+    let targetVal = startOffset - offsetShift;
+
+    // Add rubber band resistance at bounds
+    if (targetVal < 0) {
+      targetVal = targetVal * 0.35;
+    } else if (targetVal > games.length - 1) {
+      const maxIdx = games.length - 1;
+      targetVal = maxIdx + (targetVal - maxIdx) * 0.35;
+    }
+
+    offset.set(targetVal, { hard: true });
   }
 
   function handleDragEnd() {
     if (!isDragging) return;
     isDragging = false;
 
-    // Snap to the closest integer index
-    let currentVal = $offset;
-    let targetIndex = Math.round(currentVal);
+    const dx = currentX - startX;
+    const dt = Date.now() - dragStartTime;
 
-    // Clamp targetIndex between bounds
-    targetIndex = Math.max(0, Math.min(games.length - 1, targetIndex));
+    let targetIndex = activeIndex;
+
+    // Flick gesture detection: fast drag (<250ms) and swipe distance >30px
+    if (dt < 250 && Math.abs(dx) > 30) {
+      if (dx > 0) {
+        targetIndex = Math.max(0, activeIndex - 1);
+      } else {
+        targetIndex = Math.min(games.length - 1, activeIndex + 1);
+      }
+    } else {
+      // Normal drag snap
+      targetIndex = Math.round($offset);
+      targetIndex = Math.max(0, Math.min(games.length - 1, targetIndex));
+    }
+
     activeIndex = targetIndex;
-    offset.set(activeIndex);
+    offset.set(activeIndex, { hard: false });
   }
 </script>
 
@@ -221,3 +249,10 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .carousel-container {
+    --spacing-36: min(52vw, 13rem);
+    --spacing-40: min(30vw, 10rem);
+  }
+</style>
