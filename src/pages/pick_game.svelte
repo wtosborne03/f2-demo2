@@ -4,6 +4,8 @@
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { fade, fly } from "svelte/transition";
   import { spring } from "svelte/motion";
+  import { Button } from "m3-svelte";
+  import Icon from "@iconify/svelte";
 
   interface GameData {
     name: string;
@@ -37,8 +39,6 @@
     });
   }
 
-
-
   function nextCard() {
     if (activeIndex < games.length - 1) {
       activeIndex++;
@@ -49,6 +49,40 @@
     if (activeIndex > 0) {
       activeIndex--;
     }
+  }
+
+  // Swipe / Drag controls
+  let isDragging = false;
+  let startX = 0;
+  let startOffset = activeIndex;
+
+  function handleDragStart(e: MouseEvent | TouchEvent) {
+    isDragging = true;
+    startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    startOffset = activeIndex;
+  }
+
+  function handleDragMove(e: MouseEvent | TouchEvent) {
+    if (!isDragging) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const dx = clientX - startX;
+    // Spacing of slides in pixel value relative mapping (approx 160px drag = 1 slide)
+    const offsetShift = dx / 160;
+    offset.set(startOffset - offsetShift, { hard: false });
+  }
+
+  function handleDragEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    // Snap to the closest integer index
+    let currentVal = $offset;
+    let targetIndex = Math.round(currentVal);
+    
+    // Clamp targetIndex between bounds
+    targetIndex = Math.max(0, Math.min(games.length - 1, targetIndex));
+    activeIndex = targetIndex;
+    offset.set(activeIndex);
   }
 </script>
 
@@ -61,21 +95,18 @@
       </div>
 
       <!-- 3D Carousel Swiper viewport -->
-      <div class="carousel-container">
-        <!-- Prev Arrow -->
-        {#if activeIndex > 0}
-          <button class="nav-btn prev" on:click={prevCard}>
-            &larr;
-          </button>
-        {/if}
-
-        <!-- Next Arrow -->
-        {#if activeIndex < games.length - 1}
-          <button class="nav-btn next" on:click={nextCard}>
-            &rarr;
-          </button>
-        {/if}
-
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div 
+        class="carousel-container"
+        on:mousedown={handleDragStart}
+        on:mousemove={handleDragMove}
+        on:mouseup={handleDragEnd}
+        on:mouseleave={handleDragEnd}
+        on:touchstart|passive={handleDragStart}
+        on:touchmove|passive={handleDragMove}
+        on:touchend={handleDragEnd}
+        on:touchcancel={handleDragEnd}
+      >
         <!-- Stack of cards using 3D transforms based on spring offset -->
         {#each games as game, i}
           {@const diff = i - $offset}
@@ -85,11 +116,11 @@
           <div
             class="carousel-card {activeIndex === i ? 'active-card' : ''}"
             style="
-              transform: translateX({diff * 136}px) translateZ({-absDiff * 140}px) rotateY({diff * -26}deg);
+              transform: translateX({diff * 144}px) translateZ({-absDiff * 160}px) rotateY({diff * -26}deg);
               z-index: {Math.round(100 - absDiff * 10)};
               opacity: {Math.max(0, 1 - absDiff * 0.55)};
             "
-            on:click={() => activeIndex = i}
+            on:click={() => { if (!isDragging) activeIndex = i; }}
           >
             <div class="card-boxart-frame">
               <img
@@ -103,16 +134,24 @@
         {/each}
       </div>
 
-      <!-- Dot Indicators -->
-      <div class="dot-indicators">
-        {#each games as _, i}
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <div
-            class="dot {activeIndex === i ? 'active' : ''}"
-            on:click={() => activeIndex = i}
-          ></div>
-        {/each}
+      <!-- Bottom Controls row (Fallback navigation next to dot indicators) -->
+      <div class="navigation-controls">
+        <button class="icon-nav-btn" disabled={activeIndex === 0} on:click={prevCard}>
+          <Icon icon="mdi:chevron-left" width="24" height="24" />
+        </button>
+        <div class="dot-indicators">
+          {#each games as _, i}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div
+              class="dot {activeIndex === i ? 'active' : ''}"
+              on:click={() => activeIndex = i}
+            ></div>
+          {/each}
+        </div>
+        <button class="icon-nav-btn" disabled={activeIndex === games.length - 1} on:click={nextCard}>
+          <Icon icon="mdi:chevron-right" width="24" height="24" />
+        </button>
       </div>
 
       <!-- Info Details Panel -->
@@ -125,18 +164,20 @@
         {/key}
       </div>
 
-      <!-- Pick Button -->
-      <button
-        class="pick-button"
-        disabled={hasVoted}
-        on:click={() => submit_answer(games[activeIndex].name)}
-      >
-        {#if hasVoted}
-          SUBMITTING...
-        {:else}
-          VOTE THIS GAME
-        {/if}
-      </button>
+      <!-- Pick Button (Material 3 Button) -->
+      <div class="btn-wrapper">
+        <Button
+          variant="filled"
+          disabled={hasVoted}
+          onclick={() => submit_answer(games[activeIndex].name)}
+        >
+          {#if hasVoted}
+            SUBMITTING...
+          {:else}
+            VOTE THIS GAME
+          {/if}
+        </Button>
+      </div>
     </div>
   {:else}
     <div class="flex h-full w-full items-center justify-center bg-zinc-950">
@@ -152,7 +193,6 @@
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at center, #1b1b22 0%, #08080a 100%);
     overflow: hidden;
     color: white;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -186,25 +226,29 @@
   .carousel-container {
     position: relative;
     width: 100%;
-    height: 310px;
+    height: 360px;
     display: flex;
     justify-content: center;
     align-items: center;
     perspective: 1000px;
     transform-style: preserve-3d;
     margin: 12px 0;
+    cursor: grab;
+  }
+
+  .carousel-container:active {
+    cursor: grabbing;
   }
 
   .carousel-card {
     position: absolute;
-    width: 175px;
-    height: 262px;
+    width: 210px;
+    height: 315px;
     border-radius: 20px;
     overflow: hidden;
     background-color: #111115;
     border: 3px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
-    cursor: pointer;
     will-change: transform, opacity, z-index;
     transition: border-color 0.3s, box-shadow 0.3s;
     transform-style: preserve-3d;
@@ -237,47 +281,41 @@
     pointer-events: none;
   }
 
-  /* Navigation arrows */
-  .nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 16px;
-    font-weight: bold;
+  /* Navigation & dots */
+  .navigation-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    z-index: 10;
+  }
+
+  .icon-nav-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    z-index: 150;
-    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    padding: 8px;
+    border-radius: 50%;
+    transition: color 0.2s, background-color 0.2s;
   }
 
-  .nav-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+  .icon-nav-btn:hover:not(:disabled) {
     color: white;
+    background-color: rgba(255, 255, 255, 0.06);
   }
 
-  .nav-btn.prev {
-    left: 4px;
+  .icon-nav-btn:disabled {
+    color: #4b5563;
+    cursor: not-allowed;
   }
 
-  .nav-btn.next {
-    right: 4px;
-  }
-
-  /* Dot indicators */
   .dot-indicators {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
-    z-index: 10;
   }
 
   .dot {
@@ -324,35 +362,21 @@
     margin: 0;
   }
 
-  /* Pick Button */
-  .pick-button {
+  /* Button Wrapper for Material 3 Button styling overrides */
+  .btn-wrapper {
     width: 100%;
-    max-width: 280px;
-    height: 52px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #ffaa00 0%, #ff7700 100%);
-    border: none;
-    color: black;
-    font-size: 15px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(255, 119, 0, 0.35);
-    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
-    will-change: transform;
+    display: flex;
+    justify-content: center;
     z-index: 10;
   }
 
-  .pick-button:active {
-    transform: scale(0.96);
-    box-shadow: 0 4px 10px rgba(255, 119, 0, 0.2);
-  }
-
-  .pick-button:disabled {
-    background: #27272a;
-    color: #52525b;
-    box-shadow: none;
-    cursor: not-allowed;
+  .btn-wrapper > :global(*) {
+    width: 100%;
+    max-width: 280px;
+    height: 52px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
 </style>
