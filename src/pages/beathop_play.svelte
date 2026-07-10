@@ -48,14 +48,6 @@
     {#if subState === "listening"}
       <!-- Listening Mode Visualizer -->
       <div class="listening-view animate-fade-in">
-        <div class="thumbnail-wrapper pulsing-glow">
-          {#if thumbnail}
-            <img src={thumbnail} alt="" class="hero-thumbnail" />
-          {:else}
-            <div class="thumbnail-placeholder">🎵</div>
-          {/if}
-        </div>
-
         <h3 class="status-msg">Listening closely...</h3>
         <p class="status-sub">Follow the lyrics on the main screen</p>
 
