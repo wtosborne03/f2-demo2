@@ -18,9 +18,9 @@ type RoomStatus = "LOBBY" | "RUNNING" | "UNKNOWN";
 const defaultPlayerState: PlayerState = {
   name: "",
   score: 0,
-  screen: "drink",
+  screen: "index",
   page_data: null,
-  admin: true,
+  admin: false,
   drinks: 0,
   timer_stamp: new Date(),
   timer_duration: 0,

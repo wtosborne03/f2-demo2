@@ -2,10 +2,10 @@
   import { onMount } from "svelte";
   import Drink from "$lib/components/drink.svelte";
   import AdminConfirm from "$lib/components/admin_confirm.svelte";
+  import { gameState } from "$lib/wsapi/gameClient";
+  import type { DrinkingPrompt } from "../types/page_data";
 
-  const m_data = {
-    prompt: "Drink",
-  };
+  const m_data = $gameState.page_data as DrinkingPrompt;
 
   // Optimize bubble count from 35 to 18 for rendering efficiency
   const bubbles = Array.from({ length: 18 }, (_, i) => {
