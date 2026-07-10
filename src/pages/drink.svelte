@@ -7,34 +7,24 @@
     prompt: "Drink",
   };
 
-  // Generate bubbles that travel all the way up the viewport cleanly
-  const bubbles = Array.from({ length: 22 }, (_, i) => {
-    const size = Math.random() * 8 + 4;
+  // Optimize bubble count from 35 to 18 for rendering efficiency
+  const bubbles = Array.from({ length: 18 }, (_, i) => {
+    const size = Math.random() * 8 + 4; // size from 4px to 12px
     return {
       id: i,
       left: Math.random() * 100,
       size,
-      delay: Math.random() * 5,
+      delay: Math.random() * 4,
       duration: Math.random() * 3 + 2, // 2s to 5s
       opacity: Math.random() * 0.3 + 0.2,
-      sway: Math.random() * 40 - 20,
+      sway: Math.random() * 20 - 10, // -10px to 10px
     };
   });
 
-  // Dynamic foam cluster array for an exaggerated, ultra-bubbly texture
-  const foamClusters = Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    left: i * 9 - 5, // Even overlap spacing across the top
-    width: Math.random() * 15 + 15, // 15% to 30% width
-    height: Math.random() * 30 + 45, // 45px to 75px height
-    seed: Math.random() * 2 - 1, // Determines left/right sway direction under momentum
-    delay: Math.random() * 0.5,
-  }));
-
-  // Motion control physics states
-  let tiltX = 0;
+  // Motion control states
+  let tiltX = 0; // Left/Right tilt (Gamma)
   let targetTiltX = 0;
-  let slosh = 0;
+  let slosh = 0; // Calculated velocity for the sloshing effect
 
   onMount(() => {
     let lastTiltX = 0;
@@ -42,18 +32,21 @@
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
       if (event.gamma !== null) {
-        // Comfortably dampened motion mapping
-        targetTiltX = event.gamma * 0.6;
+        // Toning down the tilt effect by multiplying by 0.65 (limits extreme rotation angles)
+        targetTiltX = event.gamma * 0.65;
       }
     };
 
+    // Smoothly interpolate angles to prevent stuttering and calculate slosh velocity
     const updatePhysics = () => {
-      // Smooth interpolation for frame updates
+      // Linear interpolation (lerp) for smooth movement
       tiltX += (targetTiltX - tiltX) * 0.15;
 
+      // Slosh represents the speed of movement. Change in tilt = acceleration.
       const velocity = tiltX - lastTiltX;
-      // Fluid physics momentum calculation
-      slosh = (slosh + velocity * 1.6) * 0.82;
+
+      // decay the slosh effect gently over time, multiplying to control intensity
+      slosh = (slosh + velocity * 0.8) * 0.85;
 
       lastTiltX = tiltX;
       frameId = requestAnimationFrame(updatePhysics);
@@ -84,9 +77,8 @@
 
 <div
   class="drink-page w-full flex flex-col justify-center items-center relative"
-  style="--tilt-x: {tiltX}deg; --slosh: {slosh}px; --slosh-abs: {Math.abs(
-    slosh,
-  )}px;"
+  style="--tilt-x: {tiltX}deg; --slosh: {slosh}px; --slosh-skew: {slosh *
+    0.2}deg;"
 >
   <div class="beer-bg" aria-hidden="true">
     <div class="beer-liquid">
@@ -100,43 +92,48 @@
       </div>
 
       <div class="beer-foam">
-        <div
-          class="foam-wave-accent"
-          style="transform: skewX(calc(var(--slosh) * -0.2deg)) translateY(calc(var(--slosh) * -0.1px));"
-        ></div>
-
         <div class="foam-bumpy-container">
-          {#each foamClusters as fc (fc.id)}
-            <div
-              class="foam-bump"
-              style="
-                left: {fc.left}%; 
-                width: {fc.width}%; 
-                height: {fc.height}px; 
-                animation-delay: -{fc.delay}s;
-                transform: translate3d(calc(var(--slosh) * {fc.seed *
-                0.6}px), calc(var(--slosh-abs) * {Math.abs(fc.seed) *
-                -0.2}px), 0);
-              "
-            ></div>
-          {/each}
+          <div
+            class="foam-bump"
+            style="left: -5%; width: 25%; height: 45px; animation-delay: 0.1s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 12%; width: 32%; height: 55px; animation-delay: 0.4s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 36%; width: 24%; height: 42px; animation-delay: 0.2s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 50%; width: 28%; height: 50px; animation-delay: 0.7s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 70%; width: 25%; height: 46px; animation-delay: 0.3s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 85%; width: 28%; height: 52px; animation-delay: 0.5s;"
+          ></div>
         </div>
 
         <div
           class="foam-surface-bubble"
-          style="left: 12%; top: -15px; width: 14px; height: 14px; transform: translateX(calc(var(--slosh) * 0.4px));"
+          style="left: 15%; top: -10px; width: 12px; height: 12px; animation-delay: 0.2s;"
         ></div>
         <div
           class="foam-surface-bubble"
-          style="left: 38%; top: -22px; width: 18px; height: 18px; transform: translateX(calc(var(--slosh) * -0.3px));"
+          style="left: 35%; top: -14px; width: 16px; height: 16px; animation-delay: 0.8s;"
         ></div>
         <div
           class="foam-surface-bubble"
-          style="left: 65%; top: -12px; width: 12px; height: 12px; transform: translateX(calc(var(--slosh) * 0.5px));"
+          style="left: 55%; top: -8px; width: 10px; height: 10px; animation-delay: 0.5s;"
         ></div>
         <div
           class="foam-surface-bubble"
-          style="left: 82%; top: -18px; width: 16px; height: 16px; transform: translateX(calc(var(--slosh) * -0.2px));"
+          style="left: 72%; top: -12px; width: 14px; height: 14px; animation-delay: 1.1s;"
         ></div>
       </div>
     </div>
@@ -154,31 +151,34 @@
     min-height: 100%;
     width: 100%;
     z-index: 1;
-    overflow: hidden;
+    overflow: hidden; /* Fixes unexpected outer scrollbars */
   }
 
+  /* Target the main background wrapper for this page specifically */
   :global(#main-background:has(.drink-page)) {
     position: relative;
     overflow: hidden;
   }
 
-  /* Safe, centralized rotation space using scale transforms instead of shifting margins */
+  /* Beer background container */
   .beer-bg {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    /* Massive coverage padding eliminates edge exposure during turns */
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
     z-index: -10;
     overflow: hidden;
     pointer-events: none;
 
-    /* Scale handles overscan safely; pivot matches the 85% liquid line */
-    transform: scale(1.5) rotate(calc(var(--tilt-x, 0deg) * -1));
+    /* Rotate container opposite to the device tilt */
+    transform: rotate(calc(var(--tilt-x, 0deg) * -1));
     will-change: transform;
-    transform-origin: center 15%;
+    transform-origin: center 55%;
   }
 
-  /* Liquid fills from bottom to top safely */
+  /* Golden-Amber Beer Liquid */
   .beer-liquid {
     position: absolute;
     inset: 0;
@@ -186,33 +186,37 @@
     height: 100%;
     background: linear-gradient(
       to top,
-      #5a2400 0%,
-      #8a4200 25%,
-      #b86f00 55%,
-      #cca100 82%,
-      #ffd643 100-px
+      #6b3000 0%,
+      #944a00 30%,
+      #c17700 65%,
+      #daa400 92%,
+      #ffe16f 100%
     );
     transform: translateY(100%);
-    animation: fill-up-beer 3s cubic-bezier(0.1, 0.85, 0.25, 1) forwards;
+    animation: fill-up-beer 4s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
     will-change: transform;
   }
 
-  /* Liquid fill level: 15% from top means 85% full container */
+  /* Rising animation for beer liquid */
   @keyframes fill-up-beer {
     0% {
       transform: translateY(100%);
     }
     100% {
-      transform: translateY(15%);
+      transform: translateY(
+        33%
+      ); /* Lowered value to balance huge canvas bleed */
     }
   }
 
+  /* Bubbles Container */
   .bubbles-container {
     position: absolute;
     inset: 0;
     overflow: hidden;
   }
 
+  /* Optimized glassy bubble styling */
   .bubble {
     position: absolute;
     bottom: -20px;
@@ -224,95 +228,89 @@
     will-change: transform, opacity;
   }
 
-  /* Bubbles transit all the way out of the 100% viewport top boundary */
+  /* Bubble rise and pop animation */
   @keyframes bubble-rise {
     0% {
-      transform: translate3d(0, 0, 0) scale(0.5);
+      transform: translate3d(0, -50vh, 0) scale(0.6);
       opacity: 0;
     }
-    15% {
+    10% {
       opacity: var(--bubble-opacity, 0.4);
     }
-    85% {
+    90% {
       opacity: var(--bubble-opacity, 0.4);
     }
     100% {
-      transform: translate3d(var(--bubble-sway, 15px), -105vh, 0) scale(1.2);
+      transform: translate3d(var(--bubble-sway, 10px), -190vh, 0) scale(2);
       opacity: 0;
     }
   }
 
-  /* Enhanced High-Density Foam Head */
+  /* Fluffy Foam Head */
   .beer-foam {
     position: absolute;
-    top: -20px;
-    left: -20%;
-    right: -20%;
+    top: -25px;
+    left: 0;
+    right: 0;
     height: 50px;
     background: #fdfcf7;
-    border-top: 2px solid rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow:
-      0 -8px 25px rgba(255, 255, 255, 0.95),
-      inset 0 -10px 15px rgba(212, 106, 0, 0.12);
+      0 -4px 15px rgba(255, 255, 255, 0.9),
+      inset 0 -6px 8px rgba(212, 106, 0, 0.1);
     z-index: 5;
 
-    /* Primary physics sloshing translation loop */
-    transform: translate3d(0, calc(var(--slosh) * 0.45px), 0)
-      rotate(calc(var(--slosh) * 0.12deg));
+    /* Low overhead physics: dynamic translate & skew mimic inertia sloshing */
+    transform: translate3d(0, calc(var(--slosh) * 0.3), 0)
+      skewX(var(--slosh-skew));
     will-change: transform;
-    transition: transform 0.05s ease-out;
   }
 
-  /* Shading layer that separates during movement to create depth */
-  .foam-wave-accent {
-    position: absolute;
-    inset: 0;
-    top: -5px;
-    background: rgba(255, 214, 67, 0.4);
-    filter: blur(4px);
-    z-index: -2;
-    border-radius: 40%;
-  }
-
+  /* Foam bump shapes to create fluffy cloud look */
   .foam-bumpy-container {
     position: absolute;
-    top: -40px;
+    top: -25px;
     left: 0;
     right: 0;
     height: 50px;
     z-index: -1;
   }
 
-  /* Foam cluster balls shifting out of phase with momentum */
   .foam-bump {
     position: absolute;
     background: #fdfcf7;
     border-radius: 50%;
-    box-shadow:
-      0 -4px 10px rgba(255, 255, 255, 0.9),
-      inset -3px -3px 8px rgba(0, 0, 0, 0.03);
-    animation: foam-idle-wobble 4s ease-in-out infinite alternate;
+    box-shadow: 0 -2px 6px rgba(255, 255, 255, 0.8);
+    animation: foam-wiggle 3s ease-in-out infinite alternate;
     will-change: transform;
-    transition: transform 0.1s cubic-bezier(0.1, 0.8, 0.3, 1);
   }
 
-  @keyframes foam-idle-wobble {
+  @keyframes foam-wiggle {
     0% {
-      margin-top: 0px;
+      transform: translateY(0) scale(1);
     }
     100% {
-      margin-top: -6px;
+      transform: translateY(-4px) scale(1.04);
     }
   }
 
+  /* Static/Drifting bubbles on foam surface */
   .foam-surface-bubble {
     position: absolute;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    box-shadow: inset -1px -1px 3px rgba(0, 0, 0, 0.05);
     z-index: 6;
+    animation: foam-bubble-drift 5s ease-in-out infinite alternate;
     will-change: transform;
-    transition: transform 0.08s ease-out;
+  }
+
+  @keyframes foam-bubble-drift {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(4px, -3px, 0);
+    }
   }
 </style>
