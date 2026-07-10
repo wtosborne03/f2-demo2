@@ -23,45 +23,62 @@
 
   // Motion control states
   let tiltX = 0; // Left/Right tilt (Gamma)
-  let tiltY = 0; // Front/Back tilt (Beta)
+  let targetTiltX = 0;
+  let slosh = 0; // Calculated velocity for the sloshing effect
 
   onMount(() => {
+    let lastTiltX = 0;
+    let frameId: number;
+
     const handleOrientation = (event: DeviceOrientationEvent) => {
-      // Gamma is left-to-right tilt in degrees [-90, 90]
-      // Beta is front-to-back tilt in degrees [-180, 180]
-      if (event.gamma !== null) tiltX = event.gamma;
-      if (event.beta !== null) tiltY = event.beta;
+      if (event.gamma !== null) {
+        // Toning down the tilt effect by multiplying by 0.65 (limits extreme rotation angles)
+        targetTiltX = event.gamma * 0.65;
+      }
     };
 
-    // Modern iOS requires permission. Check if it's already granted without forcing a prompt.
+    // Smoothly interpolate angles to prevent stuttering and calculate slosh velocity
+    const updatePhysics = () => {
+      // Linear interpolation (lerp) for smooth movement
+      tiltX += (targetTiltX - tiltX) * 0.15;
+
+      // Slosh represents the speed of movement. Change in tilt = acceleration.
+      const velocity = tiltX - lastTiltX;
+
+      // decay the slosh effect gently over time, multiplying to control intensity
+      slosh = (slosh + velocity * 0.8) * 0.85;
+
+      lastTiltX = tiltX;
+      frameId = requestAnimationFrame(updatePhysics);
+    };
+
     const DeviceEvent = window.DeviceOrientationEvent as any;
     if (DeviceEvent && typeof DeviceEvent.requestPermission === "function") {
-      // We check permission state via standard browser state querying if supported,
-      // otherwise we fallback safely without forcing a prompt.
       navigator.permissions
         ?.query({ name: "accelerometer" as any })
         .then((result) => {
           if (result.state === "granted") {
             window.addEventListener("deviceorientation", handleOrientation);
+            frameId = requestAnimationFrame(updatePhysics);
           }
         })
-        .catch(() => {
-          // If query fails, do nothing to respect the "dont prompt" rule
-        });
+        .catch(() => {});
     } else {
-      // Android / Older browsers that don't guard behind strict permissions
       window.addEventListener("deviceorientation", handleOrientation);
+      frameId = requestAnimationFrame(updatePhysics);
     }
 
     return () => {
       window.removeEventListener("deviceorientation", handleOrientation);
+      cancelAnimationFrame(frameId);
     };
   });
 </script>
 
 <div
   class="drink-page w-full flex flex-col justify-center items-center relative"
-  style="--tilt-x: {tiltX}deg; --tilt-y: {tiltY}px;"
+  style="--tilt-x: {tiltX}deg; --slosh: {slosh}px; --slosh-skew: {slosh *
+    0.2}deg;"
 >
   <div class="beer-bg" aria-hidden="true">
     <div class="beer-liquid">
@@ -78,31 +95,27 @@
         <div class="foam-bumpy-container">
           <div
             class="foam-bump"
-            style="left: -5%; width: 22%; height: 40px; animation-delay: 0.1s;"
+            style="left: -5%; width: 25%; height: 45px; animation-delay: 0.1s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 10%; width: 28%; height: 50px; animation-delay: 0.4s;"
+            style="left: 12%; width: 32%; height: 55px; animation-delay: 0.4s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 32%; width: 20%; height: 38px; animation-delay: 0.2s;"
+            style="left: 36%; width: 24%; height: 42px; animation-delay: 0.2s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 45%; width: 24%; height: 46px; animation-delay: 0.7s;"
+            style="left: 50%; width: 28%; height: 50px; animation-delay: 0.7s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 62%; width: 22%; height: 42px; animation-delay: 0.3s;"
+            style="left: 70%; width: 25%; height: 46px; animation-delay: 0.3s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 78%; width: 26%; height: 48px; animation-delay: 0.5s;"
-          ></div>
-          <div
-            class="foam-bump"
-            style="left: 92%; width: 18%; height: 36px; animation-delay: 0.6s;"
+            style="left: 85%; width: 28%; height: 52px; animation-delay: 0.5s;"
           ></div>
         </div>
 
@@ -122,10 +135,6 @@
           class="foam-surface-bubble"
           style="left: 72%; top: -12px; width: 14px; height: 14px; animation-delay: 1.1s;"
         ></div>
-        <div
-          class="foam-surface-bubble"
-          style="left: 88%; top: -6px; width: 9px; height: 9px; animation-delay: 0.1s;"
-        ></div>
       </div>
     </div>
   </div>
@@ -142,6 +151,7 @@
     min-height: 100%;
     width: 100%;
     z-index: 1;
+    overflow: hidden; /* Fixes unexpected outer scrollbars */
   }
 
   /* Target the main background wrapper for this page specifically */
@@ -153,16 +163,19 @@
   /* Beer background container */
   .beer-bg {
     position: absolute;
-    inset: -100px; /* Overscan boundary buffer so edges don't clip when tilted */
+    /* Massive coverage padding eliminates edge exposure during turns */
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
     z-index: -10;
     overflow: hidden;
     pointer-events: none;
 
-    /* Rotate container opposite to the device tilt to keep liquid level horizontal */
+    /* Rotate container opposite to the device tilt */
     transform: rotate(calc(var(--tilt-x, 0deg) * -1));
-    transition: transform 0.1s ease-out;
     will-change: transform;
-    transform-origin: center 60%; /* Pivot around standard fluid level line */
+    transform-origin: center 55%;
   }
 
   /* Golden-Amber Beer Liquid */
@@ -191,8 +204,8 @@
     }
     100% {
       transform: translateY(
-        25%
-      ); /* Adjusted slightly down to accommodate overscan margin */
+        40%
+      ); /* Lowered value to balance huge canvas bleed */
     }
   }
 
@@ -228,7 +241,7 @@
       opacity: var(--bubble-opacity, 0.4);
     }
     100% {
-      transform: translate3d(var(--bubble-sway, 10px), -120vh, 0) scale(1.1);
+      transform: translate3d(var(--bubble-sway, 10px), -150vh, 0) scale(1.1);
       opacity: 0;
     }
   }
@@ -236,25 +249,30 @@
   /* Fluffy Foam Head */
   .beer-foam {
     position: absolute;
-    top: -20px; /* Offset to sit nicely on top edge of liquid */
-    left: -20%;
-    right: -20%;
-    height: 40px;
+    top: -25px;
+    left: 0;
+    right: 0;
+    height: 50px;
     background: #fdfcf7;
     border-top: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow:
       0 -4px 15px rgba(255, 255, 255, 0.9),
       inset 0 -6px 8px rgba(212, 106, 0, 0.1);
     z-index: 5;
+
+    /* Low overhead physics: dynamic translate & skew mimic inertia sloshing */
+    transform: translate3d(0, calc(var(--slosh) * 0.3), 0)
+      skewX(var(--slosh-skew));
+    will-change: transform;
   }
 
   /* Foam bump shapes to create fluffy cloud look */
   .foam-bumpy-container {
     position: absolute;
-    top: -20px;
+    top: -25px;
     left: 0;
     right: 0;
-    height: 40px;
+    height: 50px;
     z-index: -1;
   }
 
