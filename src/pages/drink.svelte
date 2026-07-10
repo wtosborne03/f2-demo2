@@ -1,15 +1,10 @@
 <script lang="ts">
   import Drink from "$lib/components/drink.svelte";
-  import { get } from "svelte/store";
-  import type { DrinkingPrompt } from "../types/page_data";
-  import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
+  import AdminConfirm from "$lib/components/admin_confirm.svelte";
 
-  const m_data = $gameState.page_data as DrinkingPrompt;
-
-  function confirm() {
-    gameClient.sendPlayerInput("confirm");
-  }
+  const m_data = {
+    prompt: "Drink",
+  };
 
   // Optimize bubble count from 35 to 18 for rendering efficiency
   const bubbles = Array.from({ length: 18 }, (_, i) => {
@@ -21,16 +16,16 @@
       delay: Math.random() * 4,
       duration: Math.random() * 3 + 2, // 2s to 5s
       opacity: Math.random() * 0.3 + 0.2,
-      sway: Math.random() * 20 - 10 // -10px to 10px
+      sway: Math.random() * 20 - 10, // -10px to 10px
     };
   });
 </script>
 
-<div class="drink-page w-full flex flex-col justify-center items-center relative">
-  <!-- Beer Background Fill-Up Effect -->
+<div
+  class="drink-page w-full flex flex-col justify-center items-center relative"
+>
   <div class="beer-bg" aria-hidden="true">
     <div class="beer-liquid">
-      <!-- Bubbles inside the liquid -->
       <div class="bubbles-container">
         {#each bubbles as b (b.id)}
           <div
@@ -39,47 +34,68 @@
           ></div>
         {/each}
       </div>
-      
-      <!-- Foam head at the top of the liquid -->
+
       <div class="beer-foam">
-        <!-- Foam bubbles overlaying the top border -->
         <div class="foam-bumpy-container">
-          <div class="foam-bump" style="left: -5%; width: 22%; height: 40px; animation-delay: 0.1s;"></div>
-          <div class="foam-bump" style="left: 10%; width: 28%; height: 50px; animation-delay: 0.4s;"></div>
-          <div class="foam-bump" style="left: 32%; width: 20%; height: 38px; animation-delay: 0.2s;"></div>
-          <div class="foam-bump" style="left: 45%; width: 24%; height: 46px; animation-delay: 0.7s;"></div>
-          <div class="foam-bump" style="left: 62%; width: 22%; height: 42px; animation-delay: 0.3s;"></div>
-          <div class="foam-bump" style="left: 78%; width: 26%; height: 48px; animation-delay: 0.5s;"></div>
-          <div class="foam-bump" style="left: 92%; width: 18%; height: 36px; animation-delay: 0.6s;"></div>
+          <div
+            class="foam-bump"
+            style="left: -5%; width: 22%; height: 40px; animation-delay: 0.1s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 10%; width: 28%; height: 50px; animation-delay: 0.4s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 32%; width: 20%; height: 38px; animation-delay: 0.2s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 45%; width: 24%; height: 46px; animation-delay: 0.7s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 62%; width: 22%; height: 42px; animation-delay: 0.3s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 78%; width: 26%; height: 48px; animation-delay: 0.5s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 92%; width: 18%; height: 36px; animation-delay: 0.6s;"
+          ></div>
         </div>
-        
-        <!-- Surface bubbles floating dynamically on the foam -->
-        <div class="foam-surface-bubble" style="left: 15%; top: -10px; width: 12px; height: 12px; animation-delay: 0.2s;"></div>
-        <div class="foam-surface-bubble" style="left: 35%; top: -14px; width: 16px; height: 16px; animation-delay: 0.8s;"></div>
-        <div class="foam-surface-bubble" style="left: 55%; top: -8px; width: 10px; height: 10px; animation-delay: 0.5s;"></div>
-        <div class="foam-surface-bubble" style="left: 72%; top: -12px; width: 14px; height: 14px; animation-delay: 1.1s;"></div>
-        <div class="foam-surface-bubble" style="left: 88%; top: -6px; width: 9px; height: 9px; animation-delay: 0.1s;"></div>
+
+        <div
+          class="foam-surface-bubble"
+          style="left: 15%; top: -10px; width: 12px; height: 12px; animation-delay: 0.2s;"
+        ></div>
+        <div
+          class="foam-surface-bubble"
+          style="left: 35%; top: -14px; width: 16px; height: 16px; animation-delay: 0.8s;"
+        ></div>
+        <div
+          class="foam-surface-bubble"
+          style="left: 55%; top: -8px; width: 10px; height: 10px; animation-delay: 0.5s;"
+        ></div>
+        <div
+          class="foam-surface-bubble"
+          style="left: 72%; top: -12px; width: 14px; height: 14px; animation-delay: 1.1s;"
+        ></div>
+        <div
+          class="foam-surface-bubble"
+          style="left: 88%; top: -6px; width: 9px; height: 9px; animation-delay: 0.1s;"
+        ></div>
       </div>
     </div>
   </div>
 
   <Drink prompt={m_data.prompt} />
 
-  {#if get(gameState).admin}
-    <div
-      class="card p-6 mt-8 w-full max-w-md mx-auto bg-white/95 dark:bg-gray-950/95 border border-white/20 dark:border-white/10 shadow-2xl flex flex-col gap-4 items-center text-center rounded-2xl z-10"
-    >
-      <div>
-        <h3 class="h3 font-bold text-primary underline">Admin</h3>
-        <p class="text-gray-800 dark:text-gray-200 mt-2 text-xl">
-          Verify that all players have completed the drinking punishment.
-        </p>
-      </div>
-      <div class="btn-wrapper">
-        <Button variant="filled" onclick={confirm}>They drank 👍</Button>
-      </div>
-    </div>
-  {/if}
+  <AdminConfirm
+    class="absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mx-4"
+  />
 </div>
 
 <style>
@@ -91,7 +107,6 @@
 
   /* Target the main background wrapper for this page specifically */
   :global(#main-background:has(.drink-page)) {
-    background-color: #201103 !important; /* Rich dark stout base */
     position: relative;
     overflow: hidden;
   }
@@ -115,10 +130,10 @@
     height: 100%;
     background: linear-gradient(
       to top,
-      #9e4700 0%,
-      #d46a00 30%,
-      #ff9f00 65%,
-      #ffbf00 92%,
+      #6b3000 0%,
+      #944a00 30%,
+      #c17700 65%,
+      #daa400 92%,
       #ffe16f 100%
     );
     transform: translateY(100%);
@@ -143,7 +158,7 @@
     overflow: hidden;
   }
 
-  /* Optimized glassy bubble styling (no performance-heavy box-shadows or gradients) */
+  /* Optimized glassy bubble styling */
   .bubble {
     position: absolute;
     bottom: -20px;
@@ -182,9 +197,9 @@
     height: 40px;
     background: #fdfcf7;
     border-top: 1px solid rgba(255, 255, 255, 0.9);
-    /* Simplified shadows for rendering performance */
-    box-shadow: 0 -4px 15px rgba(255, 255, 255, 0.9),
-                inset 0 -6px 8px rgba(212, 106, 0, 0.1); 
+    box-shadow:
+      0 -4px 15px rgba(255, 255, 255, 0.9),
+      inset 0 -6px 8px rgba(212, 106, 0, 0.1);
     z-index: 5;
   }
 
@@ -234,17 +249,5 @@
     100% {
       transform: translate3d(4px, -3px, 0);
     }
-  }
-
-  .btn-wrapper {
-    width: 100%;
-  }
-  .btn-wrapper > :global(*) {
-    width: 100%;
-    padding: 1.25rem 0;
-    font-size: 1.25rem;
-    font-weight: bold;
-    background-color: #e65100 !important; /* Warm matching amber-orange button */
-    color: white !important;
   }
 </style>
