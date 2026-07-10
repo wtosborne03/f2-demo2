@@ -42,7 +42,7 @@
       // Linear interpolation (lerp) for smooth movement
       tiltX += (targetTiltX - tiltX) * 0.15;
 
-      // Slosh represents the speed of movement. Change in tilt = acceleration.
+      // Slosh represents the speed of movement. Change in tilt = acceleration.a
       const velocity = tiltX - lastTiltX;
 
       // decay the slosh effect gently over time, multiplying to control intensity
@@ -95,11 +95,19 @@
         <div class="foam-bumpy-container">
           <div
             class="foam-bump"
-            style="left: -5%; width: 25%; height: 45px; animation-delay: 0.1s;"
+            style="left: 0%; width: 10%; height: 45px; animation-delay: 0.1s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 12%; width: 32%; height: 55px; animation-delay: 0.4s;"
+            style="left: 10%; width: 22%; height: 25px; animation-delay: 0.6s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 12%; width: 22%; height: 45px; animation-delay: 1.4s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 28%; width: 16%; height: 48px; animation-delay: 0.8s;"
           ></div>
           <div
             class="foam-bump"
@@ -107,15 +115,23 @@
           ></div>
           <div
             class="foam-bump"
-            style="left: 50%; width: 28%; height: 50px; animation-delay: 0.7s;"
+            style="left: 50%; width: 18%; height: 67px; animation-delay: 0.7s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 70%; width: 25%; height: 46px; animation-delay: 0.3s;"
+            style="left: 62%; width: 23%; height: 44px; animation-delay: 2.15s;"
           ></div>
           <div
             class="foam-bump"
-            style="left: 85%; width: 28%; height: 52px; animation-delay: 0.5s;"
+            style="left: 70%; width: 15%; height: 46px; animation-delay: 0.3s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 85%; width: 28%; height: 62px; animation-delay: 0.5s;"
+          ></div>
+          <div
+            class="foam-bump"
+            style="left: 93%; width: 20%; height: 38px; animation-delay: 1.9s;"
           ></div>
         </div>
 
@@ -290,7 +306,7 @@
       transform: translateY(0) scale(1);
     }
     100% {
-      transform: translateY(-4px) scale(1.04);
+      transform: translateY(0.8rem) scale(1.1);
     }
   }
 
