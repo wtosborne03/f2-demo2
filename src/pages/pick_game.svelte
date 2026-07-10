@@ -230,6 +230,7 @@
       >
         <Button
           variant="filled"
+          size="l"
           disabled={hasVoted}
           onclick={() => submit_answer(games[activeIndex].name)}
         >
