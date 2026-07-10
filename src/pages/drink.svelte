@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Drink from "$lib/components/drink.svelte";
   import AdminConfirm from "$lib/components/admin_confirm.svelte";
 
@@ -19,10 +20,48 @@
       sway: Math.random() * 20 - 10, // -10px to 10px
     };
   });
+
+  // Motion control states
+  let tiltX = 0; // Left/Right tilt (Gamma)
+  let tiltY = 0; // Front/Back tilt (Beta)
+
+  onMount(() => {
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      // Gamma is left-to-right tilt in degrees [-90, 90]
+      // Beta is front-to-back tilt in degrees [-180, 180]
+      if (event.gamma !== null) tiltX = event.gamma;
+      if (event.beta !== null) tiltY = event.beta;
+    };
+
+    // Modern iOS requires permission. Check if it's already granted without forcing a prompt.
+    const DeviceEvent = window.DeviceOrientationEvent as any;
+    if (DeviceEvent && typeof DeviceEvent.requestPermission === "function") {
+      // We check permission state via standard browser state querying if supported,
+      // otherwise we fallback safely without forcing a prompt.
+      navigator.permissions
+        ?.query({ name: "accelerometer" as any })
+        .then((result) => {
+          if (result.state === "granted") {
+            window.addEventListener("deviceorientation", handleOrientation);
+          }
+        })
+        .catch(() => {
+          // If query fails, do nothing to respect the "dont prompt" rule
+        });
+    } else {
+      // Android / Older browsers that don't guard behind strict permissions
+      window.addEventListener("deviceorientation", handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener("deviceorientation", handleOrientation);
+    };
+  });
 </script>
 
 <div
   class="drink-page w-full flex flex-col justify-center items-center relative"
+  style="--tilt-x: {tiltX}deg; --tilt-y: {tiltY}px;"
 >
   <div class="beer-bg" aria-hidden="true">
     <div class="beer-liquid">
@@ -114,12 +153,16 @@
   /* Beer background container */
   .beer-bg {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    inset: -100px; /* Overscan boundary buffer so edges don't clip when tilted */
     z-index: -10;
     overflow: hidden;
     pointer-events: none;
+
+    /* Rotate container opposite to the device tilt to keep liquid level horizontal */
+    transform: rotate(calc(var(--tilt-x, 0deg) * -1));
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+    transform-origin: center 60%; /* Pivot around standard fluid level line */
   }
 
   /* Golden-Amber Beer Liquid */
@@ -147,7 +190,9 @@
       transform: translateY(100%);
     }
     100% {
-      transform: translateY(22%); /* Beer fills up to 78% of the page */
+      transform: translateY(
+        25%
+      ); /* Adjusted slightly down to accommodate overscan margin */
     }
   }
 
@@ -183,7 +228,7 @@
       opacity: var(--bubble-opacity, 0.4);
     }
     100% {
-      transform: translate3d(var(--bubble-sway, 10px), -102vh, 0) scale(1.1);
+      transform: translate3d(var(--bubble-sway, 10px), -120vh, 0) scale(1.1);
       opacity: 0;
     }
   }
@@ -192,8 +237,8 @@
   .beer-foam {
     position: absolute;
     top: -20px; /* Offset to sit nicely on top edge of liquid */
-    left: 0;
-    right: 0;
+    left: -20%;
+    right: -20%;
     height: 40px;
     background: #fdfcf7;
     border-top: 1px solid rgba(255, 255, 255, 0.9);
