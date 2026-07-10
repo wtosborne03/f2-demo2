@@ -18,11 +18,11 @@
   let games = m_data?.games || [];
 
   let activeIndex = games.length >= 3 ? 1 : 0; // Default to middle card if 3 choices
-  
+
   // Spring store for physical carousel movement
   const offset = spring(activeIndex, {
     stiffness: 0.12,
-    damping: 0.58
+    damping: 0.58,
   });
 
   // Update spring target when activeIndex changes
@@ -58,15 +58,15 @@
 
   function handleDragStart(e: MouseEvent | TouchEvent) {
     isDragging = true;
-    startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    startX = "touches" in e ? e.touches[0].clientX : e.clientX;
     startOffset = activeIndex;
   }
 
   function handleDragMove(e: MouseEvent | TouchEvent) {
     if (!isDragging) return;
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const dx = clientX - startX;
-    // Spacing of slides in pixel value relative mapping (approx 160px drag = 1 slide)
+    // Spacing of slides in relative mapping (approx 10rem / 160px drag = 1 slide)
     const offsetShift = dx / 160;
     offset.set(startOffset - offsetShift, { hard: false });
   }
@@ -74,11 +74,11 @@
   function handleDragEnd() {
     if (!isDragging) return;
     isDragging = false;
-    
+
     // Snap to the closest integer index
     let currentVal = $offset;
     let targetIndex = Math.round(currentVal);
-    
+
     // Clamp targetIndex between bounds
     targetIndex = Math.max(0, Math.min(games.length - 1, targetIndex));
     activeIndex = targetIndex;
@@ -86,18 +86,18 @@
   }
 </script>
 
-<div class="pick-scene-root select-none">
+<div
+  class="pick-scene-root relative h-screen w-screen overflow-hidden select-none font-sans text-neutral-50 dark:text-white"
+>
   {#if games.length > 0}
-    <div class="carousel-wrapper" in:fade={{ duration: 400 }}>
-      <!-- Header Area -->
-      <div class="header-area">
-        <h1 class="header-title">Vote Next Game</h1>
-      </div>
-
+    <div
+      class="carousel-wrapper box-border flex h-full w-full flex-col items-center justify-between px-4 pt-9 pb-11"
+      in:fade={{ duration: 400 }}
+    >
       <!-- 3D Carousel Swiper viewport -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div 
-        class="carousel-container"
+      <div
+        class="carousel-container relative my-2 flex h-[65vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing"
         on:mousedown={handleDragStart}
         on:mousemove={handleDragMove}
         on:mouseup={handleDragEnd}
@@ -114,58 +114,92 @@
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
-            class="carousel-card {activeIndex === i ? 'active-card' : ''}"
+            class="carousel-card absolute h-[60vh] aspect-57/74 transform-3d overflow-hidden rounded-[1.25rem] border-[3px] border-white/10 bg-neutral-900 shadow-xl transition-[border-color,box-shadow] duration-300 will-change-transform {activeIndex ===
+            i
+              ? 'border-primary shadow-primary/30 shadow-2xl'
+              : ''}"
             style="
-              transform: translateX({diff * 144}px) translateZ({-absDiff * 160}px) rotateY({diff * -26}deg);
+              transform: translateX(calc({diff} * var(--spacing-36))) translateZ(calc({-absDiff} * var(--spacing-40))) rotateY({diff *
+              -26}deg);
               z-index: {Math.round(100 - absDiff * 10)};
               opacity: {Math.max(0, 1 - absDiff * 0.55)};
             "
-            on:click={() => { if (!isDragging) activeIndex = i; }}
+            on:click={() => {
+              if (!isDragging) activeIndex = i;
+            }}
           >
-            <div class="card-boxart-frame">
+            <div class="card-boxart-frame relative h-full w-full">
               <img
-                src="/static/boxArt/{game.boxImage}"
+                src="{import.meta.env
+                  .VITE_PUBLIC_API_URL}/static/boxArt/{game.boxImage}"
                 alt={game.fullName}
-                class="card-boxart-image"
+                class="card-boxart-image pointer-events-none h-full w-full object-cover"
               />
-              <div class="card-overlay"></div>
+              <div
+                class="card-overlay pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"
+              ></div>
             </div>
           </div>
         {/each}
       </div>
 
-      <!-- Bottom Controls row (Fallback navigation next to dot indicators) -->
-      <div class="navigation-controls">
-        <button class="icon-nav-btn" disabled={activeIndex === 0} on:click={prevCard}>
-          <Icon icon="mdi:chevron-left" width="24" height="24" />
+      <!-- Bottom Controls row -->
+      <div class="navigation-controls z-10 mb-1 flex items-center gap-4">
+        <button
+          class="icon-nav-btn flex items-center justify-center rounded-full bg-transparent p-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
+          disabled={activeIndex === 0}
+          on:click={prevCard}
+        >
+          <Icon icon="mdi:chevron-left" width="1.5rem" height="1.5rem" />
         </button>
-        <div class="dot-indicators">
+        <div class="dot-indicators flex gap-2">
           {#each games as _, i}
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div
-              class="dot {activeIndex === i ? 'active' : ''}"
-              on:click={() => activeIndex = i}
+              class="dot h-2 w-2 cursor-pointer rounded-full bg-white/20 transition-[background-color,transform] duration-300"
+              class:bg-primary={activeIndex === i}
+              class:scale-125={activeIndex === i}
+              on:click={() => (activeIndex = i)}
             ></div>
           {/each}
         </div>
-        <button class="icon-nav-btn" disabled={activeIndex === games.length - 1} on:click={nextCard}>
-          <Icon icon="mdi:chevron-right" width="24" height="24" />
+        <button
+          class="icon-nav-btn flex items-center justify-center rounded-full bg-transparent p-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
+          disabled={activeIndex === games.length - 1}
+          on:click={nextCard}
+        >
+          <Icon icon="mdi:chevron-right" width="1.5rem" height="1.5rem" />
         </button>
       </div>
 
       <!-- Info Details Panel -->
-      <div class="game-info-panel">
+      <div
+        class="game-info-panel z-10 mb-1 flex h-22 w-full max-w-[18.75rem] flex-col justify-center text-center"
+      >
         {#key activeIndex}
-          <div in:fly={{ y: 8, duration: 300, delay: 50 }} out:fade={{ duration: 150 }}>
-            <h2 class="game-info-title">{games[activeIndex]?.fullName}</h2>
-            <p class="game-info-desc">{games[activeIndex]?.description}</p>
+          <div
+            in:fly={{ y: 8, duration: 300, delay: 50 }}
+            out:fade={{ duration: 150 }}
+          >
+            <h2
+              class="game-info-title mt-0 mb-1.5 text-2xl font-black uppercase tracking-wide text-white drop-shadow-md"
+            >
+              {games[activeIndex]?.fullName}
+            </h2>
+            <p
+              class="game-info-desc m-0 text-[0.8125rem] leading-relaxed text-white"
+            >
+              {games[activeIndex]?.description}
+            </p>
           </div>
         {/key}
       </div>
 
-      <!-- Pick Button (Material 3 Button) -->
-      <div class="btn-wrapper">
+      <!-- Pick Button -->
+      <div
+        class="btn-wrapper z-10 flex w-full justify-center [&>*]:h-13 [&>*]:w-full [&>*]:max-w-[17.5rem] [&>*]:text-base [&>*]:font-bold [&>*]:tracking-wider [&>*]:uppercase"
+      >
         <Button
           variant="filled"
           disabled={hasVoted}
@@ -180,203 +214,10 @@
       </div>
     </div>
   {:else}
-    <div class="flex h-full w-full items-center justify-center bg-zinc-950">
-      <p class="animate-pulse font-mono text-sm text-zinc-500">
+    <div class="flex h-full w-full items-center justify-center bg-neutral-950">
+      <p class="animate-pulse font-mono text-sm text-neutral-500">
         Awaiting minigame choices...
       </p>
     </div>
   {/if}
 </div>
-
-<style>
-  .pick-scene-root {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    color: white;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-
-  .carousel-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    height: 100%;
-    padding: 36px 16px 44px;
-    box-sizing: border-box;
-  }
-
-  .header-area {
-    text-align: center;
-    margin-bottom: 8px;
-  }
-
-  .header-title {
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    color: #94a3b8;
-    margin: 0;
-  }
-
-  .carousel-container {
-    position: relative;
-    width: 100%;
-    height: 360px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    perspective: 1000px;
-    transform-style: preserve-3d;
-    margin: 12px 0;
-    cursor: grab;
-  }
-
-  .carousel-container:active {
-    cursor: grabbing;
-  }
-
-  .carousel-card {
-    position: absolute;
-    width: 210px;
-    height: 315px;
-    border-radius: 20px;
-    overflow: hidden;
-    background-color: #111115;
-    border: 3px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
-    will-change: transform, opacity, z-index;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    transform-style: preserve-3d;
-  }
-
-  .carousel-card.active-card {
-    border-color: #ffaa00;
-    box-shadow: 
-      0 0 25px rgba(255, 170, 0, 0.45),
-      0 20px 45px rgba(0, 0, 0, 0.7);
-  }
-
-  .card-boxart-frame {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
-
-  .card-boxart-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-  }
-
-  .card-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.45) 0%, transparent 50%);
-    pointer-events: none;
-  }
-
-  /* Navigation & dots */
-  .navigation-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-    z-index: 10;
-  }
-
-  .icon-nav-btn {
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border-radius: 50%;
-    transition: color 0.2s, background-color 0.2s;
-  }
-
-  .icon-nav-btn:hover:not(:disabled) {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.06);
-  }
-
-  .icon-nav-btn:disabled {
-    color: #4b5563;
-    cursor: not-allowed;
-  }
-
-  .dot-indicators {
-    display: flex;
-    gap: 8px;
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.2);
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-  }
-
-  .dot.active {
-    background-color: #ffaa00;
-    transform: scale(1.3);
-  }
-
-  /* Game Info Panel */
-  .game-info-panel {
-    text-align: center;
-    width: 100%;
-    max-width: 300px;
-    height: 88px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-bottom: 16px;
-    z-index: 10;
-  }
-
-  .game-info-title {
-    font-size: 24px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 0 0 6px;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  }
-
-  .game-info-desc {
-    font-size: 13px;
-    color: #94a3b8;
-    line-height: 1.45;
-    margin: 0;
-  }
-
-  /* Button Wrapper for Material 3 Button styling overrides */
-  .btn-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    z-index: 10;
-  }
-
-  .btn-wrapper > :global(*) {
-    width: 100%;
-    max-width: 280px;
-    height: 52px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-</style>
