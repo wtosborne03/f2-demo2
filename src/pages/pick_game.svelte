@@ -25,7 +25,96 @@
 <div
   class="relative flex h-screen w-screen overflow-hidden bg-black font-sans text-white select-none"
 >
-  {#if games.length >= 2}
+  {#if games.length >= 3}
+    <!-- Option 1 -->
+    <button
+      in:fly={{ x: -100, duration: 600, delay: 100 }}
+      class="group relative flex h-full flex-1 flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-700 p-4 text-center transition-all duration-300 ease-out hover:flex-[1.4] focus:outline-none active:brightness-110"
+      on:click={() => submit_answer(games[0].name)}
+    >
+      <div
+        class="absolute -left-10 -top-10 h-64 w-64 rounded-full bg-white/10 blur-3xl transition-transform duration-700 group-hover:scale-125"
+      ></div>
+      <div
+        class="relative z-10 flex flex-col items-center gap-3 transition-transform duration-300 group-hover:scale-105"
+      >
+        <h2
+          class="text-2xl font-black uppercase leading-none tracking-tighter drop-shadow-lg sm:text-4xl md:text-5xl"
+        >
+          {games[0].fullName}
+        </h2>
+        <p
+          class="max-w-[180px] text-xs font-medium uppercase tracking-wide text-white/80 sm:max-w-xs sm:text-sm"
+        >
+          {games[0].description}
+        </p>
+      </div>
+    </button>
+
+    <!-- Option 2 -->
+    <button
+      in:fly={{ y: 100, duration: 600, delay: 200 }}
+      class="group relative flex h-full flex-1 flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-amber-500 to-orange-700 p-4 text-center transition-all duration-300 ease-out hover:flex-[1.4] focus:outline-none active:brightness-110 border-l border-r border-white/10"
+      on:click={() => submit_answer(games[1].name)}
+    >
+      <div
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-yellow-300/10 blur-3xl transition-transform duration-700 group-hover:scale-125"
+      ></div>
+      <div
+        class="relative z-10 flex flex-col items-center gap-3 transition-transform duration-300 group-hover:scale-105"
+      >
+        <h2
+          class="text-2xl font-black uppercase leading-none tracking-tighter drop-shadow-lg sm:text-4xl md:text-5xl"
+        >
+          {games[1].fullName}
+        </h2>
+        <p
+          class="max-w-[180px] text-xs font-medium uppercase tracking-wide text-white/80 sm:max-w-xs sm:text-sm"
+        >
+          {games[1].description}
+        </p>
+      </div>
+    </button>
+
+    <!-- Option 3 -->
+    <button
+      in:fly={{ x: 100, duration: 600, delay: 300 }}
+      class="group relative flex h-full flex-1 flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-rose-500 to-pink-700 p-4 text-center transition-all duration-300 ease-out hover:flex-[1.4] focus:outline-none active:brightness-110"
+      on:click={() => submit_answer(games[2].name)}
+    >
+      <div
+        class="absolute -right-10 -bottom-10 h-64 w-64 rounded-full bg-white/10 blur-3xl transition-transform duration-700 group-hover:scale-125"
+      ></div>
+      <div
+        class="relative z-10 flex flex-col items-center gap-3 transition-transform duration-300 group-hover:scale-105"
+      >
+        <h2
+          class="text-2xl font-black uppercase leading-none tracking-tighter drop-shadow-lg sm:text-4xl md:text-5xl"
+        >
+          {games[2].fullName}
+        </h2>
+        <p
+          class="max-w-[180px] text-xs font-medium uppercase tracking-wide text-white/80 sm:max-w-xs sm:text-sm"
+        >
+          {games[2].description}
+        </p>
+      </div>
+    </button>
+
+    <!-- Header Badge -->
+    <div
+      in:fade={{ duration: 600, delay: 400 }}
+      class="absolute left-1/2 top-12 z-20 -translate-x-1/2 pointer-events-none"
+    >
+      <div
+        class="relative flex h-14 w-60 items-center justify-center rounded-2xl bg-white shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+      >
+        <span class="font-black italic text-center text-black text-lg"
+          >Vote Next Game</span
+        >
+      </div>
+    </div>
+  {:else if games.length === 2}
     <!-- Left Option (Game 1) -->
     <button
       in:fly={{ x: -100, duration: 600, delay: 100 }}
