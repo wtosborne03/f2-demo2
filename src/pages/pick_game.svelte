@@ -96,7 +96,7 @@
 
     let targetIndex = activeIndex;
 
-    // Flick gesture detection: fast drag (<250ms) and swipe distance >30px
+    // 1. Velocity/Flick detection
     if (dt < 250 && Math.abs(dx) > 30) {
       if (dx > 0) {
         targetIndex = Math.max(0, activeIndex - 1);
@@ -104,13 +104,18 @@
         targetIndex = Math.min(games.length - 1, activeIndex + 1);
       }
     } else {
-      // Normal drag snap
+      // 2. Normal drag snap: Use the current spring position to determine closest card
       targetIndex = Math.round($offset);
       targetIndex = Math.max(0, Math.min(games.length - 1, targetIndex));
     }
 
-    activeIndex = targetIndex;
-    offset.set(activeIndex, { hard: false });
+    // 3. Only update if the index actually changed, avoiding resetting the spring physics mid-flight
+    if (activeIndex !== targetIndex) {
+      activeIndex = targetIndex;
+    } else {
+      // If we didn't cross the threshold, smoothly snap back to the original active index
+      offset.set(activeIndex);
+    }
   }
 </script>
 
@@ -255,5 +260,9 @@
   .carousel-container {
     --spacing-36: min(52vw, 13rem);
     --spacing-40: min(30vw, 10rem);
+  }
+  .carousel-card {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 </style>
