@@ -6,7 +6,6 @@
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
   import Icon from "@iconify/svelte";
-  import { Button, Card, ListItem } from "m3-svelte";
 
   const session = authClient.useSession();
 
@@ -35,105 +34,105 @@
   }
 </script>
 
-<div class="stats-container">
-  <div class="back-btn-wrapper">
-    <Button variant="filled" onclick={() => goto("/")}>
-      <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
-    </Button>
+<div class="mx-auto flex w-full max-w-lg flex-col items-center px-4 py-8">
+  <!-- Back Button -->
+  <div class="mb-6 flex w-full justify-start">
+    <button
+      class="btn btn-circle btn-ghost"
+      onclick={() => goto("/")}
+      aria-label="Back"
+    >
+      <Icon icon="lets-icons:back" class="text-2xl" />
+    </button>
   </div>
 
-  <h1 class="stats-title">Stats</h1>
+  <h1 class="mb-8 text-3xl font-bold tracking-tight text-base-content">
+    Stats
+  </h1>
 
   {#if !stats}
-    <div class="spinner-wrapper">
+    <div class="flex justify-center py-12">
       <Spinner />
     </div>
   {:else}
-    <div class="card-wrapper">
-      <Card variant="outlined">
-        <div class="card-items">
-          <ListItem headline="Player Since" supporting={new Date(stats.playerSince).toDateString()}>
-            {#snippet leading()}
-              <Icon icon="mdi:calendar-range" class="stat-icon" />
-            {/snippet}
-          </ListItem>
-          
-          <ListItem headline="Prompts Answered" supporting={String(stats.totalPromptsAnswered)}>
-            {#snippet leading()}
-              <Icon icon="mdi:message-text-outline" class="stat-icon" />
-            {/snippet}
-          </ListItem>
-          
-          <ListItem headline="Games Played" supporting={String(stats.totalGamesPlayed)}>
-            {#snippet leading()}
-              <Icon icon="mdi:controller-classic-outline" class="stat-icon" />
-            {/snippet}
-          </ListItem>
-          
-          <ListItem headline="Doubloons Won" supporting={stats.totalDoubloonsWon.toLocaleString()}>
-            {#snippet leading()}
-              <Icon icon="mdi:coins" class="stat-icon" style="color: #ffb300;" />
-            {/snippet}
-          </ListItem>
-          
-          <ListItem headline="Drinks Taken" supporting={String(stats.totalDrinksTaken)}>
-            {#snippet leading()}
-              <Icon icon="mdi:glass-mug-variant" class="stat-icon" style="color: #ffb74d;" />
-            {/snippet}
-          </ListItem>
-          
-          <ListItem headline="Wins" supporting={String(stats.totalWins)}>
-            {#snippet leading()}
-              <Icon icon="mdi:trophy-outline" class="stat-icon" style="color: #ffd54f;" />
-            {/snippet}
-          </ListItem>
+    <!-- daisyUI Card -->
+    <div class="card w-full border border-base-300 bg-base-100 shadow-sm">
+      <div class="card-body p-4 sm:p-6 divide-y divide-base-200">
+        <!-- Player Since -->
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3">
+            <Icon icon="mdi:calendar-range" class="text-2xl text-primary" />
+            <span class="font-medium text-base-content/80">Player Since</span>
+          </div>
+          <span class="font-semibold text-base-content"
+            >{new Date(stats.playerSince).toDateString()}</span
+          >
         </div>
-      </Card>
+
+        <!-- Prompts Answered -->
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3">
+            <Icon
+              icon="mdi:message-text-outline"
+              class="text-2xl text-primary"
+            />
+            <span class="font-medium text-base-content/80"
+              >Prompts Answered</span
+            >
+          </div>
+          <span class="font-semibold text-base-content"
+            >{stats.totalPromptsAnswered}</span
+          >
+        </div>
+
+        <!-- Games Played -->
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3">
+            <Icon
+              icon="mdi:controller-classic-outline"
+              class="text-2xl text-primary"
+            />
+            <span class="font-medium text-base-content/80">Games Played</span>
+          </div>
+          <span class="font-semibold text-base-content"
+            >{stats.totalGamesPlayed}</span
+          >
+        </div>
+
+        <!-- Doubloons Won -->
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3">
+            <Icon icon="mdi:coins" class="text-2xl text-amber-500" />
+            <span class="font-medium text-base-content/80">Doubloons Won</span>
+          </div>
+          <span class="font-semibold text-base-content"
+            >{stats.totalDoubloonsWon.toLocaleString()}</span
+          >
+        </div>
+
+        <!-- Drinks Taken -->
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3">
+            <Icon
+              icon="mdi:glass-mug-variant"
+              class="text-2xl text-orange-400"
+            />
+            <span class="font-medium text-base-content/80">Drinks Taken</span>
+          </div>
+          <span class="font-semibold text-base-content"
+            >{stats.totalDrinksTaken}</span
+          >
+        </div>
+
+        <!-- Wins -->
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3">
+            <Icon icon="mdi:trophy-outline" class="text-2xl text-yellow-400" />
+            <span class="font-medium text-base-content/80">Wins</span>
+          </div>
+          <span class="font-semibold text-base-content">{stats.totalWins}</span>
+        </div>
+      </div>
     </div>
   {/if}
 </div>
-
-<style>
-  .stats-container {
-    padding: 2rem 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 32rem;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  .back-btn-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 1.5rem;
-  }
-
-  .stats-title {
-    font-family: var(--m3-font); font-size: 1.75rem; line-height: 1.286; font-weight: 400;
-    color: var(--m3c-on-background);
-    margin-top: 0;
-    margin-bottom: 2rem;
-  }
-
-  .spinner-wrapper {
-    display: flex;
-    justify-content: center;
-    padding: 3rem 0;
-  }
-
-  .card-wrapper {
-    width: 100%;
-  }
-
-  .card-items {
-    padding: 0.5rem 0;
-  }
-
-  .stat-icon {
-    font-size: 1.5rem;
-    color: var(--m3c-primary);
-  }
-</style>
