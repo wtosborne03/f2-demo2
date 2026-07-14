@@ -13,8 +13,9 @@
     boxImage: string;
   }
 
-  let m_data = get(gameState).page_data as { games: GameData[] };
+  let m_data = get(gameState).page_data as { games: GameData[], lastGame?: GameData | null };
   let games = m_data?.games || [];
+  let lastGame = m_data?.lastGame || null;
 
   let activeIndex = games.length >= 3 ? 1 : 0; // Default to middle card if 3 choices
 
@@ -229,19 +230,48 @@
       </div>
 
       <!-- Pick Button -->
+      <button
+        type="button"
+        class="btn btn-primary btn-lg w-full max-w-[17.5rem] font-bold text-base tracking-wider uppercase"
+        disabled={hasVoted}
+        onclick={() => submit_answer(games[activeIndex].name)}
+      >
+        {#if hasVoted}
+          <span class="loading loading-spinner"></span>
+          SUBMITTING...
+        {:else}
+          VOTE THIS GAME
+        {/if}
+      </button>
+
+      {#if lastGame}
+        <!-- Replay Last Game Box/Button -->
         <button
           type="button"
-          class="btn btn-primary btn-lg w-full max-w-[17.5rem] font-bold text-base tracking-wider uppercase"
+          class="group relative mt-3 flex w-full max-w-[17.5rem] items-center gap-3 overflow-hidden rounded-xl border border-white/10 bg-neutral-900/60 p-2.5 text-left backdrop-blur-md transition-all duration-300 hover:border-primary/50 hover:bg-neutral-900/80 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           disabled={hasVoted}
-          onclick={() => submit_answer(games[activeIndex].name)}
+          onclick={() => submit_answer("replay_game")}
         >
-          {#if hasVoted}
-            <span class="loading loading-spinner"></span>
-            SUBMITTING...
-          {:else}
-            VOTE THIS GAME
-          {/if}
+          <!-- Box Art Image Thumbnail -->
+          <div class="h-12 w-9 flex-shrink-0 overflow-hidden rounded-md border border-white/10">
+            <img
+              src="{import.meta.env.VITE_PUBLIC_API_URL}/static/boxArt/{lastGame.boxImage}"
+              alt={lastGame.fullName}
+              class="h-full w-full object-cover"
+            />
+          </div>
+          <!-- Info -->
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center gap-1 text-primary text-[0.6875rem] font-bold uppercase tracking-wider">
+              <Icon icon="mdi:replay" class="h-3.5 w-3.5 animate-[spin_4s_linear_infinite]" />
+              Replay Last Game
+            </div>
+            <div class="truncate text-sm font-black text-white uppercase mt-0.5">
+              {lastGame.fullName}
+            </div>
+          </div>
         </button>
+      {/if}
     </div>
   {:else}
     <div class="flex h-full w-full items-center justify-center bg-neutral-950">
