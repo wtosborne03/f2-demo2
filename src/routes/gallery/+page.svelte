@@ -41,7 +41,8 @@
         } catch (error) {
             toaster.error({
                 title: "Google Sign-In Failed",
-                description: error instanceof Error ? error.message : String(error),
+                description:
+                    error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -65,7 +66,8 @@
         } catch (error) {
             toaster.error({
                 title: "Spotify Sign-In Failed",
-                description: error instanceof Error ? error.message : String(error),
+                description:
+                    error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -89,7 +91,8 @@
         } catch (error) {
             toaster.error({
                 title: "Apple Sign-In Failed",
-                description: error instanceof Error ? error.message : String(error),
+                description:
+                    error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -101,14 +104,19 @@
 
 <div class="gallery-container">
     <div class="back-btn-wrapper">
-        <Button variant="filled" onclick={() => goto("/")}>
+        <Button
+            variant="filled"
+            size="l"
+            onclick={() => goto("/")}
+            id="back-to-home-btn"
+        >
             <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
         </Button>
     </div>
 
     <h1 class="gallery-title">Creation Gallery</h1>
 
-    {#if $session.isPending && (browser && document.cookie.includes("better-auth"))}
+    {#if $session.isPending && browser && document.cookie.includes("better-auth")}
         <div class="spinner-wrapper">
             <Spinner />
         </div>
@@ -123,8 +131,8 @@
                     <div class="prompt-icon">🔒</div>
                     <h2 class="prompt-title">Sign In Required</h2>
                     <p class="prompt-desc">
-                        Please log in to view your persistent history of generated images across all past
-                        games.
+                        Please log in to view your persistent history of
+                        generated images across all past games.
                     </p>
                     <div class="signin-options">
                         <GoogleSignInButton onClick={signInWithGoogle} />
