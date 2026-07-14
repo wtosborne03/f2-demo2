@@ -13,7 +13,10 @@
     boxImage: string;
   }
 
-  let m_data = get(gameState).page_data as { games: GameData[], lastGame?: GameData | null };
+  let m_data = get(gameState).page_data as {
+    games: GameData[];
+    lastGame?: GameData | null;
+  };
   let games = m_data?.games || [];
   let lastGame = m_data?.lastGame || null;
 
@@ -252,24 +255,11 @@
           disabled={hasVoted}
           onclick={() => submit_answer("replay_game")}
         >
-          <!-- Box Art Image Thumbnail -->
-          <div class="h-12 w-9 flex-shrink-0 overflow-hidden rounded-md border border-white/10">
-            <img
-              src="{import.meta.env.VITE_PUBLIC_API_URL}/static/boxArt/{lastGame.boxImage}"
-              alt={lastGame.fullName}
-              class="h-full w-full object-cover"
-            />
-          </div>
-          <!-- Info -->
-          <div class="flex-grow min-w-0">
-            <div class="flex items-center gap-1 text-primary text-[0.6875rem] font-bold uppercase tracking-wider">
-              <Icon icon="mdi:replay" class="h-3.5 w-3.5 animate-[spin_4s_linear_infinite]" />
-              Replay Last Game
-            </div>
-            <div class="truncate text-sm font-black text-white uppercase mt-0.5">
-              {lastGame.fullName}
-            </div>
-          </div>
+          <Icon
+            icon="mdi:replay"
+            class="h-3.5 w-3.5 animate-[spin_4s_linear_infinite]"
+          />
+          Replay {lastGame.fullName}
         </button>
       {/if}
     </div>
