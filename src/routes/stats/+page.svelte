@@ -6,6 +6,7 @@
   import { apiClient } from "$lib/backend/axios";
   import type { Paths } from "$lib/backend/api";
   import Icon from "@iconify/svelte";
+  import Button from "m3-svelte/Button.svelte";
 
   const session = authClient.useSession();
 
@@ -37,13 +38,14 @@
 <div class="mx-auto flex w-full max-w-lg flex-col items-center px-4 py-8">
   <!-- Back Button -->
   <div class="mb-6 flex w-full justify-start">
-    <button
-      class="btn btn-circle btn-ghost"
+    <Button
+      variant="filled"
+      size="l"
       onclick={() => goto("/")}
-      aria-label="Back"
+      id="back-to-home-btn"
     >
-      <Icon icon="lets-icons:back" class="text-2xl" />
-    </button>
+      <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
+    </Button>
   </div>
 
   <h1 class="mb-8 text-3xl font-bold tracking-tight text-base-content">
