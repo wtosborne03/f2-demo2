@@ -91,7 +91,7 @@
         try {
             const { data, error } = await signIn.social({
                 provider: "apple",
-                callbackURL: `https://play.couchcup.tv/auth/callback/apple`,
+                callbackURL: `${window.location.origin}/`,
             });
             if (error) {
                 toaster.error({
