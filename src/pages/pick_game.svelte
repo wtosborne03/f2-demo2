@@ -251,7 +251,7 @@
         <!-- Replay Last Game Box/Button -->
         <button
           type="button"
-          class="group relative mt-3 flex w-full max-w-[17.5rem] items-center gap-3 overflow-hidden rounded-xl border border-white/10 bg-neutral-900/60 p-2.5 text-left backdrop-blur-md transition-all duration-300 hover:border-primary/50 hover:bg-neutral-900/80 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          class="btn btn-secondary btn-lg w-full max-w-[17.5rem] font-bold text-base tracking-wider uppercase"
           disabled={hasVoted}
           onclick={() => submit_answer("replay_game")}
         >
