@@ -118,7 +118,7 @@
       <li class="card bg-base-200 border border-base-300 shadow-sm p-4 flex flex-col gap-4">
         <span class="text-base font-bold">End Condition 🏁</span>
 
-        <div class="tabs tabs-box bg-base-300 p-1 rounded-xl w-full flex">
+        <div class="tabs tabs-box bg-base-300 p-1 rounded-full w-full flex">
           <button
             type="button"
             class="tab flex-1 font-medium transition-all"

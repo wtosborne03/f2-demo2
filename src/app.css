@@ -19,6 +19,10 @@
   --color-base-300: #0e0e2d;
   --color-base-content: #f3f4f6;
 
+  /* Global design tokens */
+  --border: 1px;
+  --depth: 1;
+
   /* Playful rounded variables */
   --radius-box: 1.5rem;
   --radius-field: 1.25rem;
