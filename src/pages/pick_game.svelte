@@ -133,7 +133,7 @@
       <!-- 3D Carousel Swiper viewport -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
-        class="carousel-container relative my-2 flex h-[65vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing"
+        class="carousel-container relative my-2 flex h-[60vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing"
         onmousedown={handleDragStart}
         onmousemove={handleDragMove}
         onmouseup={handleDragEnd}
@@ -211,20 +211,15 @@
 
       <!-- Info Details Panel -->
       <div
-        class="game-info-panel z-10 mb-1 flex h-22 w-full max-w-[18.75rem] flex-col justify-center text-center"
+        class="game-info-panel z-10 mb-1 flex h-16 w-full max-w-[18.75rem] flex-col justify-center text-center"
       >
         {#key activeIndex}
           <div
             in:fly={{ y: 8, duration: 300, delay: 50 }}
             out:fade={{ duration: 150 }}
           >
-            <h2
-              class="game-info-title mt-0 mb-1.5 text-2xl font-black uppercase tracking-wide text-white drop-shadow-md"
-            >
-              {games[activeIndex]?.fullName}
-            </h2>
             <p
-              class="game-info-desc m-0 text-[0.8125rem] leading-relaxed text-white"
+              class="game-info-desc m-0 text-[1.125rem] leading-relaxed text-white"
             >
               {games[activeIndex]?.description}
             </p>
@@ -251,7 +246,7 @@
         <!-- Replay Last Game Box/Button -->
         <button
           type="button"
-          class="btn btn-secondary btn-lg w-full max-w-[17.5rem] font-bold text-base tracking-wider uppercase"
+          class="btn btn-secondary btn-lg w-full max-w-[17.5rem] mt-2 font-bold text-base tracking-wider uppercase"
           disabled={hasVoted}
           onclick={() => submit_answer("replay_game")}
         >
