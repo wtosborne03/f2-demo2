@@ -102,10 +102,7 @@
 
 <div class="selfie-capture">
   <div class="text-center">
-    <h2 class="selfie-title">Create Custom Avatar! 📸</h2>
-    <p class="selfie-subtitle">
-      Align your face in the circle below to project onto your 3D avatar.
-    </p>
+    <h2 class="selfie-title">Create Custom Avatar</h2>
   </div>
 
   <!-- Camera Viewport Container -->
@@ -351,8 +348,8 @@
   .skip-btn {
     width: 100%;
     height: 3rem;
-    background-color: transparent;
-    color: #a1a1aa;
+    background-color: #52525b;
+    color: #f0f0fb;
     font-weight: 600;
     font-size: 0.875rem;
     border-radius: 0.75rem;
@@ -362,7 +359,7 @@
   }
 
   .skip-btn:hover {
-    background-color: rgba(63, 63, 70, 0.3);
+    background-color: rgba(63, 63, 70, 0.9);
     color: #d4d4d8;
   }
 

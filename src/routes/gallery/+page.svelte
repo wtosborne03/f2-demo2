@@ -6,6 +6,7 @@
     import UserImageGrid from "$lib/components/UserImageGrid.svelte";
     import GoogleSignInButton from "$lib/components/GoogleSignInButton.svelte";
     import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
+    import AppleSignInButton from "$lib/components/AppleSignInButton.svelte";
     import { toaster } from "$lib/util/toaster";
     import { apiClient } from "$lib/backend/axios";
     import { browser } from "$app/environment";
@@ -69,6 +70,30 @@
         }
     };
 
+    const signInWithApple = async () => {
+        try {
+            const { data, error } = await signIn.social({
+                provider: "apple",
+                callbackURL: `${window.location.origin}/gallery`,
+            });
+            if (error) {
+                toaster.error({
+                    title: "Apple Sign-In Failed",
+                    description: error.message,
+                });
+                return;
+            }
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        } catch (error) {
+            toaster.error({
+                title: "Apple Sign-In Failed",
+                description: error instanceof Error ? error.message : String(error),
+            });
+        }
+    };
+
     if (browser) {
         initApi();
     }
@@ -104,6 +129,7 @@
                     <div class="signin-options">
                         <GoogleSignInButton onClick={signInWithGoogle} />
                         <SpotifySignInButton onClick={signInWithSpotify} />
+                        <AppleSignInButton onClick={signInWithApple} />
                     </div>
                 </div>
             </Card>

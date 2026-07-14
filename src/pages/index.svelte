@@ -7,11 +7,6 @@
   import { sideBarOpen } from "../stores/sidebar";
   import { apiClient } from "$lib/backend/axios";
   import { get } from "svelte/store";
-  import { Button, TextFieldOutlined, Icon } from "m3-svelte";
-  import iconKey from "@ktibow/iconset-material-symbols/vpn-key";
-  import iconPerson from "@ktibow/iconset-material-symbols/person";
-  import iconAccount from "@ktibow/iconset-material-symbols/account-circle";
-  import iconLogin from "@ktibow/iconset-material-symbols/login";
   import Compressor from "compressorjs";
   import Spinner from "$lib/components/spinner.svelte";
   import { toaster } from "$lib/util/toaster";
@@ -93,7 +88,11 @@
                 console.error("Failed to parse user landmarks:", e);
               }
             }
-            joinRoom(me.avatar_selfie, landmarks, me.avatar_gender || undefined);
+            joinRoom(
+              me.avatar_selfie,
+              landmarks,
+              me.avatar_gender || undefined,
+            );
             return;
           }
         }
@@ -121,7 +120,11 @@
     }
   };
 
-  const joinRoom = async (avatarSelfieUrl?: string, landmarks?: any, gender?: string) => {
+  const joinRoom = async (
+    avatarSelfieUrl?: string,
+    landmarks?: any,
+    gender?: string,
+  ) => {
     const user = get(session).data?.user;
     let userId = user?.id;
     if (!userId) {
@@ -192,15 +195,19 @@
 <div
   class="w-full absolute top-0 right-0 p-6 flex flex-row justify-end items-center"
 >
-  <Button variant="tonal" onclick={() => sideBarOpen.set(true)}>
+  <button
+    type="button"
+    class="btn btn-secondary btn-lg flex items-center gap-2"
+    onclick={() => sideBarOpen.set(true)}
+  >
     {#if $session.data?.user}
-      <Icon icon={iconAccount} />
+      <i class="fa-solid fa-circle-user text-xl"></i>
       <span>Account</span>
     {:else}
-      <Icon icon={iconLogin} />
+      <i class="fa-solid fa-right-to-bracket text-xl"></i>
       <span>Log In</span>
     {/if}
-  </Button>
+  </button>
 </div>
 
 <div
@@ -213,33 +220,26 @@
 
   {#if step === "join"}
     <div class="flex flex-col gap-6 w-full mt-6">
-      <div class="input-container w-full">
-        <TextFieldOutlined
-          label="Room Code"
-          leadingIcon={iconKey}
-          maxlength={4}
-          placeholder="ABCD"
+      <label class="input w-full input-lg">
+        Room Code
+        <input
+          id="room-code-field"
+          type="text"
           bind:value={roomCode}
-          class="text-center text-2xl font-bold tracking-widest uppercase"
+          class="input uppercase input-lg"
+          placeholder="ABCD"
         />
-      </div>
-
-      <div class="input-container w-full">
-        <TextFieldOutlined
-          label="Name"
-          leadingIcon={iconPerson}
-          maxlength={10}
-          placeholder="Your Name"
+      </label>
+      <label class="input w-full input-lg">
+        Name
+        <input
+          type="text"
           bind:value={name}
-          class="text-center text-xl"
+          class="input input-lg"
+          placeholder=""
         />
-      </div>
-
-      <div class="btn-wrapper w-full">
-        <Button variant="filled" size="m" onclick={startJoinFlow}
-          >Join Game</Button
-        >
-      </div>
+      </label>
+      <button class="btn btn-lg" onclick={startJoinFlow}> Join Game </button>
     </div>
   {:else if step === "selfie"}
     <SelfieCapture
@@ -249,54 +249,9 @@
   {:else if step === "uploading"}
     <div class="flex flex-col items-center justify-center py-10 gap-4">
       <Spinner />
-      <span class="text-zinc-400 text-lg font-medium animate-pulse"
+      <span class="text-base-content text-lg font-medium animate-pulse"
         >Processing selfie...</span
       >
     </div>
   {/if}
 </div>
-
-<style>
-  /* Style Card Container */
-  .card-wrapper :global(.m3-container) {
-    width: 100%;
-    padding: 2.5rem !important;
-    box-shadow: var(--m3-elevation-3) !important;
-    border-radius: var(--m3-shape-large) !important;
-  }
-
-  /* Style Text Field Outlines */
-  .input-container :global(.m3-container) {
-    width: 100%;
-    height: 4.5rem;
-  }
-  .input-container :global(input) {
-    font-size: 1.5rem !important;
-    padding-inline-start: 3.75rem !important;
-    padding-inline-end: 1.5rem !important;
-    border-radius: var(--m3-shape-medium) !important;
-  }
-  .input-container :global(label) {
-    font-size: 1.15rem !important;
-    inset-inline-start: 3.25rem !important;
-  }
-
-  /* Sliding animation label position fixes */
-  .input-container :global(input:focus ~ label),
-  .input-container :global(input:not(:placeholder-shown) ~ label) {
-    font-size: 0.9rem !important;
-    inset-inline-start: 1.25rem !important;
-  }
-  .input-container :global(.layer) {
-    border-radius: var(--m3-shape-medium) !important;
-  }
-
-  /* Style Action Button */
-  .btn-wrapper :global(.m3-container) {
-    width: 100%;
-    height: 4rem;
-    font-size: 1.35rem !important;
-    font-weight: 800 !important;
-    border-radius: var(--m3-shape-medium) !important;
-  }
-</style>

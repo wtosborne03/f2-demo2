@@ -1,10 +1,8 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
-  import type { ListPromptData, PromptData } from "../types/page_data";
+  import type { ListPromptData } from "../types/page_data";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
-  import { TextFieldOutlined, TextFieldOutlinedMultiline } from "m3-svelte";
 
   let m_data: ListPromptData;
   m_data = get(gameState).page_data;
@@ -19,51 +17,29 @@
 </script>
 
 <div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4"
+  class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6"
 >
   <form
-    class="flex flex-col justify-center items-center w-full max-w-md"
-    on:submit|preventDefault={submit_prompt}
+    class="flex flex-col items-center w-full"
+    onsubmit={(e) => {
+      e.preventDefault();
+      submit_prompt();
+    }}
   >
-    <div class="field-wrapper">
-      <TextFieldOutlinedMultiline
-        label="Think of a way out"
+    <label class="form-control w-full mb-6">
+      <div class="label py-1">
+        <span
+          class="label-text font-bold text-md text-center text-base-content/85"
+          >Think of a way out</span
+        >
+      </div>
+      <textarea
+        class="textarea textarea-bordered textarea-lg w-full font-semibold h-32"
         maxlength={110}
         bind:value={survival_prompt}
-      />
-    </div>
+        placeholder="Type your scenario..."
+      ></textarea>
+    </label>
     <GameSubmit onSubmit={submit_prompt} />
   </form>
 </div>
-
-<style>
-  .alert-banner {
-    background-color: var(--m3c-error-container);
-    color: var(--m3c-on-error-container);
-    padding: 1rem;
-    border-radius: var(--m3-shape-medium);
-    text-align: center;
-    width: 100%;
-    max-width: 28rem;
-    border: 1px solid var(--m3c-error);
-    margin-bottom: 2rem;
-  }
-
-  .alert-banner h3 {
-    margin: 0;
-    font-family: var(--m3-font);
-    font-size: 1rem;
-    line-height: 1.5;
-    font-weight: 400;
-    font-weight: 500;
-  }
-
-  .field-wrapper {
-    width: 100%;
-    margin-bottom: 1.5rem;
-  }
-
-  .field-wrapper :global(.m3-container) {
-    width: 100%;
-  }
-</style>

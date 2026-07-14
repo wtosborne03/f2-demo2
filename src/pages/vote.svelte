@@ -2,7 +2,6 @@
   import { get } from "svelte/store";
   import type { VoteData } from "../types/page_data";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
 
   let m_data: VoteData;
   m_data = get(gameState).page_data;
@@ -14,19 +13,18 @@
   }
 </script>
 
-<div class="container w-full block flex-col p-2">
-  <div class="flex flex-col justify-center items-center">
-    <div class="mb-2 p-4 text-lg">Choose the best answer:</div>
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center">
+  <div class="text-2xl font-black mb-6">Choose the best answer:</div>
+  
+  <div class="w-full flex flex-col gap-4">
     {#each m_data.options as answer}
-      <Button
-        size="l"
-        square
-        style="width:100%; margin-bottom: 0.5rem; margin-top: 0.5rem;"
-        onclick={() =>
-          submit_answer(m_data.options.findIndex((a) => a == answer))}
+      <button
+        type="button"
+        class="btn btn-outline btn-primary btn-lg w-full py-5 h-auto text-lg font-black leading-snug"
+        onclick={() => submit_answer(m_data.options.findIndex((a) => a == answer))}
       >
         {answer}
-      </Button>
+      </button>
     {/each}
   </div>
 </div>

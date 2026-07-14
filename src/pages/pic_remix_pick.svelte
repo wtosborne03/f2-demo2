@@ -3,7 +3,6 @@
   import Icon from "@iconify/svelte";
   import PhotoCarousel from "$lib/components/PhotoCarousel.svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button, TextFieldOutlined } from "m3-svelte";
 
   let s_data: any;
   s_data = get(gameState).page_data;
@@ -32,78 +31,73 @@
   }
 </script>
 
-<div class="h-full flex flex-col items-center text-center px-4 w-full justify-between py-6">
-  <div class="w-full flex-1 flex flex-col items-center justify-center">
-    <div class="text-center mb-4 max-w-sm">
-      <h2 class="text-3xl font-extrabold text-white tracking-tight mb-1">
+<div class="flex flex-col items-center justify-between h-full w-full max-w-md mx-auto px-6 py-6 text-center">
+  <div class="w-full flex-grow flex flex-col items-center justify-center">
+    <div class="mb-4 w-full">
+      <h2 class="text-3xl font-extrabold mb-2 tracking-tight">
         Remix a Photo!
       </h2>
-      <p class="text-zinc-400 text-base leading-snug">
+      <p class="text-base-content/70 text-sm leading-relaxed">
         Select a player's photo and write an AI prompt to edit it!
       </p>
     </div>
 
     {#if items.length > 0}
-      <PhotoCarousel
-        wrap={false}
-        {items}
-        height="35vh"
-        bind:currentIndex={p_index}
-      />
-      <div class="text-sm text-zinc-400 mt-1 mb-4">
-        Photo by: <span class="text-indigo-400 font-bold">{items[p_index]?.id}</span>
+      <div class="w-full flex flex-col items-center">
+        <PhotoCarousel
+          wrap={false}
+          {items}
+          height="30vh"
+          bind:currentIndex={p_index}
+        />
+        <div class="text-xs text-base-content/60 mt-2 mb-6">
+          Photo by: <span class="text-primary font-bold">{items[p_index]?.id}</span>
+        </div>
       </div>
     {:else}
-      <div class="text-zinc-500 italic my-6">No photos available.</div>
+      <div class="text-base-content/40 italic my-8">No photos available.</div>
     {/if}
 
-    <form class="w-full max-w-md mt-2 flex flex-col gap-4" on:submit|preventDefault={submit_choice_and_prompt}>
-      <div class="field-wrapper w-full">
-        <TextFieldOutlined
-          label="AI Prompt (e.g. 'as a cyberpunk warrior')"
+    <form class="w-full mt-2" onsubmit={(e) => { e.preventDefault(); submit_choice_and_prompt(); }}>
+      <label class="form-control w-full">
+        <div class="label py-1">
+          <span class="label-text font-bold text-sm text-base-content/85">
+            AI Prompt (e.g. 'as a cyberpunk warrior')
+          </span>
+        </div>
+        <input
           type="text"
+          class="input input-bordered input-lg w-full font-semibold"
           maxlength={128}
           placeholder="Type how you want to remix this photo..."
           bind:value={promptText}
         />
-        <div class="text-right text-xs text-stone-400 mt-1">
-          {promptText.length} / 128
+        <div class="label py-1 justify-end">
+          <span class="label-text-alt text-xs text-base-content/50">
+            {promptText.length} / 128
+          </span>
         </div>
-      </div>
+      </label>
     </form>
   </div>
 
-  <div class="w-full flex justify-center pb-2 mt-4 btn-wrapper">
-    <Button
-      variant="filled"
-      size="l"
+  <div class="w-full mt-6">
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2"
       onclick={submit_choice_and_prompt}
       disabled={loading || items.length === 0 || !promptText.trim()}
     >
       {#if loading}
+        <span class="loading loading-spinner"></span>
         Generating Remix...
       {:else}
-        Submit Remix
+        <span>Submit Remix</span>
         <Icon
-          style="font-size: 1.5rem; margin-left: 0.5rem;"
+          class="text-xl"
           icon="material-symbols:edit-square-outline"
         />
       {/if}
-    </Button>
+    </button>
   </div>
 </div>
-
-<style>
-  .btn-wrapper > :global(*) {
-    padding: 1.5rem 3rem;
-    font-size: 1.25rem;
-    font-weight: bold;
-    border-radius: var(--m3-shape-large);
-  }
-  .field-wrapper {
-    width: 100%;
-  }
-  .field-wrapper > :global(*) {
-    width: 100%;
-  }
-</style>

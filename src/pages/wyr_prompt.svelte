@@ -1,7 +1,6 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { TextField, Button } from "m3-svelte";
 
   let m_data: any;
   m_data = get(gameState).page_data;
@@ -18,60 +17,49 @@
   }
 </script>
 
-<div
-  class="container overflow-y-auto h-full md:max-w-140 mx-auto w-full flex flex-col justify-start items-center p-4"
->
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center">
   <form
-    class="flex h-full flex-col justify-center items-center w-full max-w-md"
-    on:submit|preventDefault={submit_prompt}
+    class="flex flex-col items-center w-full"
+    onsubmit={(e) => { e.preventDefault(); submit_prompt(); }}
   >
-    <h2
-      class="text-xl font-bold mb-6 text-center text-slate-800 dark:text-slate-100"
-    >
+    <h2 class="text-3xl font-black mb-6">
       Create Your Dilemma
     </h2>
 
-    <div class="w-full flex flex-col gap-4 mb-6">
-      <div>
-        <div class="field-wrapper">
-          <TextField
-            label="Option A"
-            type="text"
-            maxlength={50}
-            bind:value={optionA}
-          />
+    <div class="w-full flex flex-col gap-4 mb-8">
+      <label class="form-control w-full">
+        <div class="label py-1">
+          <span class="label-text font-bold text-sm text-base-content/85">Option A</span>
         </div>
-      </div>
+        <input
+          type="text"
+          class="input input-bordered input-lg w-full font-semibold"
+          maxlength={50}
+          placeholder="Would you rather..."
+          bind:value={optionA}
+        />
+      </label>
 
-      <div>
-        <div class="field-wrapper">
-          <TextField
-            label="Option B"
-            type="text"
-            maxlength={50}
-            bind:value={optionB}
-          />
+      <label class="form-control w-full">
+        <div class="label py-1">
+          <span class="label-text font-bold text-sm text-base-content/85">Option B</span>
         </div>
-      </div>
+        <input
+          type="text"
+          class="input input-bordered input-lg w-full font-semibold"
+          maxlength={50}
+          placeholder="Or would you rather..."
+          bind:value={optionB}
+        />
+      </label>
     </div>
 
-    <Button
-      variant="filled"
+    <button
+      type="submit"
+      class="btn btn-primary btn-lg w-full text-lg font-bold"
       disabled={!optionA.trim() || !optionB.trim()}
-      onclick={submit_prompt}
-      style="width: 100%;"
     >
       Submit Options
-    </Button>
+    </button>
   </form>
 </div>
-
-<style>
-  .field-wrapper {
-    width: 100%;
-  }
-
-  .field-wrapper > :global(*) {
-    width: 100%;
-  }
-</style>

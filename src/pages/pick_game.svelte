@@ -4,7 +4,6 @@
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { fade, fly } from "svelte/transition";
   import { spring } from "svelte/motion";
-  import { Button } from "m3-svelte";
   import Icon from "@iconify/svelte";
 
   interface GameData {
@@ -131,14 +130,14 @@
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
         class="carousel-container relative my-2 flex h-[65vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing"
-        on:mousedown={handleDragStart}
-        on:mousemove={handleDragMove}
-        on:mouseup={handleDragEnd}
-        on:mouseleave={handleDragEnd}
-        on:touchstart|passive={handleDragStart}
-        on:touchmove|passive={handleDragMove}
-        on:touchend={handleDragEnd}
-        on:touchcancel={handleDragEnd}
+        onmousedown={handleDragStart}
+        onmousemove={handleDragMove}
+        onmouseup={handleDragEnd}
+        onmouseleave={handleDragEnd}
+        ontouchstart={handleDragStart}
+        ontouchmove={handleDragMove}
+        ontouchend={handleDragEnd}
+        ontouchcancel={handleDragEnd}
       >
         <!-- Stack of cards using 3D transforms based on spring offset -->
         {#each games as game, i}
@@ -157,7 +156,7 @@
               z-index: {Math.round(100 - absDiff * 10)};
               opacity: {Math.max(0, 1 - absDiff * 0.55)};
             "
-            on:click={() => {
+            onclick={() => {
               if (!isDragging) activeIndex = i;
             }}
           >
@@ -181,7 +180,7 @@
         <button
           class="icon-nav-btn flex items-center justify-center rounded-full bg-transparent p-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
           disabled={activeIndex === 0}
-          on:click={prevCard}
+          onclick={prevCard}
         >
           <Icon icon="mdi:chevron-left" width="1.5rem" height="1.5rem" />
         </button>
@@ -193,14 +192,14 @@
               class="dot h-2 w-2 cursor-pointer rounded-full bg-white/20 transition-[background-color,transform] duration-300"
               class:bg-primary={activeIndex === i}
               class:scale-125={activeIndex === i}
-              on:click={() => (activeIndex = i)}
+              onclick={() => (activeIndex = i)}
             ></div>
           {/each}
         </div>
         <button
           class="icon-nav-btn flex items-center justify-center rounded-full bg-transparent p-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
           disabled={activeIndex === games.length - 1}
-          on:click={nextCard}
+          onclick={nextCard}
         >
           <Icon icon="mdi:chevron-right" width="1.5rem" height="1.5rem" />
         </button>
@@ -230,22 +229,19 @@
       </div>
 
       <!-- Pick Button -->
-      <div
-        class="btn-wrapper z-10 flex w-full justify-center [&>*]:h-13 [&>*]:w-full [&>*]:max-w-[17.5rem] [&>*]:text-base [&>*]:font-bold [&>*]:tracking-wider [&>*]:uppercase"
-      >
-        <Button
-          variant="filled"
-          size="l"
+        <button
+          type="button"
+          class="btn btn-primary btn-lg w-full max-w-[17.5rem] font-bold text-base tracking-wider uppercase"
           disabled={hasVoted}
           onclick={() => submit_answer(games[activeIndex].name)}
         >
           {#if hasVoted}
+            <span class="loading loading-spinner"></span>
             SUBMITTING...
           {:else}
             VOTE THIS GAME
           {/if}
-        </Button>
-      </div>
+        </button>
     </div>
   {:else}
     <div class="flex h-full w-full items-center justify-center bg-neutral-950">

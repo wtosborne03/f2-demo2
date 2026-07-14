@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import { gameClient } from "$lib/wsapi/gameClient";
   import { onMount } from "svelte";
-  import { Button } from "m3-svelte";
 
   const confirm = () => {
     gameClient.sendInput({
@@ -79,10 +78,14 @@
   let showButton = false;
 </script>
 
-<div class="container h-full mx-auto flex justify-center items-center px-4">
+<div class="flex justify-center items-center h-full w-full max-w-md mx-auto px-6">
   {#if showButton}
-    <Button variant="filled" onclick={confirmMotion}>
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold"
+      onclick={confirmMotion}
+    >
       Use Motion Controls
-    </Button>
+    </button>
   {/if}
 </div>

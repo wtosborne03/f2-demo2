@@ -1,11 +1,9 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
-  import type { DoodleData, matchPerson, PromptData } from "../types/page_data";
+  import type { DoodleData } from "../types/page_data";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import Canvas from "../lib/components/canvas.svelte";
   import Palette from "$lib/components/palette.svelte";
-  import { Button } from "m3-svelte";
 
   const colors = ["#000000", "#ffffff"];
   const background = "#fff";
@@ -30,12 +28,16 @@
   }
 </script>
 
-<div
-  class="container h-full min-h-screen mx-auto flex flex-col justify-center items-center px-4"
->
-  <div class="prompt-text">Drawing Prompt: {m_data.prompt}</div>
-  <form class="flex flex-col justify-center items-center gap-4 my-12 w-full max-w-sm" on:submit|preventDefault={submit_prompt}>
-    <Canvas square {color} {background} />
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center space-y-6">
+  <div class="text-2xl font-black leading-snug">
+    Drawing Prompt: <span class="text-primary">{m_data.prompt}</span>
+  </div>
+
+  <form class="flex flex-col items-center w-full gap-4" onsubmit={(e) => { e.preventDefault(); submit_prompt(); }}>
+    <div class="w-full flex justify-center shadow-lg border border-base-300 rounded-2xl overflow-hidden bg-white">
+      <Canvas square {color} {background} />
+    </div>
+
     <Palette
       {paletteColor}
       {colors}
@@ -44,26 +46,12 @@
         color = detail.color;
       }}
     />
-    <div class="btn-wrapper">
-      <Button variant="filled" onclick={submit_prompt}>Submit</Button>
-    </div>
+
+    <button
+      type="submit"
+      class="btn btn-primary btn-lg w-full text-lg font-bold mt-4"
+    >
+      Submit Drawing
+    </button>
   </form>
 </div>
-
-<style>
-  .prompt-text {
-    font-family: var(--m3-font); font-size: 1.5rem; line-height: 1.333; font-weight: 400;
-    text-align: center;
-    color: var(--m3c-on-background);
-  }
-
-  .btn-wrapper {
-    margin-top: 2rem;
-    width: 100%;
-    margin-bottom: 6rem;
-  }
-
-  .btn-wrapper > :global(*) {
-    width: 100%;
-  }
-</style>

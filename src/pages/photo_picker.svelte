@@ -3,7 +3,6 @@
   import type { photoPickerData } from "../types/page_data";
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
-  import { Button } from "m3-svelte";
 
   let s_data: photoPickerData;
   s_data = get(gameState).page_data;
@@ -21,60 +20,53 @@
   }
 </script>
 
-<div
-  class="container h-full mx-auto flex flex-col justify-center items-center p-6 overflow-hidden"
->
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center">
   <!-- Header Section -->
-  <div class="text-center mb-10 max-w-sm">
-    <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">
+  <div class="mb-8 w-full">
+    <h2 class="text-3xl font-black mb-2 tracking-tight">
       Pick Your Photo
     </h2>
-    <p class="text-zinc-400 text-lg leading-snug">
+    <p class="text-base-content/70 text-sm leading-relaxed">
       Choose the one that represents you best!
     </p>
   </div>
 
   <!-- Carousel Section -->
-  <div
-    class="w-full max-w-md bg-zinc-900/30 backdrop-blur-md border border-zinc-800/50 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center"
-  >
+  <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full flex flex-col items-center">
     <div class="flex flex-row w-full justify-between items-center mb-8 gap-4">
       <button
         type="button"
-        class="disabled:opacity-10 disabled:grayscale hover:text-indigo-400 text-zinc-400"
+        class="disabled:opacity-10 disabled:grayscale text-base-content/60 hover:text-primary transition-colors"
         disabled={s_data?.photo_index === 0}
-        on:click={carouselLeft}
+        onclick={carouselLeft}
       >
-        <Icon icon="icon-park-solid:left-c" width="85" height="85" />
+        <Icon icon="icon-park-solid:left-c" class="text-5xl md:text-6xl" />
       </button>
 
       <div class="flex flex-col items-center flex-1">
-        <span
-          class="text-6xl font-black text-white tabular-nums tracking-tighter"
-        >
+        <span class="text-6xl font-black tabular-nums tracking-tighter text-primary">
           {s_data?.photo_index + 1}
         </span>
       </div>
 
       <button
         type="button"
-        class="disabled:opacity-10 disabled:grayscale hover:text-indigo-400 text-zinc-400"
+        class="disabled:opacity-10 disabled:grayscale text-base-content/60 hover:text-primary transition-colors"
         disabled={s_data?.photo_index === s_data?.photo_amount - 1}
-        on:click={carouselRight}
+        onclick={carouselRight}
       >
-        <Icon icon="icon-park-solid:right-c" width="85" height="85" />
+        <Icon icon="icon-park-solid:right-c" class="text-5xl md:text-6xl" />
       </button>
     </div>
 
     <!-- Step Indicator -->
-    <div class="flex gap-2.5">
+    <div class="flex gap-2 justify-center w-full">
       {#if s_data?.photo_amount}
         {#each Array(s_data.photo_amount) as _, i}
           <div
-            class="h-3.5 rounded-full transition-all duration-500 {i ===
-            s_data?.photo_index
-              ? 'bg-blue-500 w-15 shadow-[0_0_10px_rgba(99,102,241,0.5)]'
-              : 'bg-zinc-600 w-10'}"
+            class="h-2 rounded-full transition-all duration-300 {i === s_data?.photo_index
+              ? 'bg-primary w-8'
+              : 'bg-base-content/20 w-2'}"
           />
         {/each}
       {/if}
@@ -82,25 +74,17 @@
   </div>
 
   <!-- Action Section -->
-  <div class="w-full flex justify-center mt-12 pb-4 btn-wrapper">
-    <Button
-      variant="filled"
+  <div class="w-full mt-8">
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2"
       onclick={submit_answer}
     >
-      VOTE 
+      <span>VOTE</span>
       <Icon
         icon="fa7-solid:vote-yea"
-        style="font-size: 1.75rem; margin-left: 0.5rem;"
+        class="text-xl"
       />
-    </Button>
+    </button>
   </div>
 </div>
-
-<style>
-  .btn-wrapper > :global(*) {
-    padding: 1.5rem 3rem;
-    font-size: 1.25rem;
-    font-weight: bold;
-    border-radius: var(--m3-shape-large);
-  }
-</style>

@@ -1,198 +1,147 @@
 @import "tailwindcss";
-@plugin "@toolwind/corner-shape";
-@import "@fontsource-variable/google-sans-flex/index.css";
-
-@function --m3-density(--size) {
-  result: var(--size);
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@plugin "daisyui" {
+  themes: couchcup-dark --default;
 }
+
+@plugin "daisyui/theme" {
+  name: "couchcup-dark";
+  --color-primary: #bf382c;
+  --color-primary-content: #ffffff;
+  --color-secondary: #f2b90f;
+  --color-secondary-content: #1e1b00;
+  --color-accent: #a855f7;
+  --color-accent-content: #ffffff;
+  --color-neutral: #282859;
+  --color-neutral-content: #f3f4f6;
+  --color-base-100: #1c1c4e;
+  --color-base-200: #161642;
+  --color-base-300: #0e0e2d;
+  --color-base-content: #f3f4f6;
+
+  /* Playful rounded variables */
+  --radius-box: 1.5rem;
+  --radius-field: 1.25rem;
+  --radius-selector: 9999px;
+}
+@import "@fontsource-variable/google-sans-flex/index.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-
-:root {
-  /* Google Sans variable font configuration */
-  --m3-font: "Google Sans Flex", "Google Sans Flex Variable", system-ui, -apple-system, sans-serif;
-  --m3-font-mono: "Google Sans Code", monospace;
-
-  /* Material 3 Light Palette Color Scheme (Matching the Game Logo) */
-  --m3c-primary: #ffb4a9;
-  --m3c-on-primary: #561e18;
-  --m3c-primary-container: #8c1d18;
-  --m3c-on-primary-container: #ffdad6;
-
-  --m3c-secondary: #f5e186;
-  --m3c-on-secondary: #3f2e00;
-  --m3c-secondary-container: #554500;
-  --m3c-on-secondary-container: #ffe16f;
-
-  --m3c-tertiary: #ffe8b8;
-  --m3c-on-tertiary: #453100;
-  --m3c-tertiary-container: #634800;
-  --m3c-on-tertiary-container: #ffe19c;
-
-  --m3c-error: #ffb4ab;
-  --m3c-on-error: #690005;
-  --m3c-error-container: #93000a;
-  --m3c-on-error-container: #ffdad6;
-
-  --m3c-background: #91531d;
-  --m3c-on-background: #fff4e8;
-
-  --m3c-surface: #91531d;
-  --m3c-on-surface: #fff4e8;
-  --m3c-surface-variant: #a66327;
-  --m3c-on-surface-variant: #ffe8d1;
-
-  --m3c-outline: #cba382;
-  --m3c-outline-variant: #a66327;
-  --m3c-shadow: #000000;
-  --m3c-scrim: #000000;
-
-  --m3c-inverse-surface: #ffe8d1;
-  --m3c-inverse-on-surface: #331904;
-  --m3c-inverse-primary: #cc422e;
-
-  --m3c-surface-dim: #7c4415;
-  --m3c-surface-bright: #a66327;
-  --m3c-surface-container-lowest: #5e320d;
-  --m3c-surface-container-low: #794316;
-  --m3c-surface-container: #91531d;
-  --m3c-surface-container-high: #a66327;
-  --m3c-surface-container-highest: #ba7433;
-
-  /* Custom colors for backwards compatibility and helper utility styles */
-  --color-primary-500: #cc422e;
-  --color-primary-700: #992617;
-  --color-secondary-500: #f5e186;
-  --color-secondary-700: #e2b36a;
-
-  --color-surface-50: #fff4e8;
-  --color-surface-100: #ffe8d1;
-  --color-surface-300: #ba7433;
-  --color-surface-500: #91531d;
-  --color-surface-700: #794316;
-  --color-surface-800: #5e320d;
-  --color-surface-900: #4b270a;
-  --color-surface-950: #331904;
-}
-
-/* Material 3 Typography Scale Utilities for Tailwind v4 compatibility */
+/* Simple fallback utility mapping for legacy typography scales */
 @utility m3-display-large {
-  font-family: var(--m3-font);
-  font-size: 3.563rem;
-  line-height: 1.123;
-  font-weight: 400;
+  @apply text-4xl font-extrabold;
 }
 
 @utility m3-display-medium {
-  font-family: var(--m3-font);
-  font-size: 2.813rem;
-  line-height: 1.156;
-  font-weight: 400;
+  @apply text-3xl font-extrabold;
 }
 
 @utility m3-display-small {
-  font-family: var(--m3-font);
-  font-size: 2.25rem;
-  line-height: 1.222;
-  font-weight: 400;
+  @apply text-2xl font-bold;
 }
 
 @utility m3-headline-large {
-  font-family: var(--m3-font);
-  font-size: 2rem;
-  line-height: 1.25;
-  font-weight: 400;
+  @apply text-2xl font-bold;
 }
 
 @utility m3-headline-medium {
-  font-family: var(--m3-font);
-  font-size: 1.75rem;
-  line-height: 1.286;
-  font-weight: 400;
+  @apply text-xl font-bold;
 }
 
 @utility m3-headline-small {
-  font-family: var(--m3-font);
-  font-size: 1.5rem;
-  line-height: 1.333;
-  font-weight: 400;
+  @apply text-lg font-bold;
 }
 
 @utility m3-title-large {
-  font-family: var(--m3-font);
-  font-size: 1.375rem;
-  line-height: 1.273;
-  font-weight: 400;
+  @apply text-lg font-semibold;
 }
 
 @utility m3-title-medium {
-  font-family: var(--m3-font);
-  font-size: 1rem;
-  line-height: 1.5;
-  font-weight: 500;
+  @apply text-base font-semibold;
 }
 
 @utility m3-title-small {
-  font-family: var(--m3-font);
-  font-size: 0.875rem;
-  line-height: 1.429;
-  font-weight: 500;
+  @apply text-sm font-semibold;
 }
 
 @utility m3-label-large {
-  font-family: var(--m3-font);
-  font-size: 0.875rem;
-  line-height: 1.429;
-  font-weight: 500;
+  @apply text-sm font-medium;
 }
 
 @utility m3-label-medium {
-  font-family: var(--m3-font);
-  font-size: 0.75rem;
-  line-height: 1.333;
-  font-weight: 500;
+  @apply text-xs font-semibold;
 }
 
 @utility m3-label-small {
-  font-family: var(--m3-font);
-  font-size: 0.688rem;
-  line-height: 1.455;
-  font-weight: 500;
+  @apply text-[10px] font-semibold tracking-wider;
 }
 
 @utility m3-body-large {
-  font-family: var(--m3-font);
-  font-size: 1.5rem;
-  line-height: 1.5;
-  font-weight: 400;
+  @apply text-lg;
 }
 
 @utility m3-body-medium {
-  font-family: var(--m3-font);
-  font-size: 1rem;
-  line-height: 1.429;
-  font-weight: 400;
+  @apply text-base;
 }
 
 @utility m3-body-small {
-  font-family: var(--m3-font);
-  font-size: 0.75rem;
-  line-height: 1.333;
-  font-weight: 400;
+  @apply text-xs;
 }
+
+.inter-face {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+:root {
+  /* 
+    Lightweight 2x2 pixel Bayer dither noise pattern (using an optimized SVG data URI).
+    This creates an incredibly crisp, performant dither overlay that looks analog and organic.
+  */
+  --m3-dither: url("data:image/svg+xml,%3Csvg viewBox='0 0 4 4' width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zm2 0h1v1H2zm-1 1h1v1H1zm2 0h1v1H3zm-3 2h1v1H0zm2 0h1v1H2zm-1 1h1v1H1zm2 0h1v1H3z' fill='%23000000' fill-opacity='0.015'/%3E%3C/svg%3E");
+  --wbg-dark: #161642;
+  --wbg-primary: #3d293b;
+  --wbg-secondary: #322436;
+
+  /* Scale multiplier (Change this to scale the entire pattern) */
+  --wbg-scale: 2;
+}
+
 
 /* Base Body Styles matching Material 3 specifications */
 html,
 body {
   margin: 0;
-  font-family: var(--m3-font);
-  font-family: var(--m3-font);
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   font-weight: 400;
-  background-color: var(--m3c-background);
-  color: var(--m3c-on-background);
+
+  background-color: var(--wbg-dark);
+  background-image:
+    radial-gradient(var(--wbg-primary) 17%, var(--wbg-secondary) 18% 35%, transparent 36.5%),
+    radial-gradient(var(--wbg-primary) 17%, var(--wbg-secondary) 18% 35%, transparent 36.5%),
+    radial-gradient(var(--wbg-secondary) 34%, var(--wbg-primary) 36% 68%, transparent 70%),
+    repeating-linear-gradient(45deg, var(--wbg-primary) -12.5% 12.5%, var(--wbg-secondary) 0 37.5%);
+
+  /* Scaled Positions (Original: -20px -20px, 20px 20px, 0 0, 0 0) */
+  background-position:
+    calc(-20px * var(--wbg-scale)) calc(-20px * var(--wbg-scale)),
+    calc(20px * var(--wbg-scale)) calc(20px * var(--wbg-scale)),
+    0 0,
+    0 0;
+
+  /* Scaled Sizes (Original: 80px 80px, 80px 80px, 40px 40px, 80px 80px) */
+  background-size:
+    calc(80px * var(--wbg-scale)) calc(80px * var(--wbg-scale)),
+    calc(80px * var(--wbg-scale)) calc(80px * var(--wbg-scale)),
+    calc(40px * var(--wbg-scale)) calc(40px * var(--wbg-scale)),
+    calc(80px * var(--wbg-scale)) calc(80px * var(--wbg-scale));
+
+  color: var(--color-base-content, #1f2937);
   min-height: 100dvh;
   box-sizing: border-box;
 }
@@ -210,175 +159,27 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--m3c-surface-container-lowest);
+  background: var(--color-base-100, #ffffff);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--m3c-surface-container-high);
-  border-radius: var(--m3-shape-full);
+  background: var(--color-base-300, #e5e7eb);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--m3c-surface-container-highest);
+  background: var(--color-base-200, #d1d5db);
 }
 
 /* Material 3 helper styling for buttons or wrappers */
 .m3-card-wrapper {
-  background-color: var(--m3c-surface-container-low);
-  color: var(--m3c-on-surface);
-  border-radius: var(--m3-shape-large);
-  border: 1px solid var(--m3c-outline-variant);
+  background-color: var(--color-base-200, #f9fafb);
+  color: var(--color-base-content, #1f2937);
+  border-radius: 1rem;
+  border: 1px solid var(--color-base-300, #e5e7eb);
   padding: 1.5rem;
-}
 
-/* ==========================================================================
-   Material 3 Svelte Component Sizing & Padding Restorations
-   ========================================================================== */
-
-/* 1. Buttons (xs, s, m, l, xl sizes) */
-button.m3-container.xs,
-a.m3-container.xs,
-label.m3-container.xs,
-summary.m3-container.xs {
-  padding: 0 0.75rem !important;
-  height: 2rem !important;
-}
-
-button.m3-container.xs.icon-full,
-a.m3-container.xs.icon-full {
-  padding: 0 !important;
-  width: 2rem !important;
-}
-
-button.m3-container.s,
-a.m3-container.s,
-label.m3-container.s,
-summary.m3-container.s {
-  padding: 0 1rem !important;
-  height: 2.5rem !important;
-}
-
-button.m3-container.s.icon-full,
-a.m3-container.s.icon-full {
-  padding: 0 !important;
-  width: 2.5rem !important;
-}
-
-button.m3-container.m,
-a.m3-container.m,
-label.m3-container.m,
-summary.m3-container.m {
-  padding: 0 1.5rem !important;
-  height: 3.5rem !important;
-}
-
-button.m3-container.m.icon-full,
-a.m3-container.m.icon-full {
-  padding: 0 !important;
-  width: 3.5rem !important;
-}
-
-button.m3-container.l,
-a.m3-container.l,
-label.m3-container.l,
-summary.m3-container.l {
-  padding: 0 2rem !important;
-  height: 5rem !important;
-}
-
-button.m3-container.l.icon-full,
-a.m3-container.l.icon-full {
-  padding: 0 !important;
-  width: 5rem !important;
-}
-
-button.m3-container.xl,
-a.m3-container.xl,
-label.m3-container.xl,
-summary.m3-container.xl {
-  padding: 0 3rem !important;
-  height: 6.5rem !important;
-}
-
-button.m3-container.xl.icon-full,
-a.m3-container.xl.icon-full {
-  padding: 0 !important;
-  width: 8.5rem !important;
-}
-
-/* 2. Text Fields and Textareas */
-.m3-container>input,
-.m3-container>textarea {
-  padding: 1rem !important;
-  box-sizing: border-box !important;
-}
-
-.leading-icon>input,
-.leading-icon>textarea {
-  padding-inline-start: 3.25rem !important;
-}
-
-.trailing-icon>input,
-.trailing-icon>textarea {
-  padding-inline-end: 3.25rem !important;
-}
-
-/* 3. List Items */
-.m3-container.lines-1 {
-  padding: 0.5rem 1.5rem 0.5rem 1rem !important;
-  height: 3.5rem !important;
-}
-
-.m3-container.lines-2 {
-  padding: 0.5rem 1.5rem 0.5rem 1rem !important;
-  height: 4.5rem !important;
-}
-
-.m3-container.lines-3 {
-  padding: 0.75rem 1.5rem 0.75rem 1rem !important;
-  height: 5.5rem !important;
-}
-
-/* ==========================================================================
-   Juicy, Springy Button Animations & Visual Feedback
-   ========================================================================== */
-
-/* Universal juicy button transitions */
-body button:not(.h-full.flex-1):not(:disabled),
-body [role="button"]:not(.h-full.flex-1):not([aria-disabled="true"]):not(.disabled),
-body .btn:not(.h-full.flex-1):not(:disabled),
-body button.m3-container:not(.h-full.flex-1):not(:disabled),
-body a.m3-container:not(.h-full.flex-1):not(:disabled) {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    filter 0.2s ease !important;
-  will-change: transform;
-}
-
-/* Hover state: float up, scale up, glow shadow, and brighten slightly */
-body button:not(.h-full.flex-1):not(:disabled):hover,
-body [role="button"]:not(.h-full.flex-1):not([aria-disabled="true"]):not(.disabled):hover,
-body .btn:not(.h-full.flex-1):not(:disabled):hover,
-body button.m3-container:not(.h-full.flex-1):not(:disabled):hover,
-body a.m3-container:not(.h-full.flex-1):not(:disabled):hover {
-  transform: translateY(-3px) scale(1.04) !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25),
-    0 4px 10px rgba(0, 0, 0, 0.15) !important;
-  filter: brightness(1.08) contrast(1.02) !important;
-}
-
-/* Active state: snap down instantly, shrink shadow, and dim slightly */
-body button:not(.h-full.flex-1):not(:disabled):active,
-body [role="button"]:not(.h-full.flex-1):not([aria-disabled="true"]):not(.disabled):active,
-body .btn:not(.h-full.flex-1):not(:disabled):active,
-body button.m3-container:not(.h-full.flex-1):not(:disabled):active,
-body a.m3-container:not(.h-full.flex-1):not(:disabled):active {
-  transform: translateY(1px) scale(0.93) !important;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12) !important;
-  transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1),
-    box-shadow 0.08s cubic-bezier(0.25, 1, 0.5, 1),
-    filter 0.08s ease !important;
-  filter: brightness(0.92) contrast(0.98) !important;
+  /* Add the dither pattern subtly inside cards as well for material depth */
+  background-image: var(--m3-dither);
+  background-repeat: repeat;
 }

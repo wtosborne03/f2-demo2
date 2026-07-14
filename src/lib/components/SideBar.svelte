@@ -3,6 +3,7 @@
     import { authClient } from "../../stores/authStore";
     import { toaster } from "$lib/util/toaster";
     import GoogleSignInButton from "./GoogleSignInButton.svelte";
+    import AppleSignInButton from "./AppleSignInButton.svelte";
     import { sideBarOpen } from "../../stores/sidebar";
     import SpotifySignInButton from "./SpotifySignInButton.svelte";
     import { Icon, NavigationRail } from "m3-svelte";
@@ -86,6 +87,31 @@
         }
     };
 
+    const signInWithApple = async () => {
+        try {
+            const { data, error } = await signIn.social({
+                provider: "apple",
+                callbackURL: `${window.location.origin}/`,
+            });
+            if (error) {
+                toaster.error({
+                    title: "Apple Sign-In Failed",
+                    description: error.message,
+                });
+                return;
+            }
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        } catch (error) {
+            toaster.error({
+                title: "Apple Sign-In Failed",
+                description:
+                    error instanceof Error ? error.message : String(error),
+            });
+        }
+    };
+
     const goShop = async () => {
         await goto("/shop", { replaceState: false });
         sideBarOpen.set(false);
@@ -109,6 +135,7 @@
             <div class="signin-options">
                 <GoogleSignInButton onClick={signInWithGoogle} />
                 <SpotifySignInButton onClick={signInWithSpotify} />
+                <AppleSignInButton onClick={signInWithApple} />
             </div>
         {/if}
 

@@ -3,10 +3,8 @@
   import { get } from "svelte/store";
   import type { PromptData } from "../types/page_data";
 
-  import Spinner from "$lib/components/spinner.svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
-  import { Card } from "m3-svelte";
 
   let m_data: PromptData;
   m_data = get(gameState).page_data;
@@ -25,7 +23,7 @@
     });
 
     if (!response.ok) {
-      throw new Error(`Upload failed with status ${response.status}`);
+      throw new Error("Upload failed");
     }
 
     const data = await response.json();
@@ -58,7 +56,7 @@
           }
         },
         error(err) {
-          console.log(err.message);
+          console.error(err.message);
           loading = false;
         },
       });
@@ -81,185 +79,36 @@
   }
 </script>
 
-<div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center"
->
-  {#if loading}
-    <Spinner />
-  {/if}
-  <Card variant="elevated">
-    <span class="text-lg sitalic opacity-65">Prompt:</span><br />
-    {m_data.question}
-  </Card>
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center space-y-6">
+  <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full">
+    <span class="text-xs uppercase font-extrabold opacity-60 tracking-wider mb-1">Prompt</span>
+    <p class="text-xl font-bold leading-relaxed">{m_data.question}</p>
+  </div>
+
   <button
-    class="big-fun-button"
-    on:click={async () => {
+    class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-3"
+    onclick={async () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
       fileinput.click();
     }}
     aria-label="Upload photo"
     disabled={loading}
   >
-    <span class="left">
-      <Icon font-size="1.9rem" icon="material-symbols:photo-camera" />
-    </span>
-    <span class="label">Add your photo</span>
-    <span class="right">
-      <Icon font-size="1.9rem" icon="material-symbols:photo" />
-    </span>
-    <span class="sparks" aria-hidden="true">
-      <span class="spark"></span>
-      <span class="spark"></span>
-      <span class="spark"></span>
-      <span class="spark"></span>
-      <span class="spark"></span>
-      <span class="spark"></span>
-    </span>
+    {#if loading}
+      <span class="loading loading-spinner"></span>
+      Uploading...
+    {:else}
+      <Icon class="text-2xl" icon="material-symbols:photo-camera" />
+      <span>Add your photo</span>
+      <Icon class="text-2xl" icon="material-symbols:photo" />
+    {/if}
   </button>
+  
   <input
     style="display:none"
     type="file"
     accept=".jpg, .jpeg, .png"
-    on:change={(e) => handleFileInput(e)}
+    onchange={handleFileInput}
     bind:this={fileinput}
   />
 </div>
-
-<style>
-  .big-fun-button {
-    margin-top: 1.25rem;
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1.4rem;
-    font-size: 1.05rem;
-    border-radius: 999px;
-    background-color: var(--m3c-primary-container);
-    color: var(--m3c-on-primary-container);
-    border: none;
-    cursor: pointer;
-
-    transition:
-      transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1),
-      box-shadow 180ms;
-    transform: translateZ(0);
-    overflow: visible;
-    user-select: none;
-  }
-
-  .big-fun-button .label {
-    font-weight: 700;
-    letter-spacing: 0.2px;
-  }
-
-  .big-fun-button:hover {
-    transform: scale(1.03);
-  }
-
-  .big-fun-button:active {
-    transform: scale(0.94) translateY(0);
-    transition-duration: 90ms;
-  }
-
-  .big-fun-button:focus-visible {
-    outline: 3px solid rgba(99, 102, 241, 0.18);
-    outline-offset: 4px;
-  }
-
-  /* Sparks burst */
-  .sparks {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-  }
-  .spark {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6);
-    background: linear-gradient(135deg, #ffd166, #ff8fab);
-  }
-
-  .big-fun-button:active .spark {
-    animation: burst 520ms cubic-bezier(0.12, 0.9, 0.2, 1) forwards;
-  }
-
-  .spark:nth-child(1) {
-    --x: -38px;
-    --y: -26px;
-    background: #ffb4be;
-    animation-delay: 0ms;
-  }
-  .spark:nth-child(2) {
-    --x: 36px;
-    --y: -22px;
-    background: #ffd166;
-    animation-delay: 10ms;
-  }
-  .spark:nth-child(3) {
-    --x: -46px;
-    --y: 10px;
-    background: #ff8fab;
-    animation-delay: 20ms;
-  }
-  .spark:nth-child(4) {
-    --x: 44px;
-    --y: 12px;
-    background: #6ee7b7;
-    animation-delay: 30ms;
-  }
-  .spark:nth-child(5) {
-    --x: -6px;
-    --y: 44px;
-    background: #93c5fd;
-    animation-delay: 40ms;
-  }
-  .spark:nth-child(6) {
-    --x: 10px;
-    --y: 46px;
-    background: #f0abfc;
-    animation-delay: 50ms;
-  }
-
-  @keyframes burst {
-    0% {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    60% {
-      opacity: 0.9;
-    }
-    100% {
-      opacity: 0;
-      transform: translate(calc(var(--x)), calc(var(--y))) scale(0.25);
-    }
-  }
-
-  /* small pop for icons */
-  .big-fun-button .left,
-  .big-fun-button .right {
-    display: flex;
-    align-items: center;
-  }
-  .big-fun-button:active .left,
-  .big-fun-button:active .right {
-    transform: scale(0.85);
-    transition: transform 90ms;
-  }
-
-  /* disabled state */
-  .big-fun-button[disabled] {
-    opacity: 0.65;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-</style>

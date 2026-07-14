@@ -1,7 +1,6 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
 
   let m_data: any;
   m_data = get(gameState).page_data;
@@ -13,32 +12,28 @@
   }
 </script>
 
-<div
-  class="container h-full max-w-md mx-auto w-full flex flex-col justify-center items-center p-4"
->
-  <h2 class="text-xl font-bold mb-8 text-center text-slate-800 dark:text-slate-100">
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center">
+  <h2 class="text-3xl font-black mb-8">
     Would You Rather...
   </h2>
   
   <div class="w-full flex flex-col gap-4">
-    <Button
-      size="l"
-      square
-      style="width: 100%; min-height: 4.5rem;"
+    <button
+      type="button"
+      class="btn btn-outline btn-primary btn-lg w-full py-5 h-auto text-lg font-black leading-snug"
       onclick={() => submit_vote(0)}
     >
       {m_data?.answers?.[0] || "Option A"}
-    </Button>
+    </button>
 
-    <div class="text-center font-bold text-slate-400 dark:text-slate-500 py-1">OR</div>
+    <div class="text-center font-black text-base-content/40 py-2">OR</div>
 
-    <Button
-      size="l"
-      square
-      style="width: 100%; min-height: 4.5rem;"
+    <button
+      type="button"
+      class="btn btn-outline btn-secondary btn-lg w-full py-5 h-auto text-lg font-black leading-snug"
       onclick={() => submit_vote(1)}
     >
       {m_data?.answers?.[1] || "Option B"}
-    </Button>
+    </button>
   </div>
 </div>

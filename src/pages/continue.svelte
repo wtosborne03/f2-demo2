@@ -1,6 +1,5 @@
 <script lang="ts">
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
   import UserImageGrid from "$lib/components/UserImageGrid.svelte";
   import { authClient } from "../stores/authStore";
 
@@ -18,80 +17,33 @@
   }
 </script>
 
-<div
-  class="container h-full mx-auto w-full flex flex-col justify-start items-center px-4 py-8 overflow-y-auto"
->
-  <h3 class="title-text">Game Finished!</h3>
+<div class="flex flex-col justify-start items-center h-full w-full max-w-md mx-auto px-6 py-8 overflow-y-auto space-y-8">
+  <h3 class="text-3xl font-black text-center">Game Finished!</h3>
   
   {#if $gameState.admin}
-    <div class="btn-wrapper mb-8">
-      <Button variant="filled" size="xl" onclick={confirm}>
+    <div class="w-full flex justify-center">
+      <button
+        type="button"
+        class="btn btn-primary btn-lg w-full max-w-xs font-bold text-lg"
+        onclick={confirm}
+      >
         Restart Game ▶️
-      </Button>
+      </button>
     </div>
   {:else}
-    <p class="waiting-text mb-8">Waiting for host to restart the game...</p>
+    <p class="text-base text-base-content/80 text-center font-semibold">
+      Waiting for host to restart the game...
+    </p>
   {/if}
 
   {#if userId}
-    <div class="gallery-section w-full">
-      <h4 class="gallery-title">Your Creations This Game</h4>
-      <UserImageGrid {userId} {gameId} />
+    <div class="w-full flex flex-col items-center">
+      <h4 class="text-md font-bold uppercase tracking-wider text-base-content/70 mb-4 text-center">
+        Your Creations This Game
+      </h4>
+      <div class="w-full">
+        <UserImageGrid {userId} {gameId} />
+      </div>
     </div>
   {/if}
 </div>
-
-<style>
-  .container {
-    max-width: 32rem;
-  }
-
-  .title-text {
-    font-family: var(--m3-font);
-    font-size: 2rem;
-    line-height: 1.333;
-    font-weight: 800;
-    color: var(--m3c-on-background);
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
-
-  .waiting-text {
-    font-family: var(--m3-font);
-    font-size: 1.1rem;
-    color: var(--m3c-on-surface-variant);
-    text-align: center;
-    font-weight: 500;
-  }
-
-  .btn-wrapper {
-    width: 100%;
-    max-width: 20rem;
-  }
-
-  .btn-wrapper > :global(*) {
-    width: 100%;
-    padding: 1.25rem 0;
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-
-  .gallery-section {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  .gallery-title {
-    font-family: var(--m3-font);
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--m3c-on-background);
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    text-align: center;
-  }
-</style>

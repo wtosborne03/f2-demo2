@@ -1,10 +1,9 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import type { photoPickerData, photoVoteData } from "../types/page_data";
+  import type { photoVoteData } from "../types/page_data";
   import Icon from "@iconify/svelte";
   import PhotoCarousel from "$lib/components/PhotoCarousel.svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
 
   let s_data: photoVoteData;
   s_data = get(gameState).page_data;
@@ -27,32 +26,27 @@
   }
 </script>
 
-<div class="h-full flex flex-col items-center text-2xl text-center px-4 w-full">
-  <div class="w-full flex-1 flex flex-col items-center justify-center">
+<div class="flex flex-col justify-between h-full w-full max-w-md mx-auto px-6 py-6 text-center">
+  <div class="w-full flex-grow flex flex-col justify-center items-center">
     <PhotoCarousel
       wrap={false}
       {items}
-      height="60vh"
+      height="50vh"
       bind:currentIndex={p_index}
     />
   </div>
 
-  <div class="w-full flex justify-center pb-6 mt-6 btn-wrapper">
-    <Button variant="filled" size="l" onclick={submit_answer}>
-      Vote
+  <div class="w-full mt-8">
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2"
+      onclick={submit_answer}
+    >
+      <span>Vote</span>
       <Icon
-        style="font-size: 1.5rem; margin-left: 0.5rem;"
         icon="fa7-solid:vote-yea"
+        class="text-xl"
       />
-    </Button>
+    </button>
   </div>
 </div>
-
-<style>
-  .btn-wrapper > :global(*) {
-    padding: 1.5rem 3rem;
-    font-size: 1.25rem;
-    font-weight: bold;
-    border-radius: var(--m3-shape-large);
-  }
-</style>

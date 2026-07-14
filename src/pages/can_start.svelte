@@ -1,6 +1,5 @@
 <script lang="ts">
   import { playerEmote } from "$lib/avatar/player_emote";
-  import { Switch, Tabs, Slider, Button } from "m3-svelte";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
@@ -70,56 +69,84 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="can-start-container" onclick={playerEmote}>
-  <div class="spacer-flex"></div>
-
-  <div class="start-btn-wrapper">
-    <Button variant="filled" size="l" onclick={promptForStart}>
-      Start Game
-      <Icon icon="mdi:play" />
-    </Button>
+<div 
+  class="flex flex-col justify-between min-h-full w-full max-w-md mx-auto px-6 py-8"
+  onclick={playerEmote}
+>
+  <div class="w-full mt-4 mb-6">
+    <button 
+      type="button" 
+      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2" 
+      onclick={promptForStart}
+    >
+      <span>Start Game</span>
+      <Icon icon="mdi:play" class="text-xl" />
+    </button>
   </div>
 
-  <section class="settings-section">
-    <h3 class="settings-title">Settings</h3>
+  <section class="w-full flex-grow">
+    <h3 class="text-xl font-black mb-4">Settings</h3>
 
-    <ul class="settings-list">
-      <li class="settings-item">
-        <label class="switch-label">
-          <span class="label-text">Drinking Game 🍺</span>
-          <Switch bind:checked={s_data.drinking} onchange={sendSettings} />
-        </label>
-      </li>
-
-      <li class="settings-item">
-        <label class="switch-label">
-          <span class="label-text">Family Mode 👨‍👩‍👧‍👦</span>
-          <Switch bind:checked={s_data.family} onchange={sendSettings} />
-        </label>
-      </li>
-
-      <li class="settings-item tabs-item">
-        <span class="tabs-title">End Condition 🏁</span>
-
-        <div class="tabs-container">
-          <Tabs
-            items={[
-              { name: "Rounds", value: "tab-rounds" },
-              { name: "Doubloons", value: "tab-doubloons" },
-            ]}
-            bind:tab={endConditionTab}
-            secondary
+    <ul class="flex flex-col gap-4">
+      <!-- Drinking Game Setting -->
+      <li class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors">
+        <label class="label cursor-pointer flex justify-between items-center w-full p-0">
+          <span class="text-base font-bold">Drinking Game 🍺</span>
+          <input 
+            type="checkbox" 
+            class="toggle toggle-primary toggle-md" 
+            bind:checked={s_data.drinking} 
+            onchange={sendSettings} 
           />
+        </label>
+      </li>
+
+      <!-- Family Mode Setting -->
+      <li class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors">
+        <label class="label cursor-pointer flex justify-between items-center w-full p-0">
+          <span class="text-base font-bold">Family Mode 👨‍👩‍👧‍👦</span>
+          <input 
+            type="checkbox" 
+            class="toggle toggle-primary toggle-md" 
+            bind:checked={s_data.family} 
+            onchange={sendSettings} 
+          />
+        </label>
+      </li>
+
+      <!-- End Condition Selection -->
+      <li class="card bg-base-200 border border-base-300 shadow-sm p-4 flex flex-col gap-4">
+        <span class="text-base font-bold">End Condition 🏁</span>
+
+        <div class="tabs tabs-box bg-base-300 p-1 rounded-xl w-full flex">
+          <button
+            type="button"
+            class="tab flex-1 font-medium transition-all"
+            class:tab-active={endConditionTab === "tab-rounds"}
+            onclick={() => { endConditionTab = "tab-rounds"; }}
+          >
+            Rounds
+          </button>
+          <button
+            type="button"
+            class="tab flex-1 font-medium transition-all"
+            class:tab-active={endConditionTab === "tab-doubloons"}
+            onclick={() => { endConditionTab = "tab-doubloons"; }}
+          >
+            Doubloons
+          </button>
         </div>
 
-        <div class="tabs-content">
+        <div class="w-full pt-2">
           {#if endConditionTab === "tab-rounds"}
-            <div class="slider-wrapper">
-              <div class="slider-label-row">
-                <span class="slider-label">Total Rounds</span>
-                <span class="slider-value-display">{s_data.rounds}</span>
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-semibold opacity-70">Total Rounds</span>
+                <span class="text-base font-black text-primary">{s_data.rounds}</span>
               </div>
-              <Slider
+              <input
+                type="range"
+                class="range range-primary range-sm w-full"
                 bind:value={s_data.rounds}
                 min={10}
                 max={100}
@@ -128,14 +155,14 @@
               />
             </div>
           {:else}
-            <div class="slider-wrapper">
-              <div class="slider-label-row">
-                <span class="slider-label">Doubloons To Win</span>
-                <span class="slider-value-display"
-                  >{s_data.doubloons.toLocaleString()}</span
-                >
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-semibold opacity-70">Doubloons To Win</span>
+                <span class="text-base font-black text-primary">{s_data.doubloons.toLocaleString()}</span>
               </div>
-              <Slider
+              <input
+                type="range"
+                class="range range-primary range-sm w-full"
                 bind:value={s_data.doubloons}
                 min={5000}
                 max={100000}
@@ -150,170 +177,15 @@
   </section>
 
   {#if !$session.data?.user}
-    <div class="signin-helper">
+    <div class="text-center text-xs opacity-60 mt-8 mb-4">
       (
-      <span class="signin-link" onclick={() => sideBarOpen.set(true)}
-        >Sign In</span
-      > to customize avatar.)
+      <span 
+        class="text-primary hover:underline cursor-pointer font-semibold" 
+        onclick={() => sideBarOpen.set(true)}
+      >
+        Sign In
+      </span> 
+      to customize avatar.)
     </div>
   {/if}
-  <div class="spacer-flex"></div>
 </div>
-
-<style>
-  .can-start-container {
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    max-width: 36rem;
-    padding: 1rem;
-    box-sizing: border-box;
-    min-height: 100%;
-  }
-
-  .spacer-flex {
-    flex-grow: 1;
-  }
-
-  .start-btn-wrapper {
-    width: 100%;
-    margin-bottom: 2.5rem;
-  }
-
-  .start-btn-wrapper > :global(*) {
-    width: 100%;
-    padding: 1.75rem 0;
-    font-size: 1.25rem;
-  }
-
-  .settings-section {
-    width: 100%;
-  }
-
-  .settings-title {
-    font-family: var(--m3-font);
-    font-size: 1.375rem;
-    line-height: 1.273;
-    font-weight: 400;
-    color: var(--m3c-on-background);
-    margin-bottom: 1rem;
-    margin-top: 0;
-  }
-
-  .settings-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
-  }
-
-  .settings-item {
-    background-color: var(--m3c-surface-container-low);
-    border-radius: var(--m3-shape-large);
-    padding: 1.25rem;
-    border: 1px solid var(--m3c-outline-variant);
-    transition:
-      background-color 0.25s cubic-bezier(0.2, 0, 0, 1),
-      border-color 0.25s cubic-bezier(0.2, 0, 0, 1);
-  }
-
-  .settings-item:hover {
-    background-color: var(--m3c-surface-container);
-    border-color: var(--m3c-outline);
-  }
-
-  .switch-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .label-text {
-    font-family: var(--m3-font);
-    font-size: 1.05rem;
-    line-height: 1.5;
-    font-weight: 500;
-    color: var(--m3c-on-surface);
-  }
-
-  .tabs-item {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .tabs-title {
-    font-family: var(--m3-font);
-    font-size: 1.05rem;
-    line-height: 1.5;
-    font-weight: 500;
-    color: var(--m3c-on-surface);
-  }
-
-  .tabs-container {
-    width: 100%;
-  }
-
-  .tabs-container :global(.m3-container) {
-    width: 100%;
-  }
-
-  .tabs-content {
-    width: 100%;
-    margin-top: 0.25rem;
-  }
-
-  .slider-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
-  }
-
-  .slider-label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .slider-label {
-    font-family: var(--m3-font);
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--m3c-on-surface-variant);
-  }
-
-  .slider-value-display {
-    font-family: var(--m3-font);
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--m3c-primary);
-  }
-
-  .slider-wrapper :global(.m3-container) {
-    width: 100%;
-  }
-
-  .signin-helper {
-    font-family: var(--m3-font);
-    font-size: 0.875rem;
-    line-height: 1.429;
-    font-weight: 400;
-    color: var(--m3c-on-surface-variant);
-    text-align: center;
-    margin-top: 1rem;
-  }
-
-  .signin-link {
-    color: var(--m3c-primary);
-    cursor: pointer;
-    text-decoration: underline;
-  }
-</style>

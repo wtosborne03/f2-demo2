@@ -1,9 +1,5 @@
 <script lang="ts">
   import "../app.css";
-  import "../../node_modules/m3-svelte/package/etc/styles.css";
-  import "../../node_modules/m3-svelte/package/etc/recommended-styles.css";
-  import "../../node_modules/m3-svelte/package/etc/tailwind-styles.css";
-  import "m3-svelte/etc/layer";
   import AppBar from "$lib/components/layout/app_bar.svelte";
   import { Snackbar } from "m3-svelte";
   import SideBar from "$lib/components/SideBar.svelte";

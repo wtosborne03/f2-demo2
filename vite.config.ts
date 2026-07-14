@@ -3,15 +3,11 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import Icons from 'unplugin-icons/vite'
 import tailwindcss from '@tailwindcss/vite';
-import { functionsMixins } from "vite-plugin-functions-mixins";
-import { tokenShaker } from "vite-plugin-token-shaker";
 import fs from 'fs';
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [
-        { ...functionsMixins({ deps: ["m3-svelte"] }), enforce: 'pre' },
-        { ...tokenShaker(), enforce: 'pre' },
         tailwindcss(),
         sveltekit(),
         Icons({ compiler: 'svelte' })

@@ -99,7 +99,11 @@
     return await response.json();
   }
 
-  async function saveAvatar(selfieUrl: string, landmarks?: any, gender?: string) {
+  async function saveAvatar(
+    selfieUrl: string,
+    landmarks?: any,
+    gender?: string,
+  ) {
     try {
       const client = await apiClient;
       await client!.putUsersAvatar(null, {
@@ -203,7 +207,12 @@
 
 <div class="avatar-page">
   <header class="app-bar">
-    <Button variant="filled" onclick={() => goto("/")} id="back-to-home-btn">
+    <Button
+      variant="filled"
+      size="l"
+      onclick={() => goto("/")}
+      id="back-to-home-btn"
+    >
       <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
     </Button>
     <h1 class="app-bar-title" id="avatar-page-title">Your Avatar</h1>
@@ -280,7 +289,7 @@
           <div class="action-buttons">
             <button
               type="button"
-              class="action-btn primary-action"
+              class="btn"
               onclick={() => (mode = "capture")}
             >
               <Icon

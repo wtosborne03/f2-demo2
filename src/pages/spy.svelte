@@ -1,34 +1,38 @@
 <script lang="ts">
-    import { get } from "svelte/store";
-    import type { SpyVoteData } from "../types/page_data";
-    import { gameClient, gameState } from "$lib/wsapi/gameClient";
-    import { Button } from "m3-svelte";
+  import { get } from "svelte/store";
+  import type { SpyVoteData } from "../types/page_data";
+  import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
-    let m_data: SpyVoteData;
-    m_data = get(gameState).page_data;
+  let m_data: SpyVoteData;
+  m_data = get(gameState).page_data;
 
-    function submit_answer(index: number) {
-        gameClient.sendInput({
-            type: "playerVoteData",
-            answer: m_data.options[index],
-        });
-    }
+  function submit_answer(index: number) {
+    gameClient.sendInput({
+      type: "playerVoteData",
+      answer: m_data.options[index],
+    });
+  }
 </script>
 
-<div class="container w-full block flex-col p-2">
-    <div class="flex flex-col justify-center items-center">
-        <div class="mb-2 p-4 text-center">
-            You're the spy. Vote on someone else to misdirect other players.
-        </div>
-        {#each m_data.options as answer, index}
-            <Button
-                size="l"
-                style={`width:100%; margin-bottom: 1rem; margin-top: 1rem; box-shadow: 0 0 12px 4px ${m_data.player_color[index]}66, 0 0 4px 1px ${m_data.player_color[index]}44;`}
-                onclick={() => submit_answer(m_data.options.findIndex((a) => a == answer))}
-            >
-                <div class=" text-xl mr-auto">{m_data.option_by[index]}</div>
-                {answer}
-            </Button>
-        {/each}
-    </div>
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center space-y-6">
+  <div class="text-2xl font-black mb-2 text-warning">
+    You're the spy!
+  </div>
+  <p class="text-sm text-base-content/80 leading-relaxed mt-0">
+    Vote on someone else to misdirect other players.
+  </p>
+  
+  <div class="w-full flex flex-col gap-4">
+    {#each m_data.options as answer, index}
+      <button
+        type="button"
+        class="btn btn-outline btn-lg w-full flex justify-between items-center text-left py-4 h-auto font-bold"
+        style="border-color: {m_data.player_color[index]}; border-width: 2px;"
+        onclick={() => submit_answer(m_data.options.findIndex((a) => a == answer))}
+      >
+        <span class="text-lg opacity-80">{m_data.option_by[index]}</span>
+        <span class="text-base text-right leading-snug max-w-[60%] truncate">{answer}</span>
+      </button>
+    {/each}
+  </div>
 </div>

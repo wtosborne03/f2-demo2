@@ -1,10 +1,5 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
-  import type { PromptData } from "../types/page_data";
-  import Spinner from "$lib/components/spinner.svelte";
-  import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { TextFieldOutlined, Button } from "m3-svelte";
+  import { gameClient } from "$lib/wsapi/gameClient";
   import { onDestroy } from "svelte";
 
   let answer_text = "";
@@ -12,6 +7,7 @@
   let submitTimeoutId: any;
 
   async function submit_prompt() {
+    if (!answer_text.trim()) return;
     gameClient.sendPlayerInput("promptTextData", { answer: answer_text });
 
     loading = true;
@@ -27,59 +23,36 @@
   });
 </script>
 
-<div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4"
->
-  <div class="subtitle-text">
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 text-center space-y-6">
+  <div class="text-base text-base-content/80 leading-relaxed max-w-xs mx-auto">
     Think of some divisive debate topics. Submit as many as you want!
   </div>
-  <form class="flex flex-col justify-center items-center w-full max-w-md" on:submit|preventDefault={submit_prompt}>
-    <div class="field-wrapper">
-      <TextFieldOutlined
-        label="Debate Topic"
+  
+  <form class="flex flex-col items-center w-full" onsubmit={(e) => { e.preventDefault(); submit_prompt(); }}>
+    <label class="form-control w-full mb-6">
+      <div class="label py-1">
+        <span class="label-text font-bold text-sm text-base-content/85">Debate Topic</span>
+      </div>
+      <input
         type="text"
+        class="input input-bordered input-lg w-full font-semibold"
         maxlength={50}
         bind:value={answer_text}
+        placeholder="Type a topic..."
       />
-    </div>
-    <div class="btn-wrapper">
-      <Button
-        variant="filled"
-        onclick={submit_prompt}
-        disabled={loading}
-      >
-        {#if loading}
-          <Spinner />
-        {:else}
-          Submit
-        {/if}
-      </Button>
-    </div>
+    </label>
+
+    <button
+      type="submit"
+      class="btn btn-primary btn-lg w-full text-lg font-bold"
+      disabled={loading || !answer_text.trim()}
+    >
+      {#if loading}
+        <span class="loading loading-spinner"></span>
+        Submitting...
+      {:else}
+        Submit
+      {/if}
+    </button>
   </form>
 </div>
-
-<style>
-  .subtitle-text {
-    font-family: var(--m3-font); font-size: 1rem; line-height: 1.5; font-weight: 400;
-    text-align: center;
-    color: var(--m3c-on-surface-variant);
-    margin-bottom: 2rem;
-  }
-
-  .field-wrapper {
-    width: 100%;
-  }
-
-  .field-wrapper > :global(*) {
-    width: 100%;
-  }
-
-  .btn-wrapper {
-    margin-top: 2rem;
-    width: 100%;
-  }
-
-  .btn-wrapper > :global(*) {
-    width: 100%;
-  }
-</style>

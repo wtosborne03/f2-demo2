@@ -1,9 +1,7 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import type { PlayerState } from "../types/player_state";
   import type { CharadesData } from "../types/page_data";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
 
   function confirm() {
     gameClient.sendPlayerInput("confirm");
@@ -13,44 +11,33 @@
   m_data = get(gameState).page_data;
 </script>
 
-<div
-  class="h-full overflow-y-auto mx-auto w-full flex flex-col justify-center items-center p-2"
->
-  <div
-    class="bg-linear-to-br from-purple-900/20 to-pink-900/20 rounded-3xl flex flex-col justify-center items-stretch gap-4 p-6 max-w-xl h-fit w-full border-4 border-purple-500/30 shadow-2xl"
-  >
-    <h3 class="text-xl font-bold mb-2 text-purple-300 text-center">
-      🎭 Your Acting Prompt 🎭
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center">
+  <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full flex flex-col items-stretch gap-4">
+    <h3 class="text-2xl font-black text-primary text-center">
+      🎭 Your Acting Prompt
     </h3>
-    <div class="bg-black/40 rounded-2xl p-4 mb-2 border-2 border-purple-400/50">
-      <div class="text-4xl font-bold text-yellow-300 text-center">
+    
+    <div class="bg-base-300 rounded-2xl p-4 mb-2 border border-base-100">
+      <div class="text-3xl font-black text-secondary text-center leading-snug">
         {m_data.prompt}
       </div>
     </div>
-    <div class="bg-red-900/30 rounded-xl p-4 mb-2 border-2 border-red-500/50">
-      <p class="text-xl font-semibold text-red-300 text-center">
+    
+    <div class="bg-error/10 text-error rounded-2xl p-4 mb-2 border border-error/20 flex flex-col items-center justify-center">
+      <p class="text-base font-bold text-center leading-relaxed">
         🤫 Do NOT reveal your prompt or say any part of it out loud!
       </p>
-      <p class="text-lg text-gray-300 text-center mt-2 italic">
+      <p class="text-xs opacity-70 text-center mt-2 italic">
         (Pretty Please? 🥺)
       </p>
     </div>
-    <div class="btn-wrapper">
-      <Button
-        variant="filled"
-        onclick={confirm}
-      >
-        ✨ Ready to Act! 🤹‍♂️
-      </Button>
-    </div>
+    
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold"
+      onclick={confirm}
+    >
+      ✨ Ready to Act! 🤹‍♂️
+    </button>
   </div>
 </div>
-
-<style>
-  .btn-wrapper > :global(*) {
-    width: 100%;
-    padding: 1.5rem 0;
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-</style>

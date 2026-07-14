@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
+  import { gameClient } from "$lib/wsapi/gameClient";
 
   let submitting = false;
   let canSubmit = false;
@@ -32,36 +31,26 @@
   }
 </script>
 
-<div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center text-center px-4"
->
-  <div class="max-w-xl bg-white/5 backdrop-blur-md rounded-lg p-8 shadow-md">
-    <h2 class="text-2xl font-bold mb-2">Make your best case</h2>
-    <p class="text-lg text-gray-100 mb-16">
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 text-center space-y-6">
+  <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full">
+    <h2 class="text-2xl font-black mb-3">Make your best case</h2>
+    <p class="text-base text-base-content/80 mb-8 leading-relaxed">
       Give a strong argument for why other players should support your side. Be
       clear, concise, and persuasive — your words matter.
     </p>
 
-    <div class="btn-wrapper">
-      <Button
-        variant="filled"
-        onclick={confirm}
-        disabled={submitting || !canSubmit}
-      >
-        {#if submitting}
-          Sending...
-        {:else}
-          I'm Done {#if countdown > 0}({countdown}s){/if}
-        {/if}
-      </Button>
-    </div>
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold"
+      onclick={confirm}
+      disabled={submitting || !canSubmit}
+    >
+      {#if submitting}
+        <span class="loading loading-spinner"></span>
+        Sending...
+      {:else}
+        I'm Done {#if countdown > 0}({countdown}s){/if}
+      {/if}
+    </button>
   </div>
 </div>
-
-<style>
-  .btn-wrapper > :global(*) {
-    width: 100%;
-    padding: 1.5rem 0;
-    font-size: 1.25rem;
-  }
-</style>

@@ -1,9 +1,7 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import type { QuestionData } from "../types/page_data";
-  import type { PlayerState } from "$lib/wsapi/game";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { Button } from "m3-svelte";
 
   let m_data: QuestionData;
   m_data = get(gameState).page_data;
@@ -16,17 +14,14 @@
   }
 </script>
 
-<div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-3"
->
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center gap-4">
   {#each m_data.answers as answer}
-    <Button
-      size="l"
-      square
-      style="width:100%; margin-bottom: 1rem; margin-top: 1rem;"
-      onclick={() =>
-        submit_answer(m_data.answers.findIndex((a) => a == answer))}
-      >{answer}</Button
+    <button
+      type="button"
+      class="btn btn-outline btn-primary btn-lg w-full py-5 h-auto text-lg font-black leading-snug"
+      onclick={() => submit_answer(m_data.answers.findIndex((a) => a == answer))}
     >
+      {answer}
+    </button>
   {/each}
 </div>

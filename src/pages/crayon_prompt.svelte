@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-  import { gameClient, gameState } from "$lib/wsapi/gameClient";
+  import { gameClient } from "$lib/wsapi/gameClient";
   import GameSubmit from "$lib/components/game/gameSubmit.svelte";
-  import { TextFieldOutlined } from "m3-svelte";
 
   let answer_text = "";
 
@@ -12,7 +10,6 @@
   let twist3am = false;
 
   function submit_prompt() {
-    // Start with the player's core prompt
     let finalPrompt = answer_text.trim();
     let addition = "";
 
@@ -38,119 +35,66 @@
   }
 </script>
 
-<div
-  class="container h-full mx-auto w-full flex flex-col justify-center items-center px-4 py-8"
->
-  <div class="header-icon text-5xl mb-4">🎨</div>
+<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-8">
+  <div class="text-5xl mb-4 text-center">🎨</div>
 
   <form
-    class="flex flex-col justify-center items-center w-full max-w-md gap-6"
-    on:submit|preventDefault={submit_prompt}
+    class="flex flex-col items-center w-full gap-6"
+    onsubmit={(e) => { e.preventDefault(); submit_prompt(); }}
   >
     <!-- Core Prompt Input -->
-    <div class="field-wrapper w-full">
-      <TextFieldOutlined
-        label="Image Prompt"
+    <label class="form-control w-full">
+      <div class="label py-1">
+        <span class="label-text font-bold text-sm text-base-content/85">Image Prompt</span>
+      </div>
+      <input
         type="text"
+        class="input input-bordered input-lg w-full font-semibold"
         maxlength={140}
+        placeholder="Describe what you want to draw..."
         bind:value={answer_text}
       />
-      <div class="text-right text-xs text-stone-400 mt-1">
-        {answer_text.length} / 140
+      <div class="label py-1 justify-end">
+        <span class="label-text-alt text-xs text-base-content/50">
+          {answer_text.length} / 140
+        </span>
       </div>
-    </div>
+    </label>
 
     <!-- Urgent Twists Section -->
-    <div class="w-full flex flex-col gap-3 alignment-start">
-      <div class="flex flex-col gap-2">
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            bind:checked={twistSweaty}
-            class="custom-checkbox"
-          />
-          <span>🥵 Make it sweaty</span>
-        </label>
+    <div class="w-full flex flex-col gap-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-base-content/60 px-1 mb-1">
+        Urgent Twists
+      </span>
 
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            bind:checked={twistOffice}
-            class="custom-checkbox"
-          />
-          <span>💼 Mr. John Corporate</span>
-        </label>
+      <label class="label cursor-pointer flex items-center justify-start gap-4 p-2 hover:bg-base-200/50 rounded-xl transition-colors">
+        <input
+          type="checkbox"
+          bind:checked={twistSweaty}
+          class="checkbox checkbox-primary checkbox-md"
+        />
+        <span class="text-base font-bold">🥵 Make it sweaty</span>
+      </label>
 
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            bind:checked={twist3am}
-            class="custom-checkbox"
-          />
-          <span>📹 3AM type Beat</span>
-        </label>
-      </div>
+      <label class="label cursor-pointer flex items-center justify-start gap-4 p-2 hover:bg-base-200/50 rounded-xl transition-colors">
+        <input
+          type="checkbox"
+          bind:checked={twistOffice}
+          class="checkbox checkbox-primary checkbox-md"
+        />
+        <span class="text-base font-bold">💼 Mr. John Corporate</span>
+      </label>
+
+      <label class="label cursor-pointer flex items-center justify-start gap-4 p-2 hover:bg-base-200/50 rounded-xl transition-colors">
+        <input
+          type="checkbox"
+          bind:checked={twist3am}
+          class="checkbox checkbox-primary checkbox-md"
+        />
+        <span class="text-base font-bold">📹 3AM type Beat</span>
+      </label>
     </div>
 
     <GameSubmit onSubmit={submit_prompt} />
   </form>
 </div>
-
-<style>
-  .subtitle-text {
-    font-family: var(--m3-font);
-    font-size: 1rem;
-    line-height: 1.5;
-    font-weight: 500;
-    color: var(--m3c-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.1rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .instruction-text {
-    font-family: var(--m3-font);
-    font-size: 1.5rem;
-    line-height: 1.333;
-    font-weight: 600;
-    text-align: center;
-    color: var(--m3c-on-background);
-    margin-bottom: 2rem;
-  }
-
-  .field-wrapper {
-    width: 100%;
-  }
-
-  .field-wrapper > :global(*) {
-    width: 100%;
-  }
-
-  /* Twist Checkbox Styles */
-  .label-text {
-    font-family: var(--m3-font);
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--m3c-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.05rem;
-  }
-
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-family: var(--m3-font);
-    color: var(--m3c-on-background);
-    cursor: pointer;
-    font-size: 1.5rem;
-    padding: 0.25rem 0;
-  }
-
-  .custom-checkbox {
-    width: 1.5rem;
-    height: 1.5rem;
-    accent-color: var(--m3c-primary);
-    cursor: pointer;
-  }
-</style>

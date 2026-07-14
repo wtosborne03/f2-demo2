@@ -5,18 +5,7 @@
   let { onSubmit }: { onSubmit: () => void } = $props();
 </script>
 
-<div class="submit-wrapper">
-  <Button variant="filled" size="m" onclick={onSubmit}>
-    Submit
-    <Icon
-      class="text-6xl"
-      icon="streamline-flex:mail-send-email-message-circle"
-    />
-  </Button>
-</div>
-
-<style>
-  .submit-wrapper {
-    margin-top: 2rem;
-  }
-</style>
+<Button variant="filled" size="l" onclick={onSubmit}>
+  Submit
+  <Icon class="text-4xl" icon="iconamoon:send-bold" />
+</Button>
