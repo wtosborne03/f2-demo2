@@ -48,6 +48,7 @@
     "@floating-ui/dom": "1.7.6",
     "@lottiefiles/dotlottie-svelte": "0.10.3",
     "@lottiefiles/svelte-lottie-player": "^0.3.1",
+    "@mediapipe/tasks-vision": "^0.10.35",
     "@neodrag/svelte": "^2.3.3",
     "@paypal/paypal-js": "9.7.0",
     "@react2svelte/image-gallery": "^1.0.1",

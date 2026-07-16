@@ -7,6 +7,31 @@ import type {
 } from 'openapi-client-axios';
 
 declare namespace Paths {
+    namespace GetGameAllPrompts {
+        namespace Parameters {
+            export type ExcludeGameId = string;
+            export type UserIds = string;
+        }
+        export interface QueryParameters {
+            userIds?: Parameters.UserIds;
+            excludeGameId?: Parameters.ExcludeGameId;
+        }
+        namespace Responses {
+            export type $200 = {
+                id: number;
+                content: string;
+                createdAt: number;
+                game: number;
+                minigame: number;
+                prompt?: string;
+                type: number;
+                user?: string;
+                votes?: number;
+                userId?: string;
+                gameName?: string;
+            }[];
+        }
+    }
     namespace GetGameByIdPrompts {
         namespace Parameters {
             export type Id = string;
@@ -39,6 +64,22 @@ declare namespace Paths {
             export interface $200 {
                 time: number;
             }
+        }
+    }
+    namespace GetKalshiMarket {
+        namespace Parameters {
+            /**
+             * Market category name
+             */
+            export type Category = string;
+            /**
+             * Comma separated list of already used market tickers
+             */
+            export type Used = string;
+        }
+        export interface QueryParameters {
+            category: /* Market category name */ Parameters.Category;
+            used?: /* Comma separated list of already used market tickers */ Parameters.Used;
         }
     }
     namespace GetMapIplocation {
@@ -139,6 +180,69 @@ declare namespace Paths {
             }
         }
     }
+    namespace GetTts {
+        namespace Parameters {
+            /**
+             * Text to synthesize
+             */
+            export type Text = string;
+            export type Voice = "brian" | "jeff" | "pres" | "robot";
+        }
+        export interface QueryParameters {
+            text: /* Text to synthesize */ Parameters.Text;
+            voice: Parameters.Voice;
+        }
+        namespace Responses {
+            /**
+             * Generated WAV audio stream
+             */
+            export type $200 = any;
+            export interface $400 {
+                error: string;
+            }
+            export interface $500 {
+                error: string;
+            }
+        }
+    }
+    namespace GetTxt2imgHealth {
+        namespace Responses {
+            export interface $200 {
+                status: string;
+            }
+            export interface $503 {
+                error: string;
+            }
+        }
+    }
+    namespace GetUsersByIdImages {
+        namespace Parameters {
+            export type GameId = string;
+            export type Id = string;
+            export type Limit = string;
+            export type Offset = string;
+        }
+        export interface PathParameters {
+            id: Parameters.Id;
+        }
+        export interface QueryParameters {
+            gameId?: Parameters.GameId;
+            limit?: Parameters.Limit;
+            offset?: Parameters.Offset;
+        }
+        namespace Responses {
+            export type $200 = {
+                id: number;
+                content: string;
+                createdAt: number;
+                game: number;
+                minigame: number;
+                minigameName?: string;
+                prompt?: string;
+                votes?: number;
+            }[];
+        }
+    }
     namespace GetUsersMe {
         namespace Responses {
             export interface $200 {
@@ -201,6 +305,45 @@ declare namespace Paths {
             }
         }
     }
+    namespace GetYoutubeBeatsByVideoId {
+        namespace Parameters {
+            export type Lanes = string /* numeric */ | number;
+            export type Title = string;
+            export type VideoId = string;
+        }
+        export interface PathParameters {
+            videoId: Parameters.VideoId;
+        }
+        export interface QueryParameters {
+            lanes?: Parameters.Lanes;
+            title?: Parameters.Title;
+        }
+        namespace Responses {
+            export type $200 = any;
+            export interface $400 {
+                error: string;
+            }
+            export interface $500 {
+                error: string;
+            }
+        }
+    }
+    namespace GetYoutubeSearch {
+        namespace Parameters {
+            export type Q = string;
+        }
+        export interface QueryParameters {
+            q: Parameters.Q;
+        }
+    }
+    namespace GetYoutubeTranscript {
+        namespace Parameters {
+            export type VideoId = string;
+        }
+        export interface QueryParameters {
+            videoId: Parameters.VideoId;
+        }
+    }
     namespace PostGameByIdPrompt {
         namespace Parameters {
             export type Id = string;
@@ -254,6 +397,7 @@ declare namespace Paths {
         export interface RequestBody {
             players: {
                 userId?: string;
+                name?: string;
             }[];
         }
         namespace Responses {
@@ -287,14 +431,6 @@ declare namespace Paths {
     namespace PostTxt2img {
         export interface RequestBody {
             prompt: string;
-            negative_prompt?: string;
-            steps?: number;
-            cfg_scale?: number;
-            width?: number;
-            height?: number;
-            seed?: number;
-            sampler_name?: string;
-            batch_size?: number;
         }
         namespace Responses {
             export interface $200 {
@@ -306,6 +442,88 @@ declare namespace Paths {
                 error: string;
             }
             export interface $503 {
+                error: string;
+            }
+        }
+    }
+    namespace PostTxt2imgImg2img {
+        export interface RequestBody {
+            init_images: string[];
+            prompt: string;
+        }
+        namespace Responses {
+            export interface $200 {
+                images: string[];
+                parameters?: any;
+                info?: string;
+            }
+            export interface $500 {
+                error: string;
+            }
+            export interface $503 {
+                error: string;
+            }
+        }
+    }
+    namespace PostTxt2imgSelfiegenerate {
+        export interface RequestBody {
+            selfie_url: string;
+            prompt: string;
+        }
+        namespace Responses {
+            export interface $200 {
+                images: string[];
+                parameters?: any;
+                info?: string;
+            }
+            export interface $500 {
+                error: string;
+            }
+            export interface $503 {
+                error: string;
+            }
+        }
+    }
+    namespace PostUpload {
+        namespace Parameters {
+            export type DetectLandmarks = string;
+        }
+        export interface QueryParameters {
+            detect_landmarks?: Parameters.DetectLandmarks;
+        }
+        export interface RequestBody {
+            file: string; // binary
+        }
+        namespace Responses {
+            export interface $200 {
+                url: string;
+                landmarks: {
+                    x: number;
+                    y: number;
+                    z: number;
+                }[] | null | null;
+                gender: string | null | null;
+            }
+            export interface $400 {
+                error: string;
+            }
+            export interface $422 {
+                error: string;
+            }
+            export interface $500 {
+                error: string;
+            }
+        }
+    }
+    namespace PostUploadBase64 {
+        export interface RequestBody {
+            base64: string;
+        }
+        namespace Responses {
+            export interface $200 {
+                url: string;
+            }
+            export interface $500 {
                 error: string;
             }
         }
@@ -422,6 +640,14 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PutUsersName.Responses.$200>
   /**
+   * getUsersByIdImages - Get all images for a user, optionally filtered by game
+   */
+  'getUsersByIdImages'(
+    parameters?: Parameters<Paths.GetUsersByIdImages.QueryParameters & Paths.GetUsersByIdImages.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetUsersByIdImages.Responses.$200>
+  /**
    * getShopItems - Get all shop items with ownership status
    */
   'getShopItems'(
@@ -478,6 +704,14 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PutGameByIdRounds.Responses.$200>
   /**
+   * getGameAll-prompts - Get all prompts across all games
+   */
+  'getGameAll-prompts'(
+    parameters?: Parameters<Paths.GetGameAllPrompts.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetGameAllPrompts.Responses.$200>
+  /**
    * getGameByIdPrompts - Get previous prompts for a game
    */
   'getGameByIdPrompts'(
@@ -525,6 +759,86 @@ export interface OperationMethods {
     data?: Paths.PostTxt2img.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.PostTxt2img.Responses.$200>
+  /**
+   * postTxt2imgImg2img - Generate image using Stable Diffusion img2img API
+   */
+  'postTxt2imgImg2img'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.PostTxt2imgImg2img.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostTxt2imgImg2img.Responses.$200>
+  /**
+   * postTxt2imgSelfiegenerate - Generate selfie/moodboard images using the new /generate API
+   */
+  'postTxt2imgSelfiegenerate'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.PostTxt2imgSelfiegenerate.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostTxt2imgSelfiegenerate.Responses.$200>
+  /**
+   * getTxt2imgHealth - Check the health of the Stable Diffusion API connection
+   */
+  'getTxt2imgHealth'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetTxt2imgHealth.Responses.$200>
+  /**
+   * postUpload
+   */
+  'postUpload'(
+    parameters?: Parameters<Paths.PostUpload.QueryParameters> | null,
+    data?: Paths.PostUpload.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostUpload.Responses.$200>
+  /**
+   * postUploadBase64
+   */
+  'postUploadBase64'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.PostUploadBase64.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostUploadBase64.Responses.$200>
+  /**
+   * getTts - Synthesize text to speech stream using pocket-tts
+   */
+  'getTts'(
+    parameters?: Parameters<Paths.GetTts.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetTts.Responses.$200>
+  /**
+   * getKalshiMarket - Get prediction market for category with server caching
+   */
+  'getKalshiMarket'(
+    parameters?: Parameters<Paths.GetKalshiMarket.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
+   * getYoutubeBeatsByVideoId
+   */
+  'getYoutubeBeatsByVideoId'(
+    parameters?: Parameters<Paths.GetYoutubeBeatsByVideoId.QueryParameters & Paths.GetYoutubeBeatsByVideoId.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetYoutubeBeatsByVideoId.Responses.$200>
+  /**
+   * getYoutubeSearch
+   */
+  'getYoutubeSearch'(
+    parameters?: Parameters<Paths.GetYoutubeSearch.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
+   * getYoutubeTranscript
+   */
+  'getYoutubeTranscript'(
+    parameters?: Parameters<Paths.GetYoutubeTranscript.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
   /**
    * allApiAuth*
    */
@@ -662,6 +976,16 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PutUsersName.Responses.$200>
   }
+  ['/users/{id}/images']: {
+    /**
+     * getUsersByIdImages - Get all images for a user, optionally filtered by game
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetUsersByIdImages.QueryParameters & Paths.GetUsersByIdImages.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetUsersByIdImages.Responses.$200>
+  }
   ['/shop/items']: {
     /**
      * getShopItems - Get all shop items with ownership status
@@ -732,6 +1056,16 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PutGameByIdRounds.Responses.$200>
   }
+  ['/game/all-prompts']: {
+    /**
+     * getGameAll-prompts - Get all prompts across all games
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetGameAllPrompts.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetGameAllPrompts.Responses.$200>
+  }
   ['/game/{id}/prompts']: {
     /**
      * getGameByIdPrompts - Get previous prompts for a game
@@ -791,6 +1125,106 @@ export interface PathsDictionary {
       data?: Paths.PostTxt2img.RequestBody,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.PostTxt2img.Responses.$200>
+  }
+  ['/txt2img/img2img']: {
+    /**
+     * postTxt2imgImg2img - Generate image using Stable Diffusion img2img API
+     */
+    'post'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: Paths.PostTxt2imgImg2img.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostTxt2imgImg2img.Responses.$200>
+  }
+  ['/txt2img/selfiegenerate']: {
+    /**
+     * postTxt2imgSelfiegenerate - Generate selfie/moodboard images using the new /generate API
+     */
+    'post'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: Paths.PostTxt2imgSelfiegenerate.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostTxt2imgSelfiegenerate.Responses.$200>
+  }
+  ['/txt2img/health']: {
+    /**
+     * getTxt2imgHealth - Check the health of the Stable Diffusion API connection
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetTxt2imgHealth.Responses.$200>
+  }
+  ['/upload/']: {
+    /**
+     * postUpload
+     */
+    'post'(
+      parameters?: Parameters<Paths.PostUpload.QueryParameters> | null,
+      data?: Paths.PostUpload.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostUpload.Responses.$200>
+  }
+  ['/upload/base64']: {
+    /**
+     * postUploadBase64
+     */
+    'post'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: Paths.PostUploadBase64.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostUploadBase64.Responses.$200>
+  }
+  ['/tts']: {
+    /**
+     * getTts - Synthesize text to speech stream using pocket-tts
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetTts.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetTts.Responses.$200>
+  }
+  ['/kalshi/market']: {
+    /**
+     * getKalshiMarket - Get prediction market for category with server caching
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetKalshiMarket.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
+  ['/youtube/beats/{videoId}']: {
+    /**
+     * getYoutubeBeatsByVideoId
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetYoutubeBeatsByVideoId.QueryParameters & Paths.GetYoutubeBeatsByVideoId.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetYoutubeBeatsByVideoId.Responses.$200>
+  }
+  ['/youtube/search']: {
+    /**
+     * getYoutubeSearch
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetYoutubeSearch.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
+  ['/youtube/transcript']: {
+    /**
+     * getYoutubeTranscript
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetYoutubeTranscript.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
   }
   ['/api/auth/*']: {
     /**

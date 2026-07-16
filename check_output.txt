@@ -1,0 +1,437 @@
+Loading svelte-check in workspace: /Users/williamosborne/CouchCup/f2-demo2
+Getting Svelte diagnostics...
+
+/Users/williamosborne/CouchCup/f2-demo2/src/hooks.client.ts:22:53
+Error: Binding element 'error' implicitly has an 'any' type. 
+// If you have a custom error handler, pass it to `handleErrorWithSentry`
+export const handleError = handleErrorWithSentry(({ error, event }) => {
+  const errorMessage = (error as any)?.message || "";
+
+/Users/williamosborne/CouchCup/f2-demo2/src/hooks.client.ts:22:60
+Error: Binding element 'event' implicitly has an 'any' type. 
+// If you have a custom error handler, pass it to `handleErrorWithSentry`
+export const handleError = handleErrorWithSentry(({ error, event }) => {
+  const errorMessage = (error as any)?.message || "";
+
+/Users/williamosborne/CouchCup/f2-demo2/src/stores/authStore.ts:8:5
+Error: Argument of type '{ baseURL: string; fetchOptions: { credentials: string; }; plugins: never[]; } & { disableDefaultFetchPlugins: boolean; plugins: BetterAuthClientPlugin[]; }' is not assignable to parameter of type 'BetterAuthClientOptions | undefined'.
+  Type '{ baseURL: string; fetchOptions: { credentials: string; }; plugins: never[]; } & { disableDefaultFetchPlugins: boolean; plugins: BetterAuthClientPlugin[]; }' is not assignable to type 'BetterAuthClientOptions'.
+    Types of property 'fetchOptions' are incompatible.
+      Type '{ credentials: string; }' is not assignable to type 'ClientFetchOption<any, any, any, any>'.
+        Type '{ credentials: string; }' is not assignable to type '{ headers?: (HeadersInit & (HeadersInit | CommonHeaders)) | undefined; method?: string | undefined; signal?: AbortSignal | null | undefined; ... 31 more ...; disableValidation?: boolean | undefined; }'.
+          Types of property 'credentials' are incompatible.
+            Type 'string' is not assignable to type 'RequestCredentials | undefined'. 
+export const authClient = createAuthClient(
+    withCapacitor({
+        baseURL: import.meta.env.VITE_PUBLIC_API_URL,
+        fetchOptions: { credentials: 'include' },
+        plugins: [
+        ]
+    }, {
+        scheme: 'couchcup',
+    })
+);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/config/drawer.ts:1:15
+Error: Module '"@skeletonlabs/skeleton-svelte"' has no exported member 'DrawerSettings'. 
+import type { DrawerSettings } from "@skeletonlabs/skeleton-svelte";
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/Modal.svelte:13:6
+Error: Type 'boolean | undefined' is not assignable to type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'. (ts)
+  let open = false;
+  $: open = $state.open;
+</script>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/UserImageGrid.svelte:499:5
+Warn: Unused CSS selector ".refresh-btn"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+    .refresh-btn {
+        background: rgba(255, 255, 255, 0.06);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/UserImageGrid.svelte:517:5
+Warn: Unused CSS selector ".refresh-btn:hover:not(:disabled)"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+    .refresh-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.14);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/UserImageGrid.svelte:523:5
+Warn: Unused CSS selector ".refresh-btn:disabled"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+    .refresh-btn:disabled {
+        opacity: 0.35;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/UserImageGrid.svelte:528:5
+Warn: Unused CSS selector ".refresh-btn svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+    .refresh-btn svg {
+        width: 1rem;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/bomb.svelte:105:3
+Warn: Unused CSS selector "body"
+https://svelte.dev/e/css_unused_selector (svelte)
+<style>
+  body {
+    margin: 0;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:139:9
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+      {#each { length: totalDots } as _, i}
+        <li
+          on:click={() => go(i * currentPerPage)}
+          class={isDotActive(currentIndex, i) ? "active" : ""}
+        ></li>
+      {/each}
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:139:9
+Warn: Non-interactive element `<li>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions (svelte)
+      {#each { length: totalDots } as _, i}
+        <li
+          on:click={() => go(i * currentPerPage)}
+          class={isDotActive(currentIndex, i) ? "active" : ""}
+        ></li>
+      {/each}
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:25:37
+Error: Property 'innerElements' does not exist on type 'Siema'. (ts)
+
+  $: pips = controller ? controller.innerElements : [];
+  $: currentPerPage = controller ? controller.perPage : perPage;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:28:28
+Error: Property 'innerElements' does not exist on type 'Siema'. (ts)
+  $: totalDots = controller
+    ? Math.ceil(controller.innerElements.length / currentPerPage)
+    : [];
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:55:31
+Error: Parameter 'currentIndex' implicitly has an 'any' type. (ts)
+
+  export function isDotActive(currentIndex, dotIndex) {
+    if (currentIndex < 0) currentIndex = pips.length + currentIndex;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:55:45
+Error: Parameter 'dotIndex' implicitly has an 'any' type. (ts)
+
+  export function isDotActive(currentIndex, dotIndex) {
+    if (currentIndex < 0) currentIndex = pips.length + currentIndex;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:89:30
+Error: Property 'innerElements' does not exist on type 'Siema'. (ts)
+      currentSlide: controller.currentSlide,
+      slideCount: controller.innerElements.length,
+    });
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:93:26
+Error: Parameter 'node' implicitly has an 'any' type. (ts)
+
+  function resetInterval(node, condition) {
+    function handleReset(event) {
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:93:32
+Error: Parameter 'condition' implicitly has an 'any' type. (ts)
+
+  function resetInterval(node, condition) {
+    function handleReset(event) {
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:94:26
+Error: Parameter 'event' implicitly has an 'any' type. (ts)
+  function resetInterval(node, condition) {
+    function handleReset(event) {
+      pause();
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/carousel.svelte:138:16
+Error: Type 'number | never[]' is not assignable to type 'number'.
+  Type 'never[]' is not assignable to type 'number'. (ts)
+    <ul>
+      {#each { length: totalDots } as _, i}
+        <li
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/palette.svelte:14:7
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+    {#each colors as color}
+      <button
+        type="button"
+        class="color-btn"
+        class:selected={paletteColor === color}
+        on:click={() => {
+          dispatch("color", { color });
+          paletteColor = color;
+        }}
+        style:background={color}
+      >
+      </button>
+    {/each}
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/palette.svelte:8:14
+Warn: Component has unused export property 'background'. If it is for external reference only, please consider using `export const background`
+https://svelte.dev/e/export_let_unused (svelte)
+  export let paletteColor = "";
+  export let background = "#fff";
+</script>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/palette.svelte:50:3
+Warn: Unused CSS selector "section > svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  section > svg {
+    flex-shrink: 0;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/palette.svelte:78:3
+Warn: Unused CSS selector "section > svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+  button,
+  section > svg {
+    width: var(--size);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/palette.svelte:119:3
+Warn: Unused CSS selector "section > svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  section > svg {
+    display: block;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/lib/components/layout/app_bar.svelte:279:3
+Warn: Unused CSS selector ".z-20.block :global(.hover\\:opacity-70):hover"
+https://svelte.dev/e/css_unused_selector (svelte)
+  /* Keep accessibility high contrast for focus/hover */
+  .z-20.block :global(.hover\\:opacity-70):hover {
+    opacity: 0.9;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/beathop_play.svelte:148:3
+Warn: Unknown at rule @reference (css)
+<style>
+  @reference "../app.css";
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/beathop_wait.svelte:32:3
+Warn: Unknown at rule @reference (css)
+<style>
+  @reference "../app.css";
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/blank.svelte:5:1
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+
+<div
+  class="container h-full mx-auto flex flex-col justify-center items-center"
+  on:click={playerEmote}
+></div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/blank.svelte:5:1
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+
+<div
+  class="container h-full mx-auto flex flex-col justify-center items-center"
+  on:click={playerEmote}
+></div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:12:11
+Error: Argument of type '() => Promise<() => void>' is not assignable to parameter of type '() => Promise<never> | (() => any)'.
+  Type 'Promise<() => void>' is not assignable to type 'Promise<never> | (() => any)'.
+    Type 'Promise<() => void>' is not assignable to type 'Promise<never>'.
+      Type '() => void' is not assignable to type 'never'. (ts)
+
+  onMount(async () => {
+    const config: Phaser.Types.Core.GameConfig = {
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:252:44
+Error: Property 'getBounds' does not exist on type 'GameObject'. (ts)
+          m.active &&
+          Phaser.Geom.Rectangle.Contains(m.getBounds(), pointer.x, pointer.y)
+        );
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:258:44
+Error: Property 'getBounds' does not exist on type 'GameObject'. (ts)
+          m.active &&
+          Phaser.Geom.Rectangle.Contains(m.getBounds(), pointer.x, pointer.y)
+        );
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:262:32
+Error: Property 'x' does not exist on type 'GameObject'. (ts)
+      if (doubloon) {
+        const coinX = doubloon.x;
+        const coinY = doubloon.y;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:263:32
+Error: Property 'y' does not exist on type 'GameObject'. (ts)
+        const coinX = doubloon.x;
+        const coinY = doubloon.y;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:278:22
+Error: Property 'setVisible' does not exist on type 'GameObject'. (ts)
+            doubloon.setActive(false);
+            doubloon.setVisible(false);
+            doubloon.alpha = 1;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:279:22
+Error: Property 'alpha' does not exist on type 'GameObject'. (ts)
+            doubloon.setVisible(false);
+            doubloon.alpha = 1;
+          },
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:288:28
+Error: Property 'x' does not exist on type 'GameObject'. (ts)
+      if (mole) {
+        const moleX = mole.x;
+        const moleY = mole.y;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:289:28
+Error: Property 'y' does not exist on type 'GameObject'. (ts)
+        const moleX = mole.x;
+        const moleY = mole.y;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bomb.svelte:299:18
+Error: Property 'setVisible' does not exist on type 'GameObject'. (ts)
+            mole.setActive(false);
+            mole.setVisible(false);
+          },
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bunker_blank.svelte:5:1
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+
+<div
+    class="container h-full mx-auto flex flex-col justify-center items-center"
+    on:click={playerEmote}
+></div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bunker_blank.svelte:5:1
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+
+<div
+    class="container h-full mx-auto flex flex-col justify-center items-center"
+    on:click={playerEmote}
+></div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bunker_wait.svelte:9:1
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+
+<div
+    class="container h-full mx-auto flex flex-col justify-center items-center"
+    on:click={playerEmote}
+>
+    <div class="text-2xl font-bold mb-4">
+        {pageData?.message || "Waiting..."}
+    </div>
+</div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/bunker_wait.svelte:9:1
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+
+<div
+    class="container h-full mx-auto flex flex-col justify-center items-center"
+    on:click={playerEmote}
+>
+    <div class="text-2xl font-bold mb-4">
+        {pageData?.message || "Waiting..."}
+    </div>
+</div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/dilemma.svelte:134:13
+Warn: Redundant role 'button'
+https://svelte.dev/e/a11y_no_redundant_roles (svelte)
+          <button
+            role="button"
+            class="choice-card flex-1 relative rounded-2xl cursor-pointer"
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/dilemma.svelte:145:15
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+            >
+              <div
+                class="absolute inset-0 opacity-25"
+                style="background: radial-gradient(circle at center, {opt.color}, transparent 60%);"
+              />
+            </div>
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/photo_picker.svelte:66:11
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        {#each Array(s_data.photo_amount) as _, i}
+          <div
+            class="h-2 rounded-full transition-all duration-300 {i === s_data?.photo_index
+              ? 'bg-primary w-8'
+              : 'bg-base-content/20 w-2'}"
+          />
+        {/each}
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_madlib.svelte:134:3
+Warn: Unused CSS selector ".madlib-header"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .madlib-header {
+    font-family: "Georgia", serif;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_madlib.svelte:223:3
+Warn: Unused CSS selector ".stars-decoration"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .stars-decoration {
+    color: #1e3a8a;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_madlib.svelte:122:3
+Warn: Do not use empty rulesets (css)
+<style>
+  .madlib-container {
+  }
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_prompt.svelte:100:3
+Warn: Unused CSS selector ".submit-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .submit-button {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_prompt.svelte:117:3
+Warn: Unused CSS selector ".submit-button:hover"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .submit-button:hover {
+    transform: translateY(-2px);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_prompt.svelte:123:3
+Warn: Unused CSS selector ".submit-button:active"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .submit-button:active {
+    transform: translateY(0);
+
+/Users/williamosborne/CouchCup/f2-demo2/src/pages/trump_prompt.svelte:49:3
+Warn: Do not use empty rulesets (css)
+<style>
+  .debate-container {
+  }
+
+/Users/williamosborne/CouchCup/f2-demo2/src/routes/+layout.svelte:24:1
+Warn: Using `<slot>` to render parent content is deprecated. Use `{@render ...}` tags instead
+https://svelte.dev/e/slot_element_deprecated (svelte)
+<!-- Page Route Content -->
+<slot />
+
+/Users/williamosborne/CouchCup/f2-demo2/src/routes/shop/+page.svelte:232:3
+Warn: Unused CSS selector ".title-icon"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .title-icon {
+    font-size: 1.75rem;
+
+/Users/williamosborne/CouchCup/f2-demo2/src/routes/shop/+page.svelte:272:3
+Warn: Unused CSS selector ".no-results-icon"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .no-results-icon {
+    font-size: 4rem;
+
+====================================
+svelte-check found 24 errors and 34 warnings in 21 files
