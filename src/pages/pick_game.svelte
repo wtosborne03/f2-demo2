@@ -25,7 +25,7 @@
   // Spring store for physical carousel movement
   const offset = spring(activeIndex, {
     stiffness: 0.08,
-    damping: 0.45,
+    damping: 0.55,
   });
 
   // Update spring target when activeIndex changes
@@ -133,7 +133,7 @@
       <!-- 3D Carousel Swiper viewport -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
-        class="carousel-container relative my-2 flex h-[60vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing"
+        class="carousel-container relative my-2 flex h-[60vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing touch-none"
         onmousedown={handleDragStart}
         onmousemove={handleDragMove}
         onmouseup={handleDragEnd}
@@ -150,14 +150,14 @@
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
-            class="carousel-card absolute h-[45vh] aspect-57/74 transform-3d overflow-hidden rounded-[1.25rem] border-[3px] border-white/10 bg-neutral-900 shadow-xl transition-[border-color,box-shadow] duration-300 will-change-transform {activeIndex ===
+            class="carousel-card absolute top-1/2 left-1/2 h-[45vh] aspect-57/74 transform-3d overflow-hidden rounded-[1.25rem] border-[3px] border-white/10 bg-neutral-900 shadow-xl transition-[border-color,box-shadow] duration-300 will-change-transform {activeIndex ===
             i
               ? 'border-primary shadow-primary/30 shadow-2xl'
               : ''}"
             style="
-              transform: translateX(calc({diff} * var(--spacing-36))) translateZ(calc({-absDiff} * var(--spacing-40))) rotateY({diff *
+              transform: translate(-50%, -50%) translateX(calc({diff} * var(--spacing-36))) translateZ(calc({-absDiff} * var(--spacing-40))) rotateY({diff *
               -26}deg);
-              z-index: {Math.round(100 - absDiff * 10)};
+              z-index: {Math.round(10 - absDiff)};
               opacity: {Math.max(0, 1 - absDiff * 0.55)};
             "
             onclick={() => {
@@ -211,10 +211,11 @@
 
       <!-- Info Details Panel -->
       <div
-        class="game-info-panel z-10 mb-1 flex h-16 w-full max-w-[18.75rem] flex-col justify-center text-center"
+        class="game-info-panel z-10 mb-1 grid h-16 w-full max-w-[18.75rem] place-items-center text-center"
       >
         {#key activeIndex}
           <div
+            class="col-start-1 row-start-1"
             in:fly={{ y: 8, duration: 300, delay: 50 }}
             out:fade={{ duration: 150 }}
           >
