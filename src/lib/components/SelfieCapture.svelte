@@ -57,6 +57,7 @@
   let userFriendlyErrorMsg: string = "";
   let uploadingProgress: string = "";
   let capturedBlob: Blob | null = null;
+  let isCapturing = false;
 
   $: if (initialMode === "auto" && !$session.isPending) {
     loadCurrentAvatar();
@@ -392,9 +393,11 @@
           if (onUploadComplete) {
             onUploadComplete(res);
           }
+          isCapturing = false;
           mode = "preview";
         } catch (err: any) {
           console.error("Failed to upload selfie:", err);
+          isCapturing = false;
 
           if (err.response) {
             const status = err.response.status;
@@ -431,13 +434,15 @@
         uploadError = "Failed to process image.";
         userFriendlyErrorMsg =
           "Compression failed. Please try capturing the photo again.";
+        isCapturing = false;
         mode = "error";
       },
     });
   }
 
   function captureSelfie() {
-    if (!videoElement || !stream) return;
+    if (!videoElement || !stream || isCapturing) return;
+    isCapturing = true;
 
     try {
       const videoTrack = stream.getVideoTracks()[0];
@@ -452,7 +457,10 @@
       canvas.height = size;
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) {
+        isCapturing = false;
+        return;
+      }
 
       // Mirror the image horizontally
       ctx.translate(size, 0);
@@ -469,6 +477,7 @@
             processSelfieBlob(blob);
           } else {
             console.error("Failed to generate blob");
+            isCapturing = false;
           }
         },
         "image/jpeg",
@@ -476,6 +485,7 @@
       );
     } catch (e: any) {
       console.error("Capture failed:", e);
+      isCapturing = false;
     }
   }
 
@@ -817,14 +827,19 @@
           <button
             type="button"
             onclick={captureSelfie}
-            disabled={cameraLoading}
+            disabled={cameraLoading || isCapturing}
             class="btn btn-primary btn-lg w-full rounded-full gap-2 font-bold shadow-md"
           >
-            <Iconify
-              icon="material-symbols:photo-camera-outline"
-              style="font-size: 1.5rem;"
-            />
-            Take Photo
+            {#if isCapturing}
+              <span class="loading loading-spinner loading-sm"></span>
+              Processing...
+            {:else}
+              <Iconify
+                icon="material-symbols:photo-camera-outline"
+                style="font-size: 1.5rem;"
+              />
+              Take Photo
+            {/if}
           </button>
 
           <div class="flex flex-row gap-2 w-full justify-center">

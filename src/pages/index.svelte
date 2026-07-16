@@ -125,7 +125,7 @@
           id="room-code-field"
           type="text"
           bind:value={roomCode}
-          class="input uppercase input-lg"
+          class="input uppercase input-xl"
           placeholder="ABCD"
         />
       </label>
@@ -134,7 +134,7 @@
         <input
           type="text"
           bind:value={name}
-          class="input input-lg"
+          class="input input-xl"
           placeholder=""
         />
       </label>
