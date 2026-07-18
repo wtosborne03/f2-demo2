@@ -17,11 +17,12 @@
   // Pre-configured hit songs
   const defaults = [
     {
-      videoId: "ila-hAUXR5U",
-      title: "Kanye West - Flashing Lights ft. Dwele",
-      channelTitle: "Kanye West",
-      thumbnail: "https://i.ytimg.com/vi/ila-hAUXR5U/mqdefault.jpg",
-      duration: "2:53",
+      videoId: "F57P9C4SAW4",
+      title:
+        "Katy Perry - California Gurls (Official Music Video) ft. Snoop Dogg ",
+      channelTitle: "Katy Perry",
+      thumbnail: "https://i.ytimg.com/vi/F57P9C4SAW4/mqdefault.jpg",
+      duration: "3:53",
     },
     {
       videoId: "OPf0YbXqDm0",
@@ -31,11 +32,11 @@
       duration: "4:30",
     },
     {
-      videoId: "9bZkp7q19f0",
-      title: "Gangnam Style",
-      channelTitle: "PSY",
-      thumbnail: "https://i.ytimg.com/vi/9bZkp7q19f0/mqdefault.jpg",
-      duration: "4:12",
+      videoId: "H58vbez_m4E",
+      title: "Kendrick Lamar - Not Like Us",
+      channelTitle: "Kendrick Lamar",
+      thumbnail: "https://i.ytimg.com/vi/H58vbez_m4E/mqdefault.jpg",
+      duration: "5:54",
     },
     {
       videoId: "KWoTyfPsqbE",
@@ -84,7 +85,9 @@
   }
 </script>
 
-<div class="flex flex-col justify-start items-center h-full w-full max-w-md mx-auto px-6 py-6 space-y-6">
+<div
+  class="flex flex-col justify-start items-center h-full w-full max-w-md mx-auto px-6 py-6 space-y-6"
+>
   <header class="text-center w-full">
     <h1 class="text-2xl font-black">Select a Music Video</h1>
   </header>
@@ -122,7 +125,11 @@
     <!-- Results list -->
     <section class="w-full flex flex-col gap-4">
       <div class="flex justify-between items-center px-1">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/65">Search Results</h2>
+        <h2
+          class="text-xs font-bold uppercase tracking-wider text-base-content/65"
+        >
+          Search Results
+        </h2>
         <button
           class="text-xs font-bold text-primary hover:underline"
           onclick={() => {
@@ -140,10 +147,18 @@
             class="flex items-center gap-3 p-2 bg-base-200 border border-base-300 rounded-xl hover:bg-base-200/80 active:scale-[0.98] transition-all text-left w-full overflow-hidden"
             onclick={() => selectSong(item.videoId, item.title)}
           >
-            <img src={item.thumbnail} alt="" class="w-24 h-14 object-cover rounded-lg bg-base-300 flex-shrink-0" />
+            <img
+              src={item.thumbnail}
+              alt=""
+              class="w-24 h-14 object-cover rounded-lg bg-base-300 flex-shrink-0"
+            />
             <div class="flex-grow min-w-0">
-              <div class="font-bold text-sm truncate text-base-content">{item.title}</div>
-              <div class="text-xs text-base-content/70 truncate mt-0.5">{item.channelTitle}</div>
+              <div class="font-bold text-sm truncate text-base-content">
+                {item.title}
+              </div>
+              <div class="text-xs text-base-content/70 truncate mt-0.5">
+                {item.channelTitle}
+              </div>
               <div class="badge badge-sm badge-neutral mt-1">
                 {Math.floor(item.durationSeconds / 60)}:{(
                   item.durationSeconds % 60
@@ -159,7 +174,11 @@
   {:else}
     <!-- Suggested Tracks list -->
     <section class="w-full flex flex-col gap-4">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/65 px-1">Suggested Tracks</h2>
+      <h2
+        class="text-xs font-bold uppercase tracking-wider text-base-content/65 px-1"
+      >
+        Suggested Tracks
+      </h2>
 
       <div class="flex flex-col gap-3 w-full">
         {#each defaults as item}
@@ -167,11 +186,21 @@
             class="flex items-center gap-3 p-2 bg-base-200 border border-base-300 rounded-xl hover:bg-base-200/80 active:scale-[0.98] transition-all text-left w-full overflow-hidden"
             onclick={() => selectSong(item.videoId, item.title)}
           >
-            <img src={item.thumbnail} alt="" class="w-24 h-14 object-cover rounded-lg bg-base-300 flex-shrink-0" />
+            <img
+              src={item.thumbnail}
+              alt=""
+              class="w-24 h-14 object-cover rounded-lg bg-base-300 flex-shrink-0"
+            />
             <div class="flex-grow min-w-0">
-              <div class="font-bold text-sm truncate text-base-content">{item.title}</div>
-              <div class="text-xs text-base-content/70 truncate mt-0.5">{item.channelTitle}</div>
-              <div class="badge badge-sm badge-neutral mt-1">{item.duration}</div>
+              <div class="font-bold text-sm truncate text-base-content">
+                {item.title}
+              </div>
+              <div class="text-xs text-base-content/70 truncate mt-0.5">
+                {item.channelTitle}
+              </div>
+              <div class="badge badge-sm badge-neutral mt-1">
+                {item.duration}
+              </div>
             </div>
           </button>
         {/each}
