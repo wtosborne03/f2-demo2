@@ -3,6 +3,7 @@
     import type { bunkerData } from "../types/page_data";
     import { gameClient, gameState } from "$lib/wsapi/gameClient";
     import Icon from "@iconify/svelte";
+    import doubloonIcon from "$lib/assets/icons/doubloon.png";
 
     let m_data: bunkerData;
     m_data = get(gameState).page_data;
@@ -102,7 +103,7 @@
                             </div>
                             {#if location.points}
                                 <div class="doubloon-badge">
-                                    <span class="coin-icon">🪙</span>
+                                    <img src={doubloonIcon} alt="doubloon" class="coin-icon" />
                                     <span class="points-val">+{location.points}</span>
                                 </div>
                             {/if}
@@ -478,10 +479,13 @@
         margin-left: auto;
     }
     .coin-icon {
-        font-size: 1.1rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        object-fit: contain;
         filter: drop-shadow(0 0 2px rgba(255, 170, 0, 0.5));
         animation: spin-slow 4s linear infinite;
         display: inline-block;
+        vertical-align: middle;
     }
     .points-val {
         font-family: "Share Tech Mono", monospace;
