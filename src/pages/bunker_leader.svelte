@@ -100,6 +100,12 @@
                                         "LOCATION"}</span
                                 >
                             </div>
+                            {#if location.points}
+                                <div class="doubloon-badge">
+                                    <span class="coin-icon">🪙</span>
+                                    <span class="points-val">+{location.points}</span>
+                                </div>
+                            {/if}
                             {#if selected_location_id === location.id}
                                 <div class="selected-indicator">
                                     <Icon icon="mdi:target" />
@@ -456,5 +462,36 @@
 
     .targets-container::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 50, 50, 0.5);
+    }
+
+    .doubloon-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, rgba(255, 170, 0, 0.2) 0%, rgba(255, 100, 0, 0.1) 100%);
+        border: 1px solid rgba(255, 170, 0, 0.4);
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(255, 150, 0, 0.15);
+        align-self: center;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+    .coin-icon {
+        font-size: 1.1rem;
+        filter: drop-shadow(0 0 2px rgba(255, 170, 0, 0.5));
+        animation: spin-slow 4s linear infinite;
+        display: inline-block;
+    }
+    .points-val {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #ffcc00;
+        text-shadow: 0 0 5px rgba(255, 200, 0, 0.5);
+    }
+    @keyframes spin-slow {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(360deg); }
     }
 </style>

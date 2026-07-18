@@ -109,6 +109,7 @@ interface PointOfInterest {
   icon: string;
   thumbnail?: string; // Photo URL from Foursquare
   address?: string;
+  points?: number;
 }
 
 interface PickGameData {
