@@ -17,6 +17,7 @@
     games: GameData[];
     lastGame?: GameData | null;
   };
+
   let games = m_data?.games || [];
   let lastGame = m_data?.lastGame || null;
 
@@ -123,17 +124,34 @@
 </script>
 
 <div
-  class="pick-scene-root relative h-screen w-screen overflow-hidden select-none font-sans text-neutral-50 dark:text-white"
+  class=" h-[calc(100dvh-5.5rem)] flex flex-col justify-center items-center w-screen select-none font-sans text-neutral-50 dark:text-white"
 >
+  <div class="flex flex-col items-center w-full justify-center mt-2 px-4">
+    {#if lastGame}
+      <!-- Replay Last Game Box/Button -->
+      <button
+        type="button"
+        class="btn btn-secondary btn-xl w-full max-w-[35rem] font-bold text-base tracking-wider uppercase"
+        disabled={hasVoted}
+        onclick={() => submit_answer("replay_game")}
+      >
+        <Icon
+          icon="mdi:replay"
+          class="text-2xl animate-[spin_4s_linear_infinite] [animation-direction:reverse]"
+        />
+        Replay {lastGame.fullName}
+      </button>
+    {/if}
+  </div>
   {#if games.length > 0}
     <div
-      class="carousel-wrapper box-border flex h-full w-full flex-col items-center justify-between px-4 pt-9 pb-11"
+      class="carousel-wrapper box-border flex w-full flex-col items-center justify-between px-4 bg-accent/40 rounded-3xl mt-4 max-w-[35rem] overflow-hidden border-accent border-4"
       in:fade={{ duration: 400 }}
     >
       <!-- 3D Carousel Swiper viewport -->
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
-        class="carousel-container relative my-2 flex h-[60vh] w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing touch-none"
+        class="carousel-container relative flex h-[45vh] mt-6 md:mt-8 w-full items-center justify-center [perspective:1000px] [transform-style:preserve-3d] cursor-grab active:cursor-grabbing touch-none"
         onmousedown={handleDragStart}
         onmousemove={handleDragMove}
         onmouseup={handleDragEnd}
@@ -180,58 +198,46 @@
       </div>
 
       <!-- Bottom Controls row -->
-      <div class="navigation-controls z-10 mb-1 flex items-center gap-4">
+      <div
+        class=" z-10 mb-1 flex w-full max-w-[32rem] mt-4 items-center justify-between gap-1"
+      >
         <button
-          class="icon-nav-btn flex items-center justify-center rounded-full bg-transparent p-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
+          class="icon-nav-btn flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-white shadow-md backdrop-blur-sm transition-all hover:bg-white/25 active:scale-90 disabled:pointer-events-none disabled:opacity-20"
           disabled={activeIndex === 0}
           onclick={prevCard}
         >
-          <Icon icon="mdi:chevron-left" width="1.5rem" height="1.5rem" />
+          <Icon icon="mdi:chevron-left" width="2.25rem" height="2.25rem" />
         </button>
-        <div class="dot-indicators flex gap-2">
-          {#each games as _, i}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div
+          class="grid flex-1 grid-cols-1 grid-rows-1 items-center justify-items-center min-w-0 h-24"
+        >
+          {#key activeIndex}
             <div
-              class="dot h-2 w-2 cursor-pointer rounded-full bg-white/20 transition-[background-color,transform] duration-300"
-              class:bg-primary={activeIndex === i}
-              class:scale-125={activeIndex === i}
-              onclick={() => (activeIndex = i)}
-            ></div>
-          {/each}
+              class="col-start-1 row-start-1 text-center"
+              in:fly={{ y: 8, duration: 300, delay: 50 }}
+              out:fade={{ duration: 150 }}
+            >
+              <p
+                class="game-info-desc m-0 text-md md:text-xl leading-relaxed text-white font-medium"
+              >
+                {games[activeIndex]?.description}
+              </p>
+            </div>
+          {/key}
         </div>
         <button
-          class="icon-nav-btn flex items-center justify-center rounded-full bg-transparent p-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
+          class="icon-nav-btn flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-white shadow-md backdrop-blur-sm transition-all hover:bg-white/25 active:scale-90 disabled:pointer-events-none disabled:opacity-20"
           disabled={activeIndex === games.length - 1}
           onclick={nextCard}
         >
-          <Icon icon="mdi:chevron-right" width="1.5rem" height="1.5rem" />
+          <Icon icon="mdi:chevron-right" width="2.25rem" height="2.25rem" />
         </button>
-      </div>
-
-      <!-- Info Details Panel -->
-      <div
-        class="game-info-panel z-10 mb-1 grid h-16 w-full max-w-[18.75rem] place-items-center text-center"
-      >
-        {#key activeIndex}
-          <div
-            class="col-start-1 row-start-1"
-            in:fly={{ y: 8, duration: 300, delay: 50 }}
-            out:fade={{ duration: 150 }}
-          >
-            <p
-              class="game-info-desc m-0 text-[1.125rem] leading-relaxed text-white"
-            >
-              {games[activeIndex]?.description}
-            </p>
-          </div>
-        {/key}
       </div>
 
       <!-- Pick Button -->
       <button
         type="button"
-        class="btn btn-primary btn-lg w-full max-w-[17.5rem] font-bold text-base tracking-wider uppercase"
+        class="btn btn-primary btn-xl w-full max-w-[32rem] mt-auto mb-5 font-bold text-base tracking-wider uppercase"
         disabled={hasVoted}
         onclick={() => submit_answer(games[activeIndex].name)}
       >
@@ -239,25 +245,10 @@
           <span class="loading loading-spinner"></span>
           SUBMITTING...
         {:else}
-          VOTE THIS GAME
+          <Icon icon="mdi:vote" class="text-2xl" />
+          VOTE {games[activeIndex]?.fullName.toUpperCase()}
         {/if}
       </button>
-
-      {#if lastGame}
-        <!-- Replay Last Game Box/Button -->
-        <button
-          type="button"
-          class="btn btn-secondary btn-lg w-full max-w-[17.5rem] mt-2 font-bold text-base tracking-wider uppercase"
-          disabled={hasVoted}
-          onclick={() => submit_answer("replay_game")}
-        >
-          <Icon
-            icon="mdi:replay"
-            class="h-3.5 w-3.5 animate-[spin_4s_linear_infinite]"
-          />
-          Replay {lastGame.fullName}
-        </button>
-      {/if}
     </div>
   {:else}
     <div class="flex h-full w-full items-center justify-center bg-neutral-950">
