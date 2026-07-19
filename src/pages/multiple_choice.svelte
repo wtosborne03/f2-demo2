@@ -14,12 +14,15 @@
   }
 </script>
 
-<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center gap-4">
+<div
+  class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center gap-4"
+>
   {#each m_data.answers as answer}
     <button
       type="button"
-      class="btn btn-outline btn-primary btn-lg w-full py-5 h-auto text-lg font-black leading-snug"
-      onclick={() => submit_answer(m_data.answers.findIndex((a) => a == answer))}
+      class="btn btn-primary btn-lg w-full py-5 h-auto text-lg font-black leading-snug"
+      onclick={() =>
+        submit_answer(m_data.answers.findIndex((a) => a == answer))}
     >
       {answer}
     </button>

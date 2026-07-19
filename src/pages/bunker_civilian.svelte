@@ -28,18 +28,22 @@
         });
     }
 
-    function getShelterIcon(type: string): string {
-        const iconMap: Record<string, string> = {
-            bunker: "mdi:bunker",
-            subway: "mdi:subway",
-            basement: "mdi:home-floor-negative-1",
-            cave: "mdi:terrain",
-            underground: "mdi:tunnel",
-            shelter: "mdi:shield-home",
-            vault: "mdi:safe-square",
-            default: "mdi:shield-home-outline",
-        };
-        return iconMap[type] || iconMap.default;
+    function getShelterEmoji(type: string, icon: string): string {
+        if (icon && !icon.includes(":")) return icon;
+        const lower = (type || "").toLowerCase();
+        if (lower.includes("hospital") || lower.includes("clinic") || lower.includes("medical")) return "🏥";
+        if (lower.includes("museum") || lower.includes("gallery") || lower.includes("historic") || lower.includes("monument")) return "🏛️";
+        if (lower.includes("library") || lower.includes("university") || lower.includes("school") || lower.includes("college")) return "📚";
+        if (lower.includes("theater") || lower.includes("cinema") || lower.includes("arts") || lower.includes("music")) return "🎭";
+        if (lower.includes("stadium") || lower.includes("arena") || lower.includes("sports") || lower.includes("gym")) return "🏟️";
+        if (lower.includes("park") || lower.includes("forest") || lower.includes("nature") || lower.includes("garden") || lower.includes("leisure")) return "🌳";
+        if (lower.includes("castle") || lower.includes("fort")) return "🏰";
+        if (lower.includes("airport")) return "✈️";
+        if (lower.includes("station") || lower.includes("subway") || lower.includes("bus")) return "🚂";
+        if (lower.includes("shop") || lower.includes("mall") || lower.includes("market") || lower.includes("store")) return "🛍️";
+        if (lower.includes("restaurant") || lower.includes("cafe") || lower.includes("food") || lower.includes("bar") || lower.includes("pub")) return "🍔";
+        if (lower.includes("church") || lower.includes("mosque") || lower.includes("temple") || lower.includes("synagogue") || lower.includes("cathedral") || lower.includes("religious")) return "⛪";
+        return "📍";
     }
 </script>
 
@@ -75,19 +79,7 @@
                     >
                         <div class="shelter-content">
                             <div class="shelter-icon-wrapper">
-                                {#if location.thumbnail}
-                                    <img
-                                        src={location.thumbnail}
-                                        alt={location.name}
-                                        class="shelter-thumbnail"
-                                    />
-                                {:else}
-                                    <Icon
-                                        icon={location.icon ||
-                                            getShelterIcon(location.type)}
-                                        class="shelter-icon"
-                                    />
-                                {/if}
+                                <span class="shelter-emoji">{getShelterEmoji(location.type, location.icon)}</span>
                             </div>
                             <div class="shelter-info">
                                 <span class="shelter-name">{location.name}</span
@@ -297,11 +289,8 @@
         flex-shrink: 0;
     }
 
-    .shelter-thumbnail {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 8px;
+    .shelter-emoji {
+        font-size: 1.8rem;
     }
 
     :global(.shelter-icon) {

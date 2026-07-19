@@ -28,18 +28,22 @@
         });
     }
 
-    function getLocationIcon(type: string): string {
-        const iconMap: Record<string, string> = {
-            city: "mdi:city",
-            military: "mdi:tank",
-            industrial: "mdi:factory",
-            government: "mdi:bank",
-            port: "mdi:ferry",
-            airport: "mdi:airplane",
-            power: "mdi:lightning-bolt",
-            default: "mdi:map-marker",
-        };
-        return iconMap[type] || iconMap.default;
+    function getTargetEmoji(type: string, icon: string): string {
+        if (icon && !icon.includes(":")) return icon;
+        const lower = (type || "").toLowerCase();
+        if (lower.includes("hospital") || lower.includes("clinic") || lower.includes("medical")) return "🏥";
+        if (lower.includes("museum") || lower.includes("gallery") || lower.includes("historic") || lower.includes("monument")) return "🏛️";
+        if (lower.includes("library") || lower.includes("university") || lower.includes("school") || lower.includes("college")) return "📚";
+        if (lower.includes("theater") || lower.includes("cinema") || lower.includes("arts") || lower.includes("music")) return "🎭";
+        if (lower.includes("stadium") || lower.includes("arena") || lower.includes("sports") || lower.includes("gym")) return "🏟️";
+        if (lower.includes("park") || lower.includes("forest") || lower.includes("nature") || lower.includes("garden") || lower.includes("leisure")) return "🌳";
+        if (lower.includes("castle") || lower.includes("fort")) return "🏰";
+        if (lower.includes("airport")) return "✈️";
+        if (lower.includes("station") || lower.includes("subway") || lower.includes("bus")) return "🚂";
+        if (lower.includes("shop") || lower.includes("mall") || lower.includes("market") || lower.includes("store")) return "🛍️";
+        if (lower.includes("restaurant") || lower.includes("cafe") || lower.includes("food") || lower.includes("bar") || lower.includes("pub")) return "🍔";
+        if (lower.includes("church") || lower.includes("mosque") || lower.includes("temple") || lower.includes("synagogue") || lower.includes("cathedral") || lower.includes("religious")) return "⛪";
+        return "📍";
     }
 </script>
 
@@ -75,19 +79,7 @@
                     >
                         <div class="target-content">
                             <div class="target-icon-wrapper">
-                                {#if location.thumbnail}
-                                    <img
-                                        src={location.thumbnail}
-                                        alt={location.name}
-                                        class="target-thumbnail"
-                                    />
-                                {:else}
-                                    <Icon
-                                        icon={location.icon ||
-                                            getLocationIcon(location.type)}
-                                        class="target-icon"
-                                    />
-                                {/if}
+                                <span class="target-emoji">{getTargetEmoji(location.type, location.icon)}</span>
                             </div>
                             <div class="target-info">
                                 <span class="target-name">{location.name}</span>
@@ -296,11 +288,8 @@
         flex-shrink: 0;
     }
 
-    .target-thumbnail {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 8px;
+    .target-emoji {
+        font-size: 1.8rem;
     }
 
     :global(.target-icon) {

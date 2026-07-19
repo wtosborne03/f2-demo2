@@ -33,7 +33,7 @@
 
     <form class="flex flex-col justify-center items-center w-full">
       <input
-        class="answer-input text-black"
+        class="answer-input text-black mb-2"
         type="text"
         maxlength="64"
         placeholder="Enter your response..."
