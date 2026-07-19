@@ -25,9 +25,19 @@
     });
   }
 
-  // daisyUI colors mapping: rose, blue, green, amber
-  const optionBtnClasses = ["btn-error", "btn-info", "btn-success", "btn-warning"];
-  const optionBgClasses = ["bg-error/20 border-error/30 text-error-content", "bg-info/20 border-info/30 text-info-content", "bg-success/20 border-success/30 text-success-content", "bg-warning/20 border-warning/30 text-warning-content"];
+  // Premium custom tailwind color mappings to match AnswerGrid.tsx (rose, blue, emerald, amber)
+  const optionBtnClasses = [
+    "border-rose-500/30 bg-rose-950/20 text-rose-200 hover:bg-rose-950/40 hover:border-rose-500/50 active:scale-[0.98]",
+    "border-blue-500/30 bg-blue-950/20 text-blue-200 hover:bg-blue-950/40 hover:border-blue-500/50 active:scale-[0.98]",
+    "border-emerald-500/30 bg-emerald-950/20 text-emerald-200 hover:bg-emerald-950/40 hover:border-emerald-500/50 active:scale-[0.98]",
+    "border-amber-500/30 bg-amber-950/20 text-amber-200 hover:bg-amber-950/40 hover:border-amber-500/50 active:scale-[0.98]"
+  ];
+  const optionBgClasses = [
+    "bg-rose-950/40 border-rose-500/30 text-rose-200",
+    "bg-blue-950/40 border-blue-500/30 text-blue-200",
+    "bg-emerald-950/40 border-emerald-500/30 text-emerald-200",
+    "bg-amber-950/40 border-amber-500/30 text-amber-200"
+  ];
 </script>
 
 <div class="flex flex-col justify-start items-center h-full w-full max-w-md mx-auto px-6 py-6 space-y-6">
@@ -75,7 +85,7 @@
         <div class="flex flex-col gap-3 w-full">
           {#each options as option, idx}
             <button
-              class="btn {optionBtnClasses[idx]} btn-lg w-full text-base font-black py-4 h-auto leading-snug shadow-md"
+              class="w-full text-base font-black py-4 px-6 rounded-2xl border text-center transition-all duration-200 shadow-md backdrop-blur-md cursor-pointer {optionBtnClasses[idx]}"
               onclick={() => submitAnswer(option)}
             >
               <span>{option}</span>
