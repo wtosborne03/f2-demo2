@@ -30,24 +30,30 @@
     "border-rose-500/30 bg-rose-950/20 text-rose-200 hover:bg-rose-950/40 hover:border-rose-500/50 active:scale-[0.98]",
     "border-blue-500/30 bg-blue-950/20 text-blue-200 hover:bg-blue-950/40 hover:border-blue-500/50 active:scale-[0.98]",
     "border-emerald-500/30 bg-emerald-950/20 text-emerald-200 hover:bg-emerald-950/40 hover:border-emerald-500/50 active:scale-[0.98]",
-    "border-amber-500/30 bg-amber-950/20 text-amber-200 hover:bg-amber-950/40 hover:border-amber-500/50 active:scale-[0.98]"
+    "border-amber-500/30 bg-amber-950/20 text-amber-200 hover:bg-amber-950/40 hover:border-amber-500/50 active:scale-[0.98]",
   ];
   const optionBgClasses = [
     "bg-rose-950/40 border-rose-500/30 text-rose-200",
     "bg-blue-950/40 border-blue-500/30 text-blue-200",
     "bg-emerald-950/40 border-emerald-500/30 text-emerald-200",
-    "bg-amber-950/40 border-amber-500/30 text-amber-200"
+    "bg-amber-950/40 border-amber-500/30 text-amber-200",
   ];
 </script>
 
-<div class="flex flex-col justify-start items-center h-full w-full max-w-md mx-auto px-6 py-6 space-y-6">
+<div
+  class="flex flex-col justify-start items-center h-full w-full max-w-md mx-auto px-6 py-6 space-y-6"
+>
   <!-- Sleek Header -->
-  <header class="flex justify-between items-center border-b border-base-300 pb-3 w-full gap-4 flex-shrink-0">
+  <header
+    class="flex justify-between items-center border-b border-base-300 pb-3 w-full gap-4 flex-shrink-0"
+  >
     <div class="flex-grow min-w-0">
       <h2 class="text-xl font-black truncate">{title}</h2>
     </div>
     {#if thumbnail}
-      <div class="relative w-20 h-11 rounded-lg overflow-hidden border border-base-300 shadow-sm flex-shrink-0">
+      <div
+        class="relative w-20 h-11 rounded-lg overflow-hidden border border-base-300 shadow-sm flex-shrink-0"
+      >
         <img src={thumbnail} alt="" class="w-full h-full object-cover" />
       </div>
     {/if}
@@ -59,14 +65,17 @@
       <!-- Listening Mode Visualizer -->
       <div class="flex flex-col items-center text-center gap-4 py-8 w-full">
         <h3 class="text-xl font-bold">Listening closely...</h3>
-        <p class="text-xs text-base-content/70">Follow the lyrics on the main screen</p>
+        <p class="text-xs text-base-content/70">
+          Follow the lyrics on the main screen
+        </p>
 
         <!-- CSS Audio Visualizer Wave -->
         <div class="eq-visualizer flex items-end gap-1 h-10 mt-4">
           {#each [1, 2, 3, 4, 5, 6, 7] as bar}
             <span
               class="eq-bar w-1 bg-primary rounded-full"
-              style="animation-delay: {bar * 0.15}s; height: {30 + (bar % 3) * 25}%"
+              style="animation-delay: {bar * 0.15}s; height: {30 +
+                (bar % 3) * 25}%"
             ></span>
           {/each}
         </div>
@@ -75,7 +84,9 @@
       <!-- Lyric Question Mode -->
       <div class="flex flex-col gap-6 w-full">
         <!-- Prompt Card -->
-        <div class="card bg-base-200 border border-base-300 shadow-md p-6 w-full text-center">
+        <div
+          class="card bg-base-200 border border-base-300 shadow-md p-6 w-full text-center"
+        >
           <p class="text-lg font-bold italic leading-relaxed">
             “{prompt}”
           </p>
@@ -85,7 +96,9 @@
         <div class="flex flex-col gap-3 w-full">
           {#each options as option, idx}
             <button
-              class="w-full text-base font-black py-4 px-6 rounded-2xl border text-center transition-all duration-200 shadow-md backdrop-blur-md cursor-pointer {optionBtnClasses[idx]}"
+              class="w-full text-lg font-black py-4 px-6 rounded-2xl border text-center transition-all duration-200 shadow-md backdrop-blur-md cursor-pointer {optionBtnClasses[
+                idx
+              ]}"
               onclick={() => submitAnswer(option)}
             >
               <span>{option}</span>
@@ -102,9 +115,19 @@
         <p class="text-xs text-base-content/70">Waiting for other players...</p>
 
         {#if selectedAnswer}
-          <div class="w-full card border p-5 mt-4 rounded-2xl shadow-sm {selectedIdx !== -1 ? optionBgClasses[selectedIdx] : 'bg-base-200 border-base-300'}">
-            <span class="text-xs uppercase font-extrabold opacity-60 tracking-wider">Your Guess</span>
-            <p class="text-lg font-black italic mt-1 leading-relaxed">“{selectedAnswer}”</p>
+          <div
+            class="w-full card border p-5 mt-4 rounded-2xl shadow-sm {selectedIdx !==
+            -1
+              ? optionBgClasses[selectedIdx]
+              : 'bg-base-200 border-base-300'}"
+          >
+            <span
+              class="text-xs uppercase font-extrabold opacity-60 tracking-wider"
+              >Your Guess</span
+            >
+            <p class="text-lg font-black italic mt-1 leading-relaxed">
+              “{selectedAnswer}”
+            </p>
           </div>
         {/if}
       </div>
@@ -112,14 +135,30 @@
       <!-- Outcome (Correct/Incorrect) State -->
       <div class="flex flex-col items-center gap-6 w-full">
         <div class="flex flex-col items-center text-center gap-2">
-          <div class="w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg {isCorrect ? 'bg-success/10 border-success/30 text-success' : 'bg-error/10 border-error/30 text-error'}">
+          <div
+            class="w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg {isCorrect
+              ? 'bg-success/10 border-success/30 text-success'
+              : 'bg-error/10 border-error/30 text-error'}"
+          >
             {#if isCorrect}
-              <svg viewBox="0 0 24 24" class="w-8 h-8 fill-current"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <svg viewBox="0 0 24 24" class="w-8 h-8 fill-current"
+                ><path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                /></svg
+              >
             {:else}
-              <svg viewBox="0 0 24 24" class="w-8 h-8 fill-current"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              <svg viewBox="0 0 24 24" class="w-8 h-8 fill-current"
+                ><path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                /></svg
+              >
             {/if}
           </div>
-          <h1 class="text-3xl font-black uppercase tracking-wider mt-2 {isCorrect ? 'text-success' : 'text-error'}">
+          <h1
+            class="text-3xl font-black uppercase tracking-wider mt-2 {isCorrect
+              ? 'text-success'
+              : 'text-error'}"
+          >
             {isCorrect ? "Correct" : "Incorrect"}
           </h1>
           <span class="text-xl font-bold text-primary tracking-wide">
@@ -128,24 +167,45 @@
         </div>
 
         <!-- Detailed Breakdown Card -->
-        <div class="card bg-base-200 border border-base-300 shadow-md p-6 w-full text-left space-y-4">
+        <div
+          class="card bg-base-200 border border-base-300 shadow-md p-6 w-full text-left space-y-4"
+        >
           <div class="flex flex-col">
-            <span class="text-xs uppercase font-extrabold opacity-60 tracking-wider">Prompt</span>
-            <p class="text-base font-bold italic mt-0.5 leading-relaxed text-base-content/85">“{prompt}”</p>
+            <span
+              class="text-xs uppercase font-extrabold opacity-60 tracking-wider"
+              >Prompt</span
+            >
+            <p
+              class="text-base font-bold italic mt-0.5 leading-relaxed text-base-content/85"
+            >
+              “{prompt}”
+            </p>
           </div>
 
           <div class="border-t border-base-300"></div>
 
           <div class="flex flex-col pt-1">
-            <span class="text-xs uppercase font-extrabold opacity-60 tracking-wider">Correct Answer</span>
-            <p class="text-base font-black mt-0.5 text-success leading-relaxed">“{correctAnswer}”</p>
+            <span
+              class="text-xs uppercase font-extrabold opacity-60 tracking-wider"
+              >Correct Answer</span
+            >
+            <p class="text-base font-black mt-0.5 text-success leading-relaxed">
+              “{correctAnswer}”
+            </p>
           </div>
 
           {#if !isCorrect && selectedAnswer}
             <div class="border-t border-base-300"></div>
             <div class="flex flex-col pt-1">
-              <span class="text-xs uppercase font-extrabold opacity-60 tracking-wider">Your Guess</span>
-              <p class="text-base font-semibold mt-0.5 text-error line-through opacity-80 leading-relaxed">“{selectedAnswer}”</p>
+              <span
+                class="text-xs uppercase font-extrabold opacity-60 tracking-wider"
+                >Your Guess</span
+              >
+              <p
+                class="text-base font-semibold mt-0.5 text-error line-through opacity-80 leading-relaxed"
+              >
+                “{selectedAnswer}”
+              </p>
             </div>
           {/if}
         </div>
