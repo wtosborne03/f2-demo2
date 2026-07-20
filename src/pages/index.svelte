@@ -9,6 +9,7 @@
   import { get } from "svelte/store";
   import { toaster } from "$lib/util/toaster";
   import SelfieCapture from "$lib/components/SelfieCapture.svelte";
+  import Icon from "@iconify/svelte";
 
   const session = authClient.useSession();
 
@@ -119,26 +120,39 @@
 
   {#if step === "join"}
     <div class="flex flex-col gap-6 w-full mt-6">
-      <label class="input w-full input-lg">
-        Room Code
+      <span
+        class="flex justify-between items-center w-full input input-xl pr-0"
+      >
+        <label for="room-code-field" class="w-24 flex items-center gap-2"
+          >Code</label
+        >
         <input
           id="room-code-field"
           type="text"
           bind:value={roomCode}
-          class="input uppercase input-xl"
+          maxlength={4}
+          class="input uppercase input-xl input-ghost border-2 border-accent/35"
           placeholder="ABCD"
         />
-      </label>
-      <label class="input w-full input-lg">
-        Name
+      </span>
+      <span
+        class="flex justify-between items-center w-full input input-xl pr-0"
+      >
+        <label for="name-field" class="w-24 flex items-center gap-2">Name</label
+        >
+
         <input
+          id="name-field"
           type="text"
           bind:value={name}
-          class="input input-xl"
+          maxlength={10}
+          class="input input-xl input-ghost border-2 border-accent/35"
           placeholder=""
         />
-      </label>
-      <button class="btn btn-lg" onclick={startJoinFlow}> Join Game </button>
+      </span>
+      <button class="btn btn-lg btn-primary" onclick={startJoinFlow}
+        >Join Game<Icon icon="mingcute:enter-door-fill" class="mb-1" />
+      </button>
     </div>
   {:else if step === "selfie"}
     <SelfieCapture
