@@ -66,6 +66,24 @@ declare namespace Paths {
             }
         }
     }
+    namespace GetHistoryGames {
+        namespace Parameters {
+            export type Limit = string;
+            export type Offset = string;
+        }
+        export interface QueryParameters {
+            limit?: Parameters.Limit;
+            offset?: Parameters.Offset;
+        }
+    }
+    namespace GetHistoryGamesById {
+        namespace Parameters {
+            export type Id = string;
+        }
+        export interface PathParameters {
+            id: Parameters.Id;
+        }
+    }
     namespace GetKalshiMarket {
         namespace Parameters {
             /**
@@ -260,6 +278,14 @@ declare namespace Paths {
                 avatar_mouth?: number | null;
                 avatar_selfie?: string | null;
                 avatar_landmarks?: string | null;
+                avatar_neutral_open?: string | null;
+                avatar_neutral_closed?: string | null;
+                avatar_happy_open?: string | null;
+                avatar_happy_closed?: string | null;
+                avatar_sad_open?: string | null;
+                avatar_sad_closed?: string | null;
+                avatar_surprised_open?: string | null;
+                avatar_surprised_closed?: string | null;
                 avatar_gender?: string | null;
                 dollars: number;
                 game_name?: string | null;
@@ -487,9 +513,11 @@ declare namespace Paths {
     namespace PostUpload {
         namespace Parameters {
             export type DetectLandmarks = string;
+            export type GenerateExpressions = string;
         }
         export interface QueryParameters {
             detect_landmarks?: Parameters.DetectLandmarks;
+            generate_expressions?: Parameters.GenerateExpressions;
         }
         export interface RequestBody {
             file: string; // binary
@@ -497,11 +525,16 @@ declare namespace Paths {
         namespace Responses {
             export interface $200 {
                 url: string;
-                landmarks: {
-                    x: number;
-                    y: number;
-                    z: number;
-                }[] | null | null;
+                expressions: {
+                    neutral_open: string;
+                    neutral_closed: string;
+                    happy_open: string;
+                    happy_closed: string;
+                    sad_open: string;
+                    sad_closed: string;
+                    surprised_open: string;
+                    surprised_closed: string;
+                } | null | null;
                 gender: string | null | null;
             }
             export interface $400 {
@@ -555,6 +588,14 @@ declare namespace Paths {
             avatar_mouth?: number | null;
             avatar_selfie?: string | null;
             avatar_landmarks?: string | null;
+            avatar_neutral_open?: string | null;
+            avatar_neutral_closed?: string | null;
+            avatar_happy_open?: string | null;
+            avatar_happy_closed?: string | null;
+            avatar_sad_open?: string | null;
+            avatar_sad_closed?: string | null;
+            avatar_surprised_open?: string | null;
+            avatar_surprised_closed?: string | null;
             avatar_gender?: string | null;
         }
         namespace Responses {
@@ -573,6 +614,14 @@ declare namespace Paths {
                 avatar_mouth?: number | null;
                 avatar_selfie?: string | null;
                 avatar_landmarks?: string | null;
+                avatar_neutral_open?: string | null;
+                avatar_neutral_closed?: string | null;
+                avatar_happy_open?: string | null;
+                avatar_happy_closed?: string | null;
+                avatar_sad_open?: string | null;
+                avatar_sad_closed?: string | null;
+                avatar_surprised_open?: string | null;
+                avatar_surprised_closed?: string | null;
                 avatar_gender?: string | null;
                 dollars: number;
                 game_name?: string | null;
@@ -840,6 +889,38 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<any>
   /**
+   * getHistoryGames - Get all games with player roster and stats summary
+   */
+  'getHistoryGames'(
+    parameters?: Parameters<Paths.GetHistoryGames.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
+   * getHistoryGamesById - Get detailed information, player roster, and prompt submissions for a specific game
+   */
+  'getHistoryGamesById'(
+    parameters?: Parameters<Paths.GetHistoryGamesById.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
+   * getHistoryStats - Get global game history statistics and leaderboards
+   */
+  'getHistoryStats'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
+   * getHistory
+   */
+  'getHistory'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
    * allApiAuth*
    */
   'allApiAuth*'(
@@ -907,6 +988,14 @@ export interface OperationMethods {
    * getIndex
    */
   'getIndex'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<any>
+  /**
+   * getStaticHistory
+   */
+  'getStaticHistory'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: any,
     config?: AxiosRequestConfig  
@@ -1226,6 +1315,46 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<any>
   }
+  ['/history/games']: {
+    /**
+     * getHistoryGames - Get all games with player roster and stats summary
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetHistoryGames.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
+  ['/history/games/{id}']: {
+    /**
+     * getHistoryGamesById - Get detailed information, player roster, and prompt submissions for a specific game
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetHistoryGamesById.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
+  ['/history/stats']: {
+    /**
+     * getHistoryStats - Get global game history statistics and leaderboards
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
+  ['/history']: {
+    /**
+     * getHistory
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
   ['/api/auth/*']: {
     /**
      * allApiAuth*
@@ -1295,6 +1424,16 @@ export interface PathsDictionary {
   ['/']: {
     /**
      * getIndex
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<any>
+  }
+  ['/static/history']: {
+    /**
+     * getStaticHistory
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,

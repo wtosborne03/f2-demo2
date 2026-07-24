@@ -172,23 +172,28 @@ class GameClient {
           }
         }
         const { data: me } = await client!.getUsersMe();
-        let landmarks = undefined;
-        if (me.avatar_landmarks) {
-          try {
-            landmarks = JSON.parse(me.avatar_landmarks);
-          } catch (e) {
-            console.error("Failed to parse avatar landmarks:", e);
-          }
+        let expressions = undefined;
+        if (me.avatar_neutral_open) {
+          expressions = {
+            neutral_open: me.avatar_neutral_open,
+            neutral_closed: me.avatar_neutral_closed || undefined,
+            happy_open: me.avatar_happy_open || undefined,
+            happy_closed: me.avatar_happy_closed || undefined,
+            sad_open: me.avatar_sad_open || undefined,
+            sad_closed: me.avatar_sad_closed || undefined,
+            surprised_open: me.avatar_surprised_open || undefined,
+            surprised_closed: me.avatar_surprised_closed || undefined,
+          };
         }
-        // Fallback to local storage if API returned blank/null selfie
+        // Fallback to local storage if API returned blank/null selfie/expressions
         const localSelfie = localStorage.getItem("temp_selfie") || "";
-        const localLandmarksStr = localStorage.getItem("temp_landmarks") || "";
-        let fallbackLandmarks = undefined;
-        if (localLandmarksStr) {
+        const localExprStr = localStorage.getItem("temp_expressions") || "";
+        let fallbackExpressions = undefined;
+        if (localExprStr) {
           try {
-            fallbackLandmarks = JSON.parse(localLandmarksStr);
+            fallbackExpressions = JSON.parse(localExprStr);
           } catch (e) {
-            console.error("Failed to parse fallback landmarks:", e);
+            console.error("Failed to parse fallback expressions:", e);
           }
         }
 
@@ -198,7 +203,7 @@ class GameClient {
           hair: me.avatar_hair || 0,
           emote: me.avatar_emote || 0,
           selfieUrl: me.avatar_selfie || localSelfie,
-          landmarks: landmarks || fallbackLandmarks,
+          expressions: expressions || fallbackExpressions,
           gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
         };
         this.sendPlayerInput("avatarUpdate", { avatar });
@@ -213,14 +218,14 @@ class GameClient {
 
   private sendGuestAvatar() {
     const sessionSelfie = (typeof window !== "undefined" && localStorage.getItem("temp_selfie")) || "";
-    const sessionLandmarksStr =
-      (typeof window !== "undefined" && localStorage.getItem("temp_landmarks")) || "";
-    let landmarks = undefined;
-    if (sessionLandmarksStr) {
+    const sessionExprStr =
+      (typeof window !== "undefined" && localStorage.getItem("temp_expressions")) || "";
+    let expressions = undefined;
+    if (sessionExprStr) {
       try {
-        landmarks = JSON.parse(sessionLandmarksStr);
+        expressions = JSON.parse(sessionExprStr);
       } catch (e) {
-        console.error("Failed to parse session landmarks:", e);
+        console.error("Failed to parse session expressions:", e);
       }
     }
     const sessionGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
@@ -230,7 +235,7 @@ class GameClient {
       hair: 0,
       emote: 0,
       selfieUrl: sessionSelfie,
-      landmarks,
+      expressions,
       gender: sessionGender,
     };
     this.sendPlayerInput("avatarUpdate", { avatar });

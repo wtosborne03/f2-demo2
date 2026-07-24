@@ -97,7 +97,7 @@
 
   async function saveAvatar(
     selfieUrl: string,
-    landmarks?: any,
+    expressions?: any,
     gender?: string,
   ) {
     const user = get(session).data?.user;
@@ -110,7 +110,14 @@
           avatar_hair: 0,
           avatar_mouth: 0,
           avatar_selfie: selfieUrl,
-          avatar_landmarks: landmarks ? JSON.stringify(landmarks) : null,
+          avatar_neutral_open: expressions?.neutral_open || null,
+          avatar_neutral_closed: expressions?.neutral_closed || null,
+          avatar_happy_open: expressions?.happy_open || null,
+          avatar_happy_closed: expressions?.happy_closed || null,
+          avatar_sad_open: expressions?.sad_open || null,
+          avatar_sad_closed: expressions?.sad_closed || null,
+          avatar_surprised_open: expressions?.surprised_open || null,
+          avatar_surprised_closed: expressions?.surprised_closed || null,
           avatar_gender: gender || null,
         });
       } catch (e) {
@@ -121,10 +128,10 @@
     // Always mirror to localStorage as local fallback
     if (browser) {
       localStorage.setItem("temp_selfie", selfieUrl);
-      if (landmarks) {
-        localStorage.setItem("temp_landmarks", JSON.stringify(landmarks));
+      if (expressions) {
+        localStorage.setItem("temp_expressions", JSON.stringify(expressions));
       } else {
-        localStorage.removeItem("temp_landmarks");
+        localStorage.removeItem("temp_expressions");
       }
       if (gender) {
         localStorage.setItem("temp_gender", gender);
@@ -143,7 +150,7 @@
           mouth: 0,
           emote: 0,
           selfieUrl: selfieUrl,
-          landmarks,
+          expressions,
           gender,
         },
       });
@@ -161,7 +168,14 @@
           avatar_hair: 0,
           avatar_mouth: 0,
           avatar_selfie: null,
-          avatar_landmarks: null,
+          avatar_neutral_open: null,
+          avatar_neutral_closed: null,
+          avatar_happy_open: null,
+          avatar_happy_closed: null,
+          avatar_sad_open: null,
+          avatar_sad_closed: null,
+          avatar_surprised_open: null,
+          avatar_surprised_closed: null,
         });
       } catch (e) {
         console.error("Failed to remove avatar:", e);
@@ -169,6 +183,7 @@
     } else {
       if (browser) {
         localStorage.removeItem("temp_selfie");
+        localStorage.removeItem("temp_expressions");
         localStorage.removeItem("temp_landmarks");
         localStorage.removeItem("temp_gender");
       }
@@ -352,7 +367,7 @@
     const client = await apiClient;
     try {
       const response = await client.postUpload(
-        { detect_landmarks: "true" },
+        { generate_expressions: "true" },
         formData as any,
       );
       if (response.status === 200) {
@@ -379,10 +394,10 @@
       maxWidth: 600,
       maxHeight: 600,
       async success(result) {
-        uploadingProgress = "Uploading avatar...";
+        uploadingProgress = "Generating avatar expressions...";
         try {
           const res = await uploadSelfieImage(result);
-          await saveAvatar(res.url, res.landmarks, res.gender || undefined);
+          await saveAvatar(res.url, res.expressions, res.gender || undefined);
           currentSelfieUrl = res.url;
 
           toaster.success({
