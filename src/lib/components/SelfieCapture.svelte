@@ -476,7 +476,17 @@
 
       const sx = (width - size) / 2;
       const sy = (height - size) / 2;
-      ctx.drawImage(videoElement, sx, sy, size, size, 0, 0, targetSize, targetSize);
+      ctx.drawImage(
+        videoElement,
+        sx,
+        sy,
+        size,
+        size,
+        0,
+        0,
+        targetSize,
+        targetSize,
+      );
 
       canvas.toBlob(
         (blob) => {
@@ -835,7 +845,9 @@
           <button
             type="button"
             onclick={captureSelfie}
-            disabled={cameraLoading || isCapturing}
+            disabled={cameraLoading ||
+              isCapturing ||
+              alignmentFeedback !== "aligned"}
             class="btn btn-primary btn-lg w-full rounded-full gap-2 font-bold shadow-md"
           >
             {#if isCapturing}
