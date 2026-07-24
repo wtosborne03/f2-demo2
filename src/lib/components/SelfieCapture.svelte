@@ -232,6 +232,9 @@
     });
   }
 
+  let lastDetectTime = 0;
+  const DETECTION_INTERVAL_MS = 80; // ~12 FPS for smooth face alignment tracking without GPU throttling
+
   // Predict loop running against the live video element
   function predictLoop() {
     if (!videoElement || !stream || !faceDetector || mode !== "camera") {
@@ -243,72 +246,76 @@
 
     if (videoElement.readyState >= 2) {
       // HAVE_CURRENT_DATA or higher
-      try {
-        const startTimeMs = performance.now();
-        const detections = faceDetector.detectForVideo(
-          videoElement,
-          startTimeMs,
-        ).detections;
+      const now = performance.now();
+      if (now - lastDetectTime >= DETECTION_INTERVAL_MS) {
+        lastDetectTime = now;
+        try {
+          const startTimeMs = performance.now();
+          const detections = faceDetector.detectForVideo(
+            videoElement,
+            startTimeMs,
+          ).detections;
 
-        if (detections.length > 0) {
-          const face = detections[0].boundingBox;
+          if (detections.length > 0) {
+            const face = detections[0].boundingBox;
 
-          // videoElement sizes are normalized 0 to 1 in MediaPipe if using absolute dimensions,
-          // but detectForVideo returns raw pixel coordinates based on input size.
-          const vWidth = videoElement.videoWidth;
-          const vHeight = videoElement.videoHeight;
+            // videoElement sizes are normalized 0 to 1 in MediaPipe if using absolute dimensions,
+            // but detectForVideo returns raw pixel coordinates based on input size.
+            const vWidth = videoElement.videoWidth;
+            const vHeight = videoElement.videoHeight;
 
-          if (face && vWidth && vHeight) {
-            // Calculate midpoints
-            const faceCenterX = face.originX + face.width / 2;
-            const faceCenterY = face.originY + face.height / 2;
-            const videoCenterX = vWidth / 2;
-            const videoCenterY = vHeight / 2;
+            if (face && vWidth && vHeight) {
+              // Calculate midpoints
+              const faceCenterX = face.originX + face.width / 2;
+              const faceCenterY = face.originY + face.height / 2;
+              const videoCenterX = vWidth / 2;
+              const videoCenterY = vHeight / 2;
 
-            // Check alignment conditions:
-            // 1. Is the face centered? (Within 15% margin of center)
-            const isCentered =
-              Math.abs(faceCenterX - videoCenterX) < vWidth * 0.15 &&
-              Math.abs(faceCenterY - videoCenterY) < vHeight * 0.15;
+              // Check alignment conditions:
+              // 1. Is the face centered? (Within 15% margin of center)
+              const isCentered =
+                Math.abs(faceCenterX - videoCenterX) < vWidth * 0.15 &&
+                Math.abs(faceCenterY - videoCenterY) < vHeight * 0.15;
 
-            // 2. Is the face close enough? (Not too far: face width >= 33% of video width)
-            const isCloseEnough = face.width >= vWidth * 0.33;
+              // 2. Is the face close enough? (Not too far: face width >= 33% of video width)
+              const isCloseEnough = face.width >= vWidth * 0.33;
 
-            // 3. Is the face too close? (Not too close: face width <= 65% of video width)
-            const isNotTooClose = face.width <= vWidth * 0.65;
+              // 3. Is the face too close? (Not too close: face width <= 65% of video width)
+              const isNotTooClose = face.width <= vWidth * 0.65;
 
-            // Calculate mirrored left coordinate to match mirrored video feed
-            const faceLeft =
-              ((vWidth - (face.originX + face.width)) / vWidth) * 100;
+              // Calculate mirrored left coordinate to match mirrored video feed
+              const faceLeft =
+                ((vWidth - (face.originX + face.width)) / vWidth) * 100;
 
-            faceBox = {
-              left: faceLeft,
-              top: (face.originY / vHeight) * 100,
-              width: (face.width / vWidth) * 100,
-              height: (face.height / vHeight) * 100,
-            };
+              faceBox = {
+                left: faceLeft,
+                top: (face.originY / vHeight) * 100,
+                width: (face.width / vWidth) * 100,
+                height: (face.height / vHeight) * 100,
+              };
 
-            if (!isCloseEnough) {
-              alignmentFeedback = "too-far";
-              isFaceAligned = false;
-            } else if (!isCentered) {
-              alignmentFeedback = "not-centered";
-              isFaceAligned = false;
-            } else if (!isNotTooClose) {
-              alignmentFeedback = "too-close";
-              isFaceAligned = false;
-            } else {
-              alignmentFeedback = "aligned";
-              isFaceAligned = true;
+              if (!isCloseEnough) {
+                alignmentFeedback = "too-far";
+                isFaceAligned = false;
+              } else if (!isCentered) {
+                alignmentFeedback = "not-centered";
+                isFaceAligned = false;
+              } else if (!isNotTooClose) {
+                alignmentFeedback = "too-close";
+                isFaceAligned = false;
+              } else {
+                alignmentFeedback = "aligned";
+                isFaceAligned = true;
+              }
             }
+          } else {
+            isFaceAligned = false;
+            alignmentFeedback = "none";
+            faceBox = null;
           }
-        } else {
-          isFaceAligned = false;
-          alignmentFeedback = "none";
-          faceBox = null;
+        } catch (err) {
+          console.error("Face detection loop error:", err);
         }
-      } catch (err) {
-        console.error("Face detection loop error:", err);
       }
     }
 
@@ -387,72 +394,56 @@
     mode = "uploading";
     uploadError = null;
     userFriendlyErrorMsg = "";
-    uploadingProgress = "Compressing image...";
+    uploadingProgress = "Generating avatar expressions...";
 
-    new Compressor(blob, {
-      quality: 0.5,
-      maxWidth: 600,
-      maxHeight: 600,
-      async success(result) {
-        uploadingProgress = "Generating avatar expressions...";
-        try {
-          const res = await uploadSelfieImage(result);
-          await saveAvatar(res.url, res.expressions, res.gender || undefined);
-          currentSelfieUrl = res.url;
+    try {
+      const res = await uploadSelfieImage(blob);
+      await saveAvatar(res.url, res.expressions, res.gender || undefined);
+      currentSelfieUrl = res.url;
 
-          toaster.success({
-            title: "Avatar Updated",
-            description: "Your new avatar has been saved.",
-          });
+      toaster.success({
+        title: "Avatar Updated",
+        description: "Your new avatar has been saved.",
+      });
 
-          if (onUploadComplete) {
-            onUploadComplete(res);
-          }
-          isCapturing = false;
-          mode = "preview";
-        } catch (err: any) {
-          console.error("Failed to upload selfie:", err);
-          isCapturing = false;
+      if (onUploadComplete) {
+        onUploadComplete(res);
+      }
+      isCapturing = false;
+      mode = "preview";
+    } catch (err: any) {
+      console.error("Failed to upload selfie:", err);
+      isCapturing = false;
 
-          if (err.response) {
-            const status = err.response.status;
-            const message = err.response.data?.error || "An error occurred";
-            if (status === 400) {
-              uploadError = "No face found in photo";
-              userFriendlyErrorMsg =
-                "Please make sure your face is clearly visible, well-lit, and centered inside the circle.";
-            } else if (status === 422) {
-              uploadError = "Landmark generation failed";
-              userFriendlyErrorMsg =
-                "We couldn't detect facial details. Please try retaking the photo in better lighting.";
-            } else if (status === 500) {
-              uploadError = "General server error";
-              userFriendlyErrorMsg =
-                "A server error occurred. Please try uploading again or retake the photo.";
-            } else {
-              uploadError = `Upload failed (Status ${status})`;
-              userFriendlyErrorMsg =
-                message ||
-                "An unexpected error occurred. Please check and try again.";
-            }
-          } else {
-            uploadError = "Connection failed";
-            userFriendlyErrorMsg =
-              err.message ||
-              "Failed to reach the server. Please check your internet connection.";
-          }
-          mode = "error";
+      if (err.response) {
+        const status = err.response.status;
+        const message = err.response.data?.error || "An error occurred";
+        if (status === 400) {
+          uploadError = "No face found in photo";
+          userFriendlyErrorMsg =
+            "Please make sure your face is clearly visible, well-lit, and centered inside the circle.";
+        } else if (status === 422) {
+          uploadError = "Landmark generation failed";
+          userFriendlyErrorMsg =
+            "We couldn't detect facial details. Please try retaking the photo in better lighting.";
+        } else if (status === 500) {
+          uploadError = "General server error";
+          userFriendlyErrorMsg =
+            "A server error occurred. Please try uploading again or retake the photo.";
+        } else {
+          uploadError = `Upload failed (Status ${status})`;
+          userFriendlyErrorMsg =
+            message ||
+            "An unexpected error occurred. Please check and try again.";
         }
-      },
-      error(err) {
-        console.error("Compression error:", err.message);
-        uploadError = "Failed to process image.";
+      } else {
+        uploadError = "Connection failed";
         userFriendlyErrorMsg =
-          "Compression failed. Please try capturing the photo again.";
-        isCapturing = false;
-        mode = "error";
-      },
-    });
+          err.message ||
+          "Failed to reach the server. Please check your internet connection.";
+      }
+      mode = "error";
+    }
   }
 
   function captureSelfie() {
@@ -466,10 +457,11 @@
       const width = settings.width || videoElement.videoWidth || 640;
       const height = settings.height || videoElement.videoHeight || 480;
 
+      // Direct single-pass 512x512 canvas scaling & JPEG encoding for instant upload
+      const targetSize = 512;
       const canvas = document.createElement("canvas");
-      const size = Math.min(width, height);
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = targetSize;
+      canvas.height = targetSize;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) {
@@ -477,13 +469,14 @@
         return;
       }
 
-      // Mirror the image horizontally
-      ctx.translate(size, 0);
+      const size = Math.min(width, height);
+      // Mirror horizontally
+      ctx.translate(targetSize, 0);
       ctx.scale(-1, 1);
 
       const sx = (width - size) / 2;
       const sy = (height - size) / 2;
-      ctx.drawImage(videoElement, sx, sy, size, size, 0, 0, size, size);
+      ctx.drawImage(videoElement, sx, sy, size, size, 0, 0, targetSize, targetSize);
 
       canvas.toBlob(
         (blob) => {
@@ -496,7 +489,7 @@
           }
         },
         "image/jpeg",
-        0.9,
+        0.75,
       );
     } catch (e: any) {
       console.error("Capture failed:", e);
