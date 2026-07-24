@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import Iconify from "@iconify/svelte";
   import Compressor from "compressorjs";
   import { apiClient } from "$lib/backend/axios";
@@ -51,7 +51,50 @@
     | "error" = initialMode === "camera" ? "camera" : "loading";
 
   let currentSelfieUrl: string | null = null;
+  let currentNeutralOpenUrl: string | null = null;
+  let currentNeutralClosedUrl: string | null = null;
+  let isBlinking = false;
   let loadingAvatar = initialMode === "camera" ? false : true;
+
+  let blinkTimer: ReturnType<typeof setTimeout>;
+  let blinkCloseTimer: ReturnType<typeof setTimeout>;
+  let blinkDoubleTimer: ReturnType<typeof setTimeout>;
+
+  function triggerBlink() {
+    isBlinking = true;
+    blinkCloseTimer = setTimeout(() => {
+      isBlinking = false;
+    }, 150);
+  }
+
+  function startBlinkLoop() {
+    const loop = () => {
+      blinkTimer = setTimeout(
+        () => {
+          triggerBlink();
+          if (Math.random() < 0.25) {
+            blinkDoubleTimer = setTimeout(triggerBlink, 320);
+          }
+          loop();
+        },
+        2000 + Math.random() * 3500,
+      );
+    };
+    loop();
+  }
+
+  onMount(() => {
+    startBlinkLoop();
+  });
+
+  $: if (browser && currentNeutralOpenUrl) {
+    const img = new Image();
+    img.src = currentNeutralOpenUrl;
+  }
+  $: if (browser && currentNeutralClosedUrl) {
+    const img = new Image();
+    img.src = currentNeutralClosedUrl;
+  }
 
   let uploadError: string | null = null;
   let userFriendlyErrorMsg: string = "";
@@ -72,6 +115,8 @@
         if (client) {
           const { data: me } = await client.getUsersMe();
           currentSelfieUrl = me.avatar_selfie || null;
+          currentNeutralOpenUrl = me.avatar_neutral_open || null;
+          currentNeutralClosedUrl = me.avatar_neutral_closed || null;
         }
       } catch (e) {
         console.error(
@@ -80,15 +125,31 @@
         );
         if (browser) {
           currentSelfieUrl = localStorage.getItem("temp_selfie") || null;
+          const tempExprs = localStorage.getItem("temp_expressions");
+          if (tempExprs) {
+            try {
+              const exprs = JSON.parse(tempExprs);
+              currentNeutralOpenUrl = exprs.neutral_open || null;
+              currentNeutralClosedUrl = exprs.neutral_closed || null;
+            } catch {}
+          }
         }
       }
     } else {
       if (browser) {
         currentSelfieUrl = localStorage.getItem("temp_selfie") || null;
+        const tempExprs = localStorage.getItem("temp_expressions");
+        if (tempExprs) {
+          try {
+            const exprs = JSON.parse(tempExprs);
+            currentNeutralOpenUrl = exprs.neutral_open || null;
+            currentNeutralClosedUrl = exprs.neutral_closed || null;
+          } catch {}
+        }
       }
     }
     loadingAvatar = false;
-    if (currentSelfieUrl) {
+    if (currentSelfieUrl || currentNeutralOpenUrl) {
       mode = "preview";
     } else {
       mode = "no-avatar";
@@ -190,6 +251,8 @@
     }
 
     currentSelfieUrl = null;
+    currentNeutralOpenUrl = null;
+    currentNeutralClosedUrl = null;
 
     // If in a game, send avatar update
     if (get(gameState).screen !== "index") {
@@ -400,6 +463,8 @@
       const res = await uploadSelfieImage(blob);
       await saveAvatar(res.url, res.expressions, res.gender || undefined);
       currentSelfieUrl = res.url;
+      currentNeutralOpenUrl = res.expressions?.neutral_open || null;
+      currentNeutralClosedUrl = res.expressions?.neutral_closed || null;
 
       toaster.success({
         title: "Avatar Updated",
@@ -527,7 +592,7 @@
     if (onCancel) {
       onCancel();
     } else {
-      if (currentSelfieUrl) {
+      if (currentSelfieUrl || currentNeutralOpenUrl) {
         mode = "preview";
       } else {
         mode = "no-avatar";
@@ -542,6 +607,9 @@
 
   onDestroy(() => {
     stopCamera();
+    clearTimeout(blinkTimer);
+    clearTimeout(blinkCloseTimer);
+    clearTimeout(blinkDoubleTimer);
   });
 </script>
 
@@ -602,10 +670,12 @@
         >
           <span class="loading loading-spinner text-primary loading-lg"></span>
         </div>
-      {:else if mode === "preview" && currentSelfieUrl}
+      {:else if mode === "preview" && (currentNeutralOpenUrl || currentSelfieUrl)}
         <!-- Active Avatar Image -->
         <img
-          src={currentSelfieUrl}
+          src={isBlinking && currentNeutralClosedUrl
+            ? currentNeutralClosedUrl
+            : (currentNeutralOpenUrl || currentSelfieUrl)}
           alt="Your avatar"
           class="object-cover w-full h-full"
         />
