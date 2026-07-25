@@ -2,6 +2,7 @@
     export let color: string = "#333";
     export let background: string = "#fff";
     export let square: boolean = false;
+    export let aspectRatio: "2/3" | "3/4" = "2/3";
     export let active: boolean = false;
 
     export interface Point {
@@ -22,7 +23,7 @@
     let containerElement: HTMLDivElement;
 
     $: viewBoxWidth = 400;
-    $: viewBoxHeight = square ? 400 : 600;
+    $: viewBoxHeight = square ? 400 : aspectRatio === "3/4" ? 533 : 600;
 
     const MIN_DIST_SQ = 4; // 2px minimum movement squared
 
@@ -174,12 +175,11 @@
 
     const getStrokePath = (s: Stroke): string => {
         if (s.points.length === 0) return "";
-        const [first, ...rest] = s.points;
-        if (rest.length === 0) return `M${first.x} ${first.y}h.1`;
-        return (
-            `M${first.x} ${first.y}` +
-            rest.map((p) => ` ${p.x} ${p.y}`).join("")
-        );
+        if (s.points.length === 1) {
+            const p = s.points[0];
+            return `M ${p.x} ${p.y} L ${p.x + 0.1} ${p.y}`;
+        }
+        return "M " + s.points.map((p) => `${p.x} ${p.y}`).join(" L ");
     };
 
     export const toSVG = (): string => {
@@ -194,4 +194,87 @@
 
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vWidth} ${vHeight}" width="${vWidth}" height="${vHeight}"><rect width="100%" height="100%" fill="${background}"/>${pathsXml}</svg>`;
     };
+
+    export const toDataURL = (type = "image/svg+xml", quality = 0.8) => {
+        const svgStr = toSVG();
+        if (type.includes("svg")) {
+            const base64Str = window.btoa(unescape(encodeURIComponent(svgStr)));
+            return `data:image/svg+xml;base64,${base64Str}`;
+        }
+
+        // Raster fallback for image/png or image/webp
+        const vWidth = viewBoxWidth;
+        const vHeight = viewBoxHeight;
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = vWidth;
+        tempCanvas.height = vHeight;
+        const ctx = tempCanvas.getContext("2d");
+        if (!ctx) return "";
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, vWidth, vHeight);
+        strokes.forEach((s) => {
+            if (s.points.length === 0) return;
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = s.width;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.beginPath();
+            ctx.moveTo(s.points[0].x, s.points[0].y);
+            for (let i = 1; i < s.points.length; i++) {
+                ctx.lineTo(s.points[i].x, s.points[i].y);
+            }
+            if (s.points.length === 1) {
+                ctx.lineTo(s.points[0].x + 0.1, s.points[0].y);
+            }
+            ctx.stroke();
+        });
+        return tempCanvas.toDataURL(type, quality);
+    };
 </script>
+
+<div bind:this={containerElement} class="canvas-container">
+    <svg
+        id="draw-canvas"
+        bind:this={svgElement}
+        viewBox="0 0 {viewBoxWidth} {viewBoxHeight}"
+        style="background: {background};"
+        on:mousedown={handlePointerStart}
+        on:mousemove={handlePointerMove}
+        on:mouseup={handlePointerEnd}
+        on:mouseleave={handlePointerEnd}
+        on:touchstart={handleTouchStart}
+        on:touchmove={handleTouchMove}
+        on:touchend={handlePointerEnd}
+        on:touchcancel={handlePointerEnd}
+    >
+        <rect width="100%" height="100%" fill={background} />
+        {#each strokes as s}
+            <path
+                d={getStrokePath(s)}
+                stroke={s.color}
+                stroke-width={s.width}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+            />
+        {/each}
+    </svg>
+</div>
+
+<style>
+    .canvas-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #draw-canvas {
+        user-select: none;
+        touch-action: none;
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+</style>
