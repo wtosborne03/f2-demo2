@@ -23,8 +23,6 @@
   m_data = get(gameState).page_data;
 
   let name = "";
-  let age = 0;
-  let job = "";
   let description = "";
 
   let canvasComponent: any;
@@ -75,8 +73,8 @@
         type: "sketchProfile",
         sketchProfile: {
           name: name,
-          age: age,
-          job: job,
+          age: 0,
+          job: "",
           description: description,
           sketch: result.url,
         },
@@ -87,8 +85,8 @@
         type: "sketchProfile",
         sketchProfile: {
           name: name,
-          age: age,
-          job: job,
+          age: 0,
+          job: "",
           description: description,
           sketch: base64Image,
         },
@@ -122,40 +120,7 @@
         </div>
       </div>
 
-      <div class="w-full">
-        <div
-          class="flex items-center gap-4 bg-gray-50 border-2 border-gray-200 rounded-full px-5 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
-        >
-          <span class="font-semibold text-gray-500 text-base whitespace-nowrap"
-            >Age</span
-          >
-          <input
-            class="border-none text-black placeholder-gray-400 bg-transparent py-4 flex-1 focus:ring-0 text-base outline-none"
-            type="number"
-            pattern="\d*"
-            max="1000"
-            placeholder="25"
-            bind:value={age}
-          />
-        </div>
-      </div>
 
-      <div class="w-full">
-        <div
-          class="flex items-center gap-4 bg-gray-50 border-2 border-gray-200 rounded-full px-5 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
-        >
-          <span class="font-semibold text-gray-500 text-base whitespace-nowrap"
-            >Occupation</span
-          >
-          <input
-            class="border-none text-black placeholder-gray-400 bg-transparent py-4 flex-1 focus:ring-0 text-base outline-none"
-            type="text"
-            maxlength="30"
-            bind:value={job}
-            placeholder="Software Engineer"
-          />
-        </div>
-      </div>
 
       <div class="w-full">
         <div
