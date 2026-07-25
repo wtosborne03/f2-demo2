@@ -120,8 +120,6 @@
         </div>
       </div>
 
-
-
       <div class="w-full">
         <div
           class="flex flex-col gap-2 bg-gray-50 border-2 border-gray-200 rounded-3xl p-4 transition-all focus-within:border-[#ff6b6b] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ff6b6b]/10 focus-within:scale-[1.02]"
@@ -129,10 +127,10 @@
           <span class="font-semibold text-gray-500 text-base">Bio</span>
           <textarea
             class="border-none text-black placeholder-gray-400 bg-transparent p-0 w-full focus:ring-0 text-base outline-none resize-none font-sans"
-            maxlength="65"
+            maxlength="200"
             bind:value={description}
-            placeholder="About you..."
-            rows="2"
+            placeholder="Age, Job, Hobbies, interests... whatever you want to put"
+            rows="3"
           ></textarea>
         </div>
       </div>
@@ -261,7 +259,7 @@
     class="w-full flex-1 min-h-0 flex items-center justify-center p-3 z-0 overflow-hidden"
   >
     <div
-      class="w-full h-full max-w-xs sm:max-w-sm aspect-[2/3] max-h-full rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in flex items-center justify-center"
+      class="w-full h-full p-2 aspect-[2/3] max-h-full rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in flex items-center justify-center"
     >
       <Canvas
         bind:this={canvasComponent}

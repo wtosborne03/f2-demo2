@@ -153,7 +153,7 @@
 	}}
 />
 
-<div class="w-full h-full">
+<div class="w-full h-full overflow-hidden">
 	<div class="w-full h-full relative hidden z-0" bind:this={container}>
 		<svelte:component this={Card} bind:element={card1} {...card1Data} />
 		<svelte:component this={Card} bind:element={card2} {...card2Data} />

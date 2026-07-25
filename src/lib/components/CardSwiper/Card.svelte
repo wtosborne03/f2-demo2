@@ -9,7 +9,7 @@
 </script>
 
 <div
-  class="w-full h-full absolute cursor-grab ease-in-out rounded-xl touch-none select-none border border-black bg-white"
+  class="w-full h-full p-4 absolute cursor-grab ease-in-out rounded-xl touch-none select-none border border-black bg-white overflow-hidden"
   bind:this={element}
 >
   {#key image}
@@ -24,11 +24,10 @@
   <div
     class="absolute inset-0 bg-gradient-to-t from-black/80 via-white/0 rounded-b-xl text-white"
   ></div>
-  <div class="p-4 absolute bottom-0 w-full flex justify-center">
+  <div class="p-4 absolute bottom-0 left-0 w-full flex justify-center">
     <div class="flex items-center flex-col">
-      <h3 class="text-3xl font-semibold pb-4">{title}</h3>
-      <h2 class="text-2xl font-semibold pb-4">{age}, {job}</h2>
-      <p>{description}</p>
+      <h3 class="text-4xl font-semibold pb-4">{title}</h3>
+      <p class="text-2xl">{description}</p>
     </div>
   </div>
 </div>

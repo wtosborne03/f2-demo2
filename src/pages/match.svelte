@@ -55,6 +55,6 @@
   };
 </script>
 
-<div class="h-full w-screen">
+<div class="h-full w-full overflow-hidden">
   <CardSwiper cardData={data} onSwipe={swipe} />
 </div>
