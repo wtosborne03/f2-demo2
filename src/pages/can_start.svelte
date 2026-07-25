@@ -29,6 +29,11 @@
       s_data.rounds = currentSettings.rounds;
       s_data.doubloons = currentSettings.doubloons;
       s_data.endCondition = currentSettings.endCondition;
+      if (currentSettings.endCondition === 1) {
+        endConditionTab = "tab-doubloons";
+      } else {
+        endConditionTab = "tab-rounds";
+      }
       hasInitialized = true;
     }
   });
