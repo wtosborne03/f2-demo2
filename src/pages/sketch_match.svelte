@@ -259,7 +259,7 @@
     class="w-full flex-1 min-h-0 flex items-center justify-center p-3 z-0 overflow-hidden"
   >
     <div
-      class="w-full h-full p-2 aspect-[2/3] max-h-full rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in flex items-center justify-center"
+      class="h-full w-auto aspect-[2/3] max-w-full max-h-full p-2 rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in flex items-center justify-center"
     >
       <Canvas
         bind:this={canvasComponent}
