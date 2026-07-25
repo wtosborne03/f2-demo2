@@ -1,239 +1,179 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-
     export let color: string = "#333";
     export let background: string = "#fff";
     export let square: boolean = false;
     export let active: boolean = false;
 
-    let canvas: HTMLCanvasElement;
-    let context: CanvasRenderingContext2D | null = null;
+    export interface Point {
+        x: number;
+        y: number;
+    }
+
+    export interface Stroke {
+        color: string;
+        width: number;
+        points: Point[];
+    }
+
+    let strokes: Stroke[] = [];
+    let currentStroke: Stroke | null = null;
     let isDrawing: boolean = false;
-    let start: { x: number; y: number } = { x: 0, y: 0 };
-    // internal buffer size (pixels)
-    let bufferWidth: number = 320;
-    let bufferHeight: number = 480;
+    let svgElement: SVGSVGElement;
     let containerElement: HTMLDivElement;
 
-    let drawingBackup: string | null = null;
+    $: viewBoxWidth = 400;
+    $: viewBoxHeight = square ? 400 : 600;
 
-    const saveBackup = () => {
-        if (canvas) {
-            drawingBackup = canvas.toDataURL("image/png");
-        }
+    const getCoordinates = (clientX: number, clientY: number): Point => {
+        if (!svgElement) return { x: 0, y: 0 };
+        const rect = svgElement.getBoundingClientRect();
+        const x = Math.round(((clientX - rect.left) / rect.width) * viewBoxWidth * 10) / 10;
+        const y = Math.round(((clientY - rect.top) / rect.height) * viewBoxHeight * 10) / 10;
+        return { x, y };
     };
 
-    /**
-     * Initialize or resize the internal canvas buffer only when the computed
-     * size actually changes. Changing canvas.width / canvas.height clears the
-     * drawing buffer, so avoid doing it unnecessarily. The visible CSS size
-     * is kept responsive (100% width) while the internal buffer is adjusted
-     * only when the container's width/height changes.
-     */
-    const initCanvas = () => {
-        if (!canvas || !containerElement) return;
-
-        const rect = containerElement.getBoundingClientRect();
-        const newBufferWidth = Math.max(1, Math.floor(rect.width));
-        const newBufferHeight = square
-            ? newBufferWidth
-            : Math.max(1, Math.floor(rect.height || rect.width * 1.5));
-
-        // If size hasn't changed and we have a context, just update stroke style
-        if (
-            context &&
-            newBufferWidth === bufferWidth &&
-            newBufferHeight === bufferHeight
-        ) {
-            context.strokeStyle = color;
-            return;
-        }
-
-        // Update buffer dimensions only when they change
-        bufferWidth = newBufferWidth;
-        bufferHeight = newBufferHeight;
-
-        // Set internal drawing buffer size (this clears the canvas)
-        canvas.width = bufferWidth;
-        canvas.height = bufferHeight;
-
-        // Ensure the visible element scales to the container
-        canvas.style.width = `100%`;
-        canvas.style.height = `${square ? rect.width : Math.floor(rect.height || rect.width * 1.5)}px`;
-
-        context = canvas.getContext("2d");
-        if (!context) return;
-
-        // Set drawing defaults
-        context.lineWidth = 6;
-        context.lineCap = "round";
-        context.lineJoin = "round";
-        context.strokeStyle = color;
-        context.fillStyle = background;
-
-        // Fill background
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Restore backup if it exists
-        if (drawingBackup) {
-            const img = new Image();
-            img.onload = () => {
-                context?.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
-            img.src = drawingBackup;
-        }
-    };
-
-    onMount(() => {
-        initCanvas();
-        // Second pass after layout settles (keeps behaviour similar to previous)
-        setTimeout(initCanvas, 360);
-    });
-
-    // react to active prop changes
-    $: if (active) {
-        setTimeout(initCanvas, 100);
-    }
-
-    // react to color/background changes
-    $: if (context) {
-        context.strokeStyle = color;
-        // If you want the "eraser" to use the current background, we respect that in handlers.
-    }
-
-    $: if (context && background) {
-        // If background changes and buffer exists, refill the background
-        // (do not clear strokes unless explicitly requested)
-        // We won't automatically clear the user's drawing here; this just sets
-        // the fill style for future clear operations.
-        context.fillStyle = background;
-    }
-
-    // Convert client coordinates to canvas internal coordinates accounting for CSS scaling
-    const getCanvasCoordinates = (clientX: number, clientY: number) => {
-        if (!canvas) return { x: 0, y: 0 };
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY,
-        };
-    };
-
-    // Mouse handlers — use client coordinates for accurate mapping even when CSS scales
     const handlePointerStart = (e: MouseEvent | PointerEvent) => {
-        if (!context || !canvas) return;
-        const coords = getCanvasCoordinates(
-            (e as MouseEvent).clientX,
-            (e as MouseEvent).clientY,
-        );
+        const coords = getCoordinates((e as MouseEvent).clientX, (e as MouseEvent).clientY);
 
         if (color === background) {
-            // Clear to background color
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = background;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            drawingBackup = null;
+            clear();
             isDrawing = false;
             return;
         }
 
         isDrawing = true;
-        start = coords;
+        currentStroke = {
+            color,
+            width: 6,
+            points: [coords],
+        };
+        strokes = [...strokes, currentStroke];
     };
 
     const handlePointerMove = (e: MouseEvent | PointerEvent) => {
-        if (!isDrawing || !context || !canvas) return;
-
-        const coords = getCanvasCoordinates(
-            (e as MouseEvent).clientX,
-            (e as MouseEvent).clientY,
-        );
-
-        const { x, y } = start;
-        context.lineWidth = 6;
-        context.beginPath();
-        context.moveTo(x, y);
-        context.lineTo(coords.x, coords.y);
-        context.closePath();
-        context.stroke();
-
-        start = coords;
+        if (!isDrawing || !currentStroke) return;
+        const coords = getCoordinates((e as MouseEvent).clientX, (e as MouseEvent).clientY);
+        currentStroke.points.push(coords);
+        strokes = strokes;
     };
 
     const handlePointerEnd = () => {
-        if (isDrawing) {
-            isDrawing = false;
-            saveBackup();
-        }
+        isDrawing = false;
+        currentStroke = null;
     };
 
-    // Touch handlers (convert touch -> client coords)
     const handleTouchStart = (e: TouchEvent) => {
         e.preventDefault();
-        if (!context || !canvas) return;
         const touch = e.touches[0];
         if (!touch) return;
-        const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
+        const coords = getCoordinates(touch.clientX, touch.clientY);
 
         if (color === background) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = background;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            drawingBackup = null;
+            clear();
             isDrawing = false;
             return;
         }
 
         isDrawing = true;
-        start = coords;
+        currentStroke = {
+            color,
+            width: 6,
+            points: [coords],
+        };
+        strokes = [...strokes, currentStroke];
     };
 
     const handleTouchMove = (e: TouchEvent) => {
         e.preventDefault();
-        if (!isDrawing || !context || !canvas) return;
+        if (!isDrawing || !currentStroke) return;
         const touch = e.touches[0];
         if (!touch) return;
-        const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
-
-        const { x, y } = start;
-        context.lineWidth = 6;
-        context.beginPath();
-        context.moveTo(x, y);
-        context.lineTo(coords.x, coords.y);
-        context.closePath();
-        context.stroke();
-
-        start = coords;
+        const coords = getCoordinates(touch.clientX, touch.clientY);
+        currentStroke.points.push(coords);
+        strokes = strokes;
     };
 
-    // Exported APIs for Svelte bindings
     export const clear = () => {
-        if (!canvas || !context) return;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = background;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        drawingBackup = null;
+        strokes = [];
+        currentStroke = null;
+        isDrawing = false;
     };
 
-    export const toDataURL = (type = "image/webp", quality = 0.8) => {
-        return canvas ? canvas.toDataURL(type, quality) : "";
+    export const undo = () => {
+        if (strokes.length > 0) {
+            strokes = strokes.slice(0, -1);
+        }
+    };
+
+    export const toSVG = (): string => {
+        const vWidth = viewBoxWidth;
+        const vHeight = viewBoxHeight;
+        const pathsXml = strokes
+            .map((s) => {
+                if (s.points.length === 0) return "";
+                if (s.points.length === 1) {
+                    const p = s.points[0];
+                    return `<path d="M ${p.x} ${p.y} L ${p.x + 0.1} ${p.y}" stroke="${s.color}" stroke-width="${s.width}" stroke-linecap="round" stroke-linejoin="round" fill="none" />`;
+                }
+                const d = "M " + s.points.map((p) => `${p.x} ${p.y}`).join(" L ");
+                return `<path d="${d}" stroke="${s.color}" stroke-width="${s.width}" stroke-linecap="round" stroke-linejoin="round" fill="none" />`;
+            })
+            .join("");
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vWidth} ${vHeight}" width="${vWidth}" height="${vHeight}"><rect width="100%" height="100%" fill="${background}" />${pathsXml}</svg>`;
+    };
+
+    export const toDataURL = (type = "image/svg+xml", quality = 0.8) => {
+        const svgStr = toSVG();
+        if (type.includes("svg")) {
+            const base64Str = window.btoa(unescape(encodeURIComponent(svgStr)));
+            return `data:image/svg+xml;base64,${base64Str}`;
+        }
+
+        // Raster fallback for image/png or image/webp
+        const vWidth = viewBoxWidth;
+        const vHeight = viewBoxHeight;
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = vWidth;
+        tempCanvas.height = vHeight;
+        const ctx = tempCanvas.getContext("2d");
+        if (!ctx) return "";
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, vWidth, vHeight);
+        strokes.forEach((s) => {
+            if (s.points.length === 0) return;
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = s.width;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.beginPath();
+            ctx.moveTo(s.points[0].x, s.points[0].y);
+            for (let i = 1; i < s.points.length; i++) {
+                ctx.lineTo(s.points[i].x, s.points[i].y);
+            }
+            if (s.points.length === 1) {
+                ctx.lineTo(s.points[0].x + 0.1, s.points[0].y);
+            }
+            ctx.stroke();
+        });
+        return tempCanvas.toDataURL(type, quality);
+    };
+
+    const getStrokePath = (s: Stroke): string => {
+        if (s.points.length === 0) return "";
+        if (s.points.length === 1) {
+            const p = s.points[0];
+            return `M ${p.x} ${p.y} L ${p.x + 0.1} ${p.y}`;
+        }
+        return "M " + s.points.map((p) => `${p.x} ${p.y}`).join(" L ");
     };
 </script>
 
-<svelte:window on:resize={initCanvas} />
-
 <div bind:this={containerElement} class="canvas-container">
-    <!--
-    Do NOT bind `width`/`height` attributes on the element. We manage the internal
-    buffer (`canvas.width` / `canvas.height`) imperatively in `initCanvas`.
-    Use a CSS style for background and responsive sizing.
-  -->
-    <canvas
+    <svg
         id="draw-canvas"
-        bind:this={canvas}
+        bind:this={svgElement}
+        viewBox="0 0 {viewBoxWidth} {viewBoxHeight}"
         style="background: {background};"
         on:mousedown={handlePointerStart}
         on:mouseup={handlePointerEnd}
@@ -243,7 +183,19 @@
         on:touchmove={handleTouchMove}
         on:touchend={handlePointerEnd}
         on:touchcancel={handlePointerEnd}
-    ></canvas>
+    >
+        <rect width="100%" height="100%" fill={background} />
+        {#each strokes as s}
+            <path
+                d={getStrokePath(s)}
+                stroke={s.color}
+                stroke-width={s.width}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+            />
+        {/each}
+    </svg>
 </div>
 
 <style>
