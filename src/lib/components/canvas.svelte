@@ -218,8 +218,8 @@
         drawingBackup = null;
     };
 
-    export const toDataURL = () => {
-        return canvas ? canvas.toDataURL("image/png") : "";
+    export const toDataURL = (type = "image/webp", quality = 0.8) => {
+        return canvas ? canvas.toDataURL(type, quality) : "";
     };
 </script>
 

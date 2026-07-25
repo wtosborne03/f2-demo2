@@ -15,7 +15,7 @@
 
   async function uploadCompressedImage(file: File | Blob): Promise<string> {
     const formData = new FormData();
-    formData.append("file", file, "photo.png");
+    formData.append("file", file, "photo.webp");
 
     const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload`, {
       method: "POST",
@@ -36,9 +36,10 @@
     const file = fileInput.files?.[0];
     if (file) {
       new Compressor(file, {
-        quality: 0.3,
-        maxWidth: 900,
-        maxHeight: 900,
+        quality: 0.8,
+        mimeType: "image/webp",
+        maxWidth: 1024,
+        maxHeight: 1024,
         async success(result) {
           try {
             const url = await uploadCompressedImage(result);

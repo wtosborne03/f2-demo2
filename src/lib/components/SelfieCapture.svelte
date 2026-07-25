@@ -433,7 +433,7 @@
 
   async function uploadSelfieImage(file: File | Blob) {
     const formData = new FormData();
-    formData.append("file", file, "selfie.png");
+    formData.append("file", file, "selfie.webp");
     const client = await apiClient;
     try {
       const response = await client.postUpload(
@@ -563,8 +563,8 @@
             isCapturing = false;
           }
         },
-        "image/jpeg",
-        0.75,
+        "image/webp",
+        0.8,
       );
     } catch (e: any) {
       console.error("Capture failed:", e);
