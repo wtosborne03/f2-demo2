@@ -26,6 +26,22 @@
 
     const getCoordinates = (clientX: number, clientY: number): Point => {
         if (!svgElement) return { x: 0, y: 0 };
+        try {
+            const ctm = svgElement.getScreenCTM();
+            if (ctm) {
+                const pt = svgElement.createSVGPoint();
+                pt.x = clientX;
+                pt.y = clientY;
+                const svgPt = pt.matrixTransform(ctm.inverse());
+                return {
+                    x: Math.round(svgPt.x * 10) / 10,
+                    y: Math.round(svgPt.y * 10) / 10,
+                };
+            }
+        } catch (e) {
+            // Fallback calculation if getScreenCTM is unavailable
+        }
+
         const rect = svgElement.getBoundingClientRect();
         const x = Math.round(((clientX - rect.left) / rect.width) * viewBoxWidth * 10) / 10;
         const y = Math.round(((clientY - rect.top) / rect.height) * viewBoxHeight * 10) / 10;

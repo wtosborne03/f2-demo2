@@ -265,7 +265,7 @@
         />
       </svg>
     </button>
-    <h3 class="text-xl font-extrabold text-black tracking-wide">
+    <h3 class="text-xl font-extrabold text-white tracking-wide">
       ✨ Draw Your Portrait ✨
     </h3>
     <button
@@ -293,10 +293,10 @@
 
   <!-- Drawing Area Card -->
   <div
-    class="absolute inset-0 w-full h-full z-0 sm:relative sm:inset-auto sm:flex-1 sm:flex sm:items-center sm:justify-center sm:max-h-[60vh] sm:p-2"
+    class="w-full flex-1 min-h-0 flex items-center justify-center p-3 z-0 overflow-hidden"
   >
     <div
-      class="w-full h-full sm:w-full sm:max-w-sm sm:aspect-[2/3] sm:rounded-3xl overflow-hidden sm:shadow-2xl bg-white sm:border-4 sm:border-slate-800 animate-fade-in"
+      class="w-full h-full max-w-xs sm:max-w-sm aspect-[2/3] max-h-full rounded-3xl overflow-hidden shadow-2xl bg-white border-4 border-slate-800 animate-fade-in flex items-center justify-center"
     >
       <Canvas
         bind:this={canvasComponent}
