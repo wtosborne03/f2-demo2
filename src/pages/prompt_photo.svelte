@@ -17,10 +17,13 @@
     const formData = new FormData();
     formData.append("file", file, "photo.webp");
 
-    const response = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload`, {
-      method: "POST",
-      body: formData,
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_PUBLIC_API_URL}/upload`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
     if (!response.ok) {
       throw new Error("Upload failed");
@@ -36,7 +39,7 @@
     const file = fileInput.files?.[0];
     if (file) {
       new Compressor(file, {
-        quality: 0.8,
+        quality: 0.71,
         mimeType: "image/webp",
         maxWidth: 1024,
         maxHeight: 1024,
@@ -46,7 +49,10 @@
             submit_prompt(url);
             submit_ready();
           } catch (err: any) {
-            console.error("Failed to upload image to S3, falling back to base64:", err);
+            console.error(
+              "Failed to upload image to S3, falling back to base64:",
+              err,
+            );
             const reader = new FileReader();
             reader.onload = (e: ProgressEvent<FileReader>) => {
               base64Image = e.target?.result as string;
@@ -80,9 +86,14 @@
   }
 </script>
 
-<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center space-y-6">
+<div
+  class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center space-y-6"
+>
   <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full">
-    <span class="text-xs uppercase font-extrabold opacity-60 tracking-wider mb-1">Prompt</span>
+    <span
+      class="text-xs uppercase font-extrabold opacity-60 tracking-wider mb-1"
+      >Prompt</span
+    >
     <p class="text-xl font-bold leading-relaxed">{m_data.question}</p>
   </div>
 
@@ -104,7 +115,7 @@
       <Icon class="text-2xl" icon="material-symbols:photo" />
     {/if}
   </button>
-  
+
   <input
     style="display:none"
     type="file"

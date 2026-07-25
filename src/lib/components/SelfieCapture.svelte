@@ -675,7 +675,7 @@
         <img
           src={isBlinking && currentNeutralClosedUrl
             ? currentNeutralClosedUrl
-            : (currentNeutralOpenUrl || currentSelfieUrl)}
+            : currentNeutralOpenUrl || currentSelfieUrl}
           alt="Your avatar"
           class="object-cover w-full h-full"
         />
