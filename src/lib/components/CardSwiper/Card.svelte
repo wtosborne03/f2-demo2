@@ -24,7 +24,7 @@
   <div
     class="absolute inset-0 bg-gradient-to-t from-black/80 via-white/0 rounded-b-xl text-white"
   ></div>
-  <div class="p-4 absolute bottom-0 left-0 w-full flex justify-center">
+  <div class="p-4 absolute bottom-10 left-0 w-full flex justify-center">
     <div class="flex items-center flex-col">
       <h3 class="text-4xl font-semibold pb-4">{title}</h3>
       <p class="text-2xl">{description}</p>
