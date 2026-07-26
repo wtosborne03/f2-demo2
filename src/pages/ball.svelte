@@ -4,7 +4,7 @@
     import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
     // --- Config ---
-    const SEND_INTERVAL_MS = 1000 / 30; // 30 Hz send rate
+    const SEND_INTERVAL_MS = 1000 / 60; // 60 Hz send rate
     const DEADZONE = 0.08; // 8% of maxRange — ignore tiny drift
     const EDGE_THRESHOLD = 0.92; // normalized value considered "at the edge"
     const HAPTIC_DURATION_MS = 15; // short sharp buzz
@@ -73,8 +73,8 @@
     function sendLoop(now: number) {
         rafId = requestAnimationFrame(sendLoop);
 
-        // Throttle to SEND_INTERVAL_MS
-        if (now - lastSendTime < SEND_INTERVAL_MS) return;
+        // Throttle to SEND_INTERVAL_MS with 1ms tolerance margin to prevent rAF jitter drops
+        if (now - lastSendTime < SEND_INTERVAL_MS - 1) return;
         lastSendTime = now;
 
         // Apply deadzone and normalize to -1..+1
