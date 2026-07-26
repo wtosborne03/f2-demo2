@@ -57,8 +57,9 @@ class GameClient {
   private latency = 0;
   private _lastTimeRequest = 0;
   private waiters: Array<{ ops: OpCode[]; resolve: (val: any) => void }> = [];
-  private pendingCriticalMessages: Array<{ op: OpCode; data: any }> = [];
   private hasBoundLifecycleListeners = false;
+  public pc: RTCPeerConnection | null = null;
+  public dc: RTCDataChannel | null = null;
 
   constructor() {
     this.hydrateSessionFromStorage();
@@ -138,6 +139,18 @@ class GameClient {
 
         case OpCode.TIME_RESPONSE:
           this.handleTimeResponse(payload); // payload is server timestamp
+          break;
+
+        case OpCode.WEBRTC_OFFER:
+          if (payload.sdp) {
+            this.handleWebRTCOffer(payload.sdp);
+          }
+          break;
+
+        case OpCode.WEBRTC_ICE_CANDIDATE:
+          if (payload.candidate) {
+            this.handleWebRTCIceCandidate(payload.candidate);
+          }
           break;
 
         case OpCode.GAME_ENDED:
@@ -319,8 +332,12 @@ class GameClient {
   }
 
   sendInput(data: PlayerInput) {
-    // High priority, minimal latency
-    this.send(OpCode.INPUT, data);
+    // Send over WebRTC DataChannel if open, otherwise fallback to WebSocket relay
+    if (this.dc && this.dc.readyState === "open") {
+      this.dc.send(encode(OpCode.INPUT, data));
+    } else {
+      this.send(OpCode.INPUT, data);
+    }
   }
 
   /**
@@ -329,10 +346,84 @@ class GameClient {
    * @param data - input payload data
    */
   sendPlayerInput(type: string, data?: any) {
-    this.send(OpCode.INPUT, {
+    const payload = {
       type: type,
       ...data,
-    });
+    };
+    if (this.dc && this.dc.readyState === "open") {
+      this.dc.send(encode(OpCode.INPUT, payload));
+    } else {
+      this.send(OpCode.INPUT, payload);
+    }
+  }
+
+  private async handleWebRTCOffer(sdp: RTCSessionDescriptionInit) {
+    try {
+      if (typeof RTCPeerConnection === "undefined") return;
+
+      if (this.pc) {
+        this.dc?.close();
+        this.pc.close();
+      }
+
+      const iceServers = [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" }
+      ];
+      this.pc = new RTCPeerConnection({ iceServers });
+
+      this.pc.ondatachannel = (event) => {
+        this.dc = event.channel;
+        this.dc.binaryType = "arraybuffer";
+
+        this.dc.onopen = () => {
+          console.log("[WebRTC] Player DataChannel connected to Host");
+        };
+
+        this.dc.onmessage = (msgEvent: MessageEvent) => {
+          try {
+            const buffer = new Uint8Array(msgEvent.data);
+            const { op, payload } = decode(buffer);
+            if (op === OpCode.STATE_UPDATE) {
+              this.trackStateStatus(payload);
+              gameState.set(payload);
+            }
+          } catch (err) {
+            console.error("[WebRTC] Error decoding DataChannel message:", err);
+          }
+        };
+
+        this.dc.onclose = () => {
+          console.log("[WebRTC] Player DataChannel closed");
+        };
+      };
+
+      this.pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          this.send(OpCode.WEBRTC_ICE_CANDIDATE, {
+            candidate: event.candidate.toJSON()
+          });
+        }
+      };
+
+      await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      const answer = await this.pc.createAnswer();
+      await this.pc.setLocalDescription(answer);
+
+      this.send(OpCode.WEBRTC_ANSWER, { sdp: answer });
+    } catch (err) {
+      console.error("[WebRTC] Failed handling offer:", err);
+    }
+  }
+
+  private async handleWebRTCIceCandidate(candidate: RTCIceCandidateInit) {
+    if (this.pc) {
+      try {
+        await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.error("[WebRTC] Error adding ICE candidate:", err);
+      }
+    }
   }
 
   private startHeartbeat() {

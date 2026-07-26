@@ -26,6 +26,9 @@ export enum OpCode {
 
     // Host -> Server
     HOST_ERROR = 30,    // New: Host instructing server to send error to specific player
+    WEBRTC_OFFER = 40,
+    WEBRTC_ANSWER = 41,
+    WEBRTC_ICE_CANDIDATE = 42,
     GAME_START = 99,
     GAME_ENDED = 100
 }
