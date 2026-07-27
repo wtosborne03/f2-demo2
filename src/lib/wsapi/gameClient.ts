@@ -143,12 +143,21 @@ class GameClient {
 
         case OpCode.WEBRTC_OFFER:
           if (payload.sdp) {
+            console.log("[WebRTC Player] Received WEBRTC_OFFER from Host");
             this.handleWebRTCOffer(payload.sdp);
+          }
+          break;
+
+        case OpCode.WEBRTC_ANSWER:
+          if (payload.sdp) {
+            console.log("[WebRTC Player] Received WEBRTC_ANSWER from Host");
+            this.handleWebRTCAnswer(payload.sdp);
           }
           break;
 
         case OpCode.WEBRTC_ICE_CANDIDATE:
           if (payload.candidate) {
+            console.log("[WebRTC Player] Received WEBRTC_ICE_CANDIDATE from Host");
             this.handleWebRTCIceCandidate(payload.candidate);
           }
           break;
@@ -416,11 +425,10 @@ class GameClient {
     }
   }
 
-  public localStream: MediaStream | null = null;
-
   public async startVideoStream(): Promise<boolean> {
+    console.log("[WebRTC Player] startVideoStream requested");
     if (typeof navigator === "undefined" || !navigator.mediaDevices) {
-      console.warn("MediaDevices API not supported");
+      console.warn("[WebRTC Player] MediaDevices API not supported");
       return false;
     }
     try {
@@ -428,21 +436,37 @@ class GameClient {
         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
         audio: false
       });
+      console.log("[WebRTC Player] Camera stream acquired:", stream.id, stream.getTracks());
       this.localStream = stream;
 
-      if (this.pc) {
-        stream.getTracks().forEach(track => {
-          this.pc!.addTrack(track, stream);
-        });
-        if (this.pc.signalingState === "stable") {
-          const offer = await this.pc.createOffer();
-          await this.pc.setLocalDescription(offer);
-          this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
-        }
+      if (!this.pc) {
+        console.log("[WebRTC Player] PC instance not initialized yet! Creating RTCPeerConnection...");
+        const iceServers = [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" }
+        ];
+        this.pc = new RTCPeerConnection({ iceServers });
+        this.pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            console.log("[WebRTC Player] Sending ICE candidate to Host", event.candidate);
+            this.send(OpCode.WEBRTC_ICE_CANDIDATE, { candidate: event.candidate.toJSON() });
+          }
+        };
       }
+
+      stream.getTracks().forEach(track => {
+        console.log(`[WebRTC Player] Adding track (${track.kind}) to PC`);
+        this.pc!.addTrack(track, stream);
+      });
+
+      console.log("[WebRTC Player] Creating SDP offer for camera stream, signaling state:", this.pc.signalingState);
+      const offer = await this.pc.createOffer();
+      await this.pc.setLocalDescription(offer);
+      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video track to Host");
+      this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
       return true;
     } catch (err) {
-      console.error("[WebRTC] Failed to start camera stream:", err);
+      console.error("[WebRTC Player] Failed to start camera stream:", err);
       return false;
     }
   }
@@ -454,12 +478,27 @@ class GameClient {
     }
   }
 
+  private async handleWebRTCAnswer(sdp: RTCSessionDescriptionInit) {
+    if (this.pc) {
+      try {
+        console.log("[WebRTC Player] Setting remote description from WEBRTC_ANSWER", sdp);
+        await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        console.log("[WebRTC Player] Remote description set! signalingState:", this.pc.signalingState, "iceConnectionState:", this.pc.iceConnectionState);
+      } catch (err) {
+        console.error("[WebRTC Player] Error setting remote description from WEBRTC_ANSWER:", err);
+      }
+    } else {
+      console.warn("[WebRTC Player] Received WEBRTC_ANSWER but this.pc is null");
+    }
+  }
+
   private async handleWebRTCIceCandidate(candidate: RTCIceCandidateInit) {
     if (this.pc) {
       try {
+        console.log("[WebRTC Player] Adding ICE candidate from Host");
         await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (err) {
-        console.error("[WebRTC] Error adding ICE candidate:", err);
+        console.error("[WebRTC Player] Error adding ICE candidate:", err);
       }
     }
   }
