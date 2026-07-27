@@ -58,6 +58,8 @@ class GameClient {
   private _lastTimeRequest = 0;
   private waiters: Array<{ ops: OpCode[]; resolve: (val: any) => void }> = [];
   private hasBoundLifecycleListeners = false;
+  public localStream: MediaStream | null = null;
+  public localAudioStream: MediaStream | null = null;
   public pc: RTCPeerConnection | null = null;
   public dc: RTCDataChannel | null = null;
 
@@ -475,6 +477,77 @@ class GameClient {
     if (this.localStream) {
       this.localStream.getTracks().forEach(track => track.stop());
       this.localStream = null;
+    }
+  }
+
+  public isWebRTCSupported(): boolean {
+    if (typeof window === "undefined") return false;
+    return typeof RTCPeerConnection !== "undefined" && !!navigator?.mediaDevices?.getUserMedia;
+  }
+
+  public async startAudioStream(): Promise<boolean> {
+    console.log("[WebRTC Player] startAudioStream requested");
+    if (!this.isWebRTCSupported()) {
+      console.warn("[WebRTC Player] MediaDevices or RTCPeerConnection not supported");
+      return false;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: false
+      });
+      console.log("[WebRTC Player] Microphone stream acquired:", stream.id, stream.getAudioTracks());
+      this.localAudioStream = stream;
+
+      if (!this.pc) {
+        console.log("[WebRTC Player] PC instance not initialized yet! Creating RTCPeerConnection...");
+        const iceServers = [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" }
+        ];
+        this.pc = new RTCPeerConnection({ iceServers });
+        this.pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            console.log("[WebRTC Player] Sending ICE candidate to Host", event.candidate);
+            this.send(OpCode.WEBRTC_ICE_CANDIDATE, { candidate: event.candidate.toJSON() });
+          }
+        };
+      }
+
+      stream.getAudioTracks().forEach(track => {
+        console.log(`[WebRTC Player] Adding audio track (${track.kind}) to PC`);
+        this.pc!.addTrack(track, stream);
+      });
+
+      console.log("[WebRTC Player] Creating SDP offer for audio stream");
+      const offer = await this.pc.createOffer();
+      await this.pc.setLocalDescription(offer);
+      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with audio track to Host");
+      this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
+      return true;
+    } catch (err) {
+      console.error("[WebRTC Player] Failed to start microphone stream:", err);
+      return false;
+    }
+  }
+
+  public stopAudioStream() {
+    if (this.localAudioStream) {
+      this.localAudioStream.getTracks().forEach(track => {
+        track.stop();
+        if (this.pc) {
+          const senders = this.pc.getSenders();
+          const sender = senders.find(s => s.track === track);
+          if (sender) {
+            try {
+              this.pc.removeTrack(sender);
+            } catch (e) {
+              console.warn("[WebRTC Player] Could not remove track from PC:", e);
+            }
+          }
+        }
+      });
+      this.localAudioStream = null;
     }
   }
 
