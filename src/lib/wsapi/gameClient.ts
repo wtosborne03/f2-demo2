@@ -416,6 +416,44 @@ class GameClient {
     }
   }
 
+  public localStream: MediaStream | null = null;
+
+  public async startVideoStream(): Promise<boolean> {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices) {
+      console.warn("MediaDevices API not supported");
+      return false;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+        audio: false
+      });
+      this.localStream = stream;
+
+      if (this.pc) {
+        stream.getTracks().forEach(track => {
+          this.pc!.addTrack(track, stream);
+        });
+        if (this.pc.signalingState === "stable") {
+          const offer = await this.pc.createOffer();
+          await this.pc.setLocalDescription(offer);
+          this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
+        }
+      }
+      return true;
+    } catch (err) {
+      console.error("[WebRTC] Failed to start camera stream:", err);
+      return false;
+    }
+  }
+
+  public stopVideoStream() {
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => track.stop());
+      this.localStream = null;
+    }
+  }
+
   private async handleWebRTCIceCandidate(candidate: RTCIceCandidateInit) {
     if (this.pc) {
       try {
