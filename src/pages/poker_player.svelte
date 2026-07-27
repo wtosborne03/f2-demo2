@@ -8,6 +8,14 @@
 
   let isPeeking = false;
   let hasSubmitted = false;
+  let lastPhase = "";
+  let lastRound = 0;
+
+  $: if (m_data.phase !== lastPhase || m_data.round !== lastRound) {
+    lastPhase = m_data.phase;
+    lastRound = m_data.round;
+    hasSubmitted = false;
+  }
 
   const suitSymbols: Record<string, string> = {
     spades: "♠",
