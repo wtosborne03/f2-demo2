@@ -63,44 +63,13 @@
   }
 </script>
 
-<div class="flex flex-col justify-center items-center h-full w-full max-w-md mx-auto px-6 text-center space-y-6">
-  <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full">
+<div class="relative flex flex-col justify-between items-center h-full w-full max-w-md mx-auto px-6 py-6 text-center">
+  <div class="card bg-base-200 border border-base-300 shadow-xl p-8 w-full my-auto">
     <h2 class="text-2xl font-black mb-3">Make your best case</h2>
-    <p class="text-base text-base-content/80 mb-6 leading-relaxed">
+    <p class="text-base text-base-content/80 mb-8 leading-relaxed">
       Give a strong argument for why other players should support your side. Be
       clear, concise, and persuasive — your words matter.
     </p>
-
-    {#if isWebRTCSupported}
-      <div class="mb-6 flex flex-col items-center">
-        <button
-          type="button"
-          class="btn w-full flex items-center justify-center gap-2 font-bold py-3 text-base shadow-md transition-all duration-200 {isMicActive ? 'btn-error animate-pulse text-white' : 'btn-outline btn-accent'}"
-          onclick={toggleMicrophone}
-        >
-          {#if isMicActive}
-            <span class="text-xl">🎙️</span>
-            <span>Microphone Amplified (Tap to Mute)</span>
-          {:else}
-            <span class="text-xl">🎤</span>
-            <span>Amplify Voice via Mic</span>
-          {/if}
-        </button>
-        {#if isMicActive}
-          <span class="text-xs text-success mt-2 font-semibold flex items-center gap-1">
-            <span class="inline-block w-2 h-2 rounded-full bg-success animate-ping"></span>
-            Streaming live audio to main game screen
-          </span>
-        {/if}
-        {#if micError}
-          <span class="text-xs text-error mt-2 font-medium">{micError}</span>
-        {/if}
-      </div>
-    {:else}
-      <div class="mb-6 text-xs text-base-content/60 italic">
-        Voice amplification unavailable (WebRTC not supported on connection)
-      </div>
-    {/if}
 
     <button
       type="button"
@@ -116,4 +85,31 @@
       {/if}
     </button>
   </div>
+
+  {#if isWebRTCSupported}
+    <div class="pb-4 flex flex-col items-center">
+      <button
+        type="button"
+        class="btn btn-circle btn-lg transition-all duration-200 shadow-xl {isMicActive ? 'btn-error animate-pulse text-white scale-110' : 'btn-neutral bg-base-300 text-base-content/40 border-base-content/20'}"
+        onclick={toggleMicrophone}
+        aria-label={isMicActive ? "Mute microphone" : "Unmute microphone"}
+      >
+        {#if isMicActive}
+          <!-- Enabled Microphone Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z" />
+          </svg>
+        {:else}
+          <!-- Disabled Microphone Icon with Cross Through It -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z" opacity="0.4" />
+            <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+        {/if}
+      </button>
+      {#if micError}
+        <span class="text-xs text-error mt-1 font-medium">{micError}</span>
+      {/if}
+    </div>
+  {/if}
 </div>
