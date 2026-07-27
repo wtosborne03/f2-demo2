@@ -91,10 +91,10 @@
   </div>
 
   {#if isWebRTCSupported}
-    <div class="pb-10 flex flex-col items-center">
+    <div class="pb-12 flex flex-col items-center">
       <button
         type="button"
-        class="btn btn-circle btn-lg transition-all duration-200 shadow-xl {isMicActive
+        class="btn btn-circle btn-xl transition-all duration-200 shadow-xl {isMicActive
           ? 'btn-error animate-pulse text-white scale-110'
           : 'btn-neutral bg-base-300 text-base-content/40 border-base-content/20'}"
         onclick={toggleMicrophone}
