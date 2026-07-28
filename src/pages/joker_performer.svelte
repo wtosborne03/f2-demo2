@@ -27,8 +27,6 @@
             console.warn("[Joker Performer UI] Earpiece audio play error:", err);
             earpieceStatus = `Audio blocked by browser: ${err.message}`;
           });
-      } else {
-        console.warn("[Joker Performer UI] earpieceAudioEl element ref is null!");
       }
     };
 
@@ -47,20 +45,17 @@
   async function handleStartPerformerStream() {
     errorMessage = "";
     console.log("[Joker Performer UI] Starting performer camera stream...");
-    // User gesture unlock for mobile web audio autoplay
     if (earpieceAudioEl) {
       earpieceAudioEl.play().catch(() => {});
     }
     const success = await gameClient.startVideoStream();
     if (success) {
       isStreaming = true;
-      console.log("[Joker Performer UI] Camera stream started successfully!");
       if (videoEl && gameClient.localStream) {
         videoEl.srcObject = gameClient.localStream;
       }
     } else {
-      console.error("[Joker Performer UI] Failed to start camera stream");
-      errorMessage = "Could not access camera. Please check camera permissions.";
+      errorMessage = "Could not access camera. Please check permissions.";
     }
   }
 
@@ -71,18 +66,17 @@
 </script>
 
 <div class="joker-performer-container">
-  <!-- Earpiece Audio element for listening to spectator microphones -->
   <audio bind:this={earpieceAudioEl} autoplay playsinline style="display: none;"></audio>
 
   <header class="header">
     <div class="badge-row">
       <span class="live-pill" class:active={isStreaming}>
         <span class="dot"></span>
-        {isStreaming ? "YOU ARE THE JOKER (LIVE)" : "CONNECTING CAMERA..."}
+        {isStreaming ? "YOU ARE THE JOKER" : "CONNECTING..."}
       </span>
       <span class="earpiece-pill">🎧 {earpieceStatus}</span>
     </div>
-    <h2>{$gameState.page_data?.challengeTitle || "Your Impractical Joker Challenge"}</h2>
+    <h2>{$gameState.page_data?.challengeTitle || "EARPIECE COMMANDS"}</h2>
   </header>
 
   <!-- Local Camera Preview -->
@@ -107,7 +101,7 @@
     <!-- Challenge Instructions -->
     <div class="challenge-box">
       <h3>YOUR DARE:</h3>
-      <p>{$gameState.page_data?.challengeDescription || "Complete the dare given to you!"}</p>
+      <p>Do and say WHATEVER the other players tell you in your earpiece!</p>
     </div>
   </main>
 
@@ -118,7 +112,7 @@
       on:click={handleTaskDone}
       disabled={taskSubmitted}
     >
-      {taskSubmitted ? "TASK SUBMITTED! WAITING FOR VOTES..." : "I FINISHED THE TASK! 👍"}
+      {taskSubmitted ? "DARE COMPLETED! WAITING FOR VOTES..." : "I FINISHED THE DARE! 👍"}
     </button>
   </footer>
 </div>
@@ -129,8 +123,8 @@
     flex-direction: column;
     height: 100vh;
     width: 100%;
-    background: #090d16;
-    color: #f8fafc;
+    background: #0077b6;
+    color: #ffffff;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     padding: 1rem;
     box-sizing: border-box;
@@ -152,8 +146,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: #334155;
-    color: #94a3b8;
+    background: #003566;
+    color: #90e0ef;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
@@ -161,13 +155,13 @@
   }
 
   .live-pill.active {
-    background: #ef4444;
+    background: #e63946;
     color: #ffffff;
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+    box-shadow: 0 0 12px rgba(230, 57, 70, 0.6);
   }
 
   .earpiece-pill {
-    background: #1e293b;
+    background: #003566;
     border: 1px solid #10b981;
     color: #34d399;
     padding: 0.25rem 0.6rem;
@@ -184,10 +178,11 @@
   }
 
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     margin: 0;
-    color: #f43f5e;
+    color: #ffb703;
     font-weight: 900;
+    text-shadow: 2px 2px 0px #000;
   }
 
   .preview-area {
@@ -203,9 +198,9 @@
     height: 240px;
     border-radius: 1rem;
     overflow: hidden;
-    background: #020617;
-    border: 3px solid #f43f5e;
-    box-shadow: 0 10px 25px rgba(244, 63, 94, 0.3);
+    background: #001219;
+    border: 4px solid #ffb703;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   }
 
   .camera-preview {
@@ -222,40 +217,41 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(15, 23, 42, 0.9);
+    background: rgba(0, 53, 102, 0.95);
     padding: 1rem;
   }
 
   .btn-start {
-    background: linear-gradient(135deg, #f43f5e, #e11d48);
+    background: linear-gradient(135deg, #e63946, #d90429);
     color: white;
-    border: none;
+    border: 2px solid white;
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
-    font-weight: 800;
+    font-weight: 900;
     border-radius: 0.75rem;
     cursor: pointer;
   }
 
   .challenge-box {
-    background: #1e293b;
-    border-left: 5px solid #a855f7;
+    background: #003566;
+    border-left: 6px solid #ffb703;
     border-radius: 0.75rem;
     padding: 1rem;
   }
 
   .challenge-box h3 {
     margin: 0 0 0.4rem 0;
-    font-size: 0.85rem;
-    color: #a855f7;
+    font-size: 0.9rem;
+    color: #ffb703;
     letter-spacing: 0.05em;
+    font-weight: 900;
   }
 
   .challenge-box p {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     line-height: 1.4;
-    color: #e2e8f0;
+    color: #ffffff;
     font-weight: 700;
   }
 
@@ -267,19 +263,20 @@
     width: 100%;
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
-    border: none;
+    border: 2px solid white;
     padding: 1rem;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 900;
     border-radius: 0.75rem;
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    transition: transform 0.15s ease;
+    text-transform: uppercase;
   }
 
   .btn-done.submitted {
     background: #334155;
     box-shadow: none;
     color: #94a3b8;
+    border-color: #475569;
   }
 </style>
