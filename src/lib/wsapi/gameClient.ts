@@ -387,77 +387,80 @@ class GameClient {
     }
   }
 
+  private getOrCreatePeerConnection(): RTCPeerConnection {
+    if (this.pc) return this.pc;
+
+    const iceServers = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" }
+    ];
+    this.pc = new RTCPeerConnection({ iceServers });
+
+    this.pc.ontrack = (event) => {
+      console.log(`[WebRTC Player] Received remote track (${event.track.kind}) from Host`);
+      const stream = event.streams[0] || new MediaStream([event.track]);
+      this.remoteStream = stream;
+      this.emit("remoteTrack", { stream, track: event.track });
+    };
+
+    this.pc.oniceconnectionstatechange = () => {
+      console.log(`[WebRTC Player] ICE Connection State: ${this.pc?.iceConnectionState}`);
+      this.emit("iceState", this.pc?.iceConnectionState);
+      if (this.pc?.iceConnectionState === "failed" || this.pc?.iceConnectionState === "disconnected") {
+        console.warn("[WebRTC Player] ICE connection degraded. Requesting ICE restart...");
+        this.requestIceRestart();
+      }
+    };
+
+    this.pc.ondatachannel = (event) => {
+      this.dc = event.channel;
+      this.dc.binaryType = "arraybuffer";
+
+      this.dc.onopen = () => {
+        console.log("[WebRTC] Player DataChannel connected to Host");
+      };
+
+      this.dc.onmessage = (msgEvent: MessageEvent) => {
+        try {
+          const buffer = new Uint8Array(msgEvent.data);
+          const { op, payload } = decode(buffer);
+          if (op === OpCode.STATE_UPDATE) {
+            this.trackStateStatus(payload);
+            gameState.set(payload);
+          }
+        } catch (err) {
+          console.error("[WebRTC] Error decoding DataChannel message:", err);
+        }
+      };
+
+      this.dc.onclose = () => {
+        console.log("[WebRTC] Player DataChannel closed");
+      };
+    };
+
+    this.pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        this.send(OpCode.WEBRTC_ICE_CANDIDATE, {
+          candidate: event.candidate.toJSON()
+        });
+      }
+    };
+
+    return this.pc;
+  }
+
   private async handleWebRTCOffer(sdp: RTCSessionDescriptionInit) {
     try {
       if (typeof RTCPeerConnection === "undefined") return;
 
-      if (this.pc) {
-        this.dc?.close();
-        this.pc.close();
-      }
+      const pc = this.getOrCreatePeerConnection();
 
-      const iceServers = [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" },
-        { urls: "stun:stun3.l.google.com:19302" },
-        { urls: "stun:stun4.l.google.com:19302" }
-      ];
-      this.pc = new RTCPeerConnection({ iceServers });
-
-      this.pc.ontrack = (event) => {
-        console.log(`[WebRTC Player] Received remote track (${event.track.kind}) from Host`);
-        const stream = event.streams[0] || new MediaStream([event.track]);
-        this.remoteStream = stream;
-        this.emit("remoteTrack", { stream, track: event.track });
-      };
-
-      this.pc.oniceconnectionstatechange = () => {
-        console.log(`[WebRTC Player] ICE Connection State: ${this.pc?.iceConnectionState}`);
-        this.emit("iceState", this.pc?.iceConnectionState);
-        if (this.pc?.iceConnectionState === "failed" || this.pc?.iceConnectionState === "disconnected") {
-          console.warn("[WebRTC Player] ICE connection degraded. Requesting ICE restart...");
-          this.requestIceRestart();
-        }
-      };
-
-      this.pc.ondatachannel = (event) => {
-        this.dc = event.channel;
-        this.dc.binaryType = "arraybuffer";
-
-        this.dc.onopen = () => {
-          console.log("[WebRTC] Player DataChannel connected to Host");
-        };
-
-        this.dc.onmessage = (msgEvent: MessageEvent) => {
-          try {
-            const buffer = new Uint8Array(msgEvent.data);
-            const { op, payload } = decode(buffer);
-            if (op === OpCode.STATE_UPDATE) {
-              this.trackStateStatus(payload);
-              gameState.set(payload);
-            }
-          } catch (err) {
-            console.error("[WebRTC] Error decoding DataChannel message:", err);
-          }
-        };
-
-        this.dc.onclose = () => {
-          console.log("[WebRTC] Player DataChannel closed");
-        };
-      };
-
-      this.pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          this.send(OpCode.WEBRTC_ICE_CANDIDATE, {
-            candidate: event.candidate.toJSON()
-          });
-        }
-      };
-
-      await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
-      const answer = await this.pc.createAnswer();
-      await this.pc.setLocalDescription(answer);
+      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
 
       this.send(OpCode.WEBRTC_ANSWER, { sdp: answer });
     } catch (err) {
@@ -479,29 +482,16 @@ class GameClient {
       console.log("[WebRTC Player] Camera stream acquired:", stream.id, stream.getTracks());
       this.localStream = stream;
 
-      if (!this.pc) {
-        console.log("[WebRTC Player] PC instance not initialized yet! Creating RTCPeerConnection...");
-        const iceServers = [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" }
-        ];
-        this.pc = new RTCPeerConnection({ iceServers });
-        this.pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            console.log("[WebRTC Player] Sending ICE candidate to Host", event.candidate);
-            this.send(OpCode.WEBRTC_ICE_CANDIDATE, { candidate: event.candidate.toJSON() });
-          }
-        };
-      }
+      const pc = this.getOrCreatePeerConnection();
 
       stream.getTracks().forEach(track => {
         console.log(`[WebRTC Player] Adding track (${track.kind}) to PC`);
-        this.pc!.addTrack(track, stream);
+        pc.addTrack(track, stream);
       });
 
-      console.log("[WebRTC Player] Creating SDP offer for camera stream, signaling state:", this.pc.signalingState);
-      const offer = await this.pc.createOffer();
-      await this.pc.setLocalDescription(offer);
+      console.log("[WebRTC Player] Creating SDP offer for camera stream, signaling state:", pc.signalingState);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
       console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video track to Host");
       this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
       return true;
@@ -537,29 +527,16 @@ class GameClient {
       console.log("[WebRTC Player] Microphone stream acquired:", stream.id, stream.getAudioTracks());
       this.localAudioStream = stream;
 
-      if (!this.pc) {
-        console.log("[WebRTC Player] PC instance not initialized yet! Creating RTCPeerConnection...");
-        const iceServers = [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" }
-        ];
-        this.pc = new RTCPeerConnection({ iceServers });
-        this.pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            console.log("[WebRTC Player] Sending ICE candidate to Host", event.candidate);
-            this.send(OpCode.WEBRTC_ICE_CANDIDATE, { candidate: event.candidate.toJSON() });
-          }
-        };
-      }
+      const pc = this.getOrCreatePeerConnection();
 
       stream.getAudioTracks().forEach(track => {
         console.log(`[WebRTC Player] Adding audio track (${track.kind}) to PC`);
-        this.pc!.addTrack(track, stream);
+        pc.addTrack(track, stream);
       });
 
       console.log("[WebRTC Player] Creating SDP offer for audio stream");
-      const offer = await this.pc.createOffer();
-      await this.pc.setLocalDescription(offer);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
       console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with audio track to Host");
       this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
       return true;

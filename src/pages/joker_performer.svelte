@@ -34,6 +34,10 @@
 
   async function handleStartPerformerStream() {
     errorMessage = "";
+    // User gesture unlock for mobile web audio autoplay
+    if (earpieceAudioEl) {
+      earpieceAudioEl.play().catch(() => {});
+    }
     const success = await gameClient.startVideoStream();
     if (success) {
       isStreaming = true;
