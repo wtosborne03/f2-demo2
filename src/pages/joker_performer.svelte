@@ -7,16 +7,28 @@
   let earpieceAudioEl: HTMLAudioElement | null = null;
   let errorMessage = "";
   let taskSubmitted = false;
+  let earpieceStatus = "Waiting for spectator voice...";
 
   onMount(() => {
     handleStartPerformerStream();
 
     // Listen for incoming spectator earpiece audio track forwarded from Host
-    const handleRemoteTrack = (data: { stream: MediaStream }) => {
-      console.log("[Joker Performer] Received spectator earpiece audio stream!");
+    const handleRemoteTrack = (data: { stream: MediaStream; track?: MediaStreamTrack }) => {
+      console.log("[Joker Performer UI] Received spectator earpiece audio stream track!", data.stream?.id, data.track?.kind);
+      earpieceStatus = `🎙️ Spectator Voice Live!`;
+
       if (earpieceAudioEl) {
         earpieceAudioEl.srcObject = data.stream;
-        earpieceAudioEl.play().catch((err) => console.warn("[Joker Performer] Audio play error:", err));
+        earpieceAudioEl.play()
+          .then(() => {
+            console.log("[Joker Performer UI] Earpiece audio element playing successfully!");
+          })
+          .catch((err) => {
+            console.warn("[Joker Performer UI] Earpiece audio play error:", err);
+            earpieceStatus = `Audio blocked by browser: ${err.message}`;
+          });
+      } else {
+        console.warn("[Joker Performer UI] earpieceAudioEl element ref is null!");
       }
     };
 
@@ -34,6 +46,7 @@
 
   async function handleStartPerformerStream() {
     errorMessage = "";
+    console.log("[Joker Performer UI] Starting performer camera stream...");
     // User gesture unlock for mobile web audio autoplay
     if (earpieceAudioEl) {
       earpieceAudioEl.play().catch(() => {});
@@ -41,10 +54,12 @@
     const success = await gameClient.startVideoStream();
     if (success) {
       isStreaming = true;
+      console.log("[Joker Performer UI] Camera stream started successfully!");
       if (videoEl && gameClient.localStream) {
         videoEl.srcObject = gameClient.localStream;
       }
     } else {
+      console.error("[Joker Performer UI] Failed to start camera stream");
       errorMessage = "Could not access camera. Please check camera permissions.";
     }
   }
@@ -56,7 +71,7 @@
 </script>
 
 <div class="joker-performer-container">
-  <!-- Hidden Earpiece Audio element for listening to spectator microphones -->
+  <!-- Earpiece Audio element for listening to spectator microphones -->
   <audio bind:this={earpieceAudioEl} autoplay playsinline style="display: none;"></audio>
 
   <header class="header">
@@ -65,7 +80,7 @@
         <span class="dot"></span>
         {isStreaming ? "YOU ARE THE JOKER (LIVE)" : "CONNECTING CAMERA..."}
       </span>
-      <span class="earpiece-pill">🎧 Earpiece Live</span>
+      <span class="earpiece-pill">🎧 {earpieceStatus}</span>
     </div>
     <h2>{$gameState.page_data?.challengeTitle || "Your Impractical Joker Challenge"}</h2>
   </header>
