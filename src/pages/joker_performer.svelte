@@ -59,6 +59,14 @@
     }
   }
 
+  async function handleFlipCamera() {
+    console.log("[Joker Performer UI] Flip camera clicked");
+    const success = await gameClient.flipCamera();
+    if (success && videoEl && gameClient.localStream) {
+      videoEl.srcObject = gameClient.localStream;
+    }
+  }
+
   function handleTaskDone() {
     taskSubmitted = true;
     gameClient.sendPlayerInput("task_done");
@@ -83,6 +91,12 @@
   <main class="preview-area">
     <div class="video-wrapper">
       <video bind:this={videoEl} autoplay playsinline muted class="camera-preview"></video>
+
+      {#if isStreaming}
+        <button class="btn-flip" on:click={handleFlipCamera}>
+          🔄 Flip Camera
+        </button>
+      {/if}
 
       {#if !isStreaming}
         <div class="placeholder-overlay">
@@ -230,6 +244,28 @@
     font-weight: 900;
     border-radius: 0.75rem;
     cursor: pointer;
+  }
+
+  .btn-flip {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: rgba(0, 53, 102, 0.85);
+    backdrop-filter: blur(6px);
+    color: #ffb703;
+    border: 2px solid #ffb703;
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.6rem;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s ease;
+  }
+
+  .btn-flip:active {
+    transform: scale(0.92);
   }
 
   .challenge-box {

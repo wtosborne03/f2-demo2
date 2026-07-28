@@ -468,15 +468,18 @@ class GameClient {
     }
   }
 
-  public async startVideoStream(): Promise<boolean> {
-    console.log("[WebRTC Player] startVideoStream requested");
+  public currentFacingMode: "user" | "environment" = "user";
+
+  public async startVideoStream(facingMode: "user" | "environment" = "user"): Promise<boolean> {
+    console.log(`[WebRTC Player] startVideoStream requested with facingMode: ${facingMode}`);
     if (typeof navigator === "undefined" || !navigator.mediaDevices) {
       console.warn("[WebRTC Player] MediaDevices API not supported");
       return false;
     }
+    this.currentFacingMode = facingMode;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode },
         audio: false
       });
       console.log("[WebRTC Player] Camera stream acquired:", stream.id, stream.getTracks());
@@ -497,6 +500,43 @@ class GameClient {
       return true;
     } catch (err) {
       console.error("[WebRTC Player] Failed to start camera stream:", err);
+      return false;
+    }
+  }
+
+  public async flipCamera(): Promise<boolean> {
+    const nextFacingMode = this.currentFacingMode === "user" ? "environment" : "user";
+    console.log(`[WebRTC Player] Flipping camera to ${nextFacingMode}...`);
+
+    if (!this.localStream || !this.pc) {
+      return await this.startVideoStream(nextFacingMode);
+    }
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: nextFacingMode },
+        audio: false
+      });
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      if (!newVideoTrack) return false;
+
+      // Stop old video track
+      this.localStream.getVideoTracks().forEach(t => t.stop());
+      this.localStream = newStream;
+      this.currentFacingMode = nextFacingMode;
+
+      const senders = this.pc.getSenders();
+      const videoSender = senders.find(s => s.track && s.track.kind === "video");
+
+      if (videoSender) {
+        console.log("[WebRTC Player] Seamlessly replacing video track with flipped camera");
+        await videoSender.replaceTrack(newVideoTrack);
+        return true;
+      } else {
+        return await this.startVideoStream(nextFacingMode);
+      }
+    } catch (err) {
+      console.error("[WebRTC Player] Error flipping camera:", err);
       return false;
     }
   }
