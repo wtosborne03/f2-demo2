@@ -60,8 +60,27 @@ class GameClient {
   private hasBoundLifecycleListeners = false;
   public localStream: MediaStream | null = null;
   public localAudioStream: MediaStream | null = null;
+  public remoteStream: MediaStream | null = null;
   public pc: RTCPeerConnection | null = null;
   public dc: RTCDataChannel | null = null;
+  private listeners: Record<string, Function[]> = {};
+
+  public on(event: string, callback: Function) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(callback);
+  }
+
+  public off(event: string, callback: Function) {
+    if (this.listeners[event]) {
+      this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
+    }
+  }
+
+  public emit(event: string, data?: any) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach((cb) => cb(data));
+    }
+  }
 
   constructor() {
     this.hydrateSessionFromStorage();
@@ -379,9 +398,28 @@ class GameClient {
 
       const iceServers = [
         { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" }
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" }
       ];
       this.pc = new RTCPeerConnection({ iceServers });
+
+      this.pc.ontrack = (event) => {
+        console.log(`[WebRTC Player] Received remote track (${event.track.kind}) from Host`);
+        const stream = event.streams[0] || new MediaStream([event.track]);
+        this.remoteStream = stream;
+        this.emit("remoteTrack", { stream, track: event.track });
+      };
+
+      this.pc.oniceconnectionstatechange = () => {
+        console.log(`[WebRTC Player] ICE Connection State: ${this.pc?.iceConnectionState}`);
+        this.emit("iceState", this.pc?.iceConnectionState);
+        if (this.pc?.iceConnectionState === "failed" || this.pc?.iceConnectionState === "disconnected") {
+          console.warn("[WebRTC Player] ICE connection degraded. Requesting ICE restart...");
+          this.requestIceRestart();
+        }
+      };
 
       this.pc.ondatachannel = (event) => {
         this.dc = event.channel;
@@ -562,6 +600,18 @@ class GameClient {
       }
     } else {
       console.warn("[WebRTC Player] Received WEBRTC_ANSWER but this.pc is null");
+    }
+  }
+
+  public async requestIceRestart() {
+    if (!this.pc) return;
+    try {
+      console.log("[WebRTC Player] Creating SDP offer for ICE restart");
+      const offer = await this.pc.createOffer({ iceRestart: true });
+      await this.pc.setLocalDescription(offer);
+      this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
+    } catch (err) {
+      console.error("[WebRTC Player] Error during ICE restart:", err);
     }
   }
 
