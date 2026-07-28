@@ -4,36 +4,13 @@
 
   let isStreaming = false;
   let videoEl: HTMLVideoElement | null = null;
-  let earpieceAudioEl: HTMLAudioElement | null = null;
   let errorMessage = "";
   let taskSubmitted = false;
-  let earpieceStatus = "Waiting for spectator voice...";
 
   onMount(() => {
     handleStartPerformerStream();
 
-    // Listen for incoming spectator earpiece audio track forwarded from Host
-    const handleRemoteTrack = (data: { stream: MediaStream; track?: MediaStreamTrack }) => {
-      console.log("[Joker Performer UI] Received spectator earpiece audio stream track!", data.stream?.id, data.track?.kind);
-      earpieceStatus = `🎙️ Spectator Voice Live!`;
-
-      if (earpieceAudioEl) {
-        earpieceAudioEl.srcObject = data.stream;
-        earpieceAudioEl.play()
-          .then(() => {
-            console.log("[Joker Performer UI] Earpiece audio element playing successfully!");
-          })
-          .catch((err) => {
-            console.warn("[Joker Performer UI] Earpiece audio play error:", err);
-            earpieceStatus = `Audio blocked by browser: ${err.message}`;
-          });
-      }
-    };
-
-    gameClient.on("remoteTrack", handleRemoteTrack);
-
     return () => {
-      gameClient.off("remoteTrack", handleRemoteTrack);
       gameClient.stopVideoStream();
     };
   });
@@ -45,9 +22,6 @@
   async function handleStartPerformerStream() {
     errorMessage = "";
     console.log("[Joker Performer UI] Starting performer camera stream...");
-    if (earpieceAudioEl) {
-      earpieceAudioEl.play().catch(() => {});
-    }
     const success = await gameClient.startVideoStream();
     if (success) {
       isStreaming = true;
@@ -74,17 +48,14 @@
 </script>
 
 <div class="joker-performer-container">
-  <audio bind:this={earpieceAudioEl} autoplay playsinline style="display: none;"></audio>
-
   <header class="header">
     <div class="badge-row">
       <span class="live-pill" class:active={isStreaming}>
         <span class="dot"></span>
         {isStreaming ? "YOU ARE THE JOKER" : "CONNECTING..."}
       </span>
-      <span class="earpiece-pill">🎧 {earpieceStatus}</span>
     </div>
-    <h2>{$gameState.page_data?.challengeTitle || "EARPIECE COMMANDS"}</h2>
+    <h2>{$gameState.page_data?.challengeTitle || "THE JOKER DARE"}</h2>
   </header>
 
   <!-- Local Camera Preview -->
@@ -106,7 +77,7 @@
             <p class="error">{errorMessage}</p>
           {/if}
           <button class="btn-start" on:click={handleStartPerformerStream}>
-            Start Camera & Earpiece
+            Start Camera Stream
           </button>
         </div>
       {/if}
@@ -114,8 +85,8 @@
 
     <!-- Challenge Instructions -->
     <div class="challenge-box">
-      <h3>YOUR DARE:</h3>
-      <p>Do and say WHATEVER the other players tell you in your earpiece!</p>
+      <h3>YOUR ASSIGNED DARE:</h3>
+      <p>{$gameState.page_data?.challengeDescription || "Carry out the assigned dare on camera!"}</p>
     </div>
   </main>
 
@@ -172,16 +143,6 @@
     background: #e63946;
     color: #ffffff;
     box-shadow: 0 0 12px rgba(230, 57, 70, 0.6);
-  }
-
-  .earpiece-pill {
-    background: #003566;
-    border: 1px solid #10b981;
-    color: #34d399;
-    padding: 0.25rem 0.6rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 700;
   }
 
   .dot {
