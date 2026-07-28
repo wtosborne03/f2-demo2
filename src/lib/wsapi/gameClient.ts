@@ -469,6 +469,7 @@ class GameClient {
   }
 
   public currentFacingMode: "user" | "environment" = "user";
+  public currentZoomLevel: number = 1.0;
 
   public async startVideoStream(facingMode: "user" | "environment" = "user"): Promise<boolean> {
     console.log(`[WebRTC Player] startVideoStream requested with facingMode: ${facingMode}`);
@@ -478,11 +479,19 @@ class GameClient {
     }
     this.currentFacingMode = facingMode;
     try {
+      // HD 1080p/720p stream resolution constraints
+      const videoConstraints: MediaTrackConstraints = {
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        frameRate: { ideal: 30, min: 24 },
+        facingMode
+      };
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode },
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        video: videoConstraints,
+        audio: false
       });
-      console.log("[WebRTC Player] Camera & microphone stream acquired:", stream.id, stream.getTracks());
+      console.log("[WebRTC Player] HD camera stream acquired:", stream.id, stream.getVideoTracks()[0]?.getSettings());
       this.localStream = stream;
 
       const pc = this.getOrCreatePeerConnection();
@@ -495,7 +504,7 @@ class GameClient {
       console.log("[WebRTC Player] Creating SDP offer for camera stream, signaling state:", pc.signalingState);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video+audio tracks to Host");
+      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video track to Host");
       this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
       return true;
     } catch (err) {
@@ -514,8 +523,13 @@ class GameClient {
 
     try {
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: nextFacingMode },
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        video: {
+          width: { ideal: 1920, min: 1280 },
+          height: { ideal: 1080, min: 720 },
+          frameRate: { ideal: 30, min: 24 },
+          facingMode: nextFacingMode
+        },
+        audio: false
       });
       const newVideoTrack = newStream.getVideoTracks()[0];
       if (!newVideoTrack) return false;
@@ -539,6 +553,38 @@ class GameClient {
       console.error("[WebRTC Player] Error flipping camera:", err);
       return false;
     }
+  }
+
+  public async setCameraZoom(zoomFactor: number): Promise<boolean> {
+    this.currentZoomLevel = zoomFactor;
+    if (!this.localStream) return false;
+    const videoTrack = this.localStream.getVideoTracks()[0];
+    if (!videoTrack) return false;
+
+    try {
+      const capabilities = (videoTrack.getCapabilities ? videoTrack.getCapabilities() : {}) as any;
+
+      if (capabilities && capabilities.zoom) {
+        const minZoom = capabilities.zoom.min || 0.5;
+        const maxZoom = capabilities.zoom.max || 3.0;
+        const targetZoom = Math.min(Math.max(zoomFactor, minZoom), maxZoom);
+
+        console.log(`[WebRTC Player] Applying native camera hardware zoom: ${targetZoom} (range: ${minZoom}-${maxZoom})`);
+        await videoTrack.applyConstraints({
+          advanced: [{ zoom: targetZoom } as any]
+        });
+        return true;
+      } else {
+        console.log(`[WebRTC Player] Native hardware zoom API not exposed on current track. Attempting constraint apply...`);
+        await videoTrack.applyConstraints({
+          advanced: [{ zoom: zoomFactor } as any]
+        });
+        return true;
+      }
+    } catch (err) {
+      console.warn("[WebRTC Player] Hardware camera zoom constraint notice:", err);
+    }
+    return false;
   }
 
   public stopVideoStream() {

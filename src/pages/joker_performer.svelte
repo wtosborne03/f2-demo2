@@ -6,6 +6,7 @@
   let videoEl: HTMLVideoElement | null = null;
   let errorMessage = "";
   let taskSubmitted = false;
+  let currentZoom = 1.0;
 
   onMount(() => {
     handleStartPerformerStream();
@@ -21,7 +22,7 @@
 
   async function handleStartPerformerStream() {
     errorMessage = "";
-    console.log("[Joker Performer UI] Starting performer camera stream...");
+    console.log("[Joker Performer UI] Starting performer HD camera stream...");
     const success = await gameClient.startVideoStream();
     if (success) {
       isStreaming = true;
@@ -41,6 +42,12 @@
     }
   }
 
+  async function handleSetZoom(zoomFactor: number) {
+    currentZoom = zoomFactor;
+    console.log("[Joker Performer UI] Changing camera zoom to:", zoomFactor);
+    await gameClient.setCameraZoom(zoomFactor);
+  }
+
   function handleTaskDone() {
     taskSubmitted = true;
     gameClient.sendPlayerInput("task_done");
@@ -52,7 +59,7 @@
     <div class="badge-row">
       <span class="live-pill" class:active={isStreaming}>
         <span class="dot"></span>
-        {isStreaming ? "YOU ARE THE JOKER" : "CONNECTING..."}
+        {isStreaming ? "YOU ARE THE JOKER (HD LIVE)" : "CONNECTING..."}
       </span>
     </div>
     <h2>{$gameState.page_data?.challengeTitle || "THE JOKER DARE"}</h2>
@@ -61,12 +68,47 @@
   <!-- Local Camera Preview -->
   <main class="preview-area">
     <div class="video-wrapper">
-      <video bind:this={videoEl} autoplay playsinline muted class="camera-preview"></video>
+      <video
+        bind:this={videoEl}
+        autoplay
+        playsinline
+        muted
+        class="camera-preview"
+        style="transform: scaleX({gameClient.currentFacingMode === 'user' ? -1 : 1}) scale({currentZoom < 1.0 ? currentZoom : 1.0});"
+      ></video>
 
       {#if isStreaming}
-        <button class="btn-flip" on:click={handleFlipCamera}>
-          🔄 Flip Camera
-        </button>
+        <div class="camera-controls-bar">
+          <button class="btn-flip" on:click={handleFlipCamera}>
+            🔄 Flip
+          </button>
+
+          <!-- 0.5x / 1.0x / 2.0x Zoom Control Buttons -->
+          <div class="zoom-controls-pill">
+            <span class="zoom-icon">🔍</span>
+            <button
+              type="button"
+              class="btn-zoom {currentZoom === 0.5 ? 'active' : ''}"
+              on:click={() => handleSetZoom(0.5)}
+            >
+              0.5x
+            </button>
+            <button
+              type="button"
+              class="btn-zoom {currentZoom === 1.0 ? 'active' : ''}"
+              on:click={() => handleSetZoom(1.0)}
+            >
+              1.0x
+            </button>
+            <button
+              type="button"
+              class="btn-zoom {currentZoom === 2.0 ? 'active' : ''}"
+              on:click={() => handleSetZoom(2.0)}
+            >
+              2.0x
+            </button>
+          </div>
+        </div>
       {/if}
 
       {#if !isStreaming}
@@ -77,7 +119,7 @@
             <p class="error">{errorMessage}</p>
           {/if}
           <button class="btn-start" on:click={handleStartPerformerStream}>
-            Start Camera Stream
+            Start HD Camera Stream
           </button>
         </div>
       {/if}
@@ -170,7 +212,7 @@
   .video-wrapper {
     position: relative;
     width: 100%;
-    height: 240px;
+    height: 250px;
     border-radius: 1rem;
     overflow: hidden;
     background: #001219;
@@ -182,7 +224,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scaleX(-1);
+    transition: transform 0.2s ease;
   }
 
   .placeholder-overlay {
@@ -207,26 +249,63 @@
     cursor: pointer;
   }
 
-  .btn-flip {
+  .camera-controls-bar {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    background: rgba(0, 53, 102, 0.85);
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    pointer-events: auto;
+  }
+
+  .btn-flip {
+    background: rgba(0, 53, 102, 0.9);
     backdrop-filter: blur(6px);
     color: #ffb703;
     border: 2px solid #ffb703;
-    padding: 0.4rem 0.85rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 0.6rem;
     font-weight: 800;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
-    z-index: 10;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    transition: transform 0.15s ease;
   }
 
-  .btn-flip:active {
-    transform: scale(0.92);
+  .zoom-controls-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(0, 30, 60, 0.9);
+    backdrop-filter: blur(6px);
+    border: 2px solid #ffffff;
+    border-radius: 0.6rem;
+    padding: 0.25rem 0.4rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .zoom-icon {
+    font-size: 0.75rem;
+  }
+
+  .btn-zoom {
+    background: transparent;
+    border: none;
+    color: #90e0ef;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-zoom.active {
+    background: #ffb703;
+    color: #001219;
+    font-weight: 900;
   }
 
   .challenge-box {
