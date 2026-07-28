@@ -480,9 +480,9 @@ class GameClient {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode },
-        audio: false
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       });
-      console.log("[WebRTC Player] Camera stream acquired:", stream.id, stream.getTracks());
+      console.log("[WebRTC Player] Camera & microphone stream acquired:", stream.id, stream.getTracks());
       this.localStream = stream;
 
       const pc = this.getOrCreatePeerConnection();
@@ -495,7 +495,7 @@ class GameClient {
       console.log("[WebRTC Player] Creating SDP offer for camera stream, signaling state:", pc.signalingState);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video track to Host");
+      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video+audio tracks to Host");
       this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
       return true;
     } catch (err) {
@@ -515,7 +515,7 @@ class GameClient {
     try {
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: nextFacingMode },
-        audio: false
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       });
       const newVideoTrack = newStream.getVideoTracks()[0];
       if (!newVideoTrack) return false;
