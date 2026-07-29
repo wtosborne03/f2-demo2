@@ -241,8 +241,10 @@
     function spawnBomb() {
       if (isGameOver) return;
       const x = Phaser.Math.Between(70, 530);
-      const bomb = bombs.create(x, -40, "bomb") as Phaser.Physics.Arcade.Sprite;
+      // Spawn higher up off-screen (-80) so bombs fall from above screen top behind app bar
+      const bomb = bombs.create(x, -80, "bomb") as Phaser.Physics.Arcade.Sprite;
       bomb.setScale(0.14);
+      bomb.depth = 2;
 
       // Slower downward movement speed
       const speedY =
@@ -266,7 +268,17 @@
         y,
         "doubloon",
       ) as Phaser.Physics.Arcade.Sprite;
-      coin.setScale(0.18);
+      
+      // Start scale at 0 and pop/animate scale in
+      coin.setScale(0);
+      coin.depth = 3;
+
+      scene.tweens.add({
+        targets: coin,
+        scale: 0.18,
+        duration: 400,
+        ease: "Back.easeOut",
+      });
 
       // No gravity! Floating in place with gentle drift
       const body = coin.body as Phaser.Physics.Arcade.Body;
@@ -548,7 +560,7 @@
 <div
   class="fixed inset-0 w-full h-full bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans"
 >
-  <!-- Minimal HUD Header -->
+  <!-- Minimal HUD Header (App bar rendering above canvas) -->
   <header
     class="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md"
   >
@@ -569,10 +581,10 @@
     </div>
   </header>
 
-  <!-- Phaser Game Container -->
+  <!-- Phaser Game Container extending to top of screen behind app bar -->
   <div
     id="game-container"
-    class="relative w-full h-full max-w-[600px] max-h-[900px] flex items-center justify-center overflow-hidden"
+    class="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden"
   >
     <!-- Floating feedback texts layer -->
     <div class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
