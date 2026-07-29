@@ -34,7 +34,10 @@
   let floatingTexts: FloatingText[] = [];
   let nextTextId = 0;
 
-  function triggerExpression(exp: "happy" | "sad" | "surprised", duration = 1300) {
+  function triggerExpression(
+    exp: "happy" | "sad" | "surprised",
+    duration = 1300,
+  ) {
     currentExpression = exp;
     if (exp === "happy") {
       isAvatarBouncing = true;
@@ -50,7 +53,12 @@
     }, duration);
   }
 
-  function addFloatingText(text: string, x: number, y: number, color = "#ffd700") {
+  function addFloatingText(
+    text: string,
+    x: number,
+    y: number,
+    color = "#ffd700",
+  ) {
     const id = nextTextId++;
     floatingTexts = [...floatingTexts, { id, text, x, y, color }];
     setTimeout(() => {
@@ -68,7 +76,10 @@
       }
       if (
         (currentExpression === "surprised" || currentExpression === "sad") &&
-        (ex.surprised_open || ex.sad_open || ex.surprised_closed || ex.sad_closed)
+        (ex.surprised_open ||
+          ex.sad_open ||
+          ex.surprised_closed ||
+          ex.sad_closed)
       ) {
         return (
           ex.surprised_open ||
@@ -235,7 +246,8 @@
       bomb.setScale(0.14);
 
       // Slower downward movement speed
-      const speedY = Phaser.Math.Between(70, 120) + Math.min(60, gameTimeElapsed * 2);
+      const speedY =
+        Phaser.Math.Between(70, 120) + Math.min(60, gameTimeElapsed * 2);
       bomb.setVelocityY(speedY);
       bomb.setAngularVelocity(Phaser.Math.Between(-40, 40));
       bomb.setData("type", "bomb");
@@ -250,14 +262,21 @@
       if (isGameOver) return;
       const x = Phaser.Math.Between(80, 520);
       const y = Phaser.Math.Between(180, 480);
-      const coin = coins.create(x, y, "doubloon") as Phaser.Physics.Arcade.Sprite;
+      const coin = coins.create(
+        x,
+        y,
+        "doubloon",
+      ) as Phaser.Physics.Arcade.Sprite;
       // Smaller coin size
       coin.setScale(0.18);
 
       // No gravity! Floating in place with gentle drift
       const body = coin.body as Phaser.Physics.Arcade.Body;
       body.allowGravity = false;
-      body.setVelocity(Phaser.Math.Between(-20, 20), Phaser.Math.Between(-15, 15));
+      body.setVelocity(
+        Phaser.Math.Between(-20, 20),
+        Phaser.Math.Between(-15, 15),
+      );
 
       coin.setData("type", "coin");
       coin.setData("isFlinged", false);
@@ -299,7 +318,11 @@
         return (
           b.active &&
           !b.getData("isFlinged") &&
-          Phaser.Geom.Circle.Contains(new Phaser.Geom.Circle(b.x, b.y, TOUCH_GRAB_RADIUS), pointer.x, pointer.y)
+          Phaser.Geom.Circle.Contains(
+            new Phaser.Geom.Circle(b.x, b.y, TOUCH_GRAB_RADIUS),
+            pointer.x,
+            pointer.y,
+          )
         );
       }) as Phaser.GameObjects.Sprite;
 
@@ -307,7 +330,11 @@
         return (
           c.active &&
           !c.getData("isFlinged") &&
-          Phaser.Geom.Circle.Contains(new Phaser.Geom.Circle(c.x, c.y, TOUCH_GRAB_RADIUS), pointer.x, pointer.y)
+          Phaser.Geom.Circle.Contains(
+            new Phaser.Geom.Circle(c.x, c.y, TOUCH_GRAB_RADIUS),
+            pointer.x,
+            pointer.y,
+          )
         );
       }) as Phaser.GameObjects.Sprite;
 
@@ -325,10 +352,17 @@
     scene.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
       if (activeItem && activeItem.active) {
         activeItem.setPosition(pointer.x, pointer.y);
-        pointerHistory.push({ x: pointer.x, y: pointer.y, time: scene.time.now });
+        pointerHistory.push({
+          x: pointer.x,
+          y: pointer.y,
+          time: scene.time.now,
+        });
 
         // Keep last 140ms history for fling velocity calculation
-        while (pointerHistory.length > 0 && scene.time.now - pointerHistory[0].time > 140) {
+        while (
+          pointerHistory.length > 0 &&
+          scene.time.now - pointerHistory[0].time > 140
+        ) {
           pointerHistory.shift();
         }
       }
@@ -336,7 +370,11 @@
 
     const releaseItem = (pointer: Phaser.Input.Pointer) => {
       if (activeItem && activeItem.active) {
-        pointerHistory.push({ x: pointer.x, y: pointer.y, time: scene.time.now });
+        pointerHistory.push({
+          x: pointer.x,
+          y: pointer.y,
+          time: scene.time.now,
+        });
 
         let vx = 0;
         let vy = 0;
@@ -389,19 +427,23 @@
           if (bomb.x < -50 || bomb.x > 650 || bomb.y < -50) {
             defuseEmitter.setPosition(
               Phaser.Math.Clamp(bomb.x, 30, 570),
-              Phaser.Math.Clamp(bomb.y, 30, 870)
+              Phaser.Math.Clamp(bomb.y, 30, 870),
             );
             defuseEmitter.explode(12);
             addFloatingText("+50 DEFUSED!", bomb.x, bomb.y, "#00ff88");
             score += 50;
             defusedCount += 1;
-            gameClient.sendPlayerInput("confirm");
             vibrate(20);
             bomb.destroy();
           }
         } else {
           // Check if falling bomb reached avatar zone at bottom
-          const distToAvatar = Phaser.Math.Distance.Between(bomb.x, bomb.y, AVATAR_X, AVATAR_Y);
+          const distToAvatar = Phaser.Math.Distance.Between(
+            bomb.x,
+            bomb.y,
+            AVATAR_X,
+            AVATAR_Y,
+          );
           if (distToAvatar <= AVATAR_RADIUS || bomb.y >= 820) {
             // BOOM! BOMB HIT PLAYER
             boomSprite.setPosition(bomb.x, bomb.y);
@@ -420,6 +462,9 @@
               triggerExpression("surprised", 1300);
             }
             bomb.destroy();
+            setTimeout(() => {
+              gameClient.sendPlayerInput("confirm");
+            }, 200);
           }
         }
       });
@@ -429,7 +474,12 @@
         const coin = cObj as Phaser.Physics.Arcade.Sprite;
         if (!coin.active) return;
 
-        const distToAvatar = Phaser.Math.Distance.Between(coin.x, coin.y, AVATAR_X, AVATAR_Y);
+        const distToAvatar = Phaser.Math.Distance.Between(
+          coin.x,
+          coin.y,
+          AVATAR_X,
+          AVATAR_Y,
+        );
 
         // Check if coin reached Avatar zone -> COLLECTED!
         if (distToAvatar <= AVATAR_RADIUS + 10) {
@@ -471,9 +521,13 @@
   function update(this: Phaser.Scene) {}
 </script>
 
-<div class="relative w-full h-full min-h-screen bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans">
+<div
+  class="relative w-full h-full min-h-screen bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans"
+>
   <!-- Minimal HUD Header -->
-  <header class="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md">
+  <header
+    class="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md"
+  >
     <div class="flex items-center space-x-4 font-bold text-sm md:text-base">
       <span class="text-amber-400">🪙 {coinsCount}</span>
       <span class="text-emerald-400">💣 {defusedCount}</span>
@@ -481,7 +535,10 @@
     </div>
     <div class="flex items-center space-x-1 text-lg">
       {#each Array(3) as _, i}
-        <span class="transition-opacity duration-300" class:opacity-25={i >= lives}>
+        <span
+          class="transition-opacity duration-300"
+          class:opacity-25={i >= lives}
+        >
           {i < lives ? "❤️" : "🖤"}
         </span>
       {/each}
@@ -489,13 +546,17 @@
   </header>
 
   <!-- Phaser Game Container -->
-  <div id="game-container" class="relative w-full h-full max-w-[600px] max-h-[900px] flex items-center justify-center">
+  <div
+    id="game-container"
+    class="relative w-full h-full max-w-[600px] max-h-[900px] flex items-center justify-center"
+  >
     <!-- Floating feedback texts layer -->
     <div class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
       {#each floatingTexts as ft (ft.id)}
         <div
           class="absolute font-black text-xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] animate-float-up pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
-          style="left: {(ft.x / 600) * 100}%; top: {(ft.y / 900) * 100}%; color: {ft.color};"
+          style="left: {(ft.x / 600) * 100}%; top: {(ft.y / 900) *
+            100}%; color: {ft.color};"
         >
           {ft.text}
         </div>
@@ -508,11 +569,19 @@
       class:animate-bounce-pop={isAvatarBouncing}
       class:animate-wiggle-shake={isAvatarShaking}
     >
-      <div class="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white/80 bg-slate-900 shadow-md flex items-center justify-center">
+      <div
+        class="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white/80 bg-slate-900 shadow-md flex items-center justify-center"
+      >
         {#if avatarUrl}
-          <img src={avatarUrl} alt="Player Selfie Avatar" class="w-full h-full object-cover" />
+          <img
+            src={avatarUrl}
+            alt="Player Selfie Avatar"
+            class="w-full h-full object-cover"
+          />
         {:else}
-          <div class="w-full h-full bg-gradient-to-br from-indigo-500 to-pink-500 flex flex-col items-center justify-center p-2">
+          <div
+            class="w-full h-full bg-gradient-to-br from-indigo-500 to-pink-500 flex flex-col items-center justify-center p-2"
+          >
             <div class="flex space-x-2 mb-1">
               <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
               <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
@@ -521,12 +590,14 @@
           </div>
         {/if}
 
-        <div class="absolute bottom-0 right-0 bg-black/75 rounded-full w-6 h-6 flex items-center justify-center text-xs border border-white/40">
-          {#if currentExpression === 'happy'}
+        <div
+          class="absolute bottom-0 right-0 bg-black/75 rounded-full w-6 h-6 flex items-center justify-center text-xs border border-white/40"
+        >
+          {#if currentExpression === "happy"}
             😃
-          {:else if currentExpression === 'sad'}
+          {:else if currentExpression === "sad"}
             😢
-          {:else if currentExpression === 'surprised'}
+          {:else if currentExpression === "surprised"}
             😲
           {:else}
             🙂
@@ -538,14 +609,27 @@
 
   <!-- Minimal Game Over Screen -->
   {#if isGameOver}
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm z-40 flex flex-col items-center justify-center px-6 animate-fade-in">
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 max-w-xs w-full flex flex-col items-center text-center space-y-4 shadow-xl">
+    <div
+      class="absolute inset-0 bg-black/70 backdrop-blur-sm z-40 flex flex-col items-center justify-center px-6 animate-fade-in"
+    >
+      <div
+        class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 max-w-xs w-full flex flex-col items-center text-center space-y-4 shadow-xl"
+      >
         <h2 class="text-2xl font-black text-rose-400">GAME OVER</h2>
-        
+
         <div class="w-full text-sm font-semibold space-y-2 text-slate-300">
-          <div class="flex justify-between"><span>Score:</span> <span class="text-amber-300 font-bold">{score}</span></div>
-          <div class="flex justify-between"><span>Coins:</span> <span class="text-amber-400 font-bold">🪙 {coinsCount}</span></div>
-          <div class="flex justify-between"><span>Defused:</span> <span class="text-emerald-400 font-bold">💣 {defusedCount}</span></div>
+          <div class="flex justify-between">
+            <span>Score:</span>
+            <span class="text-amber-300 font-bold">{score}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Coins:</span>
+            <span class="text-amber-400 font-bold">🪙 {coinsCount}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Defused:</span>
+            <span class="text-emerald-400 font-bold">💣 {defusedCount}</span>
+          </div>
         </div>
 
         <button
@@ -584,9 +668,16 @@
   }
 
   @keyframes bouncePop {
-    0%, 100% { transform: scale(1); }
-    40% { transform: scale(1.25) rotate(3deg); }
-    70% { transform: scale(0.95) rotate(-2deg); }
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.25) rotate(3deg);
+    }
+    70% {
+      transform: scale(0.95) rotate(-2deg);
+    }
   }
 
   .animate-bounce-pop {
@@ -594,11 +685,22 @@
   }
 
   @keyframes wiggleShake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-12px) rotate(-6deg); }
-    40% { transform: translateX(12px) rotate(6deg); }
-    60% { transform: translateX(-8px) rotate(-3deg); }
-    80% { transform: translateX(8px) rotate(3deg); }
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-12px) rotate(-6deg);
+    }
+    40% {
+      transform: translateX(12px) rotate(6deg);
+    }
+    60% {
+      transform: translateX(-8px) rotate(-3deg);
+    }
+    80% {
+      transform: translateX(8px) rotate(3deg);
+    }
   }
 
   .animate-wiggle-shake {
@@ -606,8 +708,14 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   .animate-fade-in {
