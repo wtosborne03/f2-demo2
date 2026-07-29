@@ -23,9 +23,9 @@
       <span class="crew-pill">CREW MEMBER</span>
       <span class="dare-pill">PHASE 1: DARE CREATION</span>
     </div>
-    <h2>{$gameState.page_data?.prompt || "Submit a dare for the Joker!"}</h2>
+    <h2>{$gameState.page_data?.prompt || "Submit a realistic dare!"}</h2>
     <p class="desc">
-      Type a funny stunt, line, or challenge on your phone for tonight's Joker to carry out!
+      {$gameState.page_data?.desc || "Make sure your dare is realistic! A random player will be chosen to carry it out live in a video livestream."}
     </p>
   </header>
 
