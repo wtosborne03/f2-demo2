@@ -217,7 +217,7 @@
       scale: { start: 1, end: 0 },
       alpha: { start: 1, end: 0 },
       lifespan: 450,
-      quantity: 12,
+      quantity: 15,
       tint: [0x00ff88, 0x00ffff, 0xffffff],
       blendMode: "ADD",
     });
@@ -242,7 +242,6 @@
       if (isGameOver) return;
       const x = Phaser.Math.Between(70, 530);
       const bomb = bombs.create(x, -40, "bomb") as Phaser.Physics.Arcade.Sprite;
-      // Smaller bomb size
       bomb.setScale(0.14);
 
       // Slower downward movement speed
@@ -267,7 +266,6 @@
         y,
         "doubloon",
       ) as Phaser.Physics.Arcade.Sprite;
-      // Smaller coin size
       coin.setScale(0.18);
 
       // No gravity! Floating in place with gentle drift
@@ -309,7 +307,7 @@
       loop: true,
     });
 
-    // POINTER DRAG & FLING CONTROLS
+    // POINTER FLING CONTROLS (Fling-only gesture without dragging position)
     scene.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (isGameOver) return;
 
@@ -341,9 +339,6 @@
       const target = touchedBomb || touchedCoin;
       if (target) {
         activeItem = target;
-        const body = activeItem.body as Phaser.Physics.Arcade.Body;
-        body.setVelocity(0, 0);
-        body.allowGravity = false;
         pointerHistory = [{ x: pointer.x, y: pointer.y, time: scene.time.now }];
         vibrate(15);
       }
@@ -351,14 +346,14 @@
 
     scene.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
       if (activeItem && activeItem.active) {
-        activeItem.setPosition(pointer.x, pointer.y);
+        // Track pointer movement history for fling velocity calculation without snapping object position
         pointerHistory.push({
           x: pointer.x,
           y: pointer.y,
           time: scene.time.now,
         });
 
-        // Keep last 140ms history for fling velocity calculation
+        // Keep last 140ms history
         while (
           pointerHistory.length > 0 &&
           scene.time.now - pointerHistory[0].time > 140
@@ -391,18 +386,13 @@
         const speed = Math.hypot(vx, vy);
         const body = activeItem.body as Phaser.Physics.Arcade.Body;
 
-        if (speed > 130) {
+        if (speed > 120) {
           // FLING ACTION!
           const mult = 1.35;
           body.setVelocity(vx * mult, vy * mult);
           body.allowGravity = false;
           activeItem.setData("isFlinged", true);
           vibrate(25);
-        } else {
-          // Soft drop
-          if (activeItem.getData("type") === "bomb") {
-            body.setVelocity(0, 90);
-          }
         }
         activeItem = null;
       }
@@ -429,7 +419,10 @@
               Phaser.Math.Clamp(bomb.x, 30, 570),
               Phaser.Math.Clamp(bomb.y, 30, 870),
             );
-            defuseEmitter.explode(12);
+            defuseEmitter.explode(15);
+            // Screen shake effect on defusing a bomb!
+            scene.cameras.main.shake(140, 0.007);
+
             addFloatingText("+50 DEFUSED!", bomb.x, bomb.y, "#00ff88");
             score += 50;
             defusedCount += 1;
@@ -522,7 +515,7 @@
 </script>
 
 <div
-  class="relative w-full h-full min-h-screen bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans"
+  class="fixed inset-0 w-full h-full bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans"
 >
   <!-- Minimal HUD Header -->
   <header
@@ -548,7 +541,7 @@
   <!-- Phaser Game Container -->
   <div
     id="game-container"
-    class="relative w-full h-full max-w-[600px] max-h-[900px] flex items-center justify-center"
+    class="relative w-full h-full max-w-[600px] max-h-[900px] flex items-center justify-center overflow-hidden"
   >
     <!-- Floating feedback texts layer -->
     <div class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
@@ -644,6 +637,14 @@
 </div>
 
 <style>
+  :global(html, body) {
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+
   #game-container {
     touch-action: none;
   }
