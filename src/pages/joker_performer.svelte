@@ -20,17 +20,26 @@
     gameClient.stopVideoStream();
   });
 
+  let availableCameras: MediaDeviceInfo[] = [];
+
   async function handleStartPerformerStream() {
     errorMessage = "";
-    console.log("[Joker Performer UI] Starting performer HD camera stream...");
-    const success = await gameClient.startVideoStream();
+    const success = await gameClient.startVideoStream("environment"); // default to back camera
     if (success) {
       isStreaming = true;
+      availableCameras = gameClient.availableVideoDevices;
       if (videoEl && gameClient.localStream) {
         videoEl.srcObject = gameClient.localStream;
       }
     } else {
       errorMessage = "Could not access camera. Please check permissions.";
+    }
+  }
+
+  async function handleSelectSpecificCamera(deviceId: string) {
+    const success = await gameClient.startVideoStream({ exact: deviceId });
+    if (success && videoEl && gameClient.localStream) {
+      videoEl.srcObject = gameClient.localStream;
     }
   }
 
@@ -74,14 +83,27 @@
         playsinline
         muted
         class="camera-preview"
-        style="transform: scaleX({gameClient.currentFacingMode === 'user' ? -1 : 1}) scale({currentZoom < 1.0 ? currentZoom : 1.0});"
+        style="transform: scaleX({gameClient.currentFacingMode === 'user'
+          ? -1
+          : 1}) scale({currentZoom < 1.0 ? currentZoom : 1.0});"
       ></video>
 
       {#if isStreaming}
         <div class="camera-controls-bar">
-          <button class="btn-flip" on:click={handleFlipCamera}>
-            🔄 Flip
-          </button>
+          {#if isStreaming && availableCameras.length > 2}
+            <div class="camera-lens-selector">
+              {#each availableCameras as cam, index}
+                <button
+                  class="btn-lens {gameClient.activeDeviceId === cam.deviceId
+                    ? 'active'
+                    : ''}"
+                  on:click={() => handleSelectSpecificCamera(cam.deviceId)}
+                >
+                  {cam.label || `Lens ${index + 1}`}
+                </button>
+              {/each}
+            </div>
+          {/if}
 
           <!-- 0.5x / 1.0x / 2.0x Zoom Control Buttons -->
           <div class="zoom-controls-pill">
@@ -128,7 +150,10 @@
     <!-- Challenge Instructions -->
     <div class="challenge-box">
       <h3>YOUR ASSIGNED DARE:</h3>
-      <p>{$gameState.page_data?.challengeDescription || "Carry out the assigned dare on camera!"}</p>
+      <p>
+        {$gameState.page_data?.challengeDescription ||
+          "Carry out the assigned dare on camera!"}
+      </p>
     </div>
   </main>
 
@@ -139,7 +164,9 @@
       on:click={handleTaskDone}
       disabled={taskSubmitted}
     >
-      {taskSubmitted ? "DARE COMPLETED! WAITING FOR VOTES..." : "I FINISHED THE DARE! 👍"}
+      {taskSubmitted
+        ? "DARE COMPLETED! WAITING FOR VOTES..."
+        : "I FINISHED THE DARE! 👍"}
     </button>
   </footer>
 </div>
@@ -152,7 +179,13 @@
     width: 100%;
     background: #0077b6;
     color: #ffffff;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
     padding: 1rem;
     box-sizing: border-box;
   }

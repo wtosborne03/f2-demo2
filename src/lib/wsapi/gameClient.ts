@@ -64,6 +64,8 @@ class GameClient {
   public pc: RTCPeerConnection | null = null;
   public dc: RTCDataChannel | null = null;
   private listeners: Record<string, Function[]> = {};
+  public activeDeviceId: string | null = null;
+  public availableVideoDevices: MediaDeviceInfo[] = [];
 
   public on(event: string, callback: Function) {
     if (!this.listeners[event]) this.listeners[event] = [];
@@ -468,47 +470,69 @@ class GameClient {
     }
   }
 
+  public async refreshVideoDevices(): Promise<MediaDeviceInfo[]> {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) {
+      return [];
+    }
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    this.availableVideoDevices = devices.filter((d) => d.kind === "videoinput");
+    return this.availableVideoDevices;
+  }
+
   public currentFacingMode: "user" | "environment" = "user";
   public currentZoomLevel: number = 1.0;
 
-  public async startVideoStream(facingMode: "user" | "environment" = "user"): Promise<boolean> {
-    console.log(`[WebRTC Player] startVideoStream requested with facingMode: ${facingMode}`);
-    if (typeof navigator === "undefined" || !navigator.mediaDevices) {
-      console.warn("[WebRTC Player] MediaDevices API not supported");
-      return false;
-    }
-    this.currentFacingMode = facingMode;
-    try {
-      // HD 1080p/720p stream resolution constraints
-      const videoConstraints: MediaTrackConstraints = {
-        width: { ideal: 1920, min: 1280 },
-        height: { ideal: 1080, min: 720 },
-        frameRate: { ideal: 30, min: 24 },
-        facingMode
-      };
+  public async startVideoStream(
+    facingModeOrDeviceId: "user" | "environment" | { exact: string } = "user"
+  ): Promise<boolean> {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices) return false;
 
+    let videoConstraints: MediaTrackConstraints = {
+      width: { ideal: 1920, min: 1280 },
+      height: { ideal: 1080, min: 720 },
+      frameRate: { ideal: 30, min: 24 }
+    };
+
+    if (typeof facingModeOrDeviceId === "object" && facingModeOrDeviceId.exact) {
+      videoConstraints.deviceId = facingModeOrDeviceId;
+    } else {
+      videoConstraints.facingMode = facingModeOrDeviceId as "user" | "environment";
+      this.currentFacingMode = facingModeOrDeviceId as "user" | "environment";
+    }
+
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
         audio: false
       });
-      console.log("[WebRTC Player] HD camera stream acquired:", stream.id, stream.getVideoTracks()[0]?.getSettings());
+
       this.localStream = stream;
+      const track = stream.getVideoTracks()[0];
+      if (track) {
+        this.activeDeviceId = track.getSettings().deviceId || null;
+      }
+
+      // Re-populate device list now that permissions are granted (labels are now visible)
+      await this.refreshVideoDevices();
 
       const pc = this.getOrCreatePeerConnection();
 
-      stream.getTracks().forEach(track => {
-        console.log(`[WebRTC Player] Adding track (${track.kind}) to PC`);
-        pc.addTrack(track, stream);
-      });
+      // Replace existing video sender track if PC is already active
+      const senders = pc.getSenders();
+      const videoSender = senders.find((s) => s.track && s.track.kind === "video");
 
-      console.log("[WebRTC Player] Creating SDP offer for camera stream, signaling state:", pc.signalingState);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with video track to Host");
-      this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
+      if (videoSender && track) {
+        await videoSender.replaceTrack(track);
+      } else {
+        stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
+      }
+
       return true;
     } catch (err) {
-      console.error("[WebRTC Player] Failed to start camera stream:", err);
+      console.error("[WebRTC Player] Error starting stream:", err);
       return false;
     }
   }
@@ -555,8 +579,31 @@ class GameClient {
     }
   }
 
+  /**
+   * Switches to the physical 0.5x ultra-wide camera or applies digital zoom as fallback.
+   */
   public async setCameraZoom(zoomFactor: number): Promise<boolean> {
     this.currentZoomLevel = zoomFactor;
+
+    if (zoomFactor === 0.5) {
+      // Step A: Check if Android exposed an ultra-wide sensor as a discrete device
+      const wideCamera = this.availableVideoDevices.find((device) => {
+        const label = device.label.toLowerCase();
+        return (
+          label.includes("wide") ||
+          label.includes("0.5") ||
+          label.includes("ultra") ||
+          label.includes("back 1") // Common Android device index for secondary rear lens
+        );
+      });
+
+      if (wideCamera && wideCamera.deviceId !== this.activeDeviceId) {
+        console.log("[WebRTC Player] Found physical 0.5x ultra-wide lens:", wideCamera.label);
+        return await this.startVideoStream({ exact: wideCamera.deviceId });
+      }
+    }
+
+    // Step B: Hardware zoom / fallback digital zoom on current active camera track
     if (!this.localStream) return false;
     const videoTrack = this.localStream.getVideoTracks()[0];
     if (!videoTrack) return false;
@@ -564,26 +611,20 @@ class GameClient {
     try {
       const capabilities = (videoTrack.getCapabilities ? videoTrack.getCapabilities() : {}) as any;
 
-      if (capabilities && capabilities.zoom) {
-        const minZoom = capabilities.zoom.min || 0.5;
+      if (capabilities?.zoom) {
+        const minZoom = capabilities.zoom.min || 1.0;
         const maxZoom = capabilities.zoom.max || 3.0;
         const targetZoom = Math.min(Math.max(zoomFactor, minZoom), maxZoom);
 
-        console.log(`[WebRTC Player] Applying native camera hardware zoom: ${targetZoom} (range: ${minZoom}-${maxZoom})`);
         await videoTrack.applyConstraints({
           advanced: [{ zoom: targetZoom } as any]
         });
         return true;
-      } else {
-        console.log(`[WebRTC Player] Native hardware zoom API not exposed on current track. Attempting constraint apply...`);
-        await videoTrack.applyConstraints({
-          advanced: [{ zoom: zoomFactor } as any]
-        });
-        return true;
       }
     } catch (err) {
-      console.warn("[WebRTC Player] Hardware camera zoom constraint notice:", err);
+      console.warn("[WebRTC Player] Zoom constraint applying failed:", err);
     }
+
     return false;
   }
 
