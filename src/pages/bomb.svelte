@@ -427,7 +427,38 @@
             score += 50;
             defusedCount += 1;
             vibrate(20);
+            gameClient.sendPlayerInput("defuse");
             bomb.destroy();
+          } else {
+            // Check if flinged bomb collides with player avatar at bottom
+            const distToAvatar = Phaser.Math.Distance.Between(
+              bomb.x,
+              bomb.y,
+              AVATAR_X,
+              AVATAR_Y,
+            );
+            if (distToAvatar <= AVATAR_RADIUS || bomb.y >= 820) {
+              // BOOM! FLINGED BOMB HIT AVATAR -> DAMAGE / LOSE CONDITION
+              boomSprite.setPosition(bomb.x, bomb.y);
+              boomSprite.setVisible(true);
+              boomSprite.play("kaboom-boom");
+              scene.cameras.main.shake(250, 0.015);
+
+              lives -= 1;
+              vibrate(180);
+              addFloatingText("DIRECT HIT! -1 ❤️", AVATAR_X, AVATAR_Y - 50, "#ff0000");
+
+              if (lives <= 0) {
+                isGameOver = true;
+                triggerExpression("sad", 3000);
+              } else {
+                triggerExpression("surprised", 1300);
+              }
+              bomb.destroy();
+              setTimeout(() => {
+                gameClient.sendPlayerInput("confirm");
+              }, 200);
+            }
           }
         } else {
           // Check if falling bomb reached avatar zone at bottom
