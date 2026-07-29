@@ -573,13 +573,29 @@ class GameClient {
       this.currentFacingMode = facingModeOrDeviceId as "user" | "environment";
     }
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: videoConstraints,
-        audio: false
-      });
+    const audioConstraints = {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true
+    };
 
-      // Stop previous local video tracks to release camera hardware cleanly
+    try {
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: audioConstraints
+        });
+        console.log("[WebRTC Player] Acquired media stream with tracks:", stream.getTracks().map((t) => `${t.kind}:${t.label}`));
+      } catch (audioErr) {
+        console.warn("[WebRTC Player] Could not acquire audio track with video, falling back to video-only:", audioErr);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: false
+        });
+      }
+
+      // Stop previous local tracks to release camera/mic hardware cleanly
       if (this.localStream) {
         this.localStream.getTracks().forEach((t) => t.stop());
       }
@@ -588,9 +604,9 @@ class GameClient {
       const track = stream.getVideoTracks()[0];
       if (track) {
         this.activeDeviceId = track.getSettings().deviceId || null;
-        console.log("[WebRTC Player] Stream acquired track settings:", track.getSettings());
+        console.log("[WebRTC Player] Stream acquired video track settings:", track.getSettings());
         if (track.getCapabilities) {
-          console.log("[WebRTC Player] Stream acquired track capabilities:", track.getCapabilities());
+          console.log("[WebRTC Player] Stream acquired video track capabilities:", track.getCapabilities());
         }
       }
 
@@ -598,16 +614,23 @@ class GameClient {
       await this.refreshVideoDevices();
 
       const pc = this.getOrCreatePeerConnection();
-
-      // Replace existing video sender track if PC is already active
       const senders = pc.getSenders();
-      const videoSender = senders.find((s) => s.track && s.track.kind === "video");
+      let renegotiateNeeded = false;
 
-      if (videoSender && track) {
-        console.log("[WebRTC Player] Replacing sender video track...");
-        await videoSender.replaceTrack(track);
-      } else {
-        stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+      for (const t of stream.getTracks()) {
+        const existingSender = senders.find((s) => s.track && s.track.kind === t.kind);
+        if (existingSender) {
+          console.log(`[WebRTC Player] Replacing existing ${t.kind} sender track...`);
+          await existingSender.replaceTrack(t);
+        } else {
+          console.log(`[WebRTC Player] Adding new ${t.kind} track to PC...`);
+          pc.addTrack(t, stream);
+          renegotiateNeeded = true;
+        }
+      }
+
+      if (renegotiateNeeded || senders.length === 0) {
+        console.log("[WebRTC Player] Creating and sending WEBRTC_OFFER...");
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
