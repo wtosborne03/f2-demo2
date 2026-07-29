@@ -16,7 +16,6 @@
   let defusedCount = 0;
   let lives = 3;
   let isGameOver = false;
-  let isGameStarted = false;
 
   // Expression state: 'neutral' | 'happy' | 'sad' | 'surprised'
   let currentExpression: "neutral" | "happy" | "sad" | "surprised" = "neutral";
@@ -100,7 +99,6 @@
     defusedCount = 0;
     lives = 3;
     isGameOver = false;
-    isGameStarted = true;
 
     if (game) {
       game.destroy(true);
@@ -182,20 +180,20 @@
     });
 
     const boomSprite = this.physics.add.sprite(-100, -100, "kaboom");
-    boomSprite.setScale(4.5);
+    boomSprite.setScale(3.5);
     boomSprite.depth = 50;
     boomSprite.setVisible(false);
     boomSprite.on("animationcomplete", () => boomSprite.setVisible(false));
 
     // Sparkle particle emitter for coin collection
     const sparkleEmitter = this.add.particles(0, 0, "sparkle", {
-      speed: { min: 120, max: 350 },
+      speed: { min: 100, max: 280 },
       angle: { min: 0, max: 360 },
-      scale: { start: 1.2, end: 0 },
+      scale: { start: 1, end: 0 },
       alpha: { start: 1, end: 0 },
-      lifespan: 700,
-      gravityY: -100,
-      quantity: 25,
+      lifespan: 600,
+      gravityY: -80,
+      quantity: 20,
       tint: [0xffd700, 0xffa500, 0xffff00, 0xffffff],
       blendMode: "ADD",
     });
@@ -203,25 +201,24 @@
 
     // Defuse particle emitter
     const defuseEmitter = this.add.particles(0, 0, "sparkle", {
-      speed: { min: 80, max: 220 },
+      speed: { min: 60, max: 180 },
       angle: { min: 0, max: 360 },
       scale: { start: 1, end: 0 },
       alpha: { start: 1, end: 0 },
-      lifespan: 500,
-      quantity: 15,
+      lifespan: 450,
+      quantity: 12,
       tint: [0x00ff88, 0x00ffff, 0xffffff],
       blendMode: "ADD",
     });
     defuseEmitter.stop();
 
-    // Trajectory graphic line while dragging
-    const dragGraphic = this.add.graphics();
-    dragGraphic.depth = 100;
-
-    // Avatar Hit Zone at Bottom (Centered at 300, 810, radius 70)
+    // Avatar Collection Zone at Bottom (Centered at 300, 810, radius 95 for easy hit)
     const AVATAR_X = 300;
     const AVATAR_Y = 810;
-    const AVATAR_RADIUS = 70;
+    const AVATAR_RADIUS = 95;
+
+    // Generous Touch Grab Radius (85px)
+    const TOUCH_GRAB_RADIUS = 85;
 
     // Drag & Fling Physics State
     let activeItem: Phaser.GameObjects.Sprite | null = null;
@@ -234,18 +231,18 @@
       if (isGameOver) return;
       const x = Phaser.Math.Between(70, 530);
       const bomb = bombs.create(x, -40, "bomb") as Phaser.Physics.Arcade.Sprite;
-      bomb.setScale(0.22);
-      bomb.setCircle(bomb.width * 0.4, bomb.width * 0.1, bomb.height * 0.1);
+      // Smaller bomb size
+      bomb.setScale(0.14);
 
-      // Speed increases gradually as game progresses
-      const speedY = Phaser.Math.Between(160, 260) + Math.min(150, gameTimeElapsed * 4);
+      // Slower downward movement speed
+      const speedY = Phaser.Math.Between(70, 120) + Math.min(60, gameTimeElapsed * 2);
       bomb.setVelocityY(speedY);
-      bomb.setAngularVelocity(Phaser.Math.Between(-80, 80));
+      bomb.setAngularVelocity(Phaser.Math.Between(-40, 40));
       bomb.setData("type", "bomb");
       bomb.setData("isFlinged", false);
 
       // Schedule next bomb drop
-      const nextDelay = Math.max(700, 1600 - gameTimeElapsed * 25);
+      const nextDelay = Math.max(900, 1800 - gameTimeElapsed * 20);
       scene.time.delayedCall(nextDelay, spawnBomb);
     }
 
@@ -254,13 +251,13 @@
       const x = Phaser.Math.Between(80, 520);
       const y = Phaser.Math.Between(180, 480);
       const coin = coins.create(x, y, "doubloon") as Phaser.Physics.Arcade.Sprite;
-      coin.setScale(0.28);
-      coin.setCircle(coin.width * 0.45, coin.width * 0.05, coin.height * 0.05);
+      // Smaller coin size
+      coin.setScale(0.18);
 
       // No gravity! Floating in place with gentle drift
       const body = coin.body as Phaser.Physics.Arcade.Body;
       body.allowGravity = false;
-      body.setVelocity(Phaser.Math.Between(-25, 25), Phaser.Math.Between(-20, 20));
+      body.setVelocity(Phaser.Math.Between(-20, 20), Phaser.Math.Between(-15, 15));
 
       coin.setData("type", "coin");
       coin.setData("isFlinged", false);
@@ -270,13 +267,13 @@
       scene.tweens.add({
         targets: coin,
         angle: 360,
-        duration: 3000,
+        duration: 3500,
         repeat: -1,
         ease: "Linear",
       });
 
       // Schedule next coin drop
-      const nextDelay = Phaser.Math.Between(2200, 3500);
+      const nextDelay = Phaser.Math.Between(2400, 3800);
       scene.time.delayedCall(nextDelay, spawnCoin);
     }
 
@@ -297,12 +294,12 @@
     scene.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (isGameOver) return;
 
-      // Find top item touched under pointer
+      // Find top item touched under pointer with LARGE hit box radius (85px)
       const touchedBomb = bombs.getChildren().find((b: any) => {
         return (
           b.active &&
           !b.getData("isFlinged") &&
-          Phaser.Geom.Circle.Contains(new Phaser.Geom.Circle(b.x, b.y, 45), pointer.x, pointer.y)
+          Phaser.Geom.Circle.Contains(new Phaser.Geom.Circle(b.x, b.y, TOUCH_GRAB_RADIUS), pointer.x, pointer.y)
         );
       }) as Phaser.GameObjects.Sprite;
 
@@ -310,7 +307,7 @@
         return (
           c.active &&
           !c.getData("isFlinged") &&
-          Phaser.Geom.Circle.Contains(new Phaser.Geom.Circle(c.x, c.y, 45), pointer.x, pointer.y)
+          Phaser.Geom.Circle.Contains(new Phaser.Geom.Circle(c.x, c.y, TOUCH_GRAB_RADIUS), pointer.x, pointer.y)
         );
       }) as Phaser.GameObjects.Sprite;
 
@@ -330,27 +327,14 @@
         activeItem.setPosition(pointer.x, pointer.y);
         pointerHistory.push({ x: pointer.x, y: pointer.y, time: scene.time.now });
 
-        // Keep last 140ms
+        // Keep last 140ms history for fling velocity calculation
         while (pointerHistory.length > 0 && scene.time.now - pointerHistory[0].time > 140) {
           pointerHistory.shift();
-        }
-
-        // Draw trajectory trail
-        dragGraphic.clear();
-        if (pointerHistory.length > 1) {
-          const start = pointerHistory[0];
-          const isCoin = activeItem.getData("type") === "coin";
-          dragGraphic.lineStyle(6, isCoin ? 0xffd700 : 0xff3366, 0.85);
-          dragGraphic.beginPath();
-          dragGraphic.moveTo(start.x, start.y);
-          dragGraphic.lineTo(pointer.x, pointer.y);
-          dragGraphic.strokePath();
         }
       }
     });
 
     const releaseItem = (pointer: Phaser.Input.Pointer) => {
-      dragGraphic.clear();
       if (activeItem && activeItem.active) {
         pointerHistory.push({ x: pointer.x, y: pointer.y, time: scene.time.now });
 
@@ -369,7 +353,7 @@
         const speed = Math.hypot(vx, vy);
         const body = activeItem.body as Phaser.Physics.Arcade.Body;
 
-        if (speed > 140) {
+        if (speed > 130) {
           // FLING ACTION!
           const mult = 1.35;
           body.setVelocity(vx * mult, vy * mult);
@@ -379,7 +363,7 @@
         } else {
           // Soft drop
           if (activeItem.getData("type") === "bomb") {
-            body.setVelocity(0, 150);
+            body.setVelocity(0, 90);
           }
         }
         activeItem = null;
@@ -407,7 +391,7 @@
               Phaser.Math.Clamp(bomb.x, 30, 570),
               Phaser.Math.Clamp(bomb.y, 30, 870)
             );
-            defuseEmitter.explode(15);
+            defuseEmitter.explode(12);
             addFloatingText("+50 DEFUSED!", bomb.x, bomb.y, "#00ff88");
             score += 50;
             defusedCount += 1;
@@ -423,7 +407,7 @@
             boomSprite.setPosition(bomb.x, bomb.y);
             boomSprite.setVisible(true);
             boomSprite.play("kaboom-boom");
-            scene.cameras.main.shake(250, 0.012);
+            scene.cameras.main.shake(200, 0.01);
 
             lives -= 1;
             vibrate(150);
@@ -448,9 +432,9 @@
         const distToAvatar = Phaser.Math.Distance.Between(coin.x, coin.y, AVATAR_X, AVATAR_Y);
 
         // Check if coin reached Avatar zone -> COLLECTED!
-        if (distToAvatar <= AVATAR_RADIUS + 15) {
+        if (distToAvatar <= AVATAR_RADIUS + 10) {
           sparkleEmitter.setPosition(coin.x, coin.y);
-          sparkleEmitter.explode(22);
+          sparkleEmitter.explode(18);
 
           score += 100;
           coinsCount += 1;
@@ -487,30 +471,17 @@
   function update(this: Phaser.Scene) {}
 </script>
 
-<div class="relative w-full h-full min-h-screen bg-slate-950 text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans">
-  <!-- HUD Header Overlay -->
-  <header class="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none">
-    <!-- Score & Coins counter -->
-    <div class="flex items-center space-x-3 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-700/50 shadow-lg">
-      <div class="flex items-center space-x-1.5 text-amber-400 font-black text-lg">
-        <span class="text-xl">🪙</span>
-        <span>{coinsCount}</span>
-      </div>
-      <div class="w-px h-5 bg-slate-700"></div>
-      <div class="flex items-center space-x-1.5 text-emerald-400 font-bold text-sm">
-        <span>Defused:</span>
-        <span class="font-extrabold">{defusedCount}</span>
-      </div>
-      <div class="w-px h-5 bg-slate-700"></div>
-      <div class="text-indigo-300 font-black text-lg">
-        {score} <span class="text-xs font-semibold text-slate-400">PTS</span>
-      </div>
+<div class="relative w-full h-full min-h-screen bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans">
+  <!-- Minimal HUD Header -->
+  <header class="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md">
+    <div class="flex items-center space-x-4 font-bold text-sm md:text-base">
+      <span class="text-amber-400">🪙 {coinsCount}</span>
+      <span class="text-emerald-400">💣 {defusedCount}</span>
+      <span class="text-indigo-200">{score} PTS</span>
     </div>
-
-    <!-- Lives Hearts -->
-    <div class="flex items-center space-x-1 bg-slate-900/80 backdrop-blur-md px-3 py-2 rounded-2xl border border-slate-700/50 shadow-lg">
+    <div class="flex items-center space-x-1 text-lg">
       {#each Array(3) as _, i}
-        <span class="text-xl transition-all duration-300 transform" class:scale-125={i < lives} class:opacity-30={i >= lives}>
+        <span class="transition-opacity duration-300" class:opacity-25={i >= lives}>
           {i < lives ? "❤️" : "🖤"}
         </span>
       {/each}
@@ -523,7 +494,7 @@
     <div class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
       {#each floatingTexts as ft (ft.id)}
         <div
-          class="absolute font-black text-xl md:text-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-float-up pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
+          class="absolute font-black text-xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] animate-float-up pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
           style="left: {(ft.x / 600) * 100}%; top: {(ft.y / 900) * 100}%; color: {ft.color};"
         >
           {ft.text}
@@ -531,76 +502,57 @@
       {/each}
     </div>
 
-    <!-- Player Avatar Zone at Bottom Center -->
+    <!-- Minimal Player Avatar Zone at Bottom Center -->
     <div
       class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none transition-transform duration-300"
       class:animate-bounce-pop={isAvatarBouncing}
       class:animate-wiggle-shake={isAvatarShaking}
     >
-      <!-- Target drop zone ring highlight -->
-      <div class="relative w-28 h-28 rounded-full border-4 border-dashed border-indigo-400/40 flex items-center justify-center bg-indigo-950/40 backdrop-blur-sm shadow-[0_0_25px_rgba(99,102,241,0.35)]">
-        <!-- Glowing avatar frame -->
-        <div class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-indigo-300/80 bg-slate-900 shadow-inner flex items-center justify-center">
-          {#if avatarUrl}
-            <img src={avatarUrl} alt="Player Selfie Avatar" class="w-full h-full object-cover" />
-          {:else}
-            <!-- High quality fallback vector face -->
-            <div class="w-full h-full bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex flex-col items-center justify-center p-2">
-              <div class="flex space-x-3 mb-1">
-                <div class="w-3 h-3 rounded-full bg-white shadow-sm"></div>
-                <div class="w-3 h-3 rounded-full bg-white shadow-sm"></div>
-              </div>
-              <div class="w-6 h-2 rounded-full bg-white/90"></div>
+      <div class="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white/80 bg-slate-900 shadow-md flex items-center justify-center">
+        {#if avatarUrl}
+          <img src={avatarUrl} alt="Player Selfie Avatar" class="w-full h-full object-cover" />
+        {:else}
+          <div class="w-full h-full bg-gradient-to-br from-indigo-500 to-pink-500 flex flex-col items-center justify-center p-2">
+            <div class="flex space-x-2 mb-1">
+              <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
             </div>
-          {/if}
-
-          <!-- Expression Emoji Overlay Badge -->
-          <div class="absolute bottom-0 right-0 bg-slate-900/90 rounded-full w-7 h-7 flex items-center justify-center border border-indigo-400 text-sm shadow-md">
-            {#if currentExpression === 'happy'}
-              😃
-            {:else if currentExpression === 'sad'}
-              😢
-            {:else if currentExpression === 'surprised'}
-              😲
-            {:else}
-              🙂
-            {/if}
+            <div class="w-5 h-1.5 rounded-full bg-white/90"></div>
           </div>
+        {/if}
+
+        <div class="absolute bottom-0 right-0 bg-black/75 rounded-full w-6 h-6 flex items-center justify-center text-xs border border-white/40">
+          {#if currentExpression === 'happy'}
+            😃
+          {:else if currentExpression === 'sad'}
+            😢
+          {:else if currentExpression === 'surprised'}
+            😲
+          {:else}
+            🙂
+          {/if}
         </div>
-      </div>
-      <div class="mt-1 text-xs font-black uppercase tracking-wider text-indigo-200 bg-slate-900/80 px-3 py-0.5 rounded-full border border-indigo-500/40 shadow-sm">
-        Fling Coins Here!
       </div>
     </div>
   </div>
 
-  <!-- Game Over Screen -->
+  <!-- Minimal Game Over Screen -->
   {#if isGameOver}
-    <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-40 flex flex-col items-center justify-center px-6 animate-fade-in">
-      <div class="bg-slate-900/90 border border-slate-700/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center space-y-5">
-        <div class="text-5xl">💥</div>
-        <h2 class="text-3xl font-black text-rose-400 tracking-tight">GAME OVER</h2>
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm z-40 flex flex-col items-center justify-center px-6 animate-fade-in">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 max-w-xs w-full flex flex-col items-center text-center space-y-4 shadow-xl">
+        <h2 class="text-2xl font-black text-rose-400">GAME OVER</h2>
         
-        <div class="w-full bg-slate-800/60 rounded-2xl p-4 space-y-3 border border-slate-700/40">
-          <div class="flex justify-between items-center text-sm font-semibold">
-            <span class="text-slate-400">Total Score:</span>
-            <span class="text-amber-300 font-extrabold text-xl">{score}</span>
-          </div>
-          <div class="flex justify-between items-center text-sm font-semibold">
-            <span class="text-slate-400">Coins Collected:</span>
-            <span class="text-amber-400 font-bold">🪙 {coinsCount}</span>
-          </div>
-          <div class="flex justify-between items-center text-sm font-semibold">
-            <span class="text-slate-400">Bombs Defused:</span>
-            <span class="text-emerald-400 font-bold">💣 {defusedCount}</span>
-          </div>
+        <div class="w-full text-sm font-semibold space-y-2 text-slate-300">
+          <div class="flex justify-between"><span>Score:</span> <span class="text-amber-300 font-bold">{score}</span></div>
+          <div class="flex justify-between"><span>Coins:</span> <span class="text-amber-400 font-bold">🪙 {coinsCount}</span></div>
+          <div class="flex justify-between"><span>Defused:</span> <span class="text-emerald-400 font-bold">💣 {defusedCount}</span></div>
         </div>
 
         <button
           on:click={restartGame}
-          class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 active:scale-95 text-white font-black text-lg rounded-2xl shadow-lg transition-all border border-indigo-400/30"
+          class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-base rounded-xl transition-all"
         >
-          PLAY AGAIN 🚀
+          PLAY AGAIN
         </button>
       </div>
     </div>
