@@ -55,6 +55,9 @@
     currentZoom = zoomFactor;
     console.log("[Joker Performer UI] Changing camera zoom to:", zoomFactor);
     await gameClient.setCameraZoom(zoomFactor);
+    if (videoEl && gameClient.localStream && videoEl.srcObject !== gameClient.localStream) {
+      videoEl.srcObject = gameClient.localStream;
+    }
   }
 
   function handleTaskDone() {
@@ -85,12 +88,16 @@
         class="camera-preview"
         style="transform: scaleX({gameClient.currentFacingMode === 'user'
           ? -1
-          : 1}) scale({currentZoom < 1.0 ? currentZoom : 1.0});"
+          : 1}) {currentZoom > 1.0 ? `scale(${currentZoom})` : ''};"
       ></video>
 
       {#if isStreaming}
         <div class="camera-controls-bar">
-          {#if isStreaming && availableCameras.length > 2}
+          <button type="button" class="btn-flip" on:click={handleFlipCamera}>
+            🔄 Flip
+          </button>
+
+          {#if availableCameras.length > 2}
             <div class="camera-lens-selector">
               {#each availableCameras as cam, index}
                 <button

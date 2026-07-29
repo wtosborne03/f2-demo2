@@ -58,6 +58,7 @@ class GameClient {
   private _lastTimeRequest = 0;
   private waiters: Array<{ ops: OpCode[]; resolve: (val: any) => void }> = [];
   private hasBoundLifecycleListeners = false;
+  private pendingCriticalMessages: Array<{ op: OpCode; data: any }> = [];
   public localStream: MediaStream | null = null;
   public localAudioStream: MediaStream | null = null;
   public remoteStream: MediaStream | null = null;
@@ -482,6 +483,44 @@ class GameClient {
   public currentFacingMode: "user" | "environment" = "user";
   public currentZoomLevel: number = 1.0;
 
+  public findUltraWideCamera(): MediaDeviceInfo | undefined {
+    // 1. Try label-based search
+    const matchByLabel = this.availableVideoDevices.find((device) => {
+      const label = device.label.toLowerCase();
+      const isUltraWide =
+        label.includes("ultra") ||
+        label.includes("0.5") ||
+        label.includes("super wide") ||
+        label.includes("super-wide") ||
+        label.includes("extra wide") ||
+        label.includes("extrawide") ||
+        label.includes("wide-angle") ||
+        label.includes("wideangle");
+
+      const isStandardWideOnly = label.includes("back wide camera") && !label.includes("ultra");
+
+      return isUltraWide && !isStandardWideOnly;
+    });
+
+    if (matchByLabel) return matchByLabel;
+
+    // 2. Fallback for Android device names without descriptive labels (e.g. "camera2 0", "camera2 2")
+    const backCameras = this.availableVideoDevices.filter((d) => {
+      const l = d.label.toLowerCase();
+      return l.includes("back") || l.includes("rear") || !l.includes("front");
+    });
+
+    if (backCameras.length >= 2) {
+      const secondaryBack = backCameras.find((d) => {
+        const l = d.label.toLowerCase();
+        return l.includes("1") || l.includes("2") || l.includes("aux") || l.includes("secondary");
+      });
+      if (secondaryBack) return secondaryBack;
+    }
+
+    return undefined;
+  }
+
   public async startVideoStream(
     facingModeOrDeviceId: "user" | "environment" | { exact: string } = "user"
   ): Promise<boolean> {
@@ -505,6 +544,11 @@ class GameClient {
         video: videoConstraints,
         audio: false
       });
+
+      // Stop previous local video tracks to release camera hardware cleanly
+      if (this.localStream) {
+        this.localStream.getTracks().forEach((t) => t.stop());
+      }
 
       this.localStream = stream;
       const track = stream.getVideoTracks()[0];
@@ -559,12 +603,12 @@ class GameClient {
       if (!newVideoTrack) return false;
 
       // Stop old video track
-      this.localStream.getVideoTracks().forEach(t => t.stop());
+      this.localStream.getVideoTracks().forEach((t) => t.stop());
       this.localStream = newStream;
       this.currentFacingMode = nextFacingMode;
 
       const senders = this.pc.getSenders();
-      const videoSender = senders.find(s => s.track && s.track.kind === "video");
+      const videoSender = senders.find((s) => s.track && s.track.kind === "video");
 
       if (videoSender) {
         console.log("[WebRTC Player] Seamlessly replacing video track with flipped camera");
@@ -580,30 +624,46 @@ class GameClient {
   }
 
   /**
-   * Switches to the physical 0.5x ultra-wide camera or applies digital zoom as fallback.
+   * Switches to the physical 0.5x ultra-wide camera or applies digital/track zoom as fallback.
    */
   public async setCameraZoom(zoomFactor: number): Promise<boolean> {
     this.currentZoomLevel = zoomFactor;
 
+    // Refresh devices to make sure we have latest labels/devices
+    await this.refreshVideoDevices();
+
     if (zoomFactor === 0.5) {
-      // Step A: Check if Android exposed an ultra-wide sensor as a discrete device
-      const wideCamera = this.availableVideoDevices.find((device) => {
-        const label = device.label.toLowerCase();
-        return (
-          label.includes("wide") ||
-          label.includes("0.5") ||
-          label.includes("ultra") ||
-          label.includes("back 1") // Common Android device index for secondary rear lens
-        );
-      });
+      // Step A: Check if device exposed an ultra-wide sensor as a discrete device
+      const wideCamera = this.findUltraWideCamera();
 
       if (wideCamera && wideCamera.deviceId !== this.activeDeviceId) {
-        console.log("[WebRTC Player] Found physical 0.5x ultra-wide lens:", wideCamera.label);
+        console.log("[WebRTC Player] Switching to physical 0.5x ultra-wide lens:", wideCamera.label);
         return await this.startVideoStream({ exact: wideCamera.deviceId });
+      }
+    } else if (this.currentFacingMode === "environment" && (zoomFactor === 1.0 || zoomFactor === 2.0)) {
+      // If we previously switched to an ultra-wide deviceId for 0.5x, check if we need to switch back to main back camera
+      const wideCamera = this.findUltraWideCamera();
+      if (wideCamera && this.activeDeviceId === wideCamera.deviceId) {
+        const mainCamera = this.availableVideoDevices.find((d) => {
+          const l = d.label.toLowerCase();
+          return (
+            (l.includes("back") || l.includes("rear") || l.includes("environment")) &&
+            !l.includes("ultra") &&
+            !l.includes("0.5") &&
+            d.deviceId !== wideCamera.deviceId
+          );
+        });
+
+        if (mainCamera) {
+          console.log("[WebRTC Player] Switching back from 0.5x ultra-wide to main camera:", mainCamera.label);
+          await this.startVideoStream({ exact: mainCamera.deviceId });
+        } else {
+          await this.startVideoStream("environment");
+        }
       }
     }
 
-    // Step B: Hardware zoom / fallback digital zoom on current active camera track
+    // Step B: Hardware zoom / track constraint zoom on active camera track
     if (!this.localStream) return false;
     const videoTrack = this.localStream.getVideoTracks()[0];
     if (!videoTrack) return false;
@@ -612,14 +672,21 @@ class GameClient {
       const capabilities = (videoTrack.getCapabilities ? videoTrack.getCapabilities() : {}) as any;
 
       if (capabilities?.zoom) {
-        const minZoom = capabilities.zoom.min || 1.0;
-        const maxZoom = capabilities.zoom.max || 3.0;
+        const minZoom = capabilities.zoom.min !== undefined ? capabilities.zoom.min : 1.0;
+        const maxZoom = capabilities.zoom.max !== undefined ? capabilities.zoom.max : 3.0;
         const targetZoom = Math.min(Math.max(zoomFactor, minZoom), maxZoom);
 
-        await videoTrack.applyConstraints({
-          advanced: [{ zoom: targetZoom } as any]
-        });
-        return true;
+        console.log(`[WebRTC Player] Applying track zoom constraint: target=${targetZoom} (range: ${minZoom}-${maxZoom})`);
+
+        try {
+          await videoTrack.applyConstraints({ zoom: targetZoom } as any);
+          return true;
+        } catch (e) {
+          await videoTrack.applyConstraints({
+            advanced: [{ zoom: targetZoom } as any]
+          });
+          return true;
+        }
       }
     } catch (err) {
       console.warn("[WebRTC Player] Zoom constraint applying failed:", err);
