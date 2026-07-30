@@ -138,11 +138,10 @@
         transparent: true,
       },
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         parent: "game-container",
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 600,
-        height: 900,
+        width: "100%",
+        height: "100%",
       },
       scene: {
         preload: preload,
@@ -223,12 +222,12 @@
     });
     defuseEmitter.stop();
 
-    // Avatar Collection Zone at Bottom (Centered at 300, 810, radius 95 for easy hit)
-    const AVATAR_X = 300;
-    const AVATAR_Y = 810;
-    const AVATAR_RADIUS = 95;
+    // Dynamic scene dimensions helpers
+    const getW = () => scene.scale.width || window.innerWidth;
+    const getH = () => scene.scale.height || window.innerHeight;
 
-    // Generous Touch Grab Radius (85px)
+    // Generous Avatar and Touch Hit Radii
+    const AVATAR_RADIUS = 95;
     const TOUCH_GRAB_RADIUS = 85;
 
     // Drag & Fling Physics State
@@ -240,9 +239,10 @@
 
     function spawnBomb() {
       if (isGameOver) return;
-      const x = Phaser.Math.Between(70, 530);
-      // Spawn higher up off-screen (-80) so bombs fall from above screen top behind app bar
-      const bomb = bombs.create(x, -80, "bomb") as Phaser.Physics.Arcade.Sprite;
+      const w = getW();
+      const x = Phaser.Math.Between(50, Math.max(100, w - 50));
+      // Spawn higher up off-screen (-120) so bombs fall from above top of screen behind app bar
+      const bomb = bombs.create(x, -120, "bomb") as Phaser.Physics.Arcade.Sprite;
       bomb.setScale(0.14);
       bomb.depth = 2;
 
@@ -263,8 +263,10 @@
 
     function spawnCoin() {
       if (isGameOver) return;
-      const x = Phaser.Math.Between(80, 520);
-      const y = Phaser.Math.Between(180, 480);
+      const w = getW();
+      const h = getH();
+      const x = Phaser.Math.Between(60, Math.max(120, w - 60));
+      const y = Phaser.Math.Between(160, Math.max(250, h - 280));
       const coin = coins.create(
         x,
         y,
@@ -419,6 +421,10 @@
     scene.events.on("update", (_time: number, delta: number) => {
       if (isGameOver) return;
       const progress = Math.min(1, gameTimeElapsed / 45);
+      const w = getW();
+      const h = getH();
+      const AVATAR_X = w / 2;
+      const AVATAR_Y = h - 90;
 
       // UPDATE BOMBS
       bombs.getChildren().forEach((bObj: any) => {
@@ -429,10 +435,10 @@
 
         if (isFlinged) {
           // Check if bomb left screen boundaries -> DEFUSED!
-          if (bomb.x < -50 || bomb.x > 650 || bomb.y < -50) {
+          if (bomb.x < -80 || bomb.x > w + 80 || bomb.y < -120) {
             defuseEmitter.setPosition(
-              Phaser.Math.Clamp(bomb.x, 30, 570),
-              Phaser.Math.Clamp(bomb.y, 30, 870),
+              Phaser.Math.Clamp(bomb.x, 30, w - 30),
+              Phaser.Math.Clamp(bomb.y, 30, h - 30),
             );
             defuseEmitter.explode(15);
             // Screen shake effect on defusing a bomb!
@@ -452,7 +458,7 @@
               AVATAR_X,
               AVATAR_Y,
             );
-            if (distToAvatar <= AVATAR_RADIUS || bomb.y >= 820) {
+            if (distToAvatar <= AVATAR_RADIUS || bomb.y >= AVATAR_Y + 10) {
               // BOOM! FLINGED BOMB HIT AVATAR -> DAMAGE / LOSE CONDITION
               boomSprite.setPosition(bomb.x, bomb.y);
               boomSprite.setVisible(true);
@@ -493,7 +499,7 @@
             AVATAR_X,
             AVATAR_Y,
           );
-          if (distToAvatar <= AVATAR_RADIUS || bomb.y >= 820) {
+          if (distToAvatar <= AVATAR_RADIUS || bomb.y >= AVATAR_Y + 10) {
             // BOOM! BOMB HIT PLAYER
             boomSprite.setPosition(bomb.x, bomb.y);
             boomSprite.setVisible(true);
@@ -548,7 +554,7 @@
 
         // Flinged coin exiting screen without hitting avatar
         if (coin.getData("isFlinged")) {
-          if (coin.x < -60 || coin.x > 660 || coin.y < -60 || coin.y > 960) {
+          if (coin.x < -80 || coin.x > w + 80 || coin.y < -80 || coin.y > h + 80) {
             coin.destroy();
           }
         } else {
@@ -575,7 +581,7 @@
 >
   <!-- Minimal HUD Header (App bar rendering above canvas) -->
   <header
-    class="absolute top-4 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md"
+    class="absolute top-20 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md"
   >
     <div class="flex items-center space-x-4 font-bold text-sm md:text-base">
       <span class="text-amber-400">🪙 {coinsCount}</span>
@@ -597,15 +603,14 @@
   <!-- Phaser Game Container extending to top of screen behind app bar -->
   <div
     id="game-container"
-    class="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden"
+    class="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden z-10"
   >
     <!-- Floating feedback texts layer -->
     <div class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
       {#each floatingTexts as ft (ft.id)}
         <div
           class="absolute font-black text-xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] animate-float-up pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
-          style="left: {(ft.x / 600) * 100}%; top: {(ft.y / 900) *
-            100}%; color: {ft.color};"
+          style="left: {ft.x}px; top: {ft.y}px; color: {ft.color};"
         >
           {ft.text}
         </div>
