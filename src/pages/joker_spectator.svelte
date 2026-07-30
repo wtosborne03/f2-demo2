@@ -12,28 +12,20 @@
     gameClient.sendPlayerInput("satisfaction_vote", { satisfied });
   }
 
-  async function handleStartTalking() {
-    micError = "";
-    console.log("[Joker Spectator UI] Starting audio stream for Joker earpiece...");
-    const success = await gameClient.startAudioStream();
-    if (success) {
-      isTalkingToEarpiece = true;
-    } else {
-      micError = "Could not access microphone. Check permissions.";
-    }
-  }
-
-  function handleStopTalking() {
-    console.log("[Joker Spectator UI] Stopping audio stream for Joker earpiece...");
-    gameClient.stopAudioStream();
-    isTalkingToEarpiece = false;
-  }
-
   async function handleToggleTalking() {
     if (isTalkingToEarpiece) {
-      handleStopTalking();
+      console.log("[Joker Spectator UI] Stopping audio stream for Joker earpiece...");
+      gameClient.stopAudioStream();
+      isTalkingToEarpiece = false;
     } else {
-      await handleStartTalking();
+      micError = "";
+      console.log("[Joker Spectator UI] Starting audio stream for Joker earpiece...");
+      const success = await gameClient.startAudioStream();
+      if (success) {
+        isTalkingToEarpiece = true;
+      } else {
+        micError = "Could not access microphone. Check permissions.";
+      }
     }
   }
 
@@ -57,23 +49,21 @@
   </header>
 
   <main class="main-controls">
-    <!-- Earpiece Microphone Push-To-Talk Control -->
+    <!-- Earpiece Microphone Control -->
     <div class="earpiece-control-section">
       <button
         type="button"
         class="earpiece-btn"
         class:talking={isTalkingToEarpiece}
-        on:pointerdown={handleStartTalking}
-        on:pointerup={handleStopTalking}
         on:click={handleToggleTalking}
       >
         <span class="mic-icon">{isTalkingToEarpiece ? "🔴" : "🎙️"}</span>
-        <span>{isTalkingToEarpiece ? "BROADCASTING TO EARPIECE!" : "TALK INTO JOKER'S EARPIECE"}</span>
+        <span>{isTalkingToEarpiece ? "BROADCASTING! (TAP TO MUTE)" : "TALK INTO JOKER'S EARPIECE"}</span>
       </button>
       <p class="earpiece-hint">
         {isTalkingToEarpiece
-          ? "The Joker can hear you live in their headphones!"
-          : "Hold or tap button to speak into the Joker's earpiece live"}
+          ? "The Joker can hear you live in their headphones! Tap button to mute."
+          : "Tap button to speak live into the Joker's earpiece"}
       </p>
       {#if micError}
         <p class="mic-error">{micError}</p>

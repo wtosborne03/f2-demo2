@@ -15,14 +15,27 @@
   onMount(() => {
     handleStartPerformerStream();
 
-    const handleRemoteTrack = (data: { stream: MediaStream; track: MediaStreamTrack }) => {
-      console.log("[Joker Performer] Received remote track from host/crew:", data);
-      if (data.track.kind === "audio" || (data.stream && data.stream.getAudioTracks().length > 0)) {
+    const handleRemoteTrack = (data: {
+      stream: MediaStream;
+      track: MediaStreamTrack;
+    }) => {
+      console.log(
+        "[Joker Performer] Received remote track from host/crew:",
+        data,
+      );
+      if (
+        data.track.kind === "audio" ||
+        (data.stream && data.stream.getAudioTracks().length > 0)
+      ) {
         isEarpieceActive = true;
         isCrewSpeaking = true;
         if (earpieceAudioEl) {
           earpieceAudioEl.srcObject = data.stream;
-          earpieceAudioEl.play().catch((err) => console.warn("[Joker Performer] Earpiece audio play error:", err));
+          earpieceAudioEl
+            .play()
+            .catch((err) =>
+              console.warn("[Joker Performer] Earpiece audio play error:", err),
+            );
         }
 
         if (crewSpeakingTimeout) clearTimeout(crewSpeakingTimeout);
@@ -88,7 +101,11 @@
     currentZoom = zoomFactor;
     console.log("[Joker Performer UI] Changing camera zoom to:", zoomFactor);
     await gameClient.setCameraZoom(zoomFactor);
-    if (videoEl && gameClient.localStream && videoEl.srcObject !== gameClient.localStream) {
+    if (
+      videoEl &&
+      gameClient.localStream &&
+      videoEl.srcObject !== gameClient.localStream
+    ) {
       videoEl.srcObject = gameClient.localStream;
     }
   }
@@ -180,12 +197,6 @@
   <!-- Bottom Drawer Overlay: Assigned Dare Prompt -->
   <main class="bottom-overlay">
     <div class="challenge-card">
-      <div class="challenge-header">
-        <span class="dare-label">YOUR DARE</span>
-        <span class="challenge-title"
-          >{$gameState.page_data?.challengeTitle || "THE JOKER DARE"}</span
-        >
-      </div>
       <p class="challenge-text">
         {$gameState.page_data?.challengeDescription ||
           "Carry out the assigned dare on camera!"}
@@ -260,9 +271,9 @@
 
   .camera-controls-floating {
     position: absolute;
-    top: 5.5rem;
-    left: 0.75rem;
-    right: 0.75rem;
+    top: 6rem;
+    left: 1rem;
+    right: 1rem;
     z-index: 25;
     display: flex;
     justify-content: space-between;
@@ -322,7 +333,7 @@
 
   .bottom-overlay {
     position: absolute;
-    bottom: 0;
+    bottom: 0.5rem;
     left: 0;
     right: 0;
     z-index: 25;
