@@ -364,13 +364,24 @@ class GameClient {
     });
   }
 
-  sendInput(data: PlayerInput) {
-    // Send over WebRTC DataChannel if open, otherwise fallback to WebSocket relay
-    if (this.dc && this.dc.readyState === "open") {
-      this.dc.send(encode(OpCode.INPUT, data));
-    } else {
-      this.send(OpCode.INPUT, data);
+  public isDataChannelHealthy(): boolean {
+    if (!this.dc || this.dc.readyState !== "open" || !this.pc) {
+      return false;
     }
+    const state = this.pc.iceConnectionState;
+    return state === "connected" || state === "completed";
+  }
+
+  sendInput(data: PlayerInput) {
+    if (this.isDataChannelHealthy()) {
+      try {
+        this.dc!.send(encode(OpCode.INPUT, data));
+        return;
+      } catch (err) {
+        console.warn("[WebRTC Player] Error sending input via DataChannel, falling back to WS:", err);
+      }
+    }
+    this.send(OpCode.INPUT, data);
   }
 
   /**
@@ -383,11 +394,15 @@ class GameClient {
       type: type,
       ...data,
     };
-    if (this.dc && this.dc.readyState === "open") {
-      this.dc.send(encode(OpCode.INPUT, payload));
-    } else {
-      this.send(OpCode.INPUT, payload);
+    if (this.isDataChannelHealthy()) {
+      try {
+        this.dc!.send(encode(OpCode.INPUT, payload));
+        return;
+      } catch (err) {
+        console.warn("[WebRTC Player] Error sending player input via DataChannel, falling back to WS:", err);
+      }
     }
+    this.send(OpCode.INPUT, payload);
   }
 
   private getOrCreatePeerConnection(): RTCPeerConnection {
