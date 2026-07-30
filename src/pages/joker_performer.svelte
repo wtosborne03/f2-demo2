@@ -128,77 +128,56 @@
     </div>
   {/if}
 
-  <!-- Floating Header / App Bar -->
-  <header class="appbar">
-    <div class="badge-row">
-      <span class="live-pill" class:active={isStreaming}>
-        <span class="dot"></span>
-        {isStreaming ? "JOKER (LIVE)" : "CONNECTING..."}
-      </span>
-      <span
-        class="earpiece-pill"
-        class:speaking={isCrewSpeaking}
-        class:active={isEarpieceActive}
-      >
-        <span class="earpiece-icon">{isCrewSpeaking ? "🎙️" : "🎧"}</span>
-        {isCrewSpeaking
-          ? "CREW SPEAKING!"
-          : isEarpieceActive
-            ? "EARPIECE OK"
-            : "EARPIECE READY"}
-      </span>
-    </div>
+  <!-- Camera Controls Floating below the Top App Bar -->
+  {#if isStreaming}
+    <div class="camera-controls-floating">
+      <button type="button" class="btn-flip" on:click={handleFlipCamera}>
+        🔄 Flip
+      </button>
 
-    {#if isStreaming}
-      <div class="camera-controls-toolbar">
-        <button type="button" class="btn-flip" on:click={handleFlipCamera}>
-          🔄 Flip
-        </button>
-
-        {#if availableCameras.length > 2}
-          <div class="camera-lens-selector">
-            {#each availableCameras as cam, index}
-              <button
-                class="btn-lens {gameClient.activeDeviceId === cam.deviceId
-                  ? 'active'
-                  : ''}"
-                on:click={() => handleSelectSpecificCamera(cam.deviceId)}
-              >
-                {cam.label || `Lens ${index + 1}`}
-              </button>
-            {/each}
-          </div>
-        {/if}
-
-        <div class="zoom-controls-pill">
-          <span class="zoom-icon">🔍</span>
-          <button
-            type="button"
-            class="btn-zoom {currentZoom === 0.5 ? 'active' : ''}"
-            on:click={() => handleSetZoom(0.5)}
-          >
-            0.5x
-          </button>
-          <button
-            type="button"
-            class="btn-zoom {currentZoom === 1.0 ? 'active' : ''}"
-            on:click={() => handleSetZoom(1.0)}
-          >
-            1.0x
-          </button>
-          <button
-            type="button"
-            class="btn-zoom {currentZoom === 2.0 ? 'active' : ''}"
-            on:click={() => handleSetZoom(2.0)}
-          >
-            2.0x
-          </button>
+      {#if availableCameras.length > 2}
+        <div class="camera-lens-selector">
+          {#each availableCameras as cam, index}
+            <button
+              class="btn-lens {gameClient.activeDeviceId === cam.deviceId
+                ? 'active'
+                : ''}"
+              on:click={() => handleSelectSpecificCamera(cam.deviceId)}
+            >
+              {cam.label || `Lens ${index + 1}`}
+            </button>
+          {/each}
         </div>
-      </div>
-    {/if}
-  </header>
+      {/if}
 
-  <!-- Bottom Drawer Overlay: Assigned Dare Prompt & Action Button -->
+      <div class="zoom-controls-pill">
+        <span class="zoom-icon">🔍</span>
+        <button
+          type="button"
+          class="btn-zoom {currentZoom === 0.5 ? 'active' : ''}"
+          on:click={() => handleSetZoom(0.5)}
+        >
+          0.5x
+        </button>
+        <button
+          type="button"
+          class="btn-zoom {currentZoom === 1.0 ? 'active' : ''}"
+          on:click={() => handleSetZoom(1.0)}
+        >
+          1.0x
+        </button>
+        <button
+          type="button"
+          class="btn-zoom {currentZoom === 2.0 ? 'active' : ''}"
+          on:click={() => handleSetZoom(2.0)}
+        >
+          2.0x
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Bottom Drawer Overlay: Assigned Dare Prompt -->
   <main class="bottom-overlay">
     <div class="challenge-card">
       <div class="challenge-header">
@@ -212,23 +191,16 @@
           "Carry out the assigned dare on camera!"}
       </p>
     </div>
-
-    <button
-      class="btn-done"
-      class:submitted={taskSubmitted}
-      on:click={handleTaskDone}
-      disabled={taskSubmitted}
-    >
-      {taskSubmitted
-        ? "DARE COMPLETED! WAITING FOR VOTES..."
-        : "I FINISHED THE DARE! 👍"}
-    </button>
   </main>
 </div>
 
 <style>
   .joker-performer-container {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100vw;
     height: 100vh;
     background: #001219;
@@ -241,11 +213,13 @@
       Roboto,
       sans-serif;
     overflow: hidden;
+    z-index: 15;
   }
 
   .fullscreen-camera-preview {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -284,105 +258,22 @@
     box-shadow: 0 4px 15px rgba(230, 57, 70, 0.5);
   }
 
-  .appbar {
+  .camera-controls-floating {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    padding: 0.75rem 0.75rem 1.5rem 0.75rem;
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.4) 65%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    pointer-events: none;
-  }
-
-  .badge-row {
+    top: 5.5rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    z-index: 25;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
-    pointer-events: auto;
-  }
-
-  .live-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: rgba(0, 53, 102, 0.85);
-    backdrop-filter: blur(8px);
-    color: #90e0ef;
-    padding: 0.3rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    border: 1px solid rgba(144, 224, 239, 0.4);
-  }
-
-  .live-pill.active {
-    background: #e63946;
-    color: #ffffff;
-    border-color: #ffffff;
-    box-shadow: 0 0 12px rgba(230, 57, 70, 0.8);
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
-  .earpiece-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: rgba(0, 53, 102, 0.85);
-    backdrop-filter: blur(8px);
-    color: #90e0ef;
-    padding: 0.3rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    border: 1px solid rgba(144, 224, 239, 0.4);
-  }
-
-  .earpiece-pill.active {
-    border-color: #ffb703;
-    color: #ffb703;
-  }
-
-  .earpiece-pill.speaking {
-    background: #ffb703;
-    color: #001219;
-    border-color: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 183, 3, 0.9);
-    animation: earpiecePulse 1s infinite alternate;
-  }
-
-  @keyframes earpiecePulse {
-    0% {
-      transform: scale(1);
-    }
-    100% {
-      transform: scale(1.05);
-    }
-  }
-
-  .camera-controls-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.6rem;
     pointer-events: auto;
   }
 
   .btn-flip {
     background: rgba(0, 30, 60, 0.85);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: #ffb703;
     border: 1.5px solid #ffb703;
     padding: 0.35rem 0.75rem;
@@ -399,6 +290,7 @@
     gap: 0.2rem;
     background: rgba(0, 30, 60, 0.85);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1.5px solid #ffffff;
     border-radius: 0.6rem;
     padding: 0.2rem 0.35rem;
@@ -433,7 +325,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 20;
+    z-index: 25;
     padding: 1.5rem 1rem 1.25rem 1rem;
     background: linear-gradient(
       to top,
@@ -442,9 +334,6 @@
       rgba(0, 0, 0, 0) 100%
     );
     pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
   }
 
   .challenge-card {
@@ -489,27 +378,5 @@
     color: #ffffff;
     font-weight: 800;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-  }
-
-  .btn-done {
-    width: 100%;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: 2px solid white;
-    padding: 0.95rem;
-    font-size: 1.15rem;
-    font-weight: 900;
-    border-radius: 0.85rem;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .btn-done.submitted {
-    background: #334155;
-    box-shadow: none;
-    color: #94a3b8;
-    border-color: #475569;
   }
 </style>
