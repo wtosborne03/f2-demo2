@@ -338,12 +338,6 @@
     right: 0;
     z-index: 25;
     padding: 1.5rem 1rem 1.25rem 1rem;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.95) 0%,
-      rgba(0, 0, 0, 0.75) 70%,
-      rgba(0, 0, 0, 0) 100%
-    );
     pointer-events: auto;
   }
 
