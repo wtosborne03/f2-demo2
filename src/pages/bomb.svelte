@@ -243,7 +243,7 @@
       const x = Phaser.Math.Between(50, Math.max(100, w - 50));
       // Spawn higher up off-screen (-120) so bombs fall from above top of screen behind app bar
       const bomb = bombs.create(x, -120, "bomb") as Phaser.Physics.Arcade.Sprite;
-      bomb.setScale(0.14);
+      bomb.setScale(0.07);
       bomb.depth = 2;
 
       // Downward movement speed increases continuously over the 45 seconds game time
@@ -273,13 +273,13 @@
         "doubloon",
       ) as Phaser.Physics.Arcade.Sprite;
 
-      // Start scale at 0 and pop/animate scale in
+      // Start scale at 0 and pop/animate scale in (half size)
       coin.setScale(0);
       coin.depth = 3;
 
       scene.tweens.add({
         targets: coin,
-        scale: 0.18,
+        scale: 0.09,
         duration: 400,
         ease: "Back.easeOut",
       });
@@ -305,8 +305,11 @@
         ease: "Linear",
       });
 
-      // Schedule next coin drop
-      const nextDelay = Phaser.Math.Between(2400, 3800);
+      // Schedule next coin drop with increasing frequency over 45s (2400-3600ms down to 600-1200ms)
+      const progress = Math.min(1, gameTimeElapsed / 45);
+      const minDelay = Math.max(600, 2400 - progress * 1800);
+      const maxDelay = Math.max(1200, 3600 - progress * 2400);
+      const nextDelay = Phaser.Math.Between(minDelay, maxDelay);
       scene.time.delayedCall(nextDelay, spawnCoin);
     }
 
@@ -579,27 +582,6 @@
 <div
   class="fixed inset-0 w-full h-full bg-transparent text-white overflow-hidden flex flex-col justify-center items-center select-none font-sans"
 >
-  <!-- Minimal HUD Header (App bar rendering above canvas) -->
-  <header
-    class="absolute top-20 left-0 right-0 px-6 flex justify-between items-center z-30 pointer-events-none drop-shadow-md"
-  >
-    <div class="flex items-center space-x-4 font-bold text-sm md:text-base">
-      <span class="text-amber-400">🪙 {coinsCount}</span>
-      <span class="text-emerald-400">💣 {defusedCount}</span>
-      <span class="text-indigo-200">{score} PTS</span>
-    </div>
-    <div class="flex items-center space-x-1 text-lg">
-      {#each Array(3) as _, i}
-        <span
-          class="transition-opacity duration-300"
-          class:opacity-25={i >= lives}
-        >
-          {i < lives ? "❤️" : "🖤"}
-        </span>
-      {/each}
-    </div>
-  </header>
-
   <!-- Phaser Game Container extending to top of screen behind app bar -->
   <div
     id="game-container"
