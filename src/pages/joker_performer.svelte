@@ -103,108 +103,116 @@
 <audio bind:this={earpieceAudioEl} autoplay playsinline></audio>
 
 <div class="joker-performer-container">
-  <header class="header">
+  <!-- Fullscreen Local Camera Video Preview (Behind App Bar & Bottom Card) -->
+  <video
+    bind:this={videoEl}
+    autoplay
+    playsinline
+    muted
+    class="fullscreen-camera-preview"
+    style="transform: scaleX({gameClient.currentFacingMode === 'user'
+      ? -1
+      : 1}) {currentZoom > 1.0 ? `scale(${currentZoom})` : ''};"
+  ></video>
+
+  {#if !isStreaming}
+    <div class="placeholder-overlay">
+      <div class="cam-icon">📹</div>
+      <p>Camera is currently off</p>
+      {#if errorMessage}
+        <p class="error">{errorMessage}</p>
+      {/if}
+      <button class="btn-start" on:click={handleStartPerformerStream}>
+        Start HD Camera Stream
+      </button>
+    </div>
+  {/if}
+
+  <!-- Floating Header / App Bar -->
+  <header class="appbar">
     <div class="badge-row">
       <span class="live-pill" class:active={isStreaming}>
         <span class="dot"></span>
-        {isStreaming ? "YOU ARE THE JOKER (HD LIVE)" : "CONNECTING..."}
+        {isStreaming ? "JOKER (LIVE)" : "CONNECTING..."}
       </span>
-      <span class="earpiece-pill" class:speaking={isCrewSpeaking} class:active={isEarpieceActive}>
+      <span
+        class="earpiece-pill"
+        class:speaking={isCrewSpeaking}
+        class:active={isEarpieceActive}
+      >
         <span class="earpiece-icon">{isCrewSpeaking ? "🎙️" : "🎧"}</span>
-        {isCrewSpeaking ? "CREW SPEAKING IN EARPIECE!" : isEarpieceActive ? "EARPIECE CONNECTED" : "EARPIECE READY"}
+        {isCrewSpeaking
+          ? "CREW SPEAKING!"
+          : isEarpieceActive
+            ? "EARPIECE OK"
+            : "EARPIECE READY"}
       </span>
     </div>
-    <h2>{$gameState.page_data?.challengeTitle || "THE JOKER DARE"}</h2>
+
+    {#if isStreaming}
+      <div class="camera-controls-toolbar">
+        <button type="button" class="btn-flip" on:click={handleFlipCamera}>
+          🔄 Flip
+        </button>
+
+        {#if availableCameras.length > 2}
+          <div class="camera-lens-selector">
+            {#each availableCameras as cam, index}
+              <button
+                class="btn-lens {gameClient.activeDeviceId === cam.deviceId
+                  ? 'active'
+                  : ''}"
+                on:click={() => handleSelectSpecificCamera(cam.deviceId)}
+              >
+                {cam.label || `Lens ${index + 1}`}
+              </button>
+            {/each}
+          </div>
+        {/if}
+
+        <div class="zoom-controls-pill">
+          <span class="zoom-icon">🔍</span>
+          <button
+            type="button"
+            class="btn-zoom {currentZoom === 0.5 ? 'active' : ''}"
+            on:click={() => handleSetZoom(0.5)}
+          >
+            0.5x
+          </button>
+          <button
+            type="button"
+            class="btn-zoom {currentZoom === 1.0 ? 'active' : ''}"
+            on:click={() => handleSetZoom(1.0)}
+          >
+            1.0x
+          </button>
+          <button
+            type="button"
+            class="btn-zoom {currentZoom === 2.0 ? 'active' : ''}"
+            on:click={() => handleSetZoom(2.0)}
+          >
+            2.0x
+          </button>
+        </div>
+      </div>
+    {/if}
   </header>
 
-  <!-- Local Camera Preview -->
-  <main class="preview-area">
-    <div class="video-wrapper">
-      <video
-        bind:this={videoEl}
-        autoplay
-        playsinline
-        muted
-        class="camera-preview"
-        style="transform: scaleX({gameClient.currentFacingMode === 'user'
-          ? -1
-          : 1}) {currentZoom > 1.0 ? `scale(${currentZoom})` : ''};"
-      ></video>
-
-      {#if isStreaming}
-        <div class="camera-controls-bar">
-          <button type="button" class="btn-flip" on:click={handleFlipCamera}>
-            🔄 Flip
-          </button>
-
-          {#if availableCameras.length > 2}
-            <div class="camera-lens-selector">
-              {#each availableCameras as cam, index}
-                <button
-                  class="btn-lens {gameClient.activeDeviceId === cam.deviceId
-                    ? 'active'
-                    : ''}"
-                  on:click={() => handleSelectSpecificCamera(cam.deviceId)}
-                >
-                  {cam.label || `Lens ${index + 1}`}
-                </button>
-              {/each}
-            </div>
-          {/if}
-
-          <!-- 0.5x / 1.0x / 2.0x Zoom Control Buttons -->
-          <div class="zoom-controls-pill">
-            <span class="zoom-icon">🔍</span>
-            <button
-              type="button"
-              class="btn-zoom {currentZoom === 0.5 ? 'active' : ''}"
-              on:click={() => handleSetZoom(0.5)}
-            >
-              0.5x
-            </button>
-            <button
-              type="button"
-              class="btn-zoom {currentZoom === 1.0 ? 'active' : ''}"
-              on:click={() => handleSetZoom(1.0)}
-            >
-              1.0x
-            </button>
-            <button
-              type="button"
-              class="btn-zoom {currentZoom === 2.0 ? 'active' : ''}"
-              on:click={() => handleSetZoom(2.0)}
-            >
-              2.0x
-            </button>
-          </div>
-        </div>
-      {/if}
-
-      {#if !isStreaming}
-        <div class="placeholder-overlay">
-          <div class="cam-icon">📹</div>
-          <p>Camera is currently off</p>
-          {#if errorMessage}
-            <p class="error">{errorMessage}</p>
-          {/if}
-          <button class="btn-start" on:click={handleStartPerformerStream}>
-            Start HD Camera Stream
-          </button>
-        </div>
-      {/if}
-    </div>
-
-    <!-- Challenge Instructions -->
-    <div class="challenge-box">
-      <h3>YOUR ASSIGNED DARE:</h3>
-      <p>
+  <!-- Bottom Drawer Overlay: Assigned Dare Prompt & Action Button -->
+  <main class="bottom-overlay">
+    <div class="challenge-card">
+      <div class="challenge-header">
+        <span class="dare-label">YOUR DARE</span>
+        <span class="challenge-title"
+          >{$gameState.page_data?.challengeTitle || "THE JOKER DARE"}</span
+        >
+      </div>
+      <p class="challenge-text">
         {$gameState.page_data?.challengeDescription ||
           "Carry out the assigned dare on camera!"}
       </p>
     </div>
-  </main>
 
-  <footer class="footer-section">
     <button
       class="btn-done"
       class:submitted={taskSubmitted}
@@ -215,16 +223,15 @@
         ? "DARE COMPLETED! WAITING FOR VOTES..."
         : "I FINISHED THE DARE! 👍"}
     </button>
-  </footer>
+  </main>
 </div>
 
 <style>
   .joker-performer-container {
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    width: 100vw;
     height: 100vh;
-    width: 100%;
-    background: #0077b6;
+    background: #001219;
     color: #ffffff;
     font-family:
       system-ui,
@@ -233,38 +240,93 @@
       "Segoe UI",
       Roboto,
       sans-serif;
-    padding: 1rem;
-    box-sizing: border-box;
+    overflow: hidden;
   }
 
-  .header {
+  .fullscreen-camera-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .placeholder-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 30, 60, 0.95);
+    padding: 1.5rem;
     text-align: center;
-    margin-bottom: 0.75rem;
+  }
+
+  .cam-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, #e63946, #d90429);
+    color: white;
+    border: 2px solid white;
+    padding: 0.85rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 900;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    box-shadow: 0 4px 15px rgba(230, 57, 70, 0.5);
+  }
+
+  .appbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding: 0.75rem 0.75rem 1.5rem 0.75rem;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.85) 0%,
+      rgba(0, 0, 0, 0.4) 65%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    pointer-events: none;
   }
 
   .badge-row {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    pointer-events: auto;
   }
 
   .live-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: #003566;
+    background: rgba(0, 53, 102, 0.85);
+    backdrop-filter: blur(8px);
     color: #90e0ef;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 800;
+    border: 1px solid rgba(144, 224, 239, 0.4);
   }
 
   .live-pill.active {
     background: #e63946;
     color: #ffffff;
-    box-shadow: 0 0 12px rgba(230, 57, 70, 0.6);
+    border-color: #ffffff;
+    box-shadow: 0 0 12px rgba(230, 57, 70, 0.8);
   }
 
   .dot {
@@ -274,179 +336,18 @@
     background: currentColor;
   }
 
-  h2 {
-    font-size: 1.3rem;
-    margin: 0;
-    color: #ffb703;
-    font-weight: 900;
-    text-shadow: 2px 2px 0px #000;
-  }
-
-  .preview-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .video-wrapper {
-    position: relative;
-    width: 100%;
-    height: 250px;
-    border-radius: 1rem;
-    overflow: hidden;
-    background: #001219;
-    border: 4px solid #ffb703;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  }
-
-  .camera-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.2s ease;
-  }
-
-  .placeholder-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 53, 102, 0.95);
-    padding: 1rem;
-  }
-
-  .btn-start {
-    background: linear-gradient(135deg, #e63946, #d90429);
-    color: white;
-    border: 2px solid white;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 900;
-    border-radius: 0.75rem;
-    cursor: pointer;
-  }
-
-  .camera-controls-bar {
-    position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    right: 0.6rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 10;
-    pointer-events: auto;
-  }
-
-  .btn-flip {
-    background: rgba(0, 53, 102, 0.9);
-    backdrop-filter: blur(6px);
-    color: #ffb703;
-    border: 2px solid #ffb703;
-    padding: 0.35rem 0.75rem;
-    border-radius: 0.6rem;
-    font-weight: 800;
-    font-size: 0.8rem;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  }
-
-  .zoom-controls-pill {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: rgba(0, 30, 60, 0.9);
-    backdrop-filter: blur(6px);
-    border: 2px solid #ffffff;
-    border-radius: 0.6rem;
-    padding: 0.25rem 0.4rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  }
-
-  .zoom-icon {
-    font-size: 0.75rem;
-  }
-
-  .btn-zoom {
-    background: transparent;
-    border: none;
-    color: #90e0ef;
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 0.2rem 0.45rem;
-    border-radius: 0.4rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .btn-zoom.active {
-    background: #ffb703;
-    color: #001219;
-    font-weight: 900;
-  }
-
-  .challenge-box {
-    background: #003566;
-    border-left: 6px solid #ffb703;
-    border-radius: 0.75rem;
-    padding: 1rem;
-  }
-
-  .challenge-box h3 {
-    margin: 0 0 0.4rem 0;
-    font-size: 0.9rem;
-    color: #ffb703;
-    letter-spacing: 0.05em;
-    font-weight: 900;
-  }
-
-  .challenge-box p {
-    margin: 0;
-    font-size: 1.1rem;
-    line-height: 1.4;
-    color: #ffffff;
-    font-weight: 700;
-  }
-
-  .footer-section {
-    margin-top: 1rem;
-  }
-
-  .btn-done {
-    width: 100%;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: 2px solid white;
-    padding: 1rem;
-    font-size: 1.15rem;
-    font-weight: 900;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    text-transform: uppercase;
-  }
-
-  .btn-done.submitted {
-    background: #334155;
-    box-shadow: none;
-    color: #94a3b8;
-    border-color: #475569;
-  }
-
   .earpiece-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: #003566;
+    background: rgba(0, 53, 102, 0.85);
+    backdrop-filter: blur(8px);
     color: #90e0ef;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 800;
-    border: 1px solid #90e0ef;
+    border: 1px solid rgba(144, 224, 239, 0.4);
   }
 
   .earpiece-pill.active {
@@ -458,12 +359,157 @@
     background: #ffb703;
     color: #001219;
     border-color: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 183, 3, 0.8);
+    box-shadow: 0 0 12px rgba(255, 183, 3, 0.9);
     animation: earpiecePulse 1s infinite alternate;
   }
 
   @keyframes earpiecePulse {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.05); }
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.05);
+    }
+  }
+
+  .camera-controls-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.6rem;
+    pointer-events: auto;
+  }
+
+  .btn-flip {
+    background: rgba(0, 30, 60, 0.85);
+    backdrop-filter: blur(8px);
+    color: #ffb703;
+    border: 1.5px solid #ffb703;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.6rem;
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .zoom-controls-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: rgba(0, 30, 60, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid #ffffff;
+    border-radius: 0.6rem;
+    padding: 0.2rem 0.35rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .zoom-icon {
+    font-size: 0.75rem;
+    margin-right: 0.1rem;
+  }
+
+  .btn-zoom {
+    background: transparent;
+    border: none;
+    color: #90e0ef;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-zoom.active {
+    background: #ffb703;
+    color: #001219;
+    font-weight: 900;
+  }
+
+  .bottom-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding: 1.5rem 1rem 1.25rem 1rem;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.75) 70%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .challenge-card {
+    background: rgba(0, 30, 60, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 5px solid #ffb703;
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .challenge-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .dare-label {
+    background: #ffb703;
+    color: #001219;
+    font-weight: 900;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .challenge-title {
+    color: #ffb703;
+    font-weight: 900;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+  }
+
+  .challenge-text {
+    margin: 0;
+    font-size: 1.15rem;
+    line-height: 1.35;
+    color: #ffffff;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  .btn-done {
+    width: 100%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: 2px solid white;
+    padding: 0.95rem;
+    font-size: 1.15rem;
+    font-weight: 900;
+    border-radius: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-done.submitted {
+    background: #334155;
+    box-shadow: none;
+    color: #94a3b8;
+    border-color: #475569;
   }
 </style>
