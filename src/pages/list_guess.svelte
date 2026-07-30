@@ -10,7 +10,7 @@
   let survival_prompt = "";
 
   function submit_prompt() {
-    gameClient.sendPlayerInput("promptTextData", {
+    gameClient.sendPlayerInput("playerVoteData", {
       answer: survival_prompt,
     });
   }
