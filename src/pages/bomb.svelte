@@ -268,7 +268,7 @@
         y,
         "doubloon",
       ) as Phaser.Physics.Arcade.Sprite;
-      
+
       // Start scale at 0 and pop/animate scale in
       coin.setScale(0);
       coin.depth = 3;
@@ -458,7 +458,12 @@
 
               lives -= 1;
               vibrate(180);
-              addFloatingText("DIRECT HIT! -1 ❤️", AVATAR_X, AVATAR_Y - 50, "#ff0000");
+              addFloatingText(
+                "DIRECT HIT! -1 ❤️",
+                AVATAR_X,
+                AVATAR_Y - 50,
+                "#ff0000",
+              );
 
               if (lives <= 0) {
                 isGameOver = true;
@@ -605,41 +610,23 @@
       class:animate-bounce-pop={isAvatarBouncing}
       class:animate-wiggle-shake={isAvatarShaking}
     >
-      <div
-        class="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white/80 bg-slate-900 shadow-md flex items-center justify-center"
-      >
-        {#if avatarUrl}
-          <img
-            src={avatarUrl}
-            alt="Player Selfie Avatar"
-            class="w-full h-full object-cover"
-          />
-        {:else}
-          <div
-            class="w-full h-full bg-gradient-to-br from-indigo-500 to-pink-500 flex flex-col items-center justify-center p-2"
-          >
-            <div class="flex space-x-2 mb-1">
-              <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
-              <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
-            </div>
-            <div class="w-5 h-1.5 rounded-full bg-white/90"></div>
-          </div>
-        {/if}
-
+      {#if avatarUrl}
+        <img
+          src={avatarUrl}
+          alt="Player Selfie Avatar"
+          class="w-full h-full object-cover"
+        />
+      {:else}
         <div
-          class="absolute bottom-0 right-0 bg-black/75 rounded-full w-6 h-6 flex items-center justify-center text-xs border border-white/40"
+          class="w-full h-full bg-gradient-to-br from-indigo-500 to-pink-500 flex flex-col items-center justify-center p-2"
         >
-          {#if currentExpression === "happy"}
-            😃
-          {:else if currentExpression === "sad"}
-            😢
-          {:else if currentExpression === "surprised"}
-            😲
-          {:else}
-            🙂
-          {/if}
+          <div class="flex space-x-2 mb-1">
+            <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+          </div>
+          <div class="w-5 h-1.5 rounded-full bg-white/90"></div>
         </div>
-      </div>
+      {/if}
     </div>
   </div>
 
