@@ -333,7 +333,7 @@
 
   .bottom-overlay {
     position: absolute;
-    bottom: 0.5rem;
+    bottom: 5.5rem;
     left: 0;
     right: 0;
     z-index: 25;
