@@ -1,13 +1,47 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   let votedValue: boolean | null = null;
+  let isTalkingToEarpiece = false;
+  let micError = "";
 
   function handleVote(satisfied: boolean) {
     votedValue = satisfied;
     console.log("[Joker Spectator UI] Voting satisfaction:", satisfied);
     gameClient.sendPlayerInput("satisfaction_vote", { satisfied });
   }
+
+  async function handleStartTalking() {
+    micError = "";
+    console.log("[Joker Spectator UI] Starting audio stream for Joker earpiece...");
+    const success = await gameClient.startAudioStream();
+    if (success) {
+      isTalkingToEarpiece = true;
+    } else {
+      micError = "Could not access microphone. Check permissions.";
+    }
+  }
+
+  function handleStopTalking() {
+    console.log("[Joker Spectator UI] Stopping audio stream for Joker earpiece...");
+    gameClient.stopAudioStream();
+    isTalkingToEarpiece = false;
+  }
+
+  async function handleToggleTalking() {
+    if (isTalkingToEarpiece) {
+      handleStopTalking();
+    } else {
+      await handleStartTalking();
+    }
+  }
+
+  onDestroy(() => {
+    if (isTalkingToEarpiece) {
+      gameClient.stopAudioStream();
+    }
+  });
 </script>
 
 <div class="joker-spectator-container">
@@ -23,6 +57,29 @@
   </header>
 
   <main class="main-controls">
+    <!-- Earpiece Microphone Push-To-Talk Control -->
+    <div class="earpiece-control-section">
+      <button
+        type="button"
+        class="earpiece-btn"
+        class:talking={isTalkingToEarpiece}
+        on:pointerdown={handleStartTalking}
+        on:pointerup={handleStopTalking}
+        on:click={handleToggleTalking}
+      >
+        <span class="mic-icon">{isTalkingToEarpiece ? "🔴" : "🎙️"}</span>
+        <span>{isTalkingToEarpiece ? "BROADCASTING TO EARPIECE!" : "TALK INTO JOKER'S EARPIECE"}</span>
+      </button>
+      <p class="earpiece-hint">
+        {isTalkingToEarpiece
+          ? "The Joker can hear you live in their headphones!"
+          : "Hold or tap button to speak into the Joker's earpiece live"}
+      </p>
+      {#if micError}
+        <p class="mic-error">{micError}</p>
+      {/if}
+    </div>
+
     <!-- Thumbs Up / Thumbs Down Voting Buttons -->
     <div class="vote-section">
       <h3>CAST YOUR JUDGMENT:</h3>
@@ -183,5 +240,59 @@
     font-size: 1.05rem;
     color: #ffb703;
     font-weight: 800;
+  }
+
+  .earpiece-control-section {
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+
+  .earpiece-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1rem;
+    background: linear-gradient(135deg, #0077b6, #0096c7);
+    color: #ffffff;
+    border: 3px solid #ffb703;
+    border-radius: 1rem;
+    font-weight: 900;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    touch-action: manipulation;
+    transition: all 0.2s ease;
+  }
+
+  .earpiece-btn.talking {
+    background: linear-gradient(135deg, #e63946, #d90429);
+    border-color: #ffffff;
+    box-shadow: 0 0 20px rgba(230, 57, 70, 0.8);
+    animation: broadcastPulse 1s infinite alternate;
+  }
+
+  @keyframes broadcastPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.03); }
+  }
+
+  .mic-icon {
+    font-size: 1.4rem;
+  }
+
+  .earpiece-hint {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #caf0f8;
+    font-weight: 600;
+  }
+
+  .mic-error {
+    margin-top: 0.4rem;
+    color: #ff4d6d;
+    font-weight: 800;
+    font-size: 0.85rem;
   }
 </style>

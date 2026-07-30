@@ -781,6 +781,10 @@ class GameClient {
       return false;
     }
     try {
+      if (this.localAudioStream) {
+        this.stopAudioStream();
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         video: false
@@ -789,11 +793,18 @@ class GameClient {
       this.localAudioStream = stream;
 
       const pc = this.getOrCreatePeerConnection();
+      const senders = pc.getSenders();
 
-      stream.getAudioTracks().forEach(track => {
-        console.log(`[WebRTC Player] Adding audio track (${track.kind}) to PC`);
-        pc.addTrack(track, stream);
-      });
+      for (const track of stream.getAudioTracks()) {
+        const existingAudioSender = senders.find((s) => s.track && s.track.kind === "audio");
+        if (existingAudioSender) {
+          console.log("[WebRTC Player] Replacing existing audio track sender...");
+          await existingAudioSender.replaceTrack(track);
+        } else {
+          console.log(`[WebRTC Player] Adding new audio track (${track.kind}) to PC`);
+          pc.addTrack(track, stream);
+        }
+      }
 
       console.log("[WebRTC Player] Creating SDP offer for audio stream");
       const offer = await pc.createOffer();
@@ -810,15 +821,16 @@ class GameClient {
   public stopAudioStream() {
     if (this.localAudioStream) {
       this.localAudioStream.getTracks().forEach(track => {
+        track.enabled = false;
         track.stop();
         if (this.pc) {
           const senders = this.pc.getSenders();
-          const sender = senders.find(s => s.track === track);
+          const sender = senders.find(s => s.track === track || s.track?.kind === "audio");
           if (sender) {
             try {
-              this.pc.removeTrack(sender);
+              sender.replaceTrack(null);
             } catch (e) {
-              console.warn("[WebRTC Player] Could not remove track from PC:", e);
+              console.warn("[WebRTC Player] Could not remove audio track from PC sender:", e);
             }
           }
         }

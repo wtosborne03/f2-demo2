@@ -4,6 +4,10 @@
 
   let isStreaming = false;
   let videoEl: HTMLVideoElement | null = null;
+  let earpieceAudioEl: HTMLAudioElement | null = null;
+  let isEarpieceActive = false;
+  let isCrewSpeaking = false;
+  let crewSpeakingTimeout: any = null;
   let errorMessage = "";
   let taskSubmitted = false;
   let currentZoom = 1.0;
@@ -11,8 +15,37 @@
   onMount(() => {
     handleStartPerformerStream();
 
+    const handleRemoteTrack = (data: { stream: MediaStream; track: MediaStreamTrack }) => {
+      console.log("[Joker Performer] Received remote track from host/crew:", data);
+      if (data.track.kind === "audio" || (data.stream && data.stream.getAudioTracks().length > 0)) {
+        isEarpieceActive = true;
+        isCrewSpeaking = true;
+        if (earpieceAudioEl) {
+          earpieceAudioEl.srcObject = data.stream;
+          earpieceAudioEl.play().catch((err) => console.warn("[Joker Performer] Earpiece audio play error:", err));
+        }
+
+        if (crewSpeakingTimeout) clearTimeout(crewSpeakingTimeout);
+        crewSpeakingTimeout = setTimeout(() => {
+          isCrewSpeaking = false;
+        }, 4000);
+      }
+    };
+
+    gameClient.on("remoteTrack", handleRemoteTrack);
+
+    if (gameClient.remoteStream) {
+      isEarpieceActive = true;
+      if (earpieceAudioEl) {
+        earpieceAudioEl.srcObject = gameClient.remoteStream;
+        earpieceAudioEl.play().catch(() => {});
+      }
+    }
+
     return () => {
+      gameClient.off("remoteTrack", handleRemoteTrack);
       gameClient.stopVideoStream();
+      if (crewSpeakingTimeout) clearTimeout(crewSpeakingTimeout);
     };
   });
 
@@ -66,12 +99,19 @@
   }
 </script>
 
+<!-- Hidden HTML5 Audio Element for Spectator Earpiece Audio -->
+<audio bind:this={earpieceAudioEl} autoplay playsinline></audio>
+
 <div class="joker-performer-container">
   <header class="header">
     <div class="badge-row">
       <span class="live-pill" class:active={isStreaming}>
         <span class="dot"></span>
         {isStreaming ? "YOU ARE THE JOKER (HD LIVE)" : "CONNECTING..."}
+      </span>
+      <span class="earpiece-pill" class:speaking={isCrewSpeaking} class:active={isEarpieceActive}>
+        <span class="earpiece-icon">{isCrewSpeaking ? "🎙️" : "🎧"}</span>
+        {isCrewSpeaking ? "CREW SPEAKING IN EARPIECE!" : isEarpieceActive ? "EARPIECE CONNECTED" : "EARPIECE READY"}
       </span>
     </div>
     <h2>{$gameState.page_data?.challengeTitle || "THE JOKER DARE"}</h2>
@@ -394,5 +434,36 @@
     box-shadow: none;
     color: #94a3b8;
     border-color: #475569;
+  }
+
+  .earpiece-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #003566;
+    color: #90e0ef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 1px solid #90e0ef;
+  }
+
+  .earpiece-pill.active {
+    border-color: #ffb703;
+    color: #ffb703;
+  }
+
+  .earpiece-pill.speaking {
+    background: #ffb703;
+    color: #001219;
+    border-color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 183, 3, 0.8);
+    animation: earpiecePulse 1s infinite alternate;
+  }
+
+  @keyframes earpiecePulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
   }
 </style>
