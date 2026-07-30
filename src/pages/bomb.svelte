@@ -246,16 +246,18 @@
       bomb.setScale(0.14);
       bomb.depth = 2;
 
-      // Slower downward movement speed
-      const speedY =
-        Phaser.Math.Between(70, 120) + Math.min(60, gameTimeElapsed * 2);
+      // Downward movement speed increases continuously over the 45 seconds game time
+      const progress = Math.min(1, gameTimeElapsed / 45);
+      const minSpeed = 80 + progress * 240; // 80 -> 320 px/s
+      const maxSpeed = 130 + progress * 310; // 130 -> 440 px/s
+      const speedY = Phaser.Math.Between(minSpeed, maxSpeed);
       bomb.setVelocityY(speedY);
       bomb.setAngularVelocity(Phaser.Math.Between(-40, 40));
       bomb.setData("type", "bomb");
       bomb.setData("isFlinged", false);
 
-      // Schedule next bomb drop
-      const nextDelay = Math.max(900, 1800 - gameTimeElapsed * 20);
+      // Schedule next bomb drop with shorter delays over 45s (1800ms down to 650ms)
+      const nextDelay = Math.max(650, 1800 - progress * 1150);
       scene.time.delayedCall(nextDelay, spawnBomb);
     }
 
@@ -414,8 +416,9 @@
     scene.input.on("pointerupoutside", releaseItem);
 
     // GAME UPDATE LOOP
-    scene.events.on("update", () => {
+    scene.events.on("update", (_time: number, delta: number) => {
       if (isGameOver) return;
+      const progress = Math.min(1, gameTimeElapsed / 45);
 
       // UPDATE BOMBS
       bombs.getChildren().forEach((bObj: any) => {
@@ -478,6 +481,11 @@
             }
           }
         } else {
+          // Downward acceleration for falling bombs increases as progress ramps over 45s
+          const currentVy = bomb.body.velocity.y;
+          const accelY = 40 + progress * 120;
+          bomb.setVelocityY(currentVy + accelY * ((delta || 16.6) / 1000));
+
           // Check if falling bomb reached avatar zone at bottom
           const distToAvatar = Phaser.Math.Distance.Between(
             bomb.x,
