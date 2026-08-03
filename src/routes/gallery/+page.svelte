@@ -147,6 +147,9 @@
 
 <style>
     .gallery-container {
+        height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding: 2rem 1rem;
         display: flex;
         flex-direction: column;
@@ -170,8 +173,6 @@
         line-height: 1.286;
         font-weight: 800;
         color: var(--m3c-on-background);
-        margin-top: 0;
-        margin-bottom: 2rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
