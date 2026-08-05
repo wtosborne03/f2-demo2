@@ -67,6 +67,7 @@ class GameClient {
   private listeners: Record<string, Function[]> = {};
   public activeDeviceId: string | null = null;
   public availableVideoDevices: MediaDeviceInfo[] = [];
+  private iceCandidateQueue: RTCIceCandidateInit[] = [];
 
   public on(event: string, callback: Function) {
     if (!this.listeners[event]) this.listeners[event] = [];
@@ -140,7 +141,7 @@ class GameClient {
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
-          gameState.set(payload);
+          gameState.update((current) => ({ ...current, ...payload }));
           break;
         case OpCode.ERROR:
           errorStore.set(payload);
@@ -289,6 +290,7 @@ class GameClient {
 
   private handleGameEnded() {
     this.clearSession();
+    this.cleanupWebRTC();
     this.shouldReconnect = false;
     this.ws?.close();
     gameState.set({
@@ -405,8 +407,27 @@ class GameClient {
     this.send(OpCode.INPUT, payload);
   }
 
+  public cleanupWebRTC() {
+    if (this.dc) {
+      try {
+        this.dc.close();
+      } catch (e) {}
+      this.dc = null;
+    }
+    if (this.pc) {
+      try {
+        this.pc.close();
+      } catch (e) {}
+      this.pc = null;
+    }
+    this.iceCandidateQueue = [];
+  }
+
   private getOrCreatePeerConnection(): RTCPeerConnection {
-    if (this.pc) return this.pc;
+    if (this.pc && this.pc.signalingState !== "closed") return this.pc;
+    if (this.pc) {
+      this.cleanupWebRTC();
+    }
 
     const iceServers = [
       { urls: "stun:stun.l.google.com:19302" },
@@ -447,7 +468,7 @@ class GameClient {
           const { op, payload } = decode(buffer);
           if (op === OpCode.STATE_UPDATE) {
             this.trackStateStatus(payload);
-            gameState.set(payload);
+            gameState.update((current) => ({ ...current, ...payload }));
           }
         } catch (err) {
           console.error("[WebRTC] Error decoding DataChannel message:", err);
@@ -474,9 +495,15 @@ class GameClient {
     try {
       if (typeof RTCPeerConnection === "undefined") return;
 
+      if (this.pc && (this.pc.signalingState === "closed" || this.pc.iceConnectionState === "failed")) {
+        console.log("[WebRTC Player] PeerConnection is closed/failed. Cleaning up before handling new offer.");
+        this.cleanupWebRTC();
+      }
+
       const pc = this.getOrCreatePeerConnection();
 
       await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      await this.drainIceCandidateQueue();
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
@@ -859,6 +886,7 @@ class GameClient {
       try {
         console.log("[WebRTC Player] Setting remote description from WEBRTC_ANSWER", sdp);
         await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        await this.drainIceCandidateQueue();
         console.log("[WebRTC Player] Remote description set! signalingState:", this.pc.signalingState, "iceConnectionState:", this.pc.iceConnectionState);
       } catch (err) {
         console.error("[WebRTC Player] Error setting remote description from WEBRTC_ANSWER:", err);
@@ -881,12 +909,29 @@ class GameClient {
   }
 
   private async handleWebRTCIceCandidate(candidate: RTCIceCandidateInit) {
-    if (this.pc) {
+    if (this.pc && this.pc.remoteDescription && this.pc.remoteDescription.type) {
       try {
         console.log("[WebRTC Player] Adding ICE candidate from Host");
         await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (err) {
         console.error("[WebRTC Player] Error adding ICE candidate:", err);
+      }
+    } else {
+      console.log("[WebRTC Player] Remote description not set yet. Queueing ICE candidate...");
+      this.iceCandidateQueue.push(candidate);
+    }
+  }
+
+  private async drainIceCandidateQueue() {
+    if (!this.pc || !this.pc.remoteDescription || this.iceCandidateQueue.length === 0) return;
+    console.log(`[WebRTC Player] Draining ${this.iceCandidateQueue.length} queued ICE candidates`);
+    const candidates = [...this.iceCandidateQueue];
+    this.iceCandidateQueue = [];
+    for (const candidate of candidates) {
+      try {
+        await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.error("[WebRTC Player] Error adding queued ICE candidate:", err);
       }
     }
   }
@@ -1053,6 +1098,7 @@ class GameClient {
     this.roomStatus = "UNKNOWN";
     this.hasSeenInGameState = false;
     this.pendingCriticalMessages = [];
+    this.cleanupWebRTC();
     if (typeof window !== "undefined") {
       localStorage.removeItem("couch_pid");
       localStorage.removeItem("couch_room");
