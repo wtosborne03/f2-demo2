@@ -6,7 +6,7 @@
 
 <button
     aria-label="Continue with Google"
-    class="flex items-center justify-between h-12 bg-[#f2f2f2] px-3 py-7 rounded-md pr-3"
+    class="flex items-center justify-between h-12 bg-[#f2f2f2] px-3 py-7 rounded-2xl pr-3 hover:bg-[#eaeaea]"
     on:click={onClick}
 >
     <Icon
@@ -14,5 +14,8 @@
         font-size="2.75rem"
         class="mr-2 text-white"
     />
-    <span class="text-[1.1rem] text-black font-medium">Google</span>
+    <span
+        class="text-2xl text-black"
+        style="font-family: 'Roboto', arial, sans-serif;">Google</span
+    >
 </button>

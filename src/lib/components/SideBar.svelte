@@ -11,9 +11,9 @@
     import { page } from "$app/state";
     import { browser } from "$app/environment";
     import Spinner from "./spinner.svelte";
+    import Iconify from "@iconify/svelte";
 
     import iconPerson from "@ktibow/iconset-material-symbols/person";
-    import iconStorefront from "@ktibow/iconset-material-symbols/storefront";
     import iconLeaderboard from "@ktibow/iconset-material-symbols/leaderboard";
     import iconLogout from "@ktibow/iconset-material-symbols/logout";
     import iconImage from "@ktibow/iconset-material-symbols/image";
@@ -125,17 +125,31 @@
                 <Spinner />
             </div>
         {:else if $session.data?.user}
-            <div class="user-info">
-                <span class="user-email">{$session.data?.user?.email}</span>
+            <div
+                class="flex flex-col gap-2 m-3 mt-1 p-3 rounded-2xl bg-accent/15"
+            >
+                <span class="flex w-full justify-center text-xl"
+                    >{$session.data.user.name}</span
+                >
+                <span
+                    class="flex gap-2 justify-between w-full items-center opacity-60"
+                    ><Iconify
+                        icon="mdi:email-outline"
+                        font-size="1.5rem"
+                    /><span class="overflow-hidden text-ellipsis"
+                        >{$session.data?.user?.email}</span
+                    ></span
+                >
             </div>
         {:else}
-            <div class="signin-info">
-                <span class="signin-title">Sign In</span>
-            </div>
-            <div class="signin-options">
-                <GoogleSignInButton onClick={signInWithGoogle} />
-                <SpotifySignInButton onClick={signInWithSpotify} />
-                <AppleSignInButton onClick={signInWithApple} />
+            <div
+                class="flex flex-col gap-2 m-3 mt-1 p-3 rounded-2xl bg-accent/15"
+            >
+                <span class="w-full text-center text-xl mb-2">Sign In</span>
+                <div class="w-full flex flex-col gap-3">
+                    <GoogleSignInButton onClick={signInWithGoogle} />
+                    <AppleSignInButton onClick={signInWithApple} />
+                </div>
             </div>
         {/if}
 
