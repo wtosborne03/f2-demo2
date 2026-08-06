@@ -141,6 +141,7 @@ class GameClient {
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
+          console.log("STATE_UPDATE", payload);
           gameState.update((current) => ({ ...current, ...payload }));
           break;
         case OpCode.ERROR:
@@ -411,13 +412,13 @@ class GameClient {
     if (this.dc) {
       try {
         this.dc.close();
-      } catch (e) {}
+      } catch (e) { }
       this.dc = null;
     }
     if (this.pc) {
       try {
         this.pc.close();
-      } catch (e) {}
+      } catch (e) { }
       this.pc = null;
     }
     this.iceCandidateQueue = [];
@@ -468,6 +469,7 @@ class GameClient {
           const { op, payload } = decode(buffer);
           if (op === OpCode.STATE_UPDATE) {
             this.trackStateStatus(payload);
+            console.log(payload, "DC payload");
             gameState.update((current) => ({ ...current, ...payload }));
           }
         } catch (err) {
