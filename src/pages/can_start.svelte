@@ -76,13 +76,13 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div 
-  class="flex flex-col justify-between min-h-full w-full max-w-md mx-auto px-6 py-8"
+  class="flex flex-col w-full max-w-md mx-auto px-6 py-6 pb-28 overflow-y-auto my-auto max-h-full"
   onclick={playerEmote}
 >
-  <div class="w-full mt-4 mb-2">
+  <div class="w-full mt-2 mb-6">
     <button 
       type="button" 
-      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2" 
+      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2 shadow-md" 
       onclick={promptForStart}
     >
       <span>Start Game</span>
@@ -90,9 +90,7 @@
     </button>
   </div>
 
-  <CatchphraseRecorder />
-
-  <section class="w-full flex-grow">
+  <section class="w-full mb-6">
     <h3 class="text-xl font-black mb-4">Settings</h3>
 
     <ul class="flex flex-col gap-4">
@@ -184,8 +182,13 @@
     </ul>
   </section>
 
+  <!-- Catchphrase Recorder placed at the bottom of the page -->
+  <div class="w-full mb-4">
+    <CatchphraseRecorder />
+  </div>
+
   {#if !$session.data?.user}
-    <div class="text-center text-xs opacity-60 mt-8 mb-4">
+    <div class="text-center text-xs opacity-60 mt-4 mb-4">
       (
       <span 
         class="text-primary hover:underline cursor-pointer font-semibold" 
