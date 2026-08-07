@@ -6,6 +6,7 @@
   import { apiClient } from "$lib/backend/axios";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import { get } from "svelte/store";
+  import { playerEmote } from "$lib/avatar/player_emote";
 
   const session = authClient.useSession();
   const MAX_DURATION_SEC = 2.0;
@@ -16,6 +17,7 @@
   let isPlayingPreview = $state(false);
   let recordingProgress = $state(0);
   let currentTimeSec = $state(0.0);
+  let actualDurationSec = $state(2.0);
   let currentCatchphraseUrl = $state<string | null>(null);
   let audioBlob = $state<Blob | null>(null);
   let audioPreviewUrl = $state<string | null>(null);
@@ -23,7 +25,7 @@
 
   // Waveform canvas element
   let canvasRef = $state<HTMLCanvasElement | null>(null);
-  let waveformData = $state<number[]>(new Array(100).fill(0.05));
+  let waveformData = $state<number[]>(new Array(60).fill(0.05));
 
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: Blob[] = [];
@@ -42,13 +44,14 @@
     const localCatchphrase = localStorage.getItem("temp_catchphrase");
     if (localCatchphrase) {
       currentCatchphraseUrl = localCatchphrase;
+      loadAudioFromUrl(localCatchphrase);
     }
 
     if ($session.data?.user) {
       fetchUserCatchphrase();
+    } else {
+      drawWaveformCanvas();
     }
-
-    drawWaveformCanvas();
 
     return () => {
       cleanupAll();
@@ -70,10 +73,25 @@
         const { data: me } = await client.getUsersMe();
         if (me.avatar_catchphrase) {
           currentCatchphraseUrl = me.avatar_catchphrase;
+          loadAudioFromUrl(me.avatar_catchphrase);
         }
       }
     } catch (e) {
       console.warn("Failed to fetch user catchphrase:", e);
+    }
+  }
+
+  async function loadAudioFromUrl(url: string) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      await recomputeWaveformFromBlob(blob);
+    } catch (e) {
+      console.warn(
+        "Could not load catchphrase audio from URL for visualizer:",
+        e,
+      );
     }
   }
 
@@ -104,7 +122,8 @@
 
   function setupAudioContext() {
     if (!audioCtx) {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
       if (AudioContextClass) {
         audioCtx = new AudioContextClass();
       }
@@ -141,7 +160,9 @@
       if (isRecording) {
         const elapsedSec = (Date.now() - startTimeMs) / 1000;
         currentTimeSec = Math.min(MAX_DURATION_SEC, elapsedSec);
-        const index = Math.floor((currentTimeSec / MAX_DURATION_SEC) * (waveformData.length - 1));
+        const index = Math.floor(
+          (currentTimeSec / MAX_DURATION_SEC) * (waveformData.length - 1),
+        );
         const updated = [...waveformData];
         updated[index] = Math.max(updated[index] || 0, normalizedAmp);
         waveformData = updated;
@@ -173,70 +194,81 @@
     // Clear background
     ctx.clearRect(0, 0, width, height);
 
-    // Canvas background
-    ctx.fillStyle = "#0f172a"; // dark slate-900
-    ctx.fillRect(0, 0, width, height);
+    const totalDuration = isRecording ? MAX_DURATION_SEC : actualDurationSec;
 
-    // Draw Grid & Time Markers (0.0s, 0.5s, 1.0s, 1.5s, 2.0s)
+    // Draw Grid & Time Markers
     ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "9px sans-serif";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.font = "9px monospace";
     ctx.textAlign = "center";
 
     const numGridLines = 4;
     for (let i = 0; i <= numGridLines; i++) {
       const x = (i / numGridLines) * width;
-      const timeVal = (i * 0.5).toFixed(1) + "s";
+      const timeVal = ((i / numGridLines) * totalDuration).toFixed(1) + "s";
       ctx.beginPath();
       ctx.setLineDash([2, 2]);
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.lineTo(x, height - 12);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillText(timeVal, Math.max(12, Math.min(width - 12, x)), height - 4);
+      ctx.fillText(timeVal, Math.max(12, Math.min(width - 12, x)), height - 2);
     }
 
     // Draw Mirrored Waveform Bars
+    const availableHeight = height - 14;
     const barWidth = width / waveformData.length;
-    const centerY = height / 2 - 4;
-    const playheadX = (currentTimeSec / MAX_DURATION_SEC) * width;
+    const centerY = availableHeight / 2;
+    const playheadX =
+      totalDuration > 0 ? (currentTimeSec / totalDuration) * width : 0;
 
     for (let i = 0; i < waveformData.length; i++) {
       const x = i * barWidth;
       const amp = waveformData[i];
-      const barHeight = Math.max(3, amp * (height / 2 - 10));
+      const barHeight = Math.max(2, amp * (availableHeight / 2 - 4));
 
       const isRecordedPortion = x <= playheadX;
       if (isRecording) {
-        ctx.fillStyle = isRecordedPortion ? "#f43f5e" : "rgba(244, 63, 94, 0.25)"; // rose-500
+        ctx.fillStyle = isRecordedPortion
+          ? "#f43f5e"
+          : "rgba(244, 63, 94, 0.25)";
       } else if (isPlayingPreview) {
-        ctx.fillStyle = isRecordedPortion ? "#38bdf8" : "rgba(56, 189, 248, 0.25)"; // sky-400
+        ctx.fillStyle = isRecordedPortion
+          ? "#38bdf8"
+          : "rgba(56, 189, 248, 0.25)";
       } else {
-        ctx.fillStyle = isRecordedPortion ? "#34d399" : "rgba(255, 255, 255, 0.2)"; // emerald-400
+        ctx.fillStyle = isRecordedPortion
+          ? "#34d399"
+          : "rgba(255, 255, 255, 0.2)";
       }
 
-      ctx.fillRect(x, centerY - barHeight, Math.max(1, barWidth - 0.5), barHeight * 2);
+      ctx.fillRect(
+        x,
+        centerY - barHeight,
+        Math.max(1.5, barWidth - 1),
+        barHeight * 2,
+      );
     }
 
     // Draw Track Head (Playhead Cursor Line)
     if (isRecording || isPlayingPreview || currentTimeSec > 0) {
-      ctx.strokeStyle = isRecording ? "#ff0055" : isPlayingPreview ? "#00f0ff" : "#ffffff";
+      ctx.strokeStyle = isRecording
+        ? "#ff0055"
+        : isPlayingPreview
+          ? "#00f0ff"
+          : "#34d399";
       ctx.lineWidth = 2;
-      ctx.shadowColor = ctx.strokeStyle;
-      ctx.shadowBlur = 6;
 
       ctx.beginPath();
       ctx.moveTo(playheadX, 0);
-      ctx.lineTo(playheadX, height);
+      ctx.lineTo(playheadX, availableHeight);
       ctx.stroke();
 
-      ctx.shadowBlur = 0; // reset shadow
-
-      // Draw Playhead Top Handle Cap
+      // Top handle cap
       ctx.fillStyle = ctx.strokeStyle;
       ctx.beginPath();
-      ctx.arc(playheadX, 3, 3.5, 0, Math.PI * 2);
+      ctx.arc(playheadX, 3, 3, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -244,10 +276,14 @@
   /**
    * Trims silence from the beginning and end of an audio blob using Web Audio API PCM sampling.
    */
-  async function trimSilenceFromAudioBlob(blob: Blob, threshold = 0.015): Promise<Blob> {
+  async function trimSilenceFromAudioBlob(
+    blob: Blob,
+    threshold = 0.015,
+  ): Promise<Blob> {
     try {
       const arrayBuffer = await blob.arrayBuffer();
-      const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const tempCtx = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const decodedBuffer = await tempCtx.decodeAudioData(arrayBuffer);
 
       const sampleRate = decodedBuffer.sampleRate;
@@ -365,11 +401,12 @@
   async function recomputeWaveformFromBlob(blob: Blob) {
     try {
       const arrayBuffer = await blob.arrayBuffer();
-      const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const tempCtx = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const decodedBuffer = await tempCtx.decodeAudioData(arrayBuffer);
 
       const channelData = decodedBuffer.getChannelData(0);
-      const samplesCount = 100;
+      const samplesCount = 60;
       const chunkSize = Math.floor(channelData.length / samplesCount) || 1;
       const newWaveform: number[] = [];
 
@@ -381,11 +418,12 @@
           sumSq += channelData[j] * channelData[j];
         }
         const rms = Math.sqrt(sumSq / (end - start || 1));
-        newWaveform.push(Math.max(0.05, Math.min(1.0, rms * 2.8)));
+        newWaveform.push(Math.max(0.08, Math.min(1.0, rms * 2.8)));
       }
 
       waveformData = newWaveform;
-      currentTimeSec = decodedBuffer.duration;
+      actualDurationSec = Math.max(0.1, decodedBuffer.duration);
+      currentTimeSec = actualDurationSec;
       drawWaveformCanvas();
       tempCtx.close();
     } catch (err) {
@@ -403,7 +441,8 @@
     audioChunks = [];
     recordingProgress = 0;
     currentTimeSec = 0.0;
-    waveformData = new Array(100).fill(0.05);
+    actualDurationSec = 2.0;
+    waveformData = new Array(60).fill(0.05);
 
     try {
       setupAudioContext();
@@ -413,7 +452,8 @@
       let mimeType = "audio/webm";
       if (!MediaRecorder.isTypeSupported("audio/webm")) {
         if (MediaRecorder.isTypeSupported("audio/mp4")) mimeType = "audio/mp4";
-        else if (MediaRecorder.isTypeSupported("audio/ogg")) mimeType = "audio/ogg";
+        else if (MediaRecorder.isTypeSupported("audio/ogg"))
+          mimeType = "audio/ogg";
         else mimeType = "";
       }
 
@@ -502,22 +542,29 @@
 
   async function uploadCatchphrase() {
     if (!audioBlob || audioBlob.size < 500) {
-      statusMessage = "Audio too short. Hold button longer to record.";
+      statusMessage = "Audio too short. Hold button longer.";
       return;
     }
 
     isUploading = true;
-    statusMessage = "Uploading catchphrase...";
+    statusMessage = "Saving catchphrase...";
 
     try {
       const formData = new FormData();
-      const ext = audioBlob.type.includes("wav") ? "wav" : audioBlob.type.includes("mp4") ? "m4a" : "webm";
+      const ext = audioBlob.type.includes("wav")
+        ? "wav"
+        : audioBlob.type.includes("mp4")
+          ? "m4a"
+          : "webm";
       formData.append("file", audioBlob, `catchphrase.${ext}`);
 
-      const res = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload/audio`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_PUBLIC_API_URL}/upload/audio`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       if (!res.ok) {
         throw new Error(`Upload failed with status ${res.status}`);
@@ -549,12 +596,15 @@
             });
           }
         } catch (dbErr) {
-          console.error("Failed to update user avatar profile with catchphrase:", dbErr);
+          console.error(
+            "Failed to update user avatar profile with catchphrase:",
+            dbErr,
+          );
         }
       }
 
       syncAvatarWithHost(url);
-      statusMessage = "Catchphrase saved & trimmed! 🎤";
+      statusMessage = null;
     } catch (err: any) {
       console.error("Error uploading catchphrase:", err);
       statusMessage = "Failed to upload audio.";
@@ -589,6 +639,7 @@
       previewAudio.pause();
       isPlayingPreview = false;
       stopVisualization();
+      drawWaveformCanvas();
       return;
     }
 
@@ -615,20 +666,20 @@
 
     previewAudio.ontimeupdate = () => {
       if (previewAudio) {
-        currentTimeSec = Math.min(MAX_DURATION_SEC, previewAudio.currentTime);
+        currentTimeSec = Math.min(actualDurationSec, previewAudio.currentTime);
       }
     };
 
     previewAudio.onended = () => {
       isPlayingPreview = false;
-      currentTimeSec = MAX_DURATION_SEC;
+      currentTimeSec = actualDurationSec;
       stopVisualization();
       drawWaveformCanvas();
     };
     previewAudio.onerror = () => {
       isPlayingPreview = false;
       stopVisualization();
-      statusMessage = "Unable to play audio preview.";
+      statusMessage = "Unable to play preview.";
     };
     previewAudio.play().catch(() => {
       isPlayingPreview = false;
@@ -643,8 +694,9 @@
     currentCatchphraseUrl = null;
     audioBlob = null;
     audioPreviewUrl = null;
+    actualDurationSec = 2.0;
     currentTimeSec = 0.0;
-    waveformData = new Array(100).fill(0.05);
+    waveformData = new Array(60).fill(0.05);
     localStorage.removeItem("temp_catchphrase");
 
     if ($session.data?.user) {
@@ -680,23 +732,30 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="card bg-base-200 border border-base-300 shadow-sm p-4 w-full flex flex-col gap-3 my-4 select-none"
+  class="card bg-base-200 border border-base-300 shadow-sm p-4 w-full flex flex-col gap-3 my-2 select-none"
   onclick={(e) => e.stopPropagation()}
 >
+  <!-- Header -->
   <div class="flex justify-between items-center">
     <div class="flex items-center gap-2">
       <Icon icon="mdi:microphone" class="text-xl text-primary" />
-      <span class="text-base font-bold">2s Catchphrase</span>
+      <span class="text-base font-bold">Catchphrase</span>
     </div>
     {#if currentCatchphraseUrl || audioPreviewUrl}
-      <span class="badge badge-success text-xs font-semibold">Recorded</span>
+      <span class="badge badge-success badge-sm gap-1 font-semibold">
+        <Icon icon="mdi:check" class="text-xs" /> Recorded
+      </span>
     {:else}
-      <span class="badge badge-ghost text-xs font-semibold">Optional</span>
+      <span class="badge badge-ghost badge-sm text-xs opacity-70"
+        >Optional (2s max)</span
+      >
     {/if}
   </div>
 
-  <!-- Real-time Waveform Display Canvas with Track Head & Duration -->
-  <div class="w-full bg-slate-900 rounded-xl p-2 flex flex-col gap-1 items-center justify-center border border-base-300 relative overflow-hidden">
+  <!-- Waveform Display Box -->
+  <div
+    class="w-full bg-base-300/50 rounded-xl p-2.5 flex flex-col gap-1.5 items-center justify-center relative overflow-hidden"
+  >
     <canvas
       bind:this={canvasRef}
       width="340"
@@ -704,29 +763,31 @@
       class="w-full h-16 rounded-lg block"
     ></canvas>
 
-    <div class="w-full flex justify-between items-center px-1 text-[11px] font-mono font-bold text-slate-300">
-      <span class="flex items-center gap-1">
-        {#if isRecording}
-          <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-          <span class="text-red-400">REC</span>
-        {:else if isPlayingPreview}
-          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-          <span class="text-cyan-400">PLAY</span>
-        {:else}
-          <span class="text-slate-400">TRACK</span>
-        {/if}
-      </span>
-      <span class="tracking-wider">
-        {currentTimeSec.toFixed(1)}s / {MAX_DURATION_SEC.toFixed(1)}s
+    <div
+      class="w-full flex justify-between items-center px-1 text-[11px] font-mono text-base-content/70"
+    >
+      <span class="text-xs"
+        >{statusMessage ||
+          (isRecording
+            ? "Recording..."
+            : isPlayingPreview
+              ? "Playing..."
+              : "")}</span
+      >
+      <span class="font-bold tracking-wider">
+        {currentTimeSec.toFixed(1)}s / {(isRecording
+          ? MAX_DURATION_SEC
+          : actualDurationSec
+        ).toFixed(1)}s
       </span>
     </div>
   </div>
 
-  <!-- Hold to Record Action Controls -->
-  <div class="flex flex-wrap gap-2 items-center">
+  <!-- Actions -->
+  <div class="flex gap-2 items-center">
     <button
       type="button"
-      class="btn btn-primary flex-1 flex items-center justify-center gap-2 touch-none select-none py-3 font-bold transition-transform active:scale-95"
+      class="btn btn-accent flex-1 gap-2 touch-none select-none font-bold transition-transform active:scale-95"
       class:btn-error={isRecording}
       disabled={isUploading}
       onmousedown={handlePressStart}
@@ -738,15 +799,15 @@
     >
       <Icon
         icon={isRecording ? "mdi:record-rec" : "mdi:microphone"}
-        class="text-xl {isRecording ? 'animate-ping' : ''}"
+        class="text-xl {isRecording ? 'animate-pulse' : ''}"
       />
       <span>
         {#if isRecording}
-          Release to Finish (2s max)
-        {:else if currentCatchphraseUrl}
+          Release to Stop
+        {:else if currentCatchphraseUrl || audioPreviewUrl}
           Hold to Re-record
         {:else}
-          Hold to Record (2s)
+          Hold to Record
         {/if}
       </span>
     </button>
@@ -754,31 +815,13 @@
     {#if currentCatchphraseUrl || audioPreviewUrl}
       <button
         type="button"
-        class="btn btn-outline flex items-center justify-center gap-1"
-        onclick={togglePreview}
+        class="btn btn-secondary gap-1"
+        onclick={() => playerEmote()}
         title="Play preview"
       >
-        <Icon icon={isPlayingPreview ? "mdi:pause" : "mdi:play"} class="text-lg" />
-        <span>{isPlayingPreview ? "Stop" : "Test"}</span>
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-ghost btn-square text-error"
-        onclick={deleteCatchphrase}
-        title="Remove catchphrase"
-      >
-        <Icon icon="mdi:trash-can-outline" class="text-lg" />
+        <Icon icon={"mdi:play"} class="text-lg" />
+        <span>Play</span>
       </button>
     {/if}
   </div>
-
-  {#if isUploading}
-    <div class="flex items-center gap-2 text-xs text-primary font-medium mt-1">
-      <span class="loading loading-spinner loading-xs"></span>
-      <span>Trimming & saving audio...</span>
-    </div>
-  {:else if statusMessage}
-    <div class="text-xs text-base-content/70 italic font-medium mt-1">{statusMessage}</div>
-  {/if}
 </div>

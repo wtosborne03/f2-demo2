@@ -62,7 +62,14 @@
     }
   });
 
+  let confirmModal = $state<HTMLDialogElement>();
+
   function promptForStart() {
+    confirmModal?.showModal();
+  }
+
+  function confirmStart() {
+    confirmModal?.close();
     startGame();
   }
 
@@ -75,14 +82,14 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div 
-  class="flex flex-col w-full max-w-md mx-auto px-6 py-6 pb-28 overflow-y-auto my-auto max-h-full"
+<div
+  class="flex flex-col w-full max-w-md mx-auto px-6 py-6 pb-28 my-auto max-h-full"
   onclick={playerEmote}
 >
   <div class="w-full mt-2 mb-6">
-    <button 
-      type="button" 
-      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2 shadow-md" 
+    <button
+      type="button"
+      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2 shadow-md"
       onclick={promptForStart}
     >
       <span>Start Game</span>
@@ -95,33 +102,43 @@
 
     <ul class="flex flex-col gap-4">
       <!-- Drinking Game Setting -->
-      <li class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors">
-        <label class="label cursor-pointer flex justify-between items-center w-full p-0">
+      <li
+        class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors"
+      >
+        <label
+          class="label cursor-pointer flex justify-between items-center w-full p-0"
+        >
           <span class="text-base font-bold">Drinking Game 🍺</span>
-          <input 
-            type="checkbox" 
-            class="toggle toggle-primary toggle-md" 
-            bind:checked={s_data.drinking} 
-            onchange={sendSettings} 
+          <input
+            type="checkbox"
+            class="toggle toggle-primary toggle-md"
+            bind:checked={s_data.drinking}
+            onchange={sendSettings}
           />
         </label>
       </li>
 
       <!-- Family Mode Setting -->
-      <li class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors">
-        <label class="label cursor-pointer flex justify-between items-center w-full p-0">
+      <li
+        class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors"
+      >
+        <label
+          class="label cursor-pointer flex justify-between items-center w-full p-0"
+        >
           <span class="text-base font-bold">Family Mode 👨‍👩‍👧‍👦</span>
-          <input 
-            type="checkbox" 
-            class="toggle toggle-primary toggle-md" 
-            bind:checked={s_data.family} 
-            onchange={sendSettings} 
+          <input
+            type="checkbox"
+            class="toggle toggle-primary toggle-md"
+            bind:checked={s_data.family}
+            onchange={sendSettings}
           />
         </label>
       </li>
 
       <!-- End Condition Selection -->
-      <li class="card bg-base-200 border border-base-300 shadow-sm p-4 flex flex-col gap-4">
+      <li
+        class="card bg-base-200 border border-base-300 shadow-sm p-4 flex flex-col gap-4"
+      >
         <span class="text-base font-bold">End Condition 🏁</span>
 
         <div class="tabs tabs-box bg-base-300 p-1 rounded-full w-full flex">
@@ -129,7 +146,9 @@
             type="button"
             class="tab flex-1 font-medium transition-all"
             class:tab-active={endConditionTab === "tab-rounds"}
-            onclick={() => { endConditionTab = "tab-rounds"; }}
+            onclick={() => {
+              endConditionTab = "tab-rounds";
+            }}
           >
             Rounds
           </button>
@@ -137,7 +156,9 @@
             type="button"
             class="tab flex-1 font-medium transition-all"
             class:tab-active={endConditionTab === "tab-doubloons"}
-            onclick={() => { endConditionTab = "tab-doubloons"; }}
+            onclick={() => {
+              endConditionTab = "tab-doubloons";
+            }}
           >
             Doubloons
           </button>
@@ -147,8 +168,12 @@
           {#if endConditionTab === "tab-rounds"}
             <div class="flex flex-col gap-2">
               <div class="flex justify-between items-center">
-                <span class="text-sm font-semibold opacity-70">Total Rounds</span>
-                <span class="text-base font-black text-primary">{s_data.rounds}</span>
+                <span class="text-sm font-semibold opacity-70"
+                  >Total Rounds</span
+                >
+                <span class="text-base font-black text-primary"
+                  >{s_data.rounds}</span
+                >
               </div>
               <input
                 type="range"
@@ -163,8 +188,12 @@
           {:else}
             <div class="flex flex-col gap-2">
               <div class="flex justify-between items-center">
-                <span class="text-sm font-semibold opacity-70">Doubloons To Win</span>
-                <span class="text-base font-black text-primary">{s_data.doubloons.toLocaleString()}</span>
+                <span class="text-sm font-semibold opacity-70"
+                  >Doubloons To Win</span
+                >
+                <span class="text-base font-black text-primary"
+                  >{s_data.doubloons.toLocaleString()}</span
+                >
               </div>
               <input
                 type="range"
@@ -190,13 +219,39 @@
   {#if !$session.data?.user}
     <div class="text-center text-xs opacity-60 mt-4 mb-4">
       (
-      <span 
-        class="text-primary hover:underline cursor-pointer font-semibold" 
+      <span
+        class="text-primary hover:underline cursor-pointer font-semibold"
         onclick={() => sideBarOpen.set(true)}
       >
         Sign In
-      </span> 
+      </span>
       to customize avatar.)
     </div>
   {/if}
+
+  <!-- DaisyUI Confirmation Modal -->
+  <dialog bind:this={confirmModal} class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box text-center">
+      <h3 class="text-xl font-black mb-2">Start Game?</h3>
+      <p class="py-2 text-base opacity-80">
+        Make sure everybody has joined before starting!
+      </p>
+      <div class="modal-action flex justify-center gap-3 mt-6">
+        <form method="dialog">
+          <button class="btn btn-ghost border border-base-300">Cancel</button>
+        </form>
+        <button
+          type="button"
+          class="btn btn-primary font-bold flex items-center gap-2"
+          onclick={confirmStart}
+        >
+          <span>Everybody's In!</span>
+          <Icon icon="mdi:play" class="text-xl" />
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
 </div>
