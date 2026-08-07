@@ -253,6 +253,7 @@ class GameClient {
           selfieUrl: me.avatar_selfie || localSelfie,
           expressions: expressions || fallbackExpressions,
           gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
+          catchphraseUrl: me.avatar_catchphrase || (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
         };
         this.sendPlayerInput("avatarUpdate", { avatar });
       } catch (error) {
@@ -277,6 +278,7 @@ class GameClient {
       }
     }
     const sessionGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
+    const sessionCatchphrase = (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined;
     const avatar = {
       eyes: 3,
       mouth: 0,
@@ -285,6 +287,7 @@ class GameClient {
       selfieUrl: sessionSelfie,
       expressions,
       gender: sessionGender,
+      catchphraseUrl: sessionCatchphrase,
     };
     this.sendPlayerInput("avatarUpdate", { avatar });
   }

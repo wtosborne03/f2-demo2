@@ -5,6 +5,7 @@
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import type { settings } from "../types/settings";
   import Icon from "@iconify/svelte";
+  import CatchphraseRecorder from "$lib/components/CatchphraseRecorder.svelte";
 
   const session = authClient.useSession();
 
@@ -78,7 +79,7 @@
   class="flex flex-col justify-between min-h-full w-full max-w-md mx-auto px-6 py-8"
   onclick={playerEmote}
 >
-  <div class="w-full mt-4 mb-6">
+  <div class="w-full mt-4 mb-2">
     <button 
       type="button" 
       class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2" 
@@ -88,6 +89,8 @@
       <Icon icon="mdi:play" class="text-xl" />
     </button>
   </div>
+
+  <CatchphraseRecorder />
 
   <section class="w-full flex-grow">
     <h3 class="text-xl font-black mb-4">Settings</h3>
