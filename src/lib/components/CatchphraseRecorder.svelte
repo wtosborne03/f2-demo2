@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import Icon from "@iconify/svelte";
   import { authClient } from "../../stores/authStore";
   import { dbClient } from "../../stores/apiClient";
@@ -18,26 +18,38 @@
   let audioPreviewUrl = $state<string | null>(null);
   let statusMessage = $state<string | null>(null);
 
+  // Audio visualization bars (14 frequency bands)
+  let visualizerBars = $state<number[]>(new Array(14).fill(15));
+
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: Blob[] = [];
-  let recordingInterval: NodeJS.Timeout | null = null;
+  let recordTimer: NodeJS.Timeout | null = null;
+  let progressInterval: NodeJS.Timeout | null = null;
   let previewAudio: HTMLAudioElement | null = null;
 
+  // Web Audio API context for visualization
+  let audioCtx: AudioContext | null = null;
+  let analyserNode: AnalyserNode | null = null;
+  let animFrameId: number | null = null;
+  let activeStream: MediaStream | null = null;
+
   onMount(() => {
-    // Load existing catchphrase from user profile or local storage
     const localCatchphrase = localStorage.getItem("temp_catchphrase");
     if (localCatchphrase) {
       currentCatchphraseUrl = localCatchphrase;
     }
 
-    // Try fetching user catchphrase if authenticated
     if ($session.data?.user) {
       fetchUserCatchphrase();
     }
 
     return () => {
-      cleanupMedia();
+      cleanupAll();
     };
+  });
+
+  onDestroy(() => {
+    cleanupAll();
   });
 
   async function fetchUserCatchphrase() {
@@ -58,10 +70,19 @@
     }
   }
 
-  function cleanupMedia() {
-    if (recordingInterval) {
-      clearInterval(recordingInterval);
-      recordingInterval = null;
+  function cleanupAll() {
+    if (recordTimer) {
+      clearTimeout(recordTimer);
+      recordTimer = null;
+    }
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+    stopVisualization();
+    if (activeStream) {
+      activeStream.getTracks().forEach((track) => track.stop());
+      activeStream = null;
     }
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       try {
@@ -74,15 +95,73 @@
     }
   }
 
-  async function startRecording(e: MouseEvent) {
+  function setupAudioContext() {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+      }
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  }
+
+  function startVisualization(sourceNode: AudioNode) {
+    if (!audioCtx) return;
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 64;
+    analyserNode.smoothingTimeConstant = 0.7;
+    sourceNode.connect(analyserNode);
+
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const updateBars = () => {
+      if (!analyserNode) return;
+      analyserNode.getByteFrequencyData(dataArray);
+
+      const newBars: number[] = [];
+      const step = Math.floor(bufferLength / 14) || 1;
+
+      for (let i = 0; i < 14; i++) {
+        const val = dataArray[i * step] || 0;
+        // Normalize between 15% and 100%
+        const normalized = Math.max(15, Math.min(100, (val / 255) * 100));
+        newBars.push(normalized);
+      }
+
+      visualizerBars = newBars;
+      animFrameId = requestAnimationFrame(updateBars);
+    };
+
+    updateBars();
+  }
+
+  function stopVisualization() {
+    if (animFrameId) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
+    analyserNode = null;
+    visualizerBars = new Array(14).fill(15);
+  }
+
+  async function handlePressStart(e: MouseEvent | TouchEvent) {
+    e.preventDefault();
     e.stopPropagation();
+
+    if (isRecording || isUploading) return;
     statusMessage = null;
-    cleanupMedia();
+    cleanupAll();
     audioChunks = [];
     recordingProgress = 0;
 
     try {
+      setupAudioContext();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      activeStream = stream;
+
       let mimeType = "audio/webm";
       if (!MediaRecorder.isTypeSupported("audio/webm")) {
         if (MediaRecorder.isTypeSupported("audio/mp4")) mimeType = "audio/mp4";
@@ -101,7 +180,12 @@
       };
 
       mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach((track) => track.stop());
+        stopVisualization();
+        if (activeStream) {
+          activeStream.getTracks().forEach((track) => track.stop());
+          activeStream = null;
+        }
+
         const blobType = mediaRecorder?.mimeType || "audio/webm";
         audioBlob = new Blob(audioChunks, { type: blobType });
         audioPreviewUrl = URL.createObjectURL(audioBlob);
@@ -110,23 +194,27 @@
         await uploadCatchphrase();
       };
 
+      // Connect microphone stream to visualizer
+      if (audioCtx) {
+        const streamSource = audioCtx.createMediaStreamSource(stream);
+        startVisualization(streamSource);
+      }
+
       isRecording = true;
       mediaRecorder.start(100);
 
       const startTime = Date.now();
-      const RECORD_DURATION_MS = 1000;
+      const MAX_RECORD_DURATION_MS = 1000; // 1 second max
 
-      recordingInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
-        recordingProgress = Math.min(100, (elapsed / RECORD_DURATION_MS) * 100);
-        if (elapsed >= RECORD_DURATION_MS) {
-          if (recordingInterval) clearInterval(recordingInterval);
-          recordingInterval = null;
-          if (mediaRecorder && mediaRecorder.state === "recording") {
-            mediaRecorder.stop();
-          }
-        }
-      }, 30);
+        recordingProgress = Math.min(100, (elapsed / MAX_RECORD_DURATION_MS) * 100);
+      }, 25);
+
+      // Auto stop after 1.0 second max
+      recordTimer = setTimeout(() => {
+        finishRecording();
+      }, MAX_RECORD_DURATION_MS);
     } catch (err: any) {
       console.error("Microphone access error:", err);
       isRecording = false;
@@ -134,8 +222,36 @@
     }
   }
 
+  function handlePressEnd(e: MouseEvent | TouchEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isRecording) {
+      finishRecording();
+    }
+  }
+
+  function finishRecording() {
+    if (recordTimer) {
+      clearTimeout(recordTimer);
+      recordTimer = null;
+    }
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      try {
+        mediaRecorder.stop();
+      } catch (e) {}
+    }
+  }
+
   async function uploadCatchphrase() {
-    if (!audioBlob) return;
+    if (!audioBlob || audioBlob.size < 500) {
+      statusMessage = "Audio too short. Hold button longer to record.";
+      return;
+    }
+
     isUploading = true;
     statusMessage = "Uploading catchphrase...";
 
@@ -159,7 +275,6 @@
       currentCatchphraseUrl = url;
       localStorage.setItem("temp_catchphrase", url);
 
-      // If user is logged in, update avatar profile in database
       if ($session.data?.user) {
         try {
           let client = get(dbClient);
@@ -184,9 +299,7 @@
         }
       }
 
-      // Sync updated avatar with host via WS
       syncAvatarWithHost(url);
-
       statusMessage = "Catchphrase saved! 🎤";
     } catch (err: any) {
       console.error("Error uploading catchphrase:", err);
@@ -221,6 +334,7 @@
     if (isPlayingPreview && previewAudio) {
       previewAudio.pause();
       isPlayingPreview = false;
+      stopVisualization();
       return;
     }
 
@@ -228,24 +342,41 @@
       previewAudio.pause();
     }
 
+    setupAudioContext();
     previewAudio = new Audio(soundUrl);
+    previewAudio.crossOrigin = "anonymous";
     isPlayingPreview = true;
+
+    // Connect preview audio to visualizer if Web Audio API available
+    if (audioCtx) {
+      try {
+        const sourceNode = audioCtx.createMediaElementSource(previewAudio);
+        startVisualization(sourceNode);
+        analyserNode?.connect(audioCtx.destination);
+      } catch (err) {
+        // Fallback for CORS or repeated element connection
+      }
+    }
+
     previewAudio.onended = () => {
       isPlayingPreview = false;
+      stopVisualization();
     };
     previewAudio.onerror = () => {
       isPlayingPreview = false;
-      statusMessage = "Unable to play audio.";
+      stopVisualization();
+      statusMessage = "Unable to play audio preview.";
     };
     previewAudio.play().catch(() => {
       isPlayingPreview = false;
+      stopVisualization();
     });
   }
 
   async function deleteCatchphrase(e: MouseEvent) {
     e.stopPropagation();
     statusMessage = null;
-    cleanupMedia();
+    cleanupAll();
     currentCatchphraseUrl = null;
     audioBlob = null;
     audioPreviewUrl = null;
@@ -283,7 +414,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="card bg-base-200 border border-base-300 shadow-sm p-4 w-full flex flex-col gap-3 my-4"
+  class="card bg-base-200 border border-base-300 shadow-sm p-4 w-full flex flex-col gap-3 my-4 select-none"
   onclick={(e) => e.stopPropagation()}
 >
   <div class="flex justify-between items-center">
@@ -298,60 +429,87 @@
     {/if}
   </div>
 
-  {#if isRecording}
-    <div class="flex flex-col gap-2 py-2">
-      <div class="flex items-center justify-between text-xs font-bold text-error animate-pulse">
-        <span>Recording... (1s)</span>
-        <span>{Math.round(recordingProgress)}%</span>
-      </div>
-      <div class="w-full bg-base-300 rounded-full h-2.5 overflow-hidden">
+  <!-- Real-time Equalizer Audio Visualization Preview -->
+  <div class="w-full bg-base-300/80 rounded-xl p-3 flex flex-col gap-2 items-center justify-center border border-base-300">
+    <div class="flex items-end justify-center gap-1.5 h-10 w-full px-2">
+      {#each visualizerBars as barHeight, i}
         <div
-          class="bg-error h-2.5 transition-all duration-75"
+          class="w-2.5 rounded-full transition-all duration-75"
+          class:bg-error={isRecording}
+          class:bg-primary={isPlayingPreview}
+          class:bg-base-content={!isRecording && !isPlayingPreview}
+          style="height: {barHeight}%; opacity: {isRecording || isPlayingPreview ? 0.9 : 0.35};"
+        ></div>
+      {/each}
+    </div>
+
+    {#if isRecording}
+      <div class="w-full bg-base-100/50 rounded-full h-1.5 overflow-hidden mt-1">
+        <div
+          class="bg-error h-1.5 transition-all duration-75"
           style="width: {recordingProgress}%"
         ></div>
       </div>
-    </div>
-  {:else}
-    <div class="flex flex-wrap gap-2 items-center">
+    {/if}
+  </div>
+
+  <!-- Hold to Record Action Controls -->
+  <div class="flex flex-wrap gap-2 items-center">
+    <button
+      type="button"
+      class="btn btn-primary flex-1 flex items-center justify-center gap-2 touch-none select-none py-3 font-bold transition-transform active:scale-95"
+      class:btn-error={isRecording}
+      disabled={isUploading}
+      onmousedown={handlePressStart}
+      onmouseup={handlePressEnd}
+      onmouseleave={handlePressEnd}
+      ontouchstart={handlePressStart}
+      ontouchend={handlePressEnd}
+      ontouchcancel={handlePressEnd}
+    >
+      <Icon
+        icon={isRecording ? "mdi:record-rec" : "mdi:microphone"}
+        class="text-xl {isRecording ? 'animate-ping' : ''}"
+      />
+      <span>
+        {#if isRecording}
+          Release to Finish (1s max)
+        {:else if currentCatchphraseUrl}
+          Hold to Re-record
+        {:else}
+          Hold to Record (1s)
+        {/if}
+      </span>
+    </button>
+
+    {#if currentCatchphraseUrl || audioPreviewUrl}
       <button
         type="button"
-        class="btn btn-sm btn-primary flex-1 flex items-center justify-center gap-1"
-        disabled={isUploading}
-        onclick={startRecording}
+        class="btn btn-outline flex items-center justify-center gap-1"
+        onclick={togglePreview}
+        title="Play preview"
       >
-        <Icon icon="mdi:record-circle" class="text-base text-red-400" />
-        <span>{currentCatchphraseUrl ? "Re-record (1s)" : "Record Catchphrase (1s)"}</span>
+        <Icon icon={isPlayingPreview ? "mdi:pause" : "mdi:play"} class="text-lg" />
+        <span>{isPlayingPreview ? "Stop" : "Test"}</span>
       </button>
 
-      {#if currentCatchphraseUrl || audioPreviewUrl}
-        <button
-          type="button"
-          class="btn btn-sm btn-outline flex items-center justify-center"
-          onclick={togglePreview}
-          title="Play preview"
-        >
-          <Icon icon={isPlayingPreview ? "mdi:pause" : "mdi:play"} class="text-base" />
-          <span>{isPlayingPreview ? "Stop" : "Test"}</span>
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-sm btn-ghost btn-square text-error"
-          onclick={deleteCatchphrase}
-          title="Remove catchphrase"
-        >
-          <Icon icon="mdi:trash-can-outline" class="text-base" />
-        </button>
-      {/if}
-    </div>
-  {/if}
+      <button
+        type="button"
+        class="btn btn-ghost btn-square text-error"
+        onclick={deleteCatchphrase}
+        title="Remove catchphrase"
+      >
+        <Icon icon="mdi:trash-can-outline" class="text-lg" />
+      </button>
+    {/if}
+  </div>
 
   {#if isUploading}
-    <div class="flex items-center gap-2 text-xs text-primary font-medium">
+    <div class="flex items-center gap-2 text-xs text-primary font-medium mt-1">
       <span class="loading loading-spinner loading-xs"></span>
       <span>Saving audio to server...</span>
     </div>
   {:else if statusMessage}
-    <div class="text-xs text-base-content/70 italic font-medium">{statusMessage}</div>
+    <div class="text-xs text-base-content/70 italic font-medium mt-1">{statusMessage}</div>
   {/if}
 </div>
