@@ -8,18 +8,22 @@
   import { get } from "svelte/store";
 
   const session = authClient.useSession();
+  const MAX_DURATION_SEC = 2.0;
+  const MAX_DURATION_MS = 2000;
 
   let isRecording = $state(false);
   let isUploading = $state(false);
   let isPlayingPreview = $state(false);
   let recordingProgress = $state(0);
+  let currentTimeSec = $state(0.0);
   let currentCatchphraseUrl = $state<string | null>(null);
   let audioBlob = $state<Blob | null>(null);
   let audioPreviewUrl = $state<string | null>(null);
   let statusMessage = $state<string | null>(null);
 
-  // Audio visualization bars (14 frequency bands)
-  let visualizerBars = $state<number[]>(new Array(14).fill(15));
+  // Waveform canvas element
+  let canvasRef = $state<HTMLCanvasElement | null>(null);
+  let waveformData = $state<number[]>(new Array(100).fill(0.05));
 
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: Blob[] = [];
@@ -27,11 +31,12 @@
   let progressInterval: NodeJS.Timeout | null = null;
   let previewAudio: HTMLAudioElement | null = null;
 
-  // Web Audio API context for visualization
+  // Web Audio API context for visualization & waveform sampling
   let audioCtx: AudioContext | null = null;
   let analyserNode: AnalyserNode | null = null;
   let animFrameId: number | null = null;
   let activeStream: MediaStream | null = null;
+  let startTimeMs = 0;
 
   onMount(() => {
     const localCatchphrase = localStorage.getItem("temp_catchphrase");
@@ -42,6 +47,8 @@
     if ($session.data?.user) {
       fetchUserCatchphrase();
     }
+
+    drawWaveformCanvas();
 
     return () => {
       cleanupAll();
@@ -110,32 +117,41 @@
   function startVisualization(sourceNode: AudioNode) {
     if (!audioCtx) return;
     analyserNode = audioCtx.createAnalyser();
-    analyserNode.fftSize = 64;
-    analyserNode.smoothingTimeConstant = 0.7;
+    analyserNode.fftSize = 128;
+    analyserNode.smoothingTimeConstant = 0.6;
     sourceNode.connect(analyserNode);
 
     const bufferLength = analyserNode.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    const updateBars = () => {
+    const updateFrame = () => {
       if (!analyserNode) return;
-      analyserNode.getByteFrequencyData(dataArray);
+      analyserNode.getByteTimeDomainData(dataArray);
 
-      const newBars: number[] = [];
-      const step = Math.floor(bufferLength / 14) || 1;
+      // Compute RMS amplitude volume level (0.0 to 1.0)
+      let sumSq = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        const val = (dataArray[i] - 128) / 128;
+        sumSq += val * val;
+      }
+      const rms = Math.sqrt(sumSq / bufferLength);
+      const normalizedAmp = Math.max(0.05, Math.min(1.0, rms * 2.8));
 
-      for (let i = 0; i < 14; i++) {
-        const val = dataArray[i * step] || 0;
-        // Normalize between 15% and 100%
-        const normalized = Math.max(15, Math.min(100, (val / 255) * 100));
-        newBars.push(normalized);
+      // Append amplitude sample to current position on timeline
+      if (isRecording) {
+        const elapsedSec = (Date.now() - startTimeMs) / 1000;
+        currentTimeSec = Math.min(MAX_DURATION_SEC, elapsedSec);
+        const index = Math.floor((currentTimeSec / MAX_DURATION_SEC) * (waveformData.length - 1));
+        const updated = [...waveformData];
+        updated[index] = Math.max(updated[index] || 0, normalizedAmp);
+        waveformData = updated;
       }
 
-      visualizerBars = newBars;
-      animFrameId = requestAnimationFrame(updateBars);
+      drawWaveformCanvas();
+      animFrameId = requestAnimationFrame(updateFrame);
     };
 
-    updateBars();
+    updateFrame();
   }
 
   function stopVisualization() {
@@ -144,7 +160,85 @@
       animFrameId = null;
     }
     analyserNode = null;
-    visualizerBars = new Array(14).fill(15);
+  }
+
+  function drawWaveformCanvas() {
+    if (!canvasRef) return;
+    const ctx = canvasRef.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvasRef.width;
+    const height = canvasRef.height;
+
+    // Clear background
+    ctx.clearRect(0, 0, width, height);
+
+    // Canvas background
+    ctx.fillStyle = "#0f172a"; // dark slate-900
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw Grid & Time Markers (0.0s, 0.5s, 1.0s, 1.5s, 2.0s)
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "9px sans-serif";
+    ctx.textAlign = "center";
+
+    const numGridLines = 4;
+    for (let i = 0; i <= numGridLines; i++) {
+      const x = (i / numGridLines) * width;
+      const timeVal = (i * 0.5).toFixed(1) + "s";
+      ctx.beginPath();
+      ctx.setLineDash([2, 2]);
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillText(timeVal, Math.max(12, Math.min(width - 12, x)), height - 4);
+    }
+
+    // Draw Mirrored Waveform Bars
+    const barWidth = width / waveformData.length;
+    const centerY = height / 2 - 4;
+    const playheadX = (currentTimeSec / MAX_DURATION_SEC) * width;
+
+    for (let i = 0; i < waveformData.length; i++) {
+      const x = i * barWidth;
+      const amp = waveformData[i];
+      const barHeight = Math.max(3, amp * (height / 2 - 10));
+
+      const isRecordedPortion = x <= playheadX;
+      if (isRecording) {
+        ctx.fillStyle = isRecordedPortion ? "#f43f5e" : "rgba(244, 63, 94, 0.25)"; // rose-500
+      } else if (isPlayingPreview) {
+        ctx.fillStyle = isRecordedPortion ? "#38bdf8" : "rgba(56, 189, 248, 0.25)"; // sky-400
+      } else {
+        ctx.fillStyle = isRecordedPortion ? "#34d399" : "rgba(255, 255, 255, 0.2)"; // emerald-400
+      }
+
+      ctx.fillRect(x, centerY - barHeight, Math.max(1, barWidth - 0.5), barHeight * 2);
+    }
+
+    // Draw Track Head (Playhead Cursor Line)
+    if (isRecording || isPlayingPreview || currentTimeSec > 0) {
+      ctx.strokeStyle = isRecording ? "#ff0055" : isPlayingPreview ? "#00f0ff" : "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.shadowBlur = 6;
+
+      ctx.beginPath();
+      ctx.moveTo(playheadX, 0);
+      ctx.lineTo(playheadX, height);
+      ctx.stroke();
+
+      ctx.shadowBlur = 0; // reset shadow
+
+      // Draw Playhead Top Handle Cap
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.arc(playheadX, 3, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   async function handlePressStart(e: MouseEvent | TouchEvent) {
@@ -156,6 +250,8 @@
     cleanupAll();
     audioChunks = [];
     recordingProgress = 0;
+    currentTimeSec = 0.0;
+    waveformData = new Array(100).fill(0.05);
 
     try {
       setupAudioContext();
@@ -201,20 +297,19 @@
       }
 
       isRecording = true;
+      startTimeMs = Date.now();
       mediaRecorder.start(100);
 
-      const startTime = Date.now();
-      const MAX_RECORD_DURATION_MS = 1000; // 1 second max
-
       progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        recordingProgress = Math.min(100, (elapsed / MAX_RECORD_DURATION_MS) * 100);
+        const elapsed = Date.now() - startTimeMs;
+        recordingProgress = Math.min(100, (elapsed / MAX_DURATION_MS) * 100);
+        currentTimeSec = Math.min(MAX_DURATION_SEC, elapsed / 1000);
       }, 25);
 
-      // Auto stop after 1.0 second max
+      // Auto stop after 2.0 seconds max
       recordTimer = setTimeout(() => {
         finishRecording();
-      }, MAX_RECORD_DURATION_MS);
+      }, MAX_DURATION_MS);
     } catch (err: any) {
       console.error("Microphone access error:", err);
       isRecording = false;
@@ -346,21 +441,30 @@
     previewAudio = new Audio(soundUrl);
     previewAudio.crossOrigin = "anonymous";
     isPlayingPreview = true;
+    currentTimeSec = 0.0;
 
-    // Connect preview audio to visualizer if Web Audio API available
+    // Connect preview audio to visualizer
     if (audioCtx) {
       try {
         const sourceNode = audioCtx.createMediaElementSource(previewAudio);
         startVisualization(sourceNode);
         analyserNode?.connect(audioCtx.destination);
       } catch (err) {
-        // Fallback for CORS or repeated element connection
+        // Fallback for CORS or existing node connection
       }
     }
 
+    previewAudio.ontimeupdate = () => {
+      if (previewAudio) {
+        currentTimeSec = Math.min(MAX_DURATION_SEC, previewAudio.currentTime);
+      }
+    };
+
     previewAudio.onended = () => {
       isPlayingPreview = false;
+      currentTimeSec = MAX_DURATION_SEC;
       stopVisualization();
+      drawWaveformCanvas();
     };
     previewAudio.onerror = () => {
       isPlayingPreview = false;
@@ -380,6 +484,8 @@
     currentCatchphraseUrl = null;
     audioBlob = null;
     audioPreviewUrl = null;
+    currentTimeSec = 0.0;
+    waveformData = new Array(100).fill(0.05);
     localStorage.removeItem("temp_catchphrase");
 
     if ($session.data?.user) {
@@ -407,6 +513,7 @@
     }
 
     syncAvatarWithHost(null);
+    drawWaveformCanvas();
     statusMessage = "Catchphrase removed.";
   }
 </script>
@@ -420,7 +527,7 @@
   <div class="flex justify-between items-center">
     <div class="flex items-center gap-2">
       <Icon icon="mdi:microphone" class="text-xl text-primary" />
-      <span class="text-base font-bold">1s Catchphrase</span>
+      <span class="text-base font-bold">2s Catchphrase</span>
     </div>
     {#if currentCatchphraseUrl || audioPreviewUrl}
       <span class="badge badge-success text-xs font-semibold">Recorded</span>
@@ -429,28 +536,31 @@
     {/if}
   </div>
 
-  <!-- Real-time Equalizer Audio Visualization Preview -->
-  <div class="w-full bg-base-300/80 rounded-xl p-3 flex flex-col gap-2 items-center justify-center border border-base-300">
-    <div class="flex items-end justify-center gap-1.5 h-10 w-full px-2">
-      {#each visualizerBars as barHeight, i}
-        <div
-          class="w-2.5 rounded-full transition-all duration-75"
-          class:bg-error={isRecording}
-          class:bg-primary={isPlayingPreview}
-          class:bg-base-content={!isRecording && !isPlayingPreview}
-          style="height: {barHeight}%; opacity: {isRecording || isPlayingPreview ? 0.9 : 0.35};"
-        ></div>
-      {/each}
-    </div>
+  <!-- Real-time Waveform Display Canvas with Track Head & Duration -->
+  <div class="w-full bg-slate-900 rounded-xl p-2 flex flex-col gap-1 items-center justify-center border border-base-300 relative overflow-hidden">
+    <canvas
+      bind:this={canvasRef}
+      width="340"
+      height="64"
+      class="w-full h-16 rounded-lg block"
+    ></canvas>
 
-    {#if isRecording}
-      <div class="w-full bg-base-100/50 rounded-full h-1.5 overflow-hidden mt-1">
-        <div
-          class="bg-error h-1.5 transition-all duration-75"
-          style="width: {recordingProgress}%"
-        ></div>
-      </div>
-    {/if}
+    <div class="w-full flex justify-between items-center px-1 text-[11px] font-mono font-bold text-slate-300">
+      <span class="flex items-center gap-1">
+        {#if isRecording}
+          <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+          <span class="text-red-400">REC</span>
+        {:else if isPlayingPreview}
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span class="text-cyan-400">PLAY</span>
+        {:else}
+          <span class="text-slate-400">TRACK</span>
+        {/if}
+      </span>
+      <span class="tracking-wider">
+        {currentTimeSec.toFixed(1)}s / {MAX_DURATION_SEC.toFixed(1)}s
+      </span>
+    </div>
   </div>
 
   <!-- Hold to Record Action Controls -->
@@ -473,11 +583,11 @@
       />
       <span>
         {#if isRecording}
-          Release to Finish (1s max)
+          Release to Finish (2s max)
         {:else if currentCatchphraseUrl}
           Hold to Re-record
         {:else}
-          Hold to Record (1s)
+          Hold to Record (2s)
         {/if}
       </span>
     </button>
