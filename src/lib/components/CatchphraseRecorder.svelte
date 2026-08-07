@@ -241,6 +241,158 @@
     }
   }
 
+  /**
+   * Trims silence from the beginning and end of an audio blob using Web Audio API PCM sampling.
+   */
+  async function trimSilenceFromAudioBlob(blob: Blob, threshold = 0.015): Promise<Blob> {
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const decodedBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+
+      const sampleRate = decodedBuffer.sampleRate;
+      const numberOfChannels = decodedBuffer.numberOfChannels;
+      const channelData = decodedBuffer.getChannelData(0);
+      const length = channelData.length;
+
+      let startSample = 0;
+      let endSample = length - 1;
+
+      // Find first sample exceeding silence threshold
+      for (let i = 0; i < length; i++) {
+        if (Math.abs(channelData[i]) > threshold) {
+          startSample = Math.max(0, i - Math.floor(sampleRate * 0.025)); // 25ms padding
+          break;
+        }
+      }
+
+      // Find last sample exceeding silence threshold
+      for (let i = length - 1; i >= startSample; i--) {
+        if (Math.abs(channelData[i]) > threshold) {
+          endSample = Math.min(length - 1, i + Math.floor(sampleRate * 0.025)); // 25ms padding
+          break;
+        }
+      }
+
+      const trimmedLength = endSample - startSample + 1;
+      if (trimmedLength <= 0 || trimmedLength >= length) {
+        tempCtx.close();
+        return blob;
+      }
+
+      const trimmedBuffer = new AudioBuffer({
+        numberOfChannels,
+        length: trimmedLength,
+        sampleRate,
+      });
+
+      for (let c = 0; c < numberOfChannels; c++) {
+        const srcChannel = decodedBuffer.getChannelData(c);
+        const destChannel = trimmedBuffer.getChannelData(c);
+        for (let i = 0; i < trimmedLength; i++) {
+          destChannel[i] = srcChannel[startSample + i];
+        }
+      }
+
+      const wavBlob = audioBufferToWavBlob(trimmedBuffer);
+      tempCtx.close();
+      return wavBlob;
+    } catch (err) {
+      console.warn("Failed to trim silence, returning original blob:", err);
+      return blob;
+    }
+  }
+
+  /**
+   * Encodes an AudioBuffer into an uncompressed 16-bit PCM WAV Blob.
+   */
+  function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
+    const numOfChan = buffer.numberOfChannels;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const out = new DataView(new ArrayBuffer(length));
+    let channels: Float32Array[] = [];
+    let sampleRate = buffer.sampleRate;
+    let pos = 0;
+
+    function setUint16(data: number) {
+      out.setUint16(pos, data, true);
+      pos += 2;
+    }
+
+    function setUint32(data: number) {
+      out.setUint32(pos, data, true);
+      pos += 4;
+    }
+
+    // RIFF header
+    setUint32(0x46464952); // "RIFF"
+    setUint32(length - 8);
+    setUint32(0x45564157); // "WAVE"
+
+    // fmt subchunk
+    setUint32(0x20746d66); // "fmt "
+    setUint32(16);
+    setUint16(1); // PCM
+    setUint16(numOfChan);
+    setUint32(sampleRate);
+    setUint32(sampleRate * numOfChan * 2);
+    setUint16(numOfChan * 2);
+    setUint16(16);
+
+    // data subchunk
+    setUint32(0x61746164); // "data"
+    setUint32(length - pos - 4);
+
+    for (let i = 0; i < numOfChan; i++) {
+      channels.push(buffer.getChannelData(i));
+    }
+
+    for (let i = 0; i < buffer.length; i++) {
+      for (let c = 0; c < numOfChan; c++) {
+        let sample = Math.max(-1, Math.min(1, channels[c][i]));
+        sample = sample < 0 ? sample * 32768 : sample * 32767;
+        out.setInt16(pos, Math.round(sample), true);
+        pos += 2;
+      }
+    }
+
+    return new Blob([out.buffer], { type: "audio/wav" });
+  }
+
+  /**
+   * Recomputes waveform visualization bars from trimmed audio blob.
+   */
+  async function recomputeWaveformFromBlob(blob: Blob) {
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const decodedBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+
+      const channelData = decodedBuffer.getChannelData(0);
+      const samplesCount = 100;
+      const chunkSize = Math.floor(channelData.length / samplesCount) || 1;
+      const newWaveform: number[] = [];
+
+      for (let i = 0; i < samplesCount; i++) {
+        let sumSq = 0;
+        const start = i * chunkSize;
+        const end = Math.min(channelData.length, start + chunkSize);
+        for (let j = start; j < end; j++) {
+          sumSq += channelData[j] * channelData[j];
+        }
+        const rms = Math.sqrt(sumSq / (end - start || 1));
+        newWaveform.push(Math.max(0.05, Math.min(1.0, rms * 2.8)));
+      }
+
+      waveformData = newWaveform;
+      currentTimeSec = decodedBuffer.duration;
+      drawWaveformCanvas();
+      tempCtx.close();
+    } catch (err) {
+      console.warn("Failed to recompute waveform from blob:", err);
+    }
+  }
+
   async function handlePressStart(e: MouseEvent | TouchEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -282,11 +434,18 @@
           activeStream = null;
         }
 
-        const blobType = mediaRecorder?.mimeType || "audio/webm";
-        audioBlob = new Blob(audioChunks, { type: blobType });
-        audioPreviewUrl = URL.createObjectURL(audioBlob);
+        const rawBlobType = mediaRecorder?.mimeType || "audio/webm";
+        const rawBlob = new Blob(audioChunks, { type: rawBlobType });
+
+        // Trim silence at start & end
+        statusMessage = "Trimming silence...";
+        const trimmedWavBlob = await trimSilenceFromAudioBlob(rawBlob);
+        audioBlob = trimmedWavBlob;
+        audioPreviewUrl = URL.createObjectURL(trimmedWavBlob);
         isRecording = false;
         recordingProgress = 100;
+
+        await recomputeWaveformFromBlob(trimmedWavBlob);
         await uploadCatchphrase();
       };
 
@@ -352,7 +511,7 @@
 
     try {
       const formData = new FormData();
-      const ext = audioBlob.type.includes("mp4") ? "m4a" : audioBlob.type.includes("wav") ? "wav" : "webm";
+      const ext = audioBlob.type.includes("wav") ? "wav" : audioBlob.type.includes("mp4") ? "m4a" : "webm";
       formData.append("file", audioBlob, `catchphrase.${ext}`);
 
       const res = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}/upload/audio`, {
@@ -395,7 +554,7 @@
       }
 
       syncAvatarWithHost(url);
-      statusMessage = "Catchphrase saved! 🎤";
+      statusMessage = "Catchphrase saved & trimmed! 🎤";
     } catch (err: any) {
       console.error("Error uploading catchphrase:", err);
       statusMessage = "Failed to upload audio.";
@@ -617,7 +776,7 @@
   {#if isUploading}
     <div class="flex items-center gap-2 text-xs text-primary font-medium mt-1">
       <span class="loading loading-spinner loading-xs"></span>
-      <span>Saving audio to server...</span>
+      <span>Trimming & saving audio...</span>
     </div>
   {:else if statusMessage}
     <div class="text-xs text-base-content/70 italic font-medium mt-1">{statusMessage}</div>
