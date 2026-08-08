@@ -54,15 +54,14 @@
   });
 </script>
 
-<!-- Material UI Background Circular Ripple Overlay -->
-<div class="fixed inset-0 pointer-events-none z-40 overflow-hidden" aria-hidden="true">
+<!-- Minimal Background Circular Ripple Overlay (Rendered behind UI elements at z-0) -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
   {#each ripples as ripple (ripple.id)}
     <div
       class="m3-ripple-origin"
       style="left: {ripple.x}px; top: {ripple.y}px; width: {ripple.size}px; height: {ripple.size}px;"
     >
-      <div class="m3-ripple-wave"></div>
-      <div class="m3-ripple-accent-ring"></div>
+      <div class="m3-ripple-minimal"></div>
     </div>
   {/each}
 </div>
@@ -74,57 +73,25 @@
     transform: translate(-50%, -50%);
   }
 
-  /* Core expanding gradient wave matching CouchCup palette */
-  .m3-ripple-wave {
+  /* Minimal translucent circle that expands and fades out with no colors/gradients */
+  .m3-ripple-minimal {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      rgba(242, 185, 15, 0.4) 0%,
-      rgba(191, 56, 44, 0.28) 40%,
-      rgba(168, 85, 247, 0.12) 70%,
-      transparent 100%
-    );
-    box-shadow: 0 0 30px rgba(242, 185, 15, 0.3);
+    background: rgba(255, 255, 255, 0.16);
     will-change: transform, opacity;
-    animation: m3-ripple-expand 600ms cubic-bezier(0, 0, 0.2, 1) forwards;
+    animation: m3-ripple-minimal-anim 550ms cubic-bezier(0, 0, 0.2, 1) forwards;
   }
 
-  /* Sharp accent ring for distinct Material ripple definition */
-  .m3-ripple-accent-ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 1.5px solid rgba(255, 255, 255, 0.55);
-    will-change: transform, opacity;
-    animation: m3-ring-expand 520ms cubic-bezier(0, 0, 0.2, 1) forwards;
-  }
-
-  @keyframes m3-ripple-expand {
+  @keyframes m3-ripple-minimal-anim {
     0% {
-      transform: scale(0.04);
-      opacity: 0.9;
-    }
-    40% {
-      opacity: 0.55;
+      transform: scale(0);
+      opacity: 0.35;
     }
     100% {
       transform: scale(1);
       opacity: 0;
     }
   }
-
-  @keyframes m3-ring-expand {
-    0% {
-      transform: scale(0.02);
-      opacity: 0.85;
-      border-width: 2.5px;
-    }
-    100% {
-      transform: scale(0.92);
-      opacity: 0;
-      border-width: 1px;
-    }
-  }
 </style>
+
