@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { playerEmote } from "$lib/avatar/player_emote";
   import { sideBarOpen } from "../stores/sidebar";
   import { authClient } from "../stores/authStore";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
@@ -84,7 +83,6 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="flex flex-col w-full max-w-md mx-auto px-6 py-6 pb-28 my-auto max-h-full"
-  onclick={playerEmote}
 >
   <div class="w-full mt-2 mb-6">
     <button

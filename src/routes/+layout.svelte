@@ -9,9 +9,12 @@
   import Modal from "$lib/components/Modal.svelte";
   import Footer from "$lib/components/layout/footer.svelte";
   import { gameState } from "$lib/wsapi/gameClient";
+  import EmoteRippleLayer from "$lib/components/EmoteRippleLayer.svelte";
 
   const screen = $derived($gameState.screen);
 </script>
+
+<EmoteRippleLayer />
 
 <Snackbar />
 
