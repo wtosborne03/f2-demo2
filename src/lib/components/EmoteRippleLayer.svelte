@@ -27,20 +27,19 @@
     const x = e.clientX;
     const y = e.clientY;
 
-    // Dynamic size calculation for full coverage from tap point
-    const maxDim = Math.max(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-    const size = Math.min(Math.max(240, maxDim * 0.8), 380);
+    // Calculate exact radius to furthest corner of viewport so ripple physically fills screen
+    const dx = Math.max(x, window.innerWidth - x);
+    const dy = Math.max(y, window.innerHeight - y);
+    const radius = Math.hypot(dx, dy);
+    const size = Math.ceil(radius * 2);
 
     const id = nextRippleId++;
-    // Keep maximum 6 active ripples simultaneously to stay lightweight & performant
-    ripples = [...ripples.slice(-5), { id, x, y, size }];
+    // Keep maximum 5 active ripples simultaneously to stay lightweight & performant
+    ripples = [...ripples.slice(-4), { id, x, y, size }];
 
     setTimeout(() => {
       ripples = ripples.filter((r) => r.id !== id);
-    }, 650);
+    }, 750);
   }
 
   onMount(() => {
@@ -73,20 +72,23 @@
     transform: translate(-50%, -50%);
   }
 
-  /* Minimal translucent circle that expands and fades out with no colors/gradients */
+  /* Minimal translucent circle that physically expands to fill the entire background */
   .m3-ripple-minimal {
     position: absolute;
     inset: 0;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.16);
     will-change: transform, opacity;
-    animation: m3-ripple-minimal-anim 550ms cubic-bezier(0, 0, 0.2, 1) forwards;
+    animation: m3-ripple-fill-anim 700ms cubic-bezier(0, 0, 0.2, 1) forwards;
   }
 
-  @keyframes m3-ripple-minimal-anim {
+  @keyframes m3-ripple-fill-anim {
     0% {
       transform: scale(0);
       opacity: 0.35;
+    }
+    30% {
+      opacity: 0.25;
     }
     100% {
       transform: scale(1);
