@@ -35,54 +35,54 @@
   }
 </script>
 
-<div className="w-full h-full min-h-screen bg-slate-950 text-white flex flex-col justify-between p-4 select-none">
+<div class="w-full h-full min-h-screen bg-slate-950 text-white flex flex-col justify-between p-4 select-none">
   <!-- Header -->
-  <header className="flex items-center justify-between border-b border-slate-800 pb-3">
-    <div className="flex items-center gap-2">
-      <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
-      <span className="font-black text-sm text-amber-400 tracking-wider">DERBY RACE LIVE</span>
+  <header class="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div class="flex items-center gap-2">
+      <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+      <span class="font-black text-sm text-amber-400 tracking-wider">DERBY RACE LIVE</span>
     </div>
-    <span className="text-xs font-mono font-bold text-slate-400">TOUCH CONTROLLER</span>
+    <span class="text-xs font-mono font-bold text-slate-400">TOUCH CONTROLLER</span>
   </header>
 
   <!-- Middle: Lane Change Controls -->
-  <div className="flex-1 flex flex-col justify-center gap-4 my-4">
-    <div className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+  <div class="flex-1 flex flex-col justify-center gap-4 my-4">
+    <div class="text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
       SWIPE / TAP TO SWITCH LANES
     </div>
 
-    <div className="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4">
       <button
         on:click={() => moveLane(-1)}
-        className="py-12 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 border-2 border-slate-700 active:border-amber-400 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all"
+        class="py-12 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 border-2 border-slate-700 active:border-amber-400 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all"
       >
-        <span className="text-5xl">⬅️</span>
-        <span className="font-black text-lg text-white uppercase">LANE LEFT</span>
+        <span class="text-5xl">⬅️</span>
+        <span class="font-black text-lg text-white uppercase">LANE LEFT</span>
       </button>
 
       <button
         on:click={() => moveLane(1)}
-        className="py-12 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 border-2 border-slate-700 active:border-amber-400 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all"
+        class="py-12 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 border-2 border-slate-700 active:border-amber-400 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all"
       >
-        <span className="text-5xl">➡️</span>
-        <span className="font-black text-lg text-white uppercase">LANE RIGHT</span>
+        <span class="text-5xl">➡️</span>
+        <span class="font-black text-lg text-white uppercase">LANE RIGHT</span>
       </button>
     </div>
   </div>
 
   <!-- Bottom Action Buttons: Whip & Steroid Rage -->
-  <div className="grid grid-cols-2 gap-4 mb-2">
+  <div class="grid grid-cols-2 gap-4 mb-2">
     <!-- Whip Button -->
     <button
       on:click={triggerWhip}
       disabled={whipCooldown}
-      className={`py-5 rounded-2xl font-black text-lg uppercase tracking-wider shadow-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
+      class={`py-5 rounded-2xl font-black text-lg uppercase tracking-wider shadow-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
         whipCooldown
           ? 'bg-slate-800 text-slate-500 border border-slate-700'
           : 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 border-2 border-white'
       }`}
     >
-      <span className="text-2xl">🔥</span>
+      <span class="text-2xl">🔥</span>
       <span>{whipCooldown ? 'BURNING...' : 'WHIP BOOST'}</span>
     </button>
 
@@ -90,13 +90,13 @@
     <button
       on:click={triggerSteroid}
       disabled={steroidCooldown}
-      className={`py-5 rounded-2xl font-black text-lg uppercase tracking-wider shadow-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
+      class={`py-5 rounded-2xl font-black text-lg uppercase tracking-wider shadow-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
         steroidCooldown
           ? 'bg-slate-800 text-slate-500 border border-slate-700'
           : 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-2 border-white animate-pulse'
       }`}
     >
-      <span className="text-2xl">⚡</span>
+      <span class="text-2xl">⚡</span>
       <span>{steroidCooldown ? 'RECHARGING...' : 'STEROID RAGE'}</span>
     </button>
   </div>
