@@ -19,6 +19,16 @@
   --color-base-300: #0e0e2d;
   --color-base-content: #f3f4f6;
 
+  /* Feedback / State colors */
+  --color-info: #38bdf8;
+  --color-info-content: #042f2e;
+  --color-success: #34d399;
+  --color-success-content: #022c22;
+  --color-warning: #fbbf24;
+  --color-warning-content: #1e1b00;
+  --color-error: #f87171;
+  --color-error-content: #ffffff;
+
   /* Global design tokens */
   --border: 1px;
   --depth: 1;
