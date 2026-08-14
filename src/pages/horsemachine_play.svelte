@@ -19,10 +19,39 @@
   $: triviaData = $gameState?.page_data?.trivia;
   let selectedTriviaAnswer: number | null = null;
   let lastTriviaQuestionId: string | null = null;
+  let isAttentionEntering = false;
+  let playedResultHaptic = false;
 
   $: if (triviaData && triviaData.questionId !== lastTriviaQuestionId) {
     lastTriviaQuestionId = triviaData.questionId;
     selectedTriviaAnswer = null;
+    isAttentionEntering = true;
+    playedResultHaptic = false;
+
+    // Urgent attention-grabbing haptic pattern
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate([100, 60, 100, 60, 220]);
+      } catch (e) {}
+    }
+
+    setTimeout(() => {
+      isAttentionEntering = false;
+    }, 1200);
+  }
+
+  // Trigger result haptics when result arrives
+  $: if (triviaData?.result && !playedResultHaptic) {
+    playedResultHaptic = true;
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        if (triviaData.result === 'correct') {
+          navigator.vibrate([60, 40, 120]);
+        } else {
+          navigator.vibrate([160, 80, 160]);
+        }
+      } catch (e) {}
+    }
   }
 
   function submitTriviaAnswer(index: number) {
@@ -161,74 +190,138 @@
     </span>
   </header>
 
-  <!-- IF TRIVIA HAZARD IS ACTIVE: FULL-SCREEN TRIVIA INPUT MODAL -->
+  <!-- IF TRIVIA HAZARD IS ACTIVE: FULL-SCREEN TRIVIA INPUT MODAL OR RESULT SCREEN -->
   {#if triviaData}
-    <div class="flex-1 flex flex-col justify-between py-2 animate-in fade-in zoom-in-95 duration-200">
-      <!-- Trivia Header Banner -->
-      <div class="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border-2 border-amber-400/80 rounded-2xl p-3 text-center shadow-lg">
-        <div class="flex items-center justify-center gap-2">
-          <span class="text-2xl animate-bounce">🧠</span>
-          <span class="font-black text-xs text-amber-400 uppercase tracking-widest">
-            TRIVIA HAZARD TRIGGERED!
-          </span>
-        </div>
-        <p class="text-[11px] text-slate-300 font-semibold mt-1">
-          {triviaData.triggeredBy ? `Hit by ${triviaData.triggeredBy}` : 'Thought bubble hit!'} • Correct = Speed Surge!
-        </p>
-      </div>
+    <div class="flex-1 flex flex-col justify-between py-2 relative overflow-hidden">
+      <!-- Attention Warning Ring Flash Pulse -->
+      {#if isAttentionEntering}
+        <div class="absolute -inset-2 rounded-3xl border-4 border-amber-400/80 bg-amber-500/20 animate-ping pointer-events-none z-50"></div>
+      {/if}
 
-      <!-- Question Card -->
-      <div class="bg-slate-900/90 border border-white/20 rounded-2xl p-4 my-2 text-center shadow-2xl">
-        <span class="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider block mb-1">
-          HORSE TRIVIA QUESTION
-        </span>
-        <h3 class="text-base sm:text-lg font-black text-white leading-snug">
-          "{triviaData.question}"
-        </h3>
-      </div>
-
-      <!-- 4 Large Touch Option Buttons -->
-      <div class="grid grid-cols-1 gap-2.5 my-auto">
-        {#each triviaData.options as option, idx}
-          {@const optionLetters = ['A', 'B', 'C', 'D']}
-          {@const isSelected = selectedTriviaAnswer === idx}
-          <button
-            type="button"
-            on:click={() => submitTriviaAnswer(idx)}
-            disabled={selectedTriviaAnswer !== null}
-            class={`w-full p-3.5 rounded-2xl border-2 font-black text-sm text-left flex items-center justify-between transition-all active:scale-95 shadow-md ${
-              isSelected
-                ? 'bg-emerald-500 text-slate-950 border-white shadow-[0_0_25px_rgba(16,185,129,0.6)] scale-[1.02]'
-                : selectedTriviaAnswer !== null
-                ? 'bg-slate-900/50 text-slate-500 border-slate-800'
-                : 'bg-slate-850 hover:bg-slate-800 active:bg-slate-700 text-white border-slate-700'
-            }`}
-          >
-            <div class="flex items-center gap-3">
-              <span
-                class={`w-7 h-7 rounded-xl flex items-center justify-center font-mono font-black text-xs border ${
-                  isSelected
-                    ? 'bg-slate-950 text-emerald-400 border-emerald-300'
-                    : 'bg-white/10 text-white border-white/20'
-                }`}
-              >
-                {optionLetters[idx]}
-              </span>
-              <span class="leading-tight">{option}</span>
+      <!-- IF RESULT IS AVAILABLE: SHOW BOLD CELEBRATION OR PENALTY SCREEN -->
+      {#if triviaData.result}
+        <div
+          class={`flex-1 flex flex-col items-center justify-center p-6 rounded-3xl border-4 shadow-2xl text-center my-auto transition-all animate-result-pop z-20 ${
+            triviaData.result === 'correct'
+              ? 'bg-gradient-to-b from-emerald-900 via-emerald-950 to-slate-950 border-emerald-400 shadow-[0_0_50px_rgba(16,185,129,0.5)]'
+              : 'bg-gradient-to-b from-rose-950 via-red-950 to-slate-950 border-rose-500 shadow-[0_0_50px_rgba(244,63,94,0.5)]'
+          }`}
+        >
+          {#if triviaData.result === 'correct'}
+            <!-- Correct Big Badge -->
+            <div class="w-20 h-20 rounded-full bg-emerald-500/25 border-4 border-emerald-400 flex items-center justify-center mb-3 shadow-[0_0_30px_rgba(16,185,129,0.7)] animate-bounce">
+              <span class="text-4xl text-emerald-300 font-black">✔</span>
             </div>
-            {#if isSelected}
-              <span class="text-xs font-mono font-black uppercase tracking-wider bg-slate-950/40 px-2 py-0.5 rounded-md">
-                LOCKED ✔
-              </span>
+            <span class="text-xs font-mono font-black text-emerald-300 uppercase tracking-widest bg-emerald-500/20 px-3.5 py-1 rounded-full border border-emerald-400/40 mb-1.5">
+              SPEED SURGE ACTIVATED!
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">
+              CORRECT!
+            </h2>
+            <div class="mt-4 p-3 bg-emerald-950/70 rounded-2xl border border-emerald-500/40 w-full">
+              <p class="text-xs sm:text-sm text-emerald-200 font-extrabold tracking-wide">
+                +20 METERS BOOST • MAXIMUM SPEED
+              </p>
+            </div>
+          {:else}
+            <!-- Incorrect Big Badge -->
+            <div class="w-20 h-20 rounded-full bg-rose-500/25 border-4 border-rose-400 flex items-center justify-center mb-3 shadow-[0_0_30px_rgba(244,63,94,0.7)] animate-shake">
+              <span class="text-4xl text-rose-300 font-black">✖</span>
+            </div>
+            <span class="text-xs font-mono font-black text-rose-300 uppercase tracking-widest bg-rose-500/20 px-3.5 py-1 rounded-full border border-rose-400/40 mb-1.5">
+              PENALTY SETBACK!
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">
+              WRONG ANSWER!
+            </h2>
+            {#if triviaData.correctOption}
+              <div class="mt-4 p-3 bg-rose-950/70 rounded-2xl border border-rose-500/40 w-full text-left">
+                <span class="text-[10px] font-mono font-black text-rose-300 uppercase tracking-wider block mb-1">
+                  CORRECT ANSWER WAS:
+                </span>
+                <p class="text-xs sm:text-sm text-white font-bold">
+                  {triviaData.correctOption}
+                </p>
+              </div>
             {/if}
-          </button>
-        {/each}
-      </div>
+          {/if}
 
-      <!-- Footer Instructions -->
-      <div class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-        {selectedTriviaAnswer !== null ? 'ANSWER SUBMITTED • WATCH THE TV!' : 'TAP AN OPTION TO ANSWER BEFORE TIME RUNS OUT!'}
-      </div>
+          <div class="mt-6 text-[11px] font-mono font-bold text-slate-400 tracking-wider animate-pulse uppercase">
+            RESUMING RACE CONTROLS...
+          </div>
+        </div>
+      {:else}
+        <!-- QUESTION & 4 ANSWER TOUCH OPTIONS -->
+        <!-- Attention Siren Header Banner -->
+        <div
+          class={`bg-gradient-to-r from-amber-500/25 via-orange-500/25 to-amber-500/25 border-2 border-amber-400/90 rounded-2xl p-3 text-center shadow-lg transition-all ${
+            isAttentionEntering ? 'scale-105 shadow-[0_0_30px_rgba(245,158,11,0.8)] animate-pulse' : ''
+          }`}
+        >
+          <div class="flex items-center justify-center gap-2">
+            <span class="text-2xl animate-bounce">🧠</span>
+            <span class="font-black text-xs text-amber-300 uppercase tracking-widest">
+              TRIVIA HAZARD TRIGGERED!
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-200 font-semibold mt-1">
+            {triviaData.triggeredBy ? `Hit by ${triviaData.triggeredBy}` : 'Thought bubble hit!'} • Correct = Speed Surge!
+          </p>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-slate-900/90 border border-white/20 rounded-2xl p-4 my-2 text-center shadow-2xl">
+          <span class="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider block mb-1">
+            HORSE TRIVIA QUESTION
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-white leading-snug">
+            "{triviaData.question}"
+          </h3>
+        </div>
+
+        <!-- 4 Large Touch Option Buttons -->
+        <div class="grid grid-cols-1 gap-2.5 my-auto">
+          {#each triviaData.options as option, idx}
+            {@const optionLetters = ['A', 'B', 'C', 'D']}
+            {@const isSelected = selectedTriviaAnswer === idx}
+            <button
+              type="button"
+              on:click={() => submitTriviaAnswer(idx)}
+              disabled={selectedTriviaAnswer !== null}
+              class={`w-full p-3.5 rounded-2xl border-2 font-black text-sm text-left flex items-center justify-between transition-all active:scale-95 shadow-md ${
+                isSelected
+                  ? 'bg-emerald-500 text-slate-950 border-white shadow-[0_0_25px_rgba(16,185,129,0.6)] scale-[1.02]'
+                  : selectedTriviaAnswer !== null
+                  ? 'bg-slate-900/50 text-slate-500 border-slate-800'
+                  : 'bg-slate-850 hover:bg-slate-800 active:bg-slate-700 text-white border-slate-700'
+              }`}
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class={`w-7 h-7 rounded-xl flex items-center justify-center font-mono font-black text-xs border ${
+                    isSelected
+                      ? 'bg-slate-950 text-emerald-400 border-emerald-300'
+                      : 'bg-white/10 text-white border-white/20'
+                  }`}
+                >
+                  {optionLetters[idx]}
+                </span>
+                <span class="leading-tight">{option}</span>
+              </div>
+              {#if isSelected}
+                <span class="text-xs font-mono font-black uppercase tracking-wider bg-slate-950/40 px-2 py-0.5 rounded-md">
+                  LOCKED ✔
+                </span>
+              {/if}
+            </button>
+          {/each}
+        </div>
+
+        <!-- Footer Instructions -->
+        <div class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          {selectedTriviaAnswer !== null ? 'ANSWER LOCKED IN • CHECKING RESULT...' : 'TAP AN OPTION BEFORE TIME RUNS OUT!'}
+        </div>
+      {/if}
     </div>
   {:else}
     <!-- REGULAR RACING MODE: INTERACTIVE VERTICAL SWIPE TRACK -->
@@ -357,3 +450,33 @@
     </div>
   {/if}
 </div>
+
+<style>
+  @keyframes resultPop {
+    0% {
+      transform: scale(0.85);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes penaltyShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+
+  .animate-result-pop {
+    animation: resultPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .animate-shake {
+    animation: penaltyShake 0.4s ease-in-out;
+  }
+</style>
