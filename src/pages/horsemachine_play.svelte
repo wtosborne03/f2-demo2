@@ -5,8 +5,6 @@
   let startY = 0;
   let currentY = 0;
   let isDragging = false;
-  let lastShiftDirection: 'up' | 'down' | null = null;
-  let shiftIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
   const SWIPE_THRESHOLD = 28;
 
   // Trivia Hazard State (synced via page_data)
@@ -59,12 +57,6 @@
         navigator.vibrate(30);
       } catch (e) {}
     }
-
-    lastShiftDirection = direction < 0 ? 'up' : 'down';
-    if (shiftIndicatorTimer) clearTimeout(shiftIndicatorTimer);
-    shiftIndicatorTimer = setTimeout(() => {
-      lastShiftDirection = null;
-    }, 450);
   }
 
   function handlePointerDown(e: PointerEvent) {
@@ -113,11 +105,12 @@
 </script>
 
 <div
+  data-no-emote
   on:pointerdown={handlePointerDown}
   on:pointermove={handlePointerMove}
   on:pointerup={handlePointerUp}
   on:pointercancel={handlePointerCancel}
-  class="w-full h-full min-h-screen bg-transparent text-base-content flex flex-col justify-between p-4 sm:p-6 select-none touch-none overflow-hidden max-w-md mx-auto relative font-sans"
+  class="interactive w-full h-full min-h-screen bg-transparent text-base-content flex flex-col justify-between p-4 sm:p-6 select-none touch-none overflow-hidden max-w-md mx-auto relative font-sans"
 >
   <!-- Header Bar -->
   <header class="flex items-center justify-between border-b border-base-content/10 pb-3 shrink-0">
@@ -238,20 +231,14 @@
   {:else}
     <!-- REGULAR RACING STEERING: FULL-SCREEN SWIPE SURFACE WITH CLEAN HINT -->
     <div class="flex-1 flex flex-col items-center justify-center py-6 relative">
-      {#if lastShiftDirection}
-        <div class="badge badge-primary text-primary-content font-bold text-sm uppercase tracking-wider py-3.5 px-5 shadow-xl animate-bounce">
-          {lastShiftDirection === 'up' ? '▲ SHIFT UP' : '▼ SHIFT DOWN'}
-        </div>
-      {:else}
-        <div class="flex flex-col items-center gap-3 opacity-60">
-          <svg class="w-10 h-10 text-base-content/70 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v18M7 7l5-4 5 4M7 17l5 4 5-4"/>
-          </svg>
-          <span class="text-xs font-mono font-semibold uppercase tracking-widest text-base-content/70">
-            SWIPE UP / DOWN TO CHANGE LANES
-          </span>
-        </div>
-      {/if}
+      <div class="flex flex-col items-center gap-3 opacity-60">
+        <svg class="w-10 h-10 text-base-content/70 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18M7 7l5-4 5 4M7 17l5 4 5-4"/>
+        </svg>
+        <span class="text-xs font-mono font-semibold uppercase tracking-widest text-base-content/70">
+          SWIPE UP / DOWN TO CHANGE LANES
+        </span>
+      </div>
     </div>
 
     <!-- Minimal Clean Footer -->
