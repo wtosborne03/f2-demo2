@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { gameClient, gameState } from '$lib/wsapi/gameClient';
 
   // Swipe Gestures & Single-Lane Shift State
@@ -8,9 +9,10 @@
   let hasSwipedInCurrentGesture = false;
   let lastSwipeTime = 0;
   let containerEl: HTMLDivElement;
+  let swipeZoneEl: HTMLDivElement;
 
-  const SWIPE_THRESHOLD = 30; // Pixels needed to trigger a swipe
-  const SWIPE_COOLDOWN_MS = 180; // Tiny cooldown timeout between swipes
+  const SWIPE_THRESHOLD = 28; // Pixels needed to trigger a swipe
+  const SWIPE_COOLDOWN_MS = 160; // Tiny cooldown timeout between swipes
 
   // Globby Material-style animation state
   interface ActiveGlob {
@@ -30,11 +32,27 @@
   let isAttentionEntering = false;
   let playedResultHaptic = false;
 
+  let timerInterval: any = null;
+  let remainingTime = 10;
+  let totalDuration = 10;
+
   $: if (triviaData && triviaData.questionId !== lastTriviaQuestionId) {
     lastTriviaQuestionId = triviaData.questionId;
     selectedTriviaAnswer = null;
     isAttentionEntering = true;
     playedResultHaptic = false;
+    totalDuration = triviaData.duration || 10;
+    remainingTime = totalDuration;
+
+    if (timerInterval) clearInterval(timerInterval);
+    const startTime = Date.now();
+    timerInterval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      remainingTime = Math.max(0, totalDuration - elapsed);
+      if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+      }
+    }, 100);
 
     // Urgent attention-grabbing haptic pattern
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -46,6 +64,13 @@
     setTimeout(() => {
       isAttentionEntering = false;
     }, 1200);
+  }
+
+  $: if (!triviaData || triviaData.result) {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
   }
 
   // Trigger result haptics when result arrives
@@ -61,6 +86,12 @@
       } catch (e) {}
     }
   }
+
+  onDestroy(() => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+  });
 
   function triggerSwipe(direction: -1 | 1, touchX: number, touchY: number) {
     gameClient.sendInput({
@@ -84,7 +115,6 @@
   }
 
   function handlePointerDown(e: PointerEvent) {
-    if (triviaData) return;
     isDragging = true;
     hasSwipedInCurrentGesture = false;
     startY = e.clientY;
@@ -92,7 +122,7 @@
   }
 
   function handlePointerMove(e: PointerEvent) {
-    if (!isDragging || triviaData) return;
+    if (!isDragging) return;
     currentY = e.clientY;
     const rawDelta = currentY - startY;
 
@@ -102,14 +132,14 @@
       if (rawDelta <= -SWIPE_THRESHOLD && now - lastSwipeTime >= SWIPE_COOLDOWN_MS) {
         hasSwipedInCurrentGesture = true;
         lastSwipeTime = now;
-        const rect = containerEl?.getBoundingClientRect();
+        const rect = (e.currentTarget as HTMLElement)?.getBoundingClientRect();
         const x = rect ? e.clientX - rect.left : e.clientX;
         const y = rect ? e.clientY - rect.top : e.clientY;
         triggerSwipe(-1, x, y);
       } else if (rawDelta >= SWIPE_THRESHOLD && now - lastSwipeTime >= SWIPE_COOLDOWN_MS) {
         hasSwipedInCurrentGesture = true;
         lastSwipeTime = now;
-        const rect = containerEl?.getBoundingClientRect();
+        const rect = (e.currentTarget as HTMLElement)?.getBoundingClientRect();
         const x = rect ? e.clientX - rect.left : e.clientX;
         const y = rect ? e.clientY - rect.top : e.clientY;
         triggerSwipe(1, x, y);
@@ -146,171 +176,245 @@
 <div
   bind:this={containerEl}
   data-no-emote
-  on:pointerdown={handlePointerDown}
-  on:pointermove={handlePointerMove}
-  on:pointerup={handlePointerUp}
-  on:pointercancel={handlePointerCancel}
-  class="interactive w-full h-full min-h-screen bg-transparent text-base-content flex flex-col justify-between p-4 sm:p-6 select-none touch-none overflow-hidden max-w-md mx-auto relative font-sans"
+  class="interactive w-full h-[100dvh] h-screen bg-transparent text-base-content flex flex-col justify-between p-3 sm:p-4 select-none touch-none overflow-hidden max-w-md mx-auto relative font-sans"
 >
-  <!-- Material Globby CSS Animations Overlay -->
-  {#each activeGlobs as glob (glob.id)}
-    <div
-      class="glob-anchor"
-      style={`left: ${glob.x}px; top: ${glob.y}px;`}
-    >
-      <!-- Expanding Material Ripple -->
-      <div class="material-ripple"></div>
-
-      <!-- Globby Fluid Body with Directional Stretch -->
-      <div class={`glob-body ${glob.direction === 'up' ? 'glob-stretch-up' : 'glob-stretch-down'}`}>
-        <svg class="w-6 h-6 text-white/90 drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-          {#if glob.direction === 'up'}
-            <path d="M18 15l-6-6-6 6" />
-          {:else}
-            <path d="M6 9l6 6 6-6" />
-          {/if}
-        </svg>
-      </div>
-
-      <!-- Fluid Droplets Floating in Direction of Swipe -->
-      <div class={`glob-droplet-1 ${glob.direction === 'up' ? 'drop-up-1' : 'drop-down-1'}`}></div>
-      <div class={`glob-droplet-2 ${glob.direction === 'up' ? 'drop-up-2' : 'drop-down-2'}`}></div>
-    </div>
-  {/each}
-
   <!-- Header Bar -->
-  <header class="flex items-center justify-between border-b border-base-content/10 pb-3 shrink-0 z-20">
+  <header class="flex items-center justify-between border-b border-base-content/10 pb-2.5 shrink-0 z-30">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
       <span class="font-bold text-sm text-base-content tracking-wider font-mono">
-        HORSE RACER
+        DERBY RACER
       </span>
     </div>
-    <div class="badge badge-outline text-base-content/70 font-mono text-[11px] uppercase tracking-wider py-2 px-3">
-      {triviaData ? 'TRIVIA' : 'STEERING'}
+    <div class={`badge font-mono text-[11px] uppercase tracking-wider py-2 px-3 transition-colors ${
+      triviaData ? 'badge-warning text-warning-content font-bold shadow-md animate-pulse' : 'badge-outline text-base-content/70'
+    }`}>
+      {triviaData ? 'TRIVIA • DUAL CONTROLS' : 'STEERING ACTIVE'}
     </div>
   </header>
 
-  <!-- TRIVIA HAZARD MODE -->
+  <!-- TRIVIA ACTIVE: DUAL-SPLIT VIEW (TOP HALF TRIVIA + BOTTOM HALF SWIPE STEERING) -->
   {#if triviaData}
-    <div class="flex-1 flex flex-col justify-between py-4 relative z-20">
-      {#if isAttentionEntering}
-        <div class="absolute -inset-2 rounded-3xl border-2 border-warning/60 bg-warning/10 animate-ping pointer-events-none z-50"></div>
-      {/if}
+    <div class="flex-1 flex flex-col justify-between min-h-0 py-2 relative z-20 gap-2">
+      <!-- TOP HALF: TRIVIA SPRINT HAZARD CONTAINER -->
+      <div class="h-[52%] max-h-[52%] min-h-[220px] flex flex-col justify-between p-3 rounded-2xl bg-base-200/70 border border-warning/30 shadow-xl backdrop-blur-md relative overflow-hidden">
+        {#if isAttentionEntering}
+          <div class="absolute -inset-2 rounded-3xl border-2 border-warning/70 bg-warning/15 animate-ping pointer-events-none z-50"></div>
+        {/if}
 
-      {#if triviaData.result}
-        <!-- Result Screen -->
-        <div
-          class={`card flex-1 flex flex-col items-center justify-center p-6 border shadow-2xl text-center my-auto transition-all animate-result-pop z-20 ${
-            triviaData.result === 'correct'
-              ? 'bg-success/15 border-success/40 text-success-content shadow-success/20'
-              : 'bg-error/15 border-error/40 text-error-content shadow-error/20'
-          }`}
-        >
-          {#if triviaData.result === 'correct'}
-            <div class="w-16 h-16 rounded-2xl bg-success/20 border-2 border-success flex items-center justify-center mb-3 text-3xl font-black text-success">
-              ✔
-            </div>
-            <div class="badge badge-success badge-sm font-mono font-bold uppercase tracking-wider mb-2">
-              SPEED SURGE
-            </div>
-            <h2 class="text-2xl font-bold tracking-wide">
-              CORRECT!
-            </h2>
-            <div class="mt-4 p-3 bg-base-100/50 rounded-xl border border-success/30 w-full text-center">
-              <p class="text-xs sm:text-sm font-bold text-success">
-                +20M SURGE BOOST ACTIVATED
-              </p>
-            </div>
-          {:else}
-            <div class="w-16 h-16 rounded-2xl bg-error/20 border-2 border-error flex items-center justify-center mb-3 text-3xl font-black text-error animate-shake">
-              ✖
-            </div>
-            <div class="badge badge-error badge-sm font-mono font-bold uppercase tracking-wider mb-2">
-              PENALTY SETBACK
-            </div>
-            <h2 class="text-2xl font-bold tracking-wide">
-              WRONG ANSWER!
-            </h2>
-            {#if triviaData.correctOption}
-              <div class="mt-4 p-3 bg-base-100/50 rounded-xl border border-error/30 w-full text-left">
-                <span class="text-[10px] font-mono font-bold text-error uppercase tracking-wider block mb-1">
-                  CORRECT ANSWER:
-                </span>
-                <p class="text-xs sm:text-sm font-semibold">
-                  {triviaData.correctOption}
-                </p>
+        {#if triviaData.result}
+          <!-- Result Card -->
+          <div
+            class={`card flex-1 flex flex-col items-center justify-center p-3 text-center my-auto transition-all animate-result-pop z-20 ${
+              triviaData.result === 'correct'
+                ? 'bg-success/20 border border-success/40 text-success-content'
+                : 'bg-error/20 border border-error/40 text-error-content'
+            }`}
+          >
+            {#if triviaData.result === 'correct'}
+              <div class="w-12 h-12 rounded-xl bg-success/25 border-2 border-success flex items-center justify-center mb-1.5 text-2xl font-black text-success">
+                ✔
               </div>
-            {/if}
-          {/if}
-          <span class="mt-6 text-[11px] font-mono font-bold text-base-content/50 tracking-widest uppercase animate-pulse">
-            RESUMING CONTROLS...
-          </span>
-        </div>
-      {:else}
-        <!-- Question & ABCD Answers -->
-        <div class="card bg-base-200/60 border border-base-content/10 p-4 text-center shadow-lg">
-          <span class="text-[10px] font-mono font-bold text-warning uppercase tracking-widest block mb-1">
-            HORSE TRIVIA
-          </span>
-          <h3 class="text-base sm:text-lg font-bold text-base-content leading-snug">
-            "{triviaData.question}"
-          </h3>
-        </div>
-
-        <div class="grid grid-cols-1 gap-2.5 my-auto">
-          {#each triviaData.options as option, idx}
-            {@const optionLetters = ['A', 'B', 'C', 'D']}
-            {@const isSelected = selectedTriviaAnswer === idx}
-            <button
-              type="button"
-              on:click={() => submitTriviaAnswer(idx)}
-              disabled={selectedTriviaAnswer !== null}
-              class={`btn btn-block h-auto py-3.5 px-4 rounded-xl border text-sm text-left flex items-center justify-between transition-all ${
-                isSelected
-                  ? 'btn-primary shadow-lg scale-[1.01]'
-                  : selectedTriviaAnswer !== null
-                  ? 'btn-neutral opacity-40'
-                  : 'btn-outline border-base-content/20 hover:bg-base-200 active:scale-[0.98]'
-              }`}
-            >
-              <div class="flex items-center gap-3">
-                <span class={`badge ${isSelected ? 'badge-primary-content text-primary font-bold' : 'badge-ghost'} font-mono text-xs`}>
-                  {optionLetters[idx]}
-                </span>
-                <span class="leading-tight">{option}</span>
+              <div class="badge badge-success badge-sm font-mono font-bold uppercase tracking-wider mb-1">
+                SPEED SURGE ACTIVATED
               </div>
-              {#if isSelected}
-                <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-black/20 px-2 py-0.5 rounded">
-                  LOCKED ✔
-                </span>
+              <h2 class="text-xl font-bold tracking-wide">
+                CORRECT! +20M BOOST
+              </h2>
+            {:else}
+              <div class="w-12 h-12 rounded-xl bg-error/25 border-2 border-error flex items-center justify-center mb-1.5 text-2xl font-black text-error animate-shake">
+                ✖
+              </div>
+              <div class="badge badge-error badge-sm font-mono font-bold uppercase tracking-wider mb-1">
+                PENALTY SETBACK
+              </div>
+              <h2 class="text-xl font-bold tracking-wide">
+                WRONG ANSWER!
+              </h2>
+              {#if triviaData.correctOption}
+                <div class="mt-1.5 px-2.5 py-1 bg-base-100/60 rounded-lg border border-error/30 w-full text-center">
+                  <span class="text-[10px] font-mono font-bold text-error uppercase tracking-wider">
+                    CORRECT: {triviaData.correctOption}
+                  </span>
+                </div>
               {/if}
-            </button>
-          {/each}
-        </div>
+            {/if}
+            <span class="mt-2 text-[10px] font-mono font-bold text-base-content/60 tracking-widest uppercase animate-pulse">
+              STEERING ACTIVE BELOW
+            </span>
+          </div>
+        {:else}
+          <!-- Question Header & Countdown -->
+          <div class="shrink-0 mb-1.5">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-warning animate-ping"></span>
+                <span class="text-[10px] font-mono font-black text-warning uppercase tracking-widest">
+                  TRIVIA SPRINT
+                </span>
+              </div>
+              <div class="badge badge-warning badge-sm font-mono font-black text-[10px] px-2 py-0.5">
+                {Math.ceil(remainingTime)}s
+              </div>
+            </div>
 
-        <div class="text-center text-[10px] font-mono font-bold text-base-content/50 uppercase tracking-widest">
-          {selectedTriviaAnswer !== null ? 'ANSWER LOCKED IN • WATCH TV' : 'TAP AN OPTION BEFORE TIME EXPIRES'}
+            <!-- Progress Bar -->
+            <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden border border-base-content/10">
+              <div
+                class="bg-gradient-to-r from-warning to-error h-full transition-all duration-100 ease-linear"
+                style={`width: ${Math.max(0, Math.min(100, (remainingTime / totalDuration) * 100))}%`}
+              ></div>
+            </div>
+          </div>
+
+          <!-- Question Text -->
+          <div class="bg-base-300/60 rounded-xl p-2.5 text-center border border-base-content/10 shrink-0 shadow-inner">
+            <h3 class="text-xs sm:text-sm font-bold text-base-content leading-snug line-clamp-2">
+              "{triviaData.question}"
+            </h3>
+          </div>
+
+          <!-- 2x2 Option Buttons -->
+          <div class="grid grid-cols-2 gap-2 my-auto pt-1">
+            {#each triviaData.options as option, idx}
+              {@const optionLetters = ['A', 'B', 'C', 'D']}
+              {@const isSelected = selectedTriviaAnswer === idx}
+              <button
+                type="button"
+                on:click={() => submitTriviaAnswer(idx)}
+                disabled={selectedTriviaAnswer !== null}
+                class={`btn btn-sm sm:btn-md h-auto min-h-[38px] sm:min-h-[42px] py-1.5 px-2.5 rounded-xl border text-xs sm:text-sm text-left flex items-center justify-between transition-all select-none ${
+                  isSelected
+                    ? 'btn-primary shadow-lg scale-[1.02] border-primary-focus'
+                    : selectedTriviaAnswer !== null
+                    ? 'btn-neutral opacity-35'
+                    : 'btn-outline border-base-content/25 bg-base-100/40 hover:bg-base-200 active:scale-[0.97]'
+                }`}
+              >
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <span class={`badge badge-xs font-mono font-bold px-1.5 py-0.5 ${isSelected ? 'badge-primary-content text-primary' : 'badge-ghost'}`}>
+                    {optionLetters[idx]}
+                  </span>
+                  <span class="leading-tight truncate text-[11px] sm:text-xs font-semibold">{option}</span>
+                </div>
+                {#if isSelected}
+                  <span class="text-[9px] font-mono font-black uppercase tracking-wider bg-black/25 px-1.5 py-0.5 rounded text-white ml-1 shrink-0">
+                    LOCKED ✔
+                  </span>
+                {/if}
+              </button>
+            {/each}
+          </div>
+
+          <div class="text-center text-[9px] font-mono font-bold text-base-content/50 uppercase tracking-widest shrink-0 mt-0.5">
+            {selectedTriviaAnswer !== null ? 'ANSWER LOCKED IN • SWIPE BELOW TO STEER' : 'TAP OPTION • SWIPE BELOW TO CHANGE LANES'}
+          </div>
+        {/if}
+      </div>
+
+      <!-- SPLIT SEPARATOR BAR -->
+      <div class="shrink-0 flex items-center gap-2 py-0.5 select-none pointer-events-none">
+        <div class="h-[1px] bg-base-content/15 flex-1"></div>
+        <span class="text-[9px] font-mono font-black uppercase tracking-widest text-primary px-2.5 py-0.5 bg-primary/10 rounded-full border border-primary/25 shadow-sm flex items-center gap-1.5">
+          <span>▲</span> SWIPE TO STEER <span>▼</span>
+        </span>
+        <div class="h-[1px] bg-base-content/15 flex-1"></div>
+      </div>
+
+      <!-- BOTTOM HALF: DEDICATED SWIPE STEERING ZONE -->
+      <div
+        bind:this={swipeZoneEl}
+        on:pointerdown={handlePointerDown}
+        on:pointermove={handlePointerMove}
+        on:pointerup={handlePointerUp}
+        on:pointercancel={handlePointerCancel}
+        class="h-[42%] flex-1 relative flex flex-col items-center justify-center rounded-2xl bg-base-200/50 border-2 border-dashed border-primary/30 p-3 touch-none select-none overflow-hidden cursor-ns-resize shadow-inner active:border-primary/60 transition-colors"
+      >
+        <!-- Material Globby CSS Animations Overlay inside Swipe Zone -->
+        {#each activeGlobs as glob (glob.id)}
+          <div
+            class="glob-anchor"
+            style={`left: ${glob.x}px; top: ${glob.y}px;`}
+          >
+            <div class="material-ripple"></div>
+            <div class={`glob-body ${glob.direction === 'up' ? 'glob-stretch-up' : 'glob-stretch-down'}`}>
+              <svg class="w-6 h-6 text-white/90 drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                {#if glob.direction === 'up'}
+                  <path d="M18 15l-6-6-6 6" />
+                {:else}
+                  <path d="M6 9l6 6 6-6" />
+                {/if}
+              </svg>
+            </div>
+            <div class={`glob-droplet-1 ${glob.direction === 'up' ? 'drop-up-1' : 'drop-down-1'}`}></div>
+            <div class={`glob-droplet-2 ${glob.direction === 'up' ? 'drop-up-2' : 'drop-down-2'}`}></div>
+          </div>
+        {/each}
+
+        <!-- Interactive Visual Cue -->
+        <div class="flex flex-col items-center gap-2 pointer-events-none select-none opacity-85">
+          <div class="w-11 h-11 rounded-full border-2 border-primary/40 bg-primary/10 flex items-center justify-center shadow-md animate-pulse">
+            <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v18M7 7l5-4 5 4M7 17l5 4 5-4"/>
+            </svg>
+          </div>
+          <span class="text-xs font-mono font-bold uppercase tracking-widest text-base-content/90">
+            SWIPE UP / DOWN TO STEER
+          </span>
+          <span class="text-[10px] font-mono text-base-content/50 uppercase tracking-wider">
+            LANE CONTROLS ACTIVE DURING TRIVIA
+          </span>
         </div>
-      {/if}
+      </div>
     </div>
   {:else}
-    <!-- REGULAR RACING STEERING: FULL-SCREEN CLEAN GESTURE CANVAS -->
-    <div class="flex-1 flex flex-col items-center justify-center py-6 relative z-10">
-      <div class="flex flex-col items-center gap-3 opacity-60 pointer-events-none select-none">
-        <div class="w-12 h-12 rounded-full border border-base-content/20 flex items-center justify-center animate-pulse">
-          <svg class="w-6 h-6 text-base-content/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- FULL-SCREEN REGULAR STEERING CANVAS -->
+    <div
+      bind:this={swipeZoneEl}
+      on:pointerdown={handlePointerDown}
+      on:pointermove={handlePointerMove}
+      on:pointerup={handlePointerUp}
+      on:pointercancel={handlePointerCancel}
+      class="flex-1 relative flex flex-col items-center justify-center my-3 rounded-3xl bg-base-200/30 border border-base-content/10 touch-none select-none overflow-hidden cursor-ns-resize shadow-inner active:border-primary/40 transition-colors z-10"
+    >
+      <!-- Material Globby CSS Animations Overlay -->
+      {#each activeGlobs as glob (glob.id)}
+        <div
+          class="glob-anchor"
+          style={`left: ${glob.x}px; top: ${glob.y}px;`}
+        >
+          <div class="material-ripple"></div>
+          <div class={`glob-body ${glob.direction === 'up' ? 'glob-stretch-up' : 'glob-stretch-down'}`}>
+            <svg class="w-6 h-6 text-white/90 drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              {#if glob.direction === 'up'}
+                <path d="M18 15l-6-6-6 6" />
+              {:else}
+                <path d="M6 9l6 6 6-6" />
+              {/if}
+            </svg>
+          </div>
+          <div class={`glob-droplet-1 ${glob.direction === 'up' ? 'drop-up-1' : 'drop-down-1'}`}></div>
+          <div class={`glob-droplet-2 ${glob.direction === 'up' ? 'drop-up-2' : 'drop-down-2'}`}></div>
+        </div>
+      {/each}
+
+      <div class="flex flex-col items-center gap-3 opacity-70 pointer-events-none select-none">
+        <div class="w-14 h-14 rounded-full border-2 border-base-content/20 flex items-center justify-center animate-pulse bg-base-100/50 shadow-md">
+          <svg class="w-7 h-7 text-base-content/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3v18M7 7l5-4 5 4M7 17l5 4 5-4"/>
           </svg>
         </div>
-        <span class="text-xs font-mono font-semibold uppercase tracking-widest text-base-content/70">
+        <span class="text-xs sm:text-sm font-mono font-bold uppercase tracking-widest text-base-content/80">
           SWIPE UP / DOWN TO CHANGE LANES
+        </span>
+        <span class="text-[10px] font-mono text-base-content/50 uppercase tracking-wider">
+          Single lane shift per swipe
         </span>
       </div>
     </div>
 
     <!-- Minimal Clean Footer -->
-    <footer class="text-center text-[10px] font-mono font-medium text-base-content/40 uppercase tracking-wider pt-2 border-t border-base-content/10 z-20 pointer-events-none">
+    <footer class="text-center text-[10px] font-mono font-medium text-base-content/40 uppercase tracking-wider pt-2 border-t border-base-content/10 z-20 pointer-events-none shrink-0">
       AVOID BANANAS & BOMBS • HIT THOUGHT BUBBLES
     </footer>
   {/if}
