@@ -29,6 +29,14 @@
   $: triviaData = rawPageData?.trivia || (rawPageData?.question ? rawPageData : null);
   $: questionOptions = triviaData?.options || triviaData?.answers || [];
 
+  $: console.log('[HorseMachine Play Page] Reactive state:', {
+    screen: $gameState?.screen,
+    page_data: $gameState?.page_data,
+    rawPageData,
+    triviaData,
+    questionOptions,
+  });
+
   let selectedTriviaAnswer: number | null = null;
   let lastTriviaQuestionKey: string | null = null;
   let playedResultHaptic = false;

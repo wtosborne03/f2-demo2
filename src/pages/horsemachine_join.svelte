@@ -21,39 +21,47 @@
 </svelte:head>
 
 {#if !submitted}
-  <!-- Full Screen Width Canvas with Bottom-Docked UI (No Vertical Overflow/Scroll) -->
+  <!-- Mobile-Optimized Full Screen Layout with Responsive Canvas & Scrollable Controls -->
   <div class="w-full h-full max-h-full flex flex-col justify-between overflow-hidden text-base-content p-0 relative">
-    <!-- 1. TOP: 3D Preview Canvas (Fills 100% screen width & remaining height) -->
-    <section class="flex-1 w-full relative min-h-0">
+    <!-- 1. TOP: 3D Preview Canvas Viewport -->
+    <section class="flex-1 w-full relative min-h-[160px] sm:min-h-[220px]">
       <HorsePreviewCanvas 
         bind:attributes={horseAttributes} 
       />
     </section>
 
-    <!-- 2. BOTTOM: Controls Card & Submit Button Docked Flush at Bottom -->
-    <section class="w-full max-w-xl mx-auto shrink-0 pb-0 flex flex-col">
-      <HorseMakerUI 
-        bind:attributes={horseAttributes} 
-      />
+    <!-- 2. BOTTOM: Controls Card & Submit Button with Smooth Scroll Handling -->
+    <section class="w-full max-w-xl mx-auto shrink-0 flex flex-col max-h-[62vh] sm:max-h-[56vh] shadow-2xl z-10">
+      <!-- Scrollable Customization Box -->
+      <div class="w-full overflow-y-auto overscroll-contain">
+        <HorseMakerUI 
+          bind:attributes={horseAttributes} 
+        />
+      </div>
+
+      <!-- Prominent, Large Touch-Target Submit Button -->
       <button
+        type="button"
         on:click={submitHorse}
-        class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-lg uppercase tracking-wider shadow-2xl active:scale-95 transition-all border-t-2 border-amber-300"
+        class="w-full py-4 sm:py-4.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-lg sm:text-xl uppercase tracking-wider shadow-2xl active:scale-[0.98] transition-all border-t-2 border-amber-300 flex items-center justify-center gap-2 shrink-0 select-none cursor-pointer"
       >
-        🚀 SPIT HORSE INTO MACHINE!
+        <span>🚀 SPIT HORSE INTO MACHINE!</span>
       </button>
     </section>
   </div>
 {:else}
   <!-- Submitted Waiting Screen -->
-  <div class="w-full h-full min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center text-center p-6 gap-4">
-    <div class="w-20 h-20 rounded-full border-4 border-amber-400 border-t-transparent animate-spin flex items-center justify-center text-3xl">
+  <div class="w-full h-full min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center text-center p-6 gap-5">
+    <div class="w-24 h-24 rounded-full border-4 border-amber-400 border-t-transparent animate-spin flex items-center justify-center text-4xl shadow-2xl">
       🏇
     </div>
-    <h2 class="text-xl font-extrabold text-amber-400 uppercase tracking-wide">
-      HORSE SPIT INTO MACHINE!
-    </h2>
-    <p class="text-sm font-medium text-slate-400">
-      Look up at the TV screen! Your horse is landing on the derby track!
-    </p>
+    <div class="flex flex-col gap-2 max-w-xs">
+      <h2 class="text-2xl font-black text-amber-400 uppercase tracking-wide">
+        HORSE SPIT INTO MACHINE!
+      </h2>
+      <p class="text-sm font-semibold text-slate-300 leading-relaxed">
+        Look up at the TV screen! <span class="text-amber-300 font-extrabold">{horseAttributes.name}</span> is landing on the derby track!
+      </p>
+    </div>
   </div>
 {/if}

@@ -132,58 +132,66 @@
 </script>
 
 <div
-  class="bg-slate-900/95 backdrop-blur-md border-t border-x border-white/15 rounded-t-2xl sm:rounded-t-3xl rounded-b-none border-b-0 shadow-2xl w-full flex flex-col p-3.5 sm:p-4 gap-3 text-slate-100"
+  class="bg-slate-900/95 backdrop-blur-md border-t border-x border-white/20 rounded-t-3xl border-b-0 shadow-2xl w-full flex flex-col p-4 sm:p-5 gap-3.5 sm:gap-4 text-slate-100"
 >
-  <!-- 1. Horse Name Input + Randomizer -->
-  <div class="flex items-center gap-2">
+  <!-- 1. Large Horse Name Input + Dice Button -->
+  <div class="flex items-center gap-2.5">
     <div class="relative flex-1">
       <input
         type="text"
         bind:value={attributes.name}
         placeholder="Name your horse..."
         maxlength="20"
-        class="input input-sm sm:input-md input-bordered w-full bg-slate-950/70 text-slate-100 font-extrabold text-sm sm:text-base border-white/20 focus:border-amber-400 pl-3 pr-8 shadow-inner"
+        class="input input-md sm:input-lg input-bordered w-full h-12 sm:h-14 bg-slate-950/80 text-slate-100 font-black text-base sm:text-lg border-white/20 focus:border-amber-400 pl-4 pr-10 rounded-2xl shadow-inner tracking-wide"
       />
-      <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs opacity-40 font-mono">🏇</span>
+      <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-base opacity-50 font-mono">🏇</span>
     </div>
 
     <button
       type="button"
       on:click={randomizeAll}
-      class="btn btn-sm btn-warning font-black gap-1 shadow-md uppercase tracking-wider shrink-0"
+      class="btn btn-warning h-12 sm:h-14 px-4 sm:px-5 font-black gap-2 shadow-lg uppercase tracking-wider shrink-0 rounded-2xl active:scale-95 transition-transform"
       title="Randomize Horse"
     >
-      <Icon icon="mdi:dice-5-outline" class="text-base" />
-      <span class="hidden xs:inline">Random</span>
+      <Icon icon="mdi:dice-5-outline" class="text-xl sm:text-2xl" />
+      <span class="text-xs sm:text-sm">Random</span>
     </button>
   </div>
 
-  <!-- 2. Colors & Pattern in One Compact Row -->
-  <div class="flex flex-col gap-1.5 bg-slate-950/60 p-2.5 rounded-xl border border-white/10">
-    <div class="flex items-center justify-between gap-2">
-      <!-- 2 Color Inputs: Coat & Accent -->
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-1.5" title="Coat Color">
-          <input
-            type="color"
-            bind:value={attributes.coatColor}
-            class="w-7 h-7 rounded-lg border-0 cursor-pointer bg-transparent shadow-sm"
-          />
-          <span class="text-[11px] font-bold text-slate-300 uppercase">Coat</span>
-        </div>
+  <!-- 2. Large Touch-Friendly Colors & Pattern Box -->
+  <div class="flex flex-col gap-2.5 bg-slate-950/70 p-3.5 sm:p-4 rounded-2xl border border-white/10 shadow-sm">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <!-- 2 Color Inputs with clear labels & large tap targets -->
+      <div class="flex items-center gap-4">
+        <!-- Primary Coat Color Picker -->
+        <label class="flex items-center gap-2 cursor-pointer group" title="Tap to pick coat color">
+          <div class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border-2 border-white/30 shadow-md group-hover:border-amber-400 transition-colors">
+            <input
+              type="color"
+              bind:value={attributes.coatColor}
+              class="absolute -inset-2 w-14 h-14 cursor-pointer bg-transparent border-0 opacity-0"
+            />
+            <div class="w-full h-full" style="background-color: {attributes.coatColor};"></div>
+          </div>
+          <span class="text-xs sm:text-sm font-extrabold text-slate-200 uppercase tracking-wide">Coat</span>
+        </label>
 
-        <div class="flex items-center gap-1.5" title="Accent Color">
-          <input
-            type="color"
-            bind:value={attributes.patternColor}
-            class="w-7 h-7 rounded-lg border-0 cursor-pointer bg-transparent shadow-sm"
-          />
-          <span class="text-[11px] font-bold text-slate-300 uppercase">Accent</span>
-        </div>
+        <!-- Accent / Pattern Color Picker -->
+        <label class="flex items-center gap-2 cursor-pointer group" title="Tap to pick accent color">
+          <div class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border-2 border-white/30 shadow-md group-hover:border-amber-400 transition-colors">
+            <input
+              type="color"
+              bind:value={attributes.patternColor}
+              class="absolute -inset-2 w-14 h-14 cursor-pointer bg-transparent border-0 opacity-0"
+            />
+            <div class="w-full h-full" style="background-color: {attributes.patternColor};"></div>
+          </div>
+          <span class="text-xs sm:text-sm font-extrabold text-slate-200 uppercase tracking-wide">Accent</span>
+        </label>
       </div>
 
-      <!-- Quick Coat Swatches -->
-      <div class="flex items-center gap-1">
+      <!-- Quick Coat Palette Swatches -->
+      <div class="flex items-center gap-1.5 ml-auto">
         {#each coatPresets as preset}
           <button
             type="button"
@@ -191,7 +199,7 @@
               attributes.coatColor = preset.coat;
               attributes.patternColor = preset.accent;
             }}
-            class="w-5 h-5 rounded-full border border-white/30 shadow-xs transition-transform active:scale-90"
+            class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white/40 shadow-sm transition-all hover:scale-110 active:scale-95"
             style="background: {preset.coat};"
             title={preset.label}
           ></button>
@@ -199,14 +207,14 @@
       </div>
     </div>
 
-    <!-- Pattern Pills -->
-    <div class="flex items-center gap-1 mt-0.5">
+    <!-- Chunky Pattern Selection Pills -->
+    <div class="grid grid-cols-4 gap-1.5 pt-1">
       {#each patternOptions as opt}
         <button
           type="button"
-          class="flex-1 py-1 text-[11px] font-bold rounded-lg transition-all border {attributes.patternType === opt.id
-            ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm'
-            : 'bg-slate-800/80 text-slate-300 border-white/10 hover:bg-slate-700'}"
+          class="py-2 sm:py-2.5 px-2 text-xs sm:text-sm font-black rounded-xl transition-all border text-center {attributes.patternType === opt.id
+            ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-md scale-[1.02]'
+            : 'bg-slate-800/90 text-slate-300 border-white/10 hover:bg-slate-750 active:scale-98'}"
           on:click={() => (attributes.patternType = opt.id)}
         >
           {opt.label}
@@ -215,18 +223,22 @@
     </div>
   </div>
 
-  <!-- 3. Balanced Stat Sliders (Speed, Stamina, Agility) with 150pt Budget -->
-  <div class="flex flex-col gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-white/10">
-    <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider pb-0.5">
-      <span>Balanced Attributes</span>
-      <span class="text-amber-400 font-mono">150 PTS TOTAL</span>
+  <!-- 3. Balanced Stat Sliders (Speed, Stamina, Agility) -->
+  <div class="flex flex-col gap-3 bg-slate-950/70 p-3.5 sm:p-4 rounded-2xl border border-white/10 shadow-sm">
+    <div class="flex items-center justify-between pb-0.5">
+      <span class="text-xs sm:text-sm font-black text-slate-300 uppercase tracking-wider">Stat Allocation</span>
+      <span class="text-xs sm:text-sm font-mono font-black text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+        150 PTS TOTAL
+      </span>
     </div>
 
     <!-- Speed Slider -->
-    <div class="flex items-center gap-2.5">
-      <div class="flex items-center justify-between w-24 shrink-0 text-xs font-extrabold text-slate-200">
-        <span>⚡ Speed</span>
-        <span class="font-mono text-amber-400">{attributes.speed ?? 50}</span>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-between w-28 sm:w-32 shrink-0">
+        <span class="text-xs sm:text-sm font-black text-slate-200">⚡ Speed</span>
+        <span class="text-xs sm:text-sm font-mono font-black text-red-400 bg-red-400/10 border border-red-400/30 px-2 py-0.5 rounded-md min-w-[28px] text-center">
+          {attributes.speed ?? 50}
+        </span>
       </div>
       <input
         type="range"
@@ -235,15 +247,17 @@
         step="1"
         value={attributes.speed ?? 50}
         on:input={(e) => handleStatSlider("speed", e)}
-        class="range range-xs range-error cursor-pointer flex-1"
+        class="range range-sm sm:range-md range-error cursor-pointer flex-1 h-6"
       />
     </div>
 
     <!-- Stamina Slider -->
-    <div class="flex items-center gap-2.5">
-      <div class="flex items-center justify-between w-24 shrink-0 text-xs font-extrabold text-slate-200">
-        <span>🫁 Stamina</span>
-        <span class="font-mono text-emerald-400">{attributes.stamina ?? 50}</span>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-between w-28 sm:w-32 shrink-0">
+        <span class="text-xs sm:text-sm font-black text-slate-200">🫁 Stamina</span>
+        <span class="text-xs sm:text-sm font-mono font-black text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 px-2 py-0.5 rounded-md min-w-[28px] text-center">
+          {attributes.stamina ?? 50}
+        </span>
       </div>
       <input
         type="range"
@@ -252,15 +266,17 @@
         step="1"
         value={attributes.stamina ?? 50}
         on:input={(e) => handleStatSlider("stamina", e)}
-        class="range range-xs range-success cursor-pointer flex-1"
+        class="range range-sm sm:range-md range-success cursor-pointer flex-1 h-6"
       />
     </div>
 
     <!-- Agility Slider -->
-    <div class="flex items-center gap-2.5">
-      <div class="flex items-center justify-between w-24 shrink-0 text-xs font-extrabold text-slate-200">
-        <span>🤸 Agility</span>
-        <span class="font-mono text-sky-400">{attributes.height ?? 50}</span>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-between w-28 sm:w-32 shrink-0">
+        <span class="text-xs sm:text-sm font-black text-slate-200">🤸 Agility</span>
+        <span class="text-xs sm:text-sm font-mono font-black text-sky-400 bg-sky-400/10 border border-sky-400/30 px-2 py-0.5 rounded-md min-w-[28px] text-center">
+          {attributes.height ?? 50}
+        </span>
       </div>
       <input
         type="range"
@@ -269,7 +285,7 @@
         step="1"
         value={attributes.height ?? 50}
         on:input={(e) => handleStatSlider("agility", e)}
-        class="range range-xs range-info cursor-pointer flex-1"
+        class="range range-sm sm:range-md range-info cursor-pointer flex-1 h-6"
       />
     </div>
   </div>

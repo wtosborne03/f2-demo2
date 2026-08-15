@@ -141,7 +141,12 @@ class GameClient {
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
-          console.log("STATE_UPDATE", payload);
+          console.log("[Player Client WS] STATE_UPDATE received:", {
+            screen: payload?.screen,
+            hasPageData: !!payload?.page_data,
+            page_data: payload?.page_data,
+            payload,
+          });
           gameState.update((current) => ({ ...current, ...payload }));
           break;
         case OpCode.ERROR:
@@ -472,7 +477,12 @@ class GameClient {
           const { op, payload } = decode(buffer);
           if (op === OpCode.STATE_UPDATE) {
             this.trackStateStatus(payload);
-            console.log(payload, "DC payload");
+            console.log("[Player Client WebRTC DC] STATE_UPDATE received:", {
+              screen: payload?.screen,
+              hasPageData: !!payload?.page_data,
+              page_data: payload?.page_data,
+              payload,
+            });
             gameState.update((current) => ({ ...current, ...payload }));
           }
         } catch (err) {
