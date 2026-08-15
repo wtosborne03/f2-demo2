@@ -25,17 +25,22 @@
   let nextRippleId = 0;
 
   // Trivia Hazard State (synced via page_data)
-  $: triviaData = $gameState?.page_data?.trivia;
+  $: rawPageData = $gameState?.page_data;
+  $: triviaData = rawPageData?.trivia || (rawPageData?.question ? rawPageData : null);
+  $: questionOptions = triviaData?.options || triviaData?.answers || [];
+
   let selectedTriviaAnswer: number | null = null;
-  let lastTriviaQuestionId: string | null = null;
+  let lastTriviaQuestionKey: string | null = null;
   let playedResultHaptic = false;
 
   let timerInterval: any = null;
   let remainingTime = 10;
   let totalDuration = 10;
 
-  $: if (triviaData && triviaData.questionId !== lastTriviaQuestionId) {
-    lastTriviaQuestionId = triviaData.questionId;
+  $: currentQuestionKey = triviaData ? (triviaData.questionId || triviaData.question || 'trivia') : null;
+
+  $: if (triviaData && currentQuestionKey !== lastTriviaQuestionKey) {
+    lastTriviaQuestionKey = currentQuestionKey;
     selectedTriviaAnswer = null;
     playedResultHaptic = false;
     totalDuration = triviaData.duration || 10;
@@ -254,7 +259,7 @@
 
           <!-- 2x2 Option Buttons -->
           <div class="grid grid-cols-2 gap-2 my-auto pt-1">
-            {#each triviaData.options as option, idx}
+            {#each questionOptions as option, idx}
               {@const optionLetters = ['A', 'B', 'C', 'D']}
               {@const isSelected = selectedTriviaAnswer === idx}
               <button
