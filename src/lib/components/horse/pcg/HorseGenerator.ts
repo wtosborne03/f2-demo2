@@ -377,6 +377,10 @@ export class HorseGenerator {
     };
   }
 
+  private lastPatternType: PatternType | null = null;
+  private lastCoatHex: string | null = null;
+  private lastPatternHex: string | null = null;
+
   public updateAttributes(attrs: HorseAttributes) {
     // 1. Update Materials & Colors
     const coatColorHex = new THREE.Color(attrs.coatColor);
@@ -390,12 +394,21 @@ export class HorseGenerator {
     this.hoofMaterial.color.copy(hoofColorHex);
 
     // Coat Sheen (roughness / metalness)
-    const sheenNorm = 0;
-    this.coatMaterial.roughness = 0.85 - (sheenNorm * 0.65);
-    this.coatMaterial.metalness = sheenNorm * 0.4;
+    const sheenNorm = (attrs.coatSheen || 0) / 100;
+    this.coatMaterial.roughness = 0.85 - (sheenNorm * 0.4);
+    this.coatMaterial.metalness = sheenNorm * 0.3;
 
-    // 2. Draw Procedural Pattern Canvas
-    this.updatePatternCanvas(attrs.patternType, attrs.coatColor, attrs.patternColor);
+    // 2. Draw Procedural Pattern Canvas (only if pattern/colors changed)
+    if (
+      this.lastPatternType !== attrs.patternType ||
+      this.lastCoatHex !== attrs.coatColor ||
+      this.lastPatternHex !== attrs.patternColor
+    ) {
+      this.updatePatternCanvas(attrs.patternType, attrs.coatColor, attrs.patternColor);
+      this.lastPatternType = attrs.patternType;
+      this.lastCoatHex = attrs.coatColor;
+      this.lastPatternHex = attrs.patternColor;
+    }
 
     // 3. Parametric Geometry & Morphing
     const heightScale = 0.82 + (attrs.height / 100) * 0.36;
@@ -478,5 +491,32 @@ export class HorseGenerator {
     }
 
     this.patternTexture.needsUpdate = true;
+  }
+
+  public dispose() {
+    if (this.patternTexture) {
+      this.patternTexture.dispose();
+    }
+    this.coatMaterial?.dispose();
+    this.accentMaterial?.dispose();
+    this.maneMaterial?.dispose();
+    this.hoofMaterial?.dispose();
+    this.eyeMaterial?.dispose();
+
+    this.containerGroup?.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m?.dispose());
+        } else if (child.material) {
+          child.material.dispose();
+        }
+      }
+    });
+
+    this.horseGroup?.clear();
+    this.containerGroup?.clear();
   }
 }

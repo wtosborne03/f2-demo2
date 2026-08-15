@@ -13,11 +13,26 @@ export class HorseAnimator {
 
   public update(delta: number, mode: AnimationMode, attributes: HorseAttributes) {
     this.time += delta;
-    const joints = this.generator.joints;
-    if (!joints) return;
+    const joints = this.generator?.joints;
+    if (
+      !joints ||
+      !joints.spine ||
+      !joints.chest ||
+      !joints.neckPivot ||
+      !joints.headPivot ||
+      !joints.tailPivot ||
+      !joints.earLeft ||
+      !joints.earRight ||
+      !joints.frontLeft ||
+      !joints.frontRight ||
+      !joints.backLeft ||
+      !joints.backRight
+    ) {
+      return;
+    }
 
-    const speedAttr = attributes.speed / 100;       // 0 to 1
-    const aggroAttr = attributes.aggression / 100;  // 0 to 1
+    const speedAttr = (attributes?.speed ?? 50) / 100;
+    const aggroAttr = (attributes?.aggression ?? 50) / 100;
 
     if (mode === 'idle') {
       this.animateIdle(joints, delta, aggroAttr);
