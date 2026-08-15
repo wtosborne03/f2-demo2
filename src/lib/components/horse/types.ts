@@ -39,18 +39,18 @@ export interface HorsePreset {
 
 export const DEFAULT_HORSE_ATTRIBUTES: HorseAttributes = {
   name: "Storm Charger",
-  speed: 75,
-  stamina: 65,
-  aggression: 80,
-  elegance: 60,
-  height: 55,
-  coatColor: "#3d2314",
-  patternColor: "#e6ded8",
-  maneColor: "#170f0a",
-  hoofColor: "#221d19",
+  speed: 50,
+  stamina: 50,
+  aggression: 50,
+  elegance: 50,
+  height: 50, // Agility
+  coatColor: "#854d0e",
+  patternColor: "#ffffff",
+  maneColor: "#18181b",
+  hoofColor: "#27272a",
   patternType: "pinto",
   coatSheen: 40,
-  personality: "Unstoppable wild spirit with a fierce competitive drive and explosive acceleration down the straightaway."
+  personality: ""
 };
 
 export const HORSE_PRESETS: HorsePreset[] = [

@@ -4,6 +4,7 @@
   import { HorseGenerator } from "./pcg/HorseGenerator";
   import { HorseAnimator } from "./pcg/HorseAnimator";
   import type { HorseAttributes, AnimationMode } from "./types";
+  import { GAMEPLAY_PALETTE } from "./materials/toonPalette";
 
   export let attributes: HorseAttributes;
   export let animationMode: AnimationMode = "idle";
@@ -14,6 +15,7 @@
   let camera: THREE.PerspectiveCamera | null = null;
   let generator: HorseGenerator | null = null;
   let animator: HorseAnimator | null = null;
+  let blobShadowMesh: THREE.Mesh | null = null;
   let animationFrameId: number = 0;
   let clock: THREE.Clock | null = null;
   let resizeObserver: ResizeObserver | null = null;
@@ -27,10 +29,10 @@
   // Camera Orbit Drag state (Mouse & Touch)
   let isDragging = false;
   let previousPosition = { x: 0, y: 0 };
-  let cameraTarget = new THREE.Vector3(0, 1.8, 0);
-  let cameraRadius = 6.2;
-  let cameraTheta = Math.PI / 4; // Azimuth angle
-  let cameraPhi = Math.PI / 6; // Elevation angle
+  let cameraTarget = new THREE.Vector3(0, 1.45, 0);
+  let cameraRadius = 5.6;
+  let cameraTheta = Math.PI / 3.8; // Dynamic 3/4 front view
+  let cameraPhi = Math.PI / 2.35; // Slight top-down elevation
 
   $: if (generator && attributes && !isContextLost) {
     try {
@@ -93,11 +95,11 @@
       cancelAnimationFrame(animationFrameId);
       animationFrameId = 0;
     }
-    console.warn("HorsePreviewCanvas: WebGL Context lost. Waiting for restore...");
+    console.warn("HorsePreviewCanvas: WebGL Context lost.");
   }
 
   function handleContextRestored() {
-    console.log("HorsePreviewCanvas: WebGL Context restored. Reinitializing scene...");
+    console.log("HorsePreviewCanvas: WebGL Context restored.");
     isContextLost = false;
     webglError = null;
     cleanupThreeScene();
@@ -112,10 +114,10 @@
 
     if (generator) {
       try {
-        generator.dispose();
-      } catch (e) {
-        console.warn("Error disposing generator:", e);
-      }
+        if (generator.containerGroup) {
+          scene?.remove(generator.containerGroup);
+        }
+      } catch (e) {}
       generator = null;
     }
     animator = null;
@@ -153,11 +155,8 @@
 
       try {
         renderer.dispose();
-        // Explicitly force context loss to immediately release context back to browser
         renderer.forceContextLoss();
-      } catch (e) {
-        console.warn("Error disposing renderer:", e);
-      }
+      } catch (e) {}
       renderer = null;
     }
   }
@@ -169,28 +168,40 @@
     initThreeScene();
   }
 
+  function createBlobShadowTexture(): THREE.CanvasTexture {
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d")!;
+    const gradient = ctx.createRadialGradient(64, 64, 8, 64, 64, 60);
+    gradient.addColorStop(0, "rgba(5, 8, 14, 0.75)");
+    gradient.addColorStop(0.55, "rgba(5, 8, 14, 0.4)");
+    gradient.addColorStop(1, "rgba(5, 8, 14, 0)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 128, 128);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }
+
   function initThreeScene() {
     if (!containerEl) return;
     const width = containerEl.clientWidth;
     const height = containerEl.clientHeight;
 
     if (width === 0 || height === 0) {
-      // Container not laid out yet; ResizeObserver will trigger initialization
       return;
     }
 
     try {
       cleanupThreeScene();
 
-      // Scene setup with transparent background
       scene = new THREE.Scene();
       scene.background = null;
 
-      // Camera setup
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
       updateCameraPosition();
 
-      // Renderer setup with mobile-resilient configuration
       const maxPixelRatio = isMobile ? 1.5 : 2.0;
       renderer = new THREE.WebGLRenderer({
         antialias: !isMobile,
@@ -204,10 +215,8 @@
 
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = isMobile
-        ? THREE.BasicShadowMap
-        : THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
 
       const domEl = renderer.domElement;
       domEl.addEventListener("webglcontextlost", handleContextLost, false);
@@ -215,21 +224,32 @@
 
       containerEl.appendChild(domEl);
 
-      // Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
+      // Stylized 3-Point Cel-Shading Lighting Rig
+      const ambientLight = new THREE.AmbientLight(0xfff7ed, 0.85);
       scene.add(ambientLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfffaed, 2.2);
+      const hemiLight = new THREE.HemisphereLight(0x93c5fd, 0x1e293b, 0.75);
+      scene.add(hemiLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfffaed, 2.4);
       sunLight.position.set(6, 12, 8);
-      sunLight.castShadow = true;
-      sunLight.shadow.mapSize.width = isMobile ? 512 : 1024;
-      sunLight.shadow.mapSize.height = isMobile ? 512 : 1024;
-      sunLight.shadow.bias = -0.0005;
       scene.add(sunLight);
 
-      const rimLight = new THREE.DirectionalLight(0x7099ff, 1.2);
-      rimLight.position.set(-6, 8, -8);
+      const rimLight = new THREE.DirectionalLight(0x60a5fa, 1.35);
+      rimLight.position.set(-7, 6, -8);
       scene.add(rimLight);
+
+      // Blob Ground Shadow Disc
+      const shadowGeo = new THREE.PlaneGeometry(3.6, 2.4);
+      shadowGeo.rotateX(-Math.PI / 2);
+      const shadowMat = new THREE.MeshBasicMaterial({
+        map: createBlobShadowTexture(),
+        transparent: true,
+        depthWrite: false,
+      });
+      blobShadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+      blobShadowMesh.position.set(0, 0.02, 0);
+      scene.add(blobShadowMesh);
 
       // Generator & Animator Init
       generator = new HorseGenerator();
@@ -242,7 +262,6 @@
       isContextLost = false;
       isPaused = false;
 
-      // Start Animation Loop
       animate();
     } catch (err: any) {
       console.error("Failed to initialize WebGL renderer:", err);
@@ -256,8 +275,7 @@
   function updateCameraPosition() {
     if (!camera) return;
 
-    // Clamp Phi (elevation) to prevent flipping under ground
-    cameraPhi = Math.max(0.08, Math.min(Math.PI / 2.2, cameraPhi));
+    cameraPhi = Math.max(0.12, Math.min(Math.PI / 2.1, cameraPhi));
 
     const x =
       cameraTarget.x +
@@ -334,7 +352,6 @@
     isDragging = false;
   }
 
-  // Mouse handlers
   function onMouseDown(e: MouseEvent) {
     onPointerDown(e.clientX, e.clientY);
   }
@@ -342,7 +359,6 @@
     onPointerMove(e.clientX, e.clientY);
   }
 
-  // Touch handlers for mobile fingers
   function onTouchStart(e: TouchEvent) {
     if (e.touches.length === 1) {
       onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
@@ -357,7 +373,7 @@
   function onWheel(e: WheelEvent) {
     e.preventDefault();
     cameraRadius += e.deltaY * 0.005;
-    cameraRadius = Math.max(3.2, Math.min(12.0, cameraRadius));
+    cameraRadius = Math.max(3.2, Math.min(10.0, cameraRadius));
   }
 </script>
 
@@ -388,7 +404,7 @@
     </div>
   {/if}
 
-  <!-- Graceful Fallback if WebGL context could not be created or was blocked on mobile -->
+  <!-- Graceful Fallback if WebGL context could not be created -->
   {#if webglError}
     <div class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-radial from-slate-900 to-slate-950 text-center gap-4">
       <div class="w-20 h-20 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center text-4xl shadow-inner animate-pulse">
@@ -399,19 +415,8 @@
           {attributes.name || "Custom Horse"}
         </h3>
         <p class="text-xs text-slate-400 leading-relaxed">
-          3D preview is paused due to device memory constraints. Your customization settings are fully preserved.
+          3D preview is paused. Your customization settings are fully preserved.
         </p>
-      </div>
-
-      <!-- Color Swatches Preview -->
-      <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-full border border-white/10">
-        <div class="flex items-center gap-1.5">
-          <span class="w-3.5 h-3.5 rounded-full border border-white/30 shadow-xs" style="background-color: {attributes.coatColor};" title="Coat"></span>
-          <span class="w-3.5 h-3.5 rounded-full border border-white/30 shadow-xs" style="background-color: {attributes.patternColor};" title="Accent"></span>
-          <span class="w-3.5 h-3.5 rounded-full border border-white/30 shadow-xs" style="background-color: {attributes.maneColor};" title="Mane"></span>
-          <span class="w-3.5 h-3.5 rounded-full border border-white/30 shadow-xs" style="background-color: {attributes.hoofColor};" title="Hooves"></span>
-        </div>
-        <span class="text-[11px] font-bold text-slate-300 capitalize">{attributes.patternType}</span>
       </div>
 
       <button
