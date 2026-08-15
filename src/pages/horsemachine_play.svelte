@@ -29,14 +29,6 @@
   $: triviaData = rawPageData?.trivia || (rawPageData?.question ? rawPageData : null);
   $: questionOptions = triviaData?.options || triviaData?.answers || [];
 
-  $: console.log('[HorseMachine Play Page] Reactive state:', {
-    screen: $gameState?.screen,
-    page_data: $gameState?.page_data,
-    rawPageData,
-    triviaData,
-    questionOptions,
-  });
-
   let selectedTriviaAnswer: number | null = null;
   let lastTriviaQuestionKey: string | null = null;
   let playedResultHaptic = false;
@@ -210,7 +202,7 @@
     <!-- DUAL VIEW: TOP TRIVIA + BOTTOM SWIPE -->
     <div class="flex-1 flex flex-col justify-between min-h-0 py-2 relative z-20 gap-2">
       <!-- TOP TRIVIA CARD -->
-      <div class="h-[52%] max-h-[52%] min-h-[200px] flex flex-col justify-between p-3 rounded-2xl bg-base-200/90 border border-warning/40 shadow-xl backdrop-blur-md relative overflow-hidden">
+      <div class="flex-initial w-full flex flex-col justify-between p-3.5 rounded-2xl bg-base-200/95 border border-warning/40 shadow-xl backdrop-blur-md relative overflow-visible shrink-0">
         {#if triviaData.result}
           <!-- Result Feedback -->
           <div
@@ -221,25 +213,25 @@
             }`}
           >
             {#if triviaData.result === 'correct'}
-              <div class="text-3xl font-black text-success mb-1">✔</div>
-              <h2 class="text-lg font-black tracking-wide">
+              <div class="text-3xl font-black text-success mb-0.5">✔</div>
+              <h2 class="text-lg font-black tracking-wide text-success">
                 BOOST! +20M
               </h2>
             {:else}
-              <div class="text-3xl font-black text-error mb-1">✖</div>
-              <h2 class="text-lg font-black tracking-wide">
+              <div class="text-3xl font-black text-error mb-0.5">✖</div>
+              <h2 class="text-lg font-black tracking-wide text-error">
                 WRONG!
               </h2>
               {#if triviaData.correctOption}
-                <div class="mt-1 px-2 py-0.5 bg-base-100/70 rounded-lg text-xs font-mono font-bold text-error">
-                  {triviaData.correctOption}
+                <div class="mt-1 px-2.5 py-1 bg-base-100/80 rounded-lg text-xs font-mono font-bold text-error border border-error/30">
+                  Answer: {triviaData.correctOption}
                 </div>
               {/if}
             {/if}
           </div>
         {:else}
           <!-- Question Header & Timer -->
-          <div class="shrink-0 mb-1">
+          <div class="shrink-0 mb-1.5">
             <div class="flex items-center justify-between gap-2 mb-1">
               <span class="text-[11px] font-mono font-bold text-warning uppercase">
                 TRIVIA QUESTION
@@ -259,14 +251,14 @@
           </div>
 
           <!-- Question Prompt -->
-          <div class="bg-base-300/80 rounded-xl p-2.5 text-center shrink-0 shadow-inner">
-            <h3 class="text-xs sm:text-sm font-bold leading-snug line-clamp-2">
+          <div class="bg-base-300/80 rounded-xl p-2.5 text-center shrink-0 shadow-inner mb-2">
+            <h3 class="text-xs sm:text-sm font-bold leading-snug">
               "{triviaData.question}"
             </h3>
           </div>
 
           <!-- 2x2 Option Buttons -->
-          <div class="grid grid-cols-2 gap-2 my-auto pt-1">
+          <div class="grid grid-cols-2 gap-2">
             {#each questionOptions as option, idx}
               {@const optionLetters = ['A', 'B', 'C', 'D']}
               {@const isSelected = selectedTriviaAnswer === idx}
@@ -274,7 +266,7 @@
                 type="button"
                 on:click={() => submitTriviaAnswer(idx)}
                 disabled={selectedTriviaAnswer !== null}
-                class={`btn btn-sm sm:btn-md h-auto min-h-[38px] py-1.5 px-2.5 rounded-xl border text-xs text-left flex items-center justify-between transition-all select-none ${
+                class={`btn btn-sm min-h-[44px] h-auto py-1.5 px-2.5 rounded-xl border text-xs text-left flex items-center justify-start transition-all select-none ${
                   isSelected
                     ? 'btn-primary shadow-lg scale-[1.02]'
                     : selectedTriviaAnswer !== null
@@ -283,10 +275,10 @@
                 }`}
               >
                 <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                  <span class={`badge badge-xs font-mono font-bold ${isSelected ? 'badge-primary-content text-primary' : 'badge-ghost'}`}>
+                  <span class={`badge badge-xs font-mono font-bold shrink-0 ${isSelected ? 'badge-primary-content text-primary' : 'badge-ghost'}`}>
                     {optionLetters[idx]}
                   </span>
-                  <span class="leading-tight truncate text-[11px] sm:text-xs font-medium">{option}</span>
+                  <span class="leading-tight text-[11px] sm:text-xs font-medium break-words line-clamp-2">{option}</span>
                 </div>
               </button>
             {/each}
@@ -300,7 +292,7 @@
         on:pointermove={handlePointerMove}
         on:pointerup={handlePointerUp}
         on:pointercancel={handlePointerCancel}
-        class="h-[44%] flex-1 relative flex flex-col items-center justify-center rounded-2xl bg-base-200/40 border border-primary/25 p-3 touch-none select-none overflow-hidden cursor-ns-resize"
+        class="flex-1 min-h-[100px] relative flex flex-col items-center justify-center rounded-2xl bg-base-200/40 border border-primary/25 p-3 touch-none select-none overflow-hidden cursor-ns-resize"
       >
         <!-- Background Ripples -->
         {#each ripples as ripple (ripple.id)}
