@@ -82,31 +82,37 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="flex flex-col w-full max-w-md mx-auto px-6 py-6 pb-28 my-auto max-h-full"
+  class="flex flex-col w-full max-w-md mx-auto px-4 py-4 sm:py-6 pb-28 my-auto max-h-full gap-3"
 >
-  <div class="w-full mt-2 mb-6">
-    <button
-      type="button"
-      class="btn btn-primary btn-lg w-full text-lg font-bold flex items-center justify-center gap-2 shadow-md"
-      onclick={promptForStart}
-    >
-      <span>Start Game</span>
-      <Icon icon="mdi:play" class="text-xl" />
-    </button>
+  <!-- Catchphrase Recorder on top of settings box -->
+  <div class="w-full">
+    <CatchphraseRecorder />
   </div>
 
-  <section class="w-full mb-6">
-    <h3 class="text-xl font-black mb-4">Settings</h3>
+  <!-- Consolidated DaisyUI Card Container -->
+  <div
+    class="card bg-base-200 border border-base-300 shadow-xl p-4 sm:p-5 w-full flex flex-col gap-3.5"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <Icon icon="mdi:cog" class="text-primary text-xl" />
+        <h2 class="text-lg font-black tracking-wide">Game Settings</h2>
+      </div>
+    </div>
 
-    <ul class="flex flex-col gap-4">
+    <!-- Game Modes (Inline 2-Column Row) -->
+    <div class="grid grid-cols-2 gap-2.5">
       <!-- Drinking Game Setting -->
-      <li
-        class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors"
+      <div
+        class="form-control bg-base-300/40 border border-base-300/60 rounded-xl px-3 py-2"
       >
         <label
-          class="label cursor-pointer flex justify-between items-center w-full p-0"
+          class="label cursor-pointer p-0 flex justify-between items-center w-full"
         >
-          <span class="text-base font-bold">Drinking Game 🍺</span>
+          <span class="text-md font-bold flex items-center gap-1">
+            Drinking 🍺
+          </span>
           <input
             type="checkbox"
             class="toggle toggle-primary toggle-md"
@@ -114,16 +120,18 @@
             onchange={sendSettings}
           />
         </label>
-      </li>
+      </div>
 
       <!-- Family Mode Setting -->
-      <li
-        class="card bg-base-200 border border-base-300 shadow-sm p-4 hover:bg-base-200/80 transition-colors"
+      <div
+        class="form-control bg-base-300/40 border border-base-300/60 rounded-xl px-3 py-2"
       >
         <label
-          class="label cursor-pointer flex justify-between items-center w-full p-0"
+          class="label cursor-pointer p-0 flex justify-between items-center w-full"
         >
-          <span class="text-base font-bold">Family Mode 👨‍👩‍👧‍👦</span>
+          <span class="text-md font-bold flex items-center gap-1">
+            Family 👥
+          </span>
           <input
             type="checkbox"
             class="toggle toggle-primary toggle-md"
@@ -131,19 +139,30 @@
             onchange={sendSettings}
           />
         </label>
-      </li>
+      </div>
+    </div>
 
-      <!-- End Condition Selection -->
-      <li
-        class="card bg-base-200 border border-base-300 shadow-sm p-4 flex flex-col gap-4"
-      >
-        <span class="text-base font-bold">End Condition 🏁</span>
+    <!-- Divider -->
+    <div class="divider my-0"></div>
 
-        <div class="tabs tabs-box bg-base-300 p-1 rounded-full w-full flex">
+    <!-- End Condition Section -->
+    <div class="flex flex-col gap-2">
+      <div class="flex justify-between items-center">
+        <span class="text-sm font-bold flex items-center gap-1.5">
+          <Icon icon="mdi:flag-checkered" class="text-primary text-base" />
+          End Condition
+        </span>
+
+        <!-- Segmented Button (DaisyUI join) -->
+        <div
+          class="join border border-base-300 rounded-lg p-0.5 bg-base-300/50"
+        >
           <button
             type="button"
-            class="tab flex-1 font-medium transition-all"
-            class:tab-active={endConditionTab === "tab-rounds"}
+            class="btn btn-xs sm:btn-sm join-item font-semibold transition-all {endConditionTab ===
+            'tab-rounds'
+              ? 'btn-primary shadow-sm'
+              : 'btn-ghost'}"
             onclick={() => {
               endConditionTab = "tab-rounds";
             }}
@@ -152,8 +171,10 @@
           </button>
           <button
             type="button"
-            class="tab flex-1 font-medium transition-all"
-            class:tab-active={endConditionTab === "tab-doubloons"}
+            class="btn btn-xs sm:btn-sm join-item font-semibold transition-all {endConditionTab ===
+            'tab-doubloons'
+              ? 'btn-primary shadow-sm'
+              : 'btn-ghost'}"
             onclick={() => {
               endConditionTab = "tab-doubloons";
             }}
@@ -161,71 +182,82 @@
             Doubloons
           </button>
         </div>
+      </div>
 
-        <div class="w-full pt-2">
-          {#if endConditionTab === "tab-rounds"}
-            <div class="flex flex-col gap-2">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-semibold opacity-70"
-                  >Total Rounds</span
-                >
-                <span class="text-base font-black text-primary"
-                  >{s_data.rounds}</span
-                >
-              </div>
-              <input
-                type="range"
-                class="range range-primary range-sm w-full"
-                bind:value={s_data.rounds}
-                min={10}
-                max={100}
-                step={1}
-                onchange={sendSettings}
-              />
-            </div>
-          {:else}
-            <div class="flex flex-col gap-2">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-semibold opacity-70"
-                  >Doubloons To Win</span
-                >
-                <span class="text-base font-black text-primary"
-                  >{s_data.doubloons.toLocaleString()}</span
-                >
-              </div>
-              <input
-                type="range"
-                class="range range-primary range-sm w-full"
-                bind:value={s_data.doubloons}
-                min={5000}
-                max={100000}
-                step={1000}
-                onchange={sendSettings}
-              />
-            </div>
-          {/if}
-        </div>
-      </li>
-    </ul>
-  </section>
-
-  <!-- Catchphrase Recorder placed at the bottom of the page -->
-  <div class="w-full mb-4">
-    <CatchphraseRecorder />
-  </div>
-
-  {#if !$session.data?.user}
-    <div class="text-center text-xs opacity-60 mt-4 mb-4">
-      (
-      <span
-        class="text-primary hover:underline cursor-pointer font-semibold"
-        onclick={() => sideBarOpen.set(true)}
+      <!-- Slider & Value Badge -->
+      <div
+        class="bg-base-300/30 border border-base-300/50 rounded-xl p-3 flex flex-col gap-2"
       >
-        Sign In
-      </span>
-      to customize avatar.)
+        {#if endConditionTab === "tab-rounds"}
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-semibold opacity-70">Total Rounds</span>
+            <span
+              class="badge badge-neutral font-mono font-bold text-primary text-sm px-2.5 py-0.5"
+            >
+              {s_data.rounds}
+            </span>
+          </div>
+          <input
+            type="range"
+            class="range range-primary range-sm w-full"
+            bind:value={s_data.rounds}
+            min={10}
+            max={100}
+            step={1}
+            onchange={sendSettings}
+          />
+        {:else}
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-semibold opacity-70"
+              >Doubloons To Win</span
+            >
+            <span
+              class="badge badge-neutral font-mono font-bold text-primary text-sm px-2.5 py-0.5"
+            >
+              {s_data.doubloons.toLocaleString()}
+            </span>
+          </div>
+          <input
+            type="range"
+            class="range range-primary range-sm w-full"
+            bind:value={s_data.doubloons}
+            min={5000}
+            max={100000}
+            step={1000}
+            onchange={sendSettings}
+          />
+        {/if}
+      </div>
     </div>
-  {/if}
+
+    <!-- Divider -->
+    <div class="divider my-0"></div>
+
+    <!-- Actions & Hierarchy: Start Button at bottom -->
+    <div class="flex flex-col gap-1.5 pt-1">
+      <button
+        type="button"
+        class="btn btn-success text-success-content btn-block text-base font-bold shadow-lg flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+        onclick={promptForStart}
+      >
+        <span>Start Game</span>
+        <Icon icon="mdi:play" class="text-xl" />
+      </button>
+
+      {#if !$session.data?.user}
+        <div class="text-center text-xs opacity-60 mt-4">
+          (
+          <span
+            class="text-primary hover:underline cursor-pointer font-semibold"
+            onclick={() => sideBarOpen.set(true)}
+          >
+            Sign In
+          </span>
+          to customize avatar.)
+        </div>
+      {/if}
+    </div>
+  </div>
 
   <!-- DaisyUI Confirmation Modal -->
   <dialog bind:this={confirmModal} class="modal modal-bottom sm:modal-middle">
@@ -240,11 +272,10 @@
         </form>
         <button
           type="button"
-          class="btn btn-primary font-bold flex items-center gap-2"
+          class="btn btn-success text-success-content font-bold flex items-center gap-2"
           onclick={confirmStart}
         >
           <span>Everybody's In!</span>
-          <Icon icon="mdi:play" class="text-xl" />
         </button>
       </div>
     </div>
