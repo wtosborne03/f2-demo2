@@ -118,7 +118,14 @@ class GameClient {
         (message) => message.op === OpCode.JOIN_ROOM || message.op === OpCode.RECONNECT,
       );
       if (!hasQueuedSessionAction && this.canAttemptSessionReconnect()) {
-        this.sendCritical(OpCode.RECONNECT, { roomCode: this.roomCode, name: this.name });
+        const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
+        const storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
+        this.sendCritical(OpCode.RECONNECT, {
+          roomCode: this.roomCode,
+          name: this.name,
+          playerId: storedPid || undefined,
+          userId: storedUserId || undefined,
+        });
       }
       this.flushCriticalQueue();
     };
@@ -148,9 +155,8 @@ class GameClient {
           if (!ignoreErrors.includes(payload)) {
             toaster.error({ title: "Error", description: payload });
           }
-          // If error is "Session expired", "Room invalid", or "Room not found", clear local session and reset Svelte gameState to index
+          // If error is "Room invalid" or "Room not found", clear local session and reset Svelte gameState to index
           if (
-            payload === "Session expired" ||
             payload === "Room invalid" ||
             payload === "Room not found"
           ) {
@@ -200,12 +206,17 @@ class GameClient {
     };
   }
 
-  private async joinedRoom(_playerId: string, roomCode: string, status?: string) {
+  private async joinedRoom(playerId: string, roomCode: string, status?: string) {
     this.roomCode = roomCode;
     this.setRoomStatus(status);
-    localStorage.setItem("code", this.roomCode!);
-    localStorage.setItem("name", this.name);
-    localStorage.setItem("couch_room", roomCode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("code", this.roomCode!);
+      localStorage.setItem("name", this.name);
+      localStorage.setItem("couch_room", roomCode);
+      if (playerId) {
+        localStorage.setItem("couch_pid", playerId);
+      }
+    }
 
     const user = get(authClient.useSession()).data?.user;
 
@@ -252,7 +263,7 @@ class GameClient {
           selfieUrl: me.avatar_selfie || localSelfie,
           expressions: expressions || fallbackExpressions,
           gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
-          catchphraseUrl: me.avatar_catchphrase || (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
+          catchphraseUrl: (me as any).avatar_catchphrase || (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
         };
         this.sendPlayerInput("avatarUpdate", { avatar });
       } catch (error) {
@@ -303,7 +314,10 @@ class GameClient {
   }
 
   async join(room: string, name: string, userId?: string) {
-    this.sendCritical(OpCode.QUERY_ROOM_STATE, { roomCode: room }); // Ask server for current room state to decide if we can rejoin
+    const formattedRoom = room.trim().toUpperCase();
+    this.name = name.trim();
+
+    this.sendCritical(OpCode.QUERY_ROOM_STATE, { roomCode: formattedRoom });
     let roomState: "LOBBY" | "RUNNING";
     try {
       const res = await this.waitForResponse([OpCode.ROOM_STATE, OpCode.ERROR], 3000);
@@ -315,31 +329,45 @@ class GameClient {
       return;
     }
 
-    this.name = name;
+    const currentSavedRoom = typeof window !== "undefined" ? localStorage.getItem("couch_room") : null;
 
-    if (localStorage.getItem("couch_room") === room && roomState === "RUNNING") {
+    if (currentSavedRoom === formattedRoom || roomState === "RUNNING") {
       // try rejoin
-      const rejoined = await this.tryRejoin(true);
+      const rejoined = await this.tryRejoin(true, formattedRoom, this.name, userId);
       if (rejoined) return;
     }
-    // Clear old session if joining new room
-    this.clearSession();
-    this.roomStatus = "UNKNOWN";
-    this.hasSeenInGameState = false;
-    this.sendCritical(OpCode.JOIN_ROOM, { roomCode: room, name, userId });
+
+    if (roomState === "RUNNING") {
+      toaster.error({ title: "Error", description: "Game in progress and no active session found" });
+      return;
+    }
+
+    // In LOBBY, send JOIN_ROOM (server will reclaim if reconnecting/stale)
+    this.roomCode = formattedRoom;
+    this.roomStatus = "LOBBY";
+    this.sendCritical(OpCode.JOIN_ROOM, { roomCode: formattedRoom, name: this.name, userId });
   }
 
-  public async tryRejoin(force = false): Promise<boolean> {
-    const roomCode = localStorage.getItem("couch_room");
-    const name = this.name || localStorage.getItem("name");
+  public async tryRejoin(force = false, targetRoom?: string, targetName?: string, targetUserId?: string): Promise<boolean> {
+    const roomCode = targetRoom || this.roomCode || (typeof window !== "undefined" ? localStorage.getItem("couch_room") : null);
+    const name = targetName || this.name || (typeof window !== "undefined" ? localStorage.getItem("name") : null);
+    const playerId = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
+    const userId = targetUserId || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null);
 
     if (!roomCode || !name) return false;
-    if (!this.canAttemptSessionReconnect(force)) return false;
 
-    this.sendCritical(OpCode.RECONNECT, { roomCode, name });
+    this.roomCode = roomCode;
+    this.name = name;
+
+    this.sendCritical(OpCode.RECONNECT, {
+      roomCode,
+      name,
+      playerId: playerId || undefined,
+      userId: userId || undefined
+    });
 
     try {
-      const res = await this.waitForResponse([OpCode.IDENTITY, OpCode.ERROR]);
+      const res = await this.waitForResponse([OpCode.IDENTITY, OpCode.ERROR], 5000);
       if (res.op === OpCode.ERROR) {
         console.warn("Rejoin failed:", res.payload);
         return false;
@@ -1037,7 +1065,14 @@ class GameClient {
   }
 
   private canAttemptSessionReconnect(force = false) {
-    return !!(this.roomCode && this.name);
+    const roomCode = this.roomCode || (typeof window !== "undefined" ? localStorage.getItem("couch_room") : null);
+    const name = this.name || (typeof window !== "undefined" ? localStorage.getItem("name") : null);
+    if (roomCode && name) {
+      this.roomCode = roomCode;
+      this.name = name;
+      return true;
+    }
+    return false;
   }
 
   private setRoomStatus(status?: string) {

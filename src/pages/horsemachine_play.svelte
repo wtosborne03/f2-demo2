@@ -29,6 +29,10 @@
   $: triviaData = rawPageData?.trivia || (rawPageData?.question ? rawPageData : null);
   $: questionOptions = triviaData?.options || triviaData?.answers || [];
 
+  $: if (rawPageData) {
+    console.log('[HorseMachine Play Client] rawPageData received:', rawPageData, 'triviaData:', triviaData);
+  }
+
   let selectedTriviaAnswer: number | null = null;
   let lastTriviaQuestionKey: string | null = null;
   let playedResultHaptic = false;
