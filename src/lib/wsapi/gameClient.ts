@@ -306,36 +306,17 @@ class GameClient {
     this.cleanupWebRTC();
     const formattedRoom = room.trim().toUpperCase();
     this.name = name.trim();
-
-    this.sendCritical(OpCode.QUERY_ROOM_STATE, { roomCode: formattedRoom });
-    let roomState: "LOBBY" | "RUNNING";
-    try {
-      const res = await this.waitForResponse([OpCode.ROOM_STATE, OpCode.ERROR], 3000);
-      if (res.op === OpCode.ERROR) throw new Error(res.payload);
-      roomState = res.payload.status;
-    } catch (e) {
-      console.warn("Failed to get room state");
-      toaster.error({ title: "Error", description: "Room Not Found or Server Unreachable" });
-      return;
-    }
-
-    const currentSavedRoom = typeof window !== "undefined" ? localStorage.getItem("couch_room") : null;
-
-    if (currentSavedRoom === formattedRoom || roomState === "RUNNING") {
-      // try rejoin
-      const rejoined = await this.tryRejoin(true, formattedRoom, this.name, userId);
-      if (rejoined) return;
-    }
-
-    if (roomState === "RUNNING") {
-      toaster.error({ title: "Error", description: "Game in progress and no active session found" });
-      return;
-    }
-
-    // In LOBBY, send JOIN_ROOM (server will reclaim if reconnecting/stale)
     this.roomCode = formattedRoom;
-    this.roomStatus = "LOBBY";
-    this.sendCritical(OpCode.JOIN_ROOM, { roomCode: formattedRoom, name: this.name, userId });
+
+    const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
+    const storedUserId = userId || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null);
+
+    this.sendCritical(OpCode.JOIN_ROOM, {
+      roomCode: formattedRoom,
+      name: this.name,
+      playerId: storedPid || undefined,
+      userId: storedUserId || undefined,
+    });
   }
 
   public async tryRejoin(force = false, targetRoom?: string, targetName?: string, targetUserId?: string): Promise<boolean> {
