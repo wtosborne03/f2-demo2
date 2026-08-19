@@ -196,6 +196,7 @@ class GameClient {
     };
 
     this.ws.onclose = () => {
+      this.cleanupWebRTC();
       this.stopHeartbeat();
       connectionStatus.set("DISCONNECTED");
       this.scheduleReconnect();
@@ -257,7 +258,7 @@ class GameClient {
           gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
           catchphraseUrl: (me as any).avatar_catchphrase || (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
         };
-        this.sendPlayerInput("avatarUpdate", { avatar });
+        this.sendPlayerInput("avatarUpdate", { avatar }, true);
       } catch (error) {
         console.error("Failed to get user:", error);
         this.sendGuestAvatar();
@@ -287,7 +288,7 @@ class GameClient {
       gender: sessionGender,
       catchphraseUrl: sessionCatchphrase,
     };
-    this.sendPlayerInput("avatarUpdate", { avatar });
+    this.sendPlayerInput("avatarUpdate", { avatar }, true);
   }
 
   private handleGameEnded() {
@@ -302,6 +303,7 @@ class GameClient {
   }
 
   async join(room: string, name: string, userId?: string) {
+    this.cleanupWebRTC();
     const formattedRoom = room.trim().toUpperCase();
     this.name = name.trim();
 
@@ -337,6 +339,7 @@ class GameClient {
   }
 
   public async tryRejoin(force = false, targetRoom?: string, targetName?: string, targetUserId?: string): Promise<boolean> {
+    this.cleanupWebRTC();
     const roomCode = targetRoom || this.roomCode || (typeof window !== "undefined" ? localStorage.getItem("couch_room") : null);
     const name = targetName || this.name || (typeof window !== "undefined" ? localStorage.getItem("name") : null);
     const playerId = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
@@ -393,8 +396,8 @@ class GameClient {
     return state === "connected" || state === "completed";
   }
 
-  sendInput(data: PlayerInput) {
-    if (this.isDataChannelHealthy()) {
+  sendInput(data: PlayerInput, forceWebSocket = false) {
+    if (!forceWebSocket && this.isDataChannelHealthy()) {
       try {
         this.dc!.send(encode(OpCode.INPUT, data));
         return;
@@ -409,13 +412,14 @@ class GameClient {
    * Send Player Input
    * @param type - type of input action, eg "startGame", "move", "textPrompt"...
    * @param data - input payload data
+   * @param forceWebSocket - if true, bypasses WebRTC DataChannel and sends directly via WebSocket
    */
-  sendPlayerInput(type: string, data?: any) {
+  sendPlayerInput(type: string, data?: any, forceWebSocket = false) {
     const payload = {
       type: type,
       ...data,
     };
-    if (this.isDataChannelHealthy()) {
+    if (!forceWebSocket && this.isDataChannelHealthy()) {
       try {
         this.dc!.send(encode(OpCode.INPUT, payload));
         return;
