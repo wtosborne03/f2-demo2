@@ -90,7 +90,6 @@
   }
 
   async function handleFlipCamera() {
-    console.log("[Joker Performer UI] Flip camera clicked");
     const success = await gameClient.flipCamera();
     if (success && videoEl && gameClient.localStream) {
       videoEl.srcObject = gameClient.localStream;
@@ -99,7 +98,7 @@
 
   async function handleSetZoom(zoomFactor: number) {
     currentZoom = zoomFactor;
-    console.log("[Joker Performer UI] Changing camera zoom to:", zoomFactor);
+
     await gameClient.setCameraZoom(zoomFactor);
     if (
       videoEl &&

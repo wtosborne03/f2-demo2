@@ -411,7 +411,7 @@ export class GameClient {
    * @param timeoutMs override the default RPC timeout in milliseconds
    */
   async getTime(timeoutMs?: number) {
-    console.log("Getting server time");
+
     const res = await this.rpc(
       "getTimeResponse",
       () => {
@@ -424,7 +424,7 @@ export class GameClient {
       },
       { timeoutMs },
     );
-    console.log("Received server time:", res);
+
     return res;
   }
 }

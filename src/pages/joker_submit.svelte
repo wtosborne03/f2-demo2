@@ -7,7 +7,7 @@
   function handleSubmit() {
     if (!dareText.trim()) return;
     submitted = true;
-    console.log("[Joker Submit UI] Submitting dare text:", dareText);
+
     gameClient.sendPlayerInput("task_submission", {
       text: dareText.trim(),
       submission: dareText.trim(),
@@ -25,7 +25,8 @@
     </div>
     <h2>{$gameState.page_data?.prompt || "Submit a realistic dare!"}</h2>
     <p class="desc">
-      {$gameState.page_data?.desc || "Make sure your dare is realistic! A random player will be chosen to carry it out live in a video livestream."}
+      {$gameState.page_data?.desc ||
+        "Make sure your dare is realistic! A random player will be chosen to carry it out live in a video livestream."}
     </p>
   </header>
 
@@ -35,7 +36,8 @@
         <textarea
           class="dare-textarea"
           bind:value={dareText}
-          placeholder={$gameState.page_data?.placeholder || "e.g., Speak in a dramatic opera voice for 45 seconds..."}
+          placeholder={$gameState.page_data?.placeholder ||
+            "e.g., Speak in a dramatic opera voice for 45 seconds..."}
           maxlength={120}
           rows={4}
           required
@@ -54,7 +56,9 @@
         <div class="stamp-icon">✏️</div>
         <h3>DARE SUBMITTED!</h3>
         <p class="submission-preview">"{dareText}"</p>
-        <p class="waiting-text">Waiting for host and other players to finish...</p>
+        <p class="waiting-text">
+          Waiting for host and other players to finish...
+        </p>
       </div>
     {/if}
   </main>
@@ -68,7 +72,13 @@
     width: 100%;
     background: #0077b6;
     color: #ffffff;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
     padding: 1.25rem;
     box-sizing: border-box;
   }
@@ -150,7 +160,9 @@
 
   .dare-textarea:focus {
     border-color: #ffffff;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 183, 3, 0.5);
+    box-shadow:
+      inset 0 2px 8px rgba(0, 0, 0, 0.5),
+      0 0 15px rgba(255, 183, 3, 0.5);
   }
 
   .char-count {

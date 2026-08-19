@@ -3,11 +3,12 @@
 
   let votedIndex: number | null = null;
 
-  $: choices = $gameState.page_data?.choices || $gameState.page_data?.options || [];
+  $: choices =
+    $gameState.page_data?.choices || $gameState.page_data?.options || [];
 
   function handleVote(index: number) {
     votedIndex = index;
-    console.log("[Joker Vote UI] Voting for choice index:", index);
+
     gameClient.sendPlayerInput("task_vote", {
       choiceIndex: index,
       voteIndex: index,
@@ -62,7 +63,13 @@
     width: 100%;
     background: #0077b6;
     color: #ffffff;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
     padding: 1.25rem;
     box-sizing: border-box;
   }

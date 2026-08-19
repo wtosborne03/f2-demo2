@@ -35,7 +35,7 @@
 
 //     //     if (env.serverMessage) {
 //     //         const sm = env.serverMessage as ServerMessage;
-//     //         console.log('Received ServerMessage:', sm);
+//     //         
 
 //     //         // pong handling
 //     //         if (sm.pong) {
@@ -59,7 +59,7 @@
 //     //             console.error('Error:', sm.error.message);
 //     //         }
 //     //         if (sm.state) {
-//     //             console.log()
+//     //             
 //     //             // State is { state: { ... } }
 //     //             updateState(sm.state.state as any);
 //     //         }

@@ -164,7 +164,6 @@
       const new_card = getRandomCard();
       cards = [...cards, new_card];
     }
-    console.log(cards);
   };
 
   const chooseColor = (event: Event) => {

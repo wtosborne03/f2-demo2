@@ -80,7 +80,7 @@
           if (!paused) {
             idx = (idx + 1) % screenNames.length;
             // Update the store's screen - this will trigger loadComponent via the reactive statement above
-            console.log(screenNames[idx], "screen changed");
+
             gameState.update((s) => {
               return {
                 ...s,

@@ -36,7 +36,7 @@ export enum OpCode {
 // ... encode/decode remain the same
 
 export const encode = (op: OpCode, data: any) => {
-    console.log("Encoding", OpCode[op].toString(), data);
+
     const buffer = pack(data);
     const combined = new Uint8Array(buffer.length + 1);
     combined[0] = op;

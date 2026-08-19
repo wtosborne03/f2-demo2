@@ -8,18 +8,17 @@
 
   function handleVote(satisfied: boolean) {
     votedValue = satisfied;
-    console.log("[Joker Spectator UI] Voting satisfaction:", satisfied);
+
     gameClient.sendPlayerInput("satisfaction_vote", { satisfied });
   }
 
   async function handleToggleTalking() {
     if (isTalkingToEarpiece) {
-      console.log("[Joker Spectator UI] Stopping audio stream for Joker earpiece...");
       gameClient.stopAudioStream();
       isTalkingToEarpiece = false;
     } else {
       micError = "";
-      console.log("[Joker Spectator UI] Starting audio stream for Joker earpiece...");
+
       const success = await gameClient.startAudioStream();
       if (success) {
         isTalkingToEarpiece = true;
@@ -40,11 +39,14 @@
   <header class="header">
     <div class="badge-row">
       <span class="crew-pill">CREW MEMBER</span>
-      <span class="joker-pill">JOKER: {$gameState.page_data?.jokerName || "Performer"}</span>
+      <span class="joker-pill"
+        >JOKER: {$gameState.page_data?.jokerName || "Performer"}</span
+      >
     </div>
     <h2>{$gameState.page_data?.jokerName || "The Joker"} is performing!</h2>
     <p class="challenge-desc">
-      {$gameState.page_data?.challengeDescription || "Watch the Joker carry out the dare!"}
+      {$gameState.page_data?.challengeDescription ||
+        "Watch the Joker carry out the dare!"}
     </p>
   </header>
 
@@ -58,7 +60,11 @@
         on:click={handleToggleTalking}
       >
         <span class="mic-icon">{isTalkingToEarpiece ? "🔴" : "🎙️"}</span>
-        <span>{isTalkingToEarpiece ? "BROADCASTING! (TAP TO MUTE)" : "TALK INTO JOKER'S EARPIECE"}</span>
+        <span
+          >{isTalkingToEarpiece
+            ? "BROADCASTING! (TAP TO MUTE)"
+            : "TALK INTO JOKER'S EARPIECE"}</span
+        >
       </button>
       <p class="earpiece-hint">
         {isTalkingToEarpiece
@@ -107,7 +113,13 @@
     width: 100%;
     background: #0077b6;
     color: #ffffff;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
     padding: 1.25rem;
     box-sizing: border-box;
   }
@@ -204,7 +216,9 @@
     border: 3px solid white;
     cursor: pointer;
     color: white;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   .vote-btn span:first-child {
@@ -264,8 +278,12 @@
   }
 
   @keyframes broadcastPulse {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.03); }
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.03);
+    }
   }
 
   .mic-icon {

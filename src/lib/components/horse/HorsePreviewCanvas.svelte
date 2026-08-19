@@ -45,7 +45,7 @@
   onMount(() => {
     isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       ) ||
       (window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
 
@@ -99,7 +99,6 @@
   }
 
   function handleContextRestored() {
-    console.log("HorsePreviewCanvas: WebGL Context restored.");
     isContextLost = false;
     webglError = null;
     cleanupThreeScene();
@@ -147,7 +146,10 @@
       const domEl = renderer.domElement;
       if (domEl) {
         domEl.removeEventListener("webglcontextlost", handleContextLost);
-        domEl.removeEventListener("webglcontextrestored", handleContextRestored);
+        domEl.removeEventListener(
+          "webglcontextrestored",
+          handleContextRestored,
+        );
         if (domEl.parentNode) {
           domEl.parentNode.removeChild(domEl);
         }
@@ -214,13 +216,19 @@
       });
 
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
+      renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio || 1, maxPixelRatio),
+      );
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.15;
 
       const domEl = renderer.domElement;
       domEl.addEventListener("webglcontextlost", handleContextLost, false);
-      domEl.addEventListener("webglcontextrestored", handleContextRestored, false);
+      domEl.addEventListener(
+        "webglcontextrestored",
+        handleContextRestored,
+        false,
+      );
 
       containerEl.appendChild(domEl);
 
@@ -266,8 +274,7 @@
     } catch (err: any) {
       console.error("Failed to initialize WebGL renderer:", err);
       webglError =
-        err?.message ||
-        "WebGL context could not be created on this device.";
+        err?.message || "WebGL context could not be created on this device.";
       cleanupThreeScene();
     }
   }
@@ -377,11 +384,15 @@
   }
 </script>
 
-<div class="relative w-full h-full min-h-0 select-none touch-none overflow-hidden">
+<div
+  class="relative w-full h-full min-h-0 select-none touch-none overflow-hidden"
+>
   <!-- 3D Canvas Viewport Container -->
   <div
     bind:this={containerEl}
-    class="w-full h-full cursor-grab active:cursor-grabbing {webglError ? 'hidden' : 'block'}"
+    class="w-full h-full cursor-grab active:cursor-grabbing {webglError
+      ? 'hidden'
+      : 'block'}"
     on:mousedown={onMouseDown}
     on:mousemove={onMouseMove}
     on:mouseup={onPointerUp}
@@ -396,22 +407,34 @@
 
   <!-- Graceful Context Lost Toast Indicator -->
   {#if isContextLost}
-    <div class="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs pointer-events-none">
-      <div class="bg-slate-900 border border-amber-500/40 px-4 py-2 rounded-xl flex items-center gap-3 shadow-xl">
+    <div
+      class="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs pointer-events-none"
+    >
+      <div
+        class="bg-slate-900 border border-amber-500/40 px-4 py-2 rounded-xl flex items-center gap-3 shadow-xl"
+      >
         <span class="loading loading-spinner loading-sm text-amber-400"></span>
-        <span class="text-xs font-bold text-amber-200">Reconnecting 3D Engine...</span>
+        <span class="text-xs font-bold text-amber-200"
+          >Reconnecting 3D Engine...</span
+        >
       </div>
     </div>
   {/if}
 
   <!-- Graceful Fallback if WebGL context could not be created -->
   {#if webglError}
-    <div class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-radial from-slate-900 to-slate-950 text-center gap-4">
-      <div class="w-20 h-20 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center text-4xl shadow-inner animate-pulse">
+    <div
+      class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-radial from-slate-900 to-slate-950 text-center gap-4"
+    >
+      <div
+        class="w-20 h-20 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center text-4xl shadow-inner animate-pulse"
+      >
         🏇
       </div>
       <div class="flex flex-col gap-1 max-w-xs">
-        <h3 class="text-base font-extrabold text-amber-400 uppercase tracking-wide">
+        <h3
+          class="text-base font-extrabold text-amber-400 uppercase tracking-wide"
+        >
           {attributes.name || "Custom Horse"}
         </h3>
         <p class="text-xs text-slate-400 leading-relaxed">

@@ -58,7 +58,7 @@
 //   localStorage.setItem("code", code);
 //   r_code = code;
 //   r_name = name;
-//   console.log("Joining room with user ID:", session.get().data?.user.id);
+//   
 //   const userId = session.get().data?.user.id ?? "";
 //   gameClient.joinRoom(code, name, userId);
 //   // send as protobuf client message (no wait)
@@ -106,7 +106,7 @@
 // };
 
 // export function updateState(state: PlayerState) {
-//   console.log("Updating player state:", state);
+//   
 //   try {
 //     player_state.update((s) => ({
 //       ...s,

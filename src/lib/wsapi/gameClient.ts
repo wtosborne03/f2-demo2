@@ -174,21 +174,21 @@ class GameClient {
 
         case OpCode.WEBRTC_OFFER:
           if (payload.sdp) {
-            console.log("[WebRTC Player] Received WEBRTC_OFFER from Host");
+
             this.handleWebRTCOffer(payload.sdp);
           }
           break;
 
         case OpCode.WEBRTC_ANSWER:
           if (payload.sdp) {
-            console.log("[WebRTC Player] Received WEBRTC_ANSWER from Host");
+
             this.handleWebRTCAnswer(payload.sdp);
           }
           break;
 
         case OpCode.WEBRTC_ICE_CANDIDATE:
           if (payload.candidate) {
-            console.log("[WebRTC Player] Received WEBRTC_ICE_CANDIDATE from Host");
+
             this.handleWebRTCIceCandidate(payload.candidate);
           }
           break;
@@ -470,14 +470,14 @@ class GameClient {
     this.pc = new RTCPeerConnection({ iceServers });
 
     this.pc.ontrack = (event) => {
-      console.log(`[WebRTC Player] Received remote track (${event.track.kind}) from Host`);
+
       const stream = event.streams[0] || new MediaStream([event.track]);
       this.remoteStream = stream;
       this.emit("remoteTrack", { stream, track: event.track });
     };
 
     this.pc.oniceconnectionstatechange = () => {
-      console.log(`[WebRTC Player] ICE Connection State: ${this.pc?.iceConnectionState}`);
+
       this.emit("iceState", this.pc?.iceConnectionState);
       if (this.pc?.iceConnectionState === "failed" || this.pc?.iceConnectionState === "disconnected") {
         console.warn("[WebRTC Player] ICE connection degraded. Requesting ICE restart...");
@@ -490,7 +490,7 @@ class GameClient {
       this.dc.binaryType = "arraybuffer";
 
       this.dc.onopen = () => {
-        console.log("[WebRTC] Player DataChannel connected to Host");
+
       };
 
       this.dc.onmessage = (msgEvent: MessageEvent) => {
@@ -507,7 +507,7 @@ class GameClient {
       };
 
       this.dc.onclose = () => {
-        console.log("[WebRTC] Player DataChannel closed");
+
       };
     };
 
@@ -527,7 +527,7 @@ class GameClient {
       if (typeof RTCPeerConnection === "undefined") return;
 
       if (this.pc && (this.pc.signalingState === "closed" || this.pc.iceConnectionState === "failed")) {
-        console.log("[WebRTC Player] PeerConnection is closed/failed. Cleaning up before handling new offer.");
+
         this.cleanupWebRTC();
       }
 
@@ -566,7 +566,7 @@ class GameClient {
   public currentZoomLevel: number = 1.0;
 
   public findUltraWideCamera(): MediaDeviceInfo | undefined {
-    console.log("[WebRTC Player] Searching for 0.5x ultra-wide camera among available devices...");
+
 
     // 1. Try label-based search
     const matchByLabel = this.availableVideoDevices.find((device) => {
@@ -587,7 +587,7 @@ class GameClient {
     });
 
     if (matchByLabel) {
-      console.log("[WebRTC Player] Found 0.5x camera by explicit label:", matchByLabel.label, matchByLabel.deviceId);
+
       return matchByLabel;
     }
 
@@ -617,7 +617,7 @@ class GameClient {
       }) || backCameras[1]; // Fallback to 2nd back camera
 
       if (secondaryBack) {
-        console.log("[WebRTC Player] Selected secondary back camera as 0.5x ultra-wide candidate:", secondaryBack.label, secondaryBack.deviceId);
+
         return secondaryBack;
       }
     }
@@ -631,7 +631,7 @@ class GameClient {
   ): Promise<boolean> {
     if (typeof navigator === "undefined" || !navigator.mediaDevices) return false;
 
-    console.log("[WebRTC Player] startVideoStream requested with constraint:", facingModeOrDeviceId);
+
 
     let videoConstraints: MediaTrackConstraints = {
       width: { ideal: 1920, min: 1280 },
@@ -659,7 +659,7 @@ class GameClient {
           video: videoConstraints,
           audio: audioConstraints
         });
-        console.log("[WebRTC Player] Acquired media stream with tracks:", stream.getTracks().map((t) => `${t.kind}:${t.label}`));
+
       } catch (audioErr) {
         console.warn("[WebRTC Player] Could not acquire audio track with video, falling back to video-only:", audioErr);
         stream = await navigator.mediaDevices.getUserMedia({
@@ -677,9 +677,9 @@ class GameClient {
       const track = stream.getVideoTracks()[0];
       if (track) {
         this.activeDeviceId = track.getSettings().deviceId || null;
-        console.log("[WebRTC Player] Stream acquired video track settings:", track.getSettings());
+
         if (track.getCapabilities) {
-          console.log("[WebRTC Player] Stream acquired video track capabilities:", track.getCapabilities());
+
         }
       }
 
@@ -693,17 +693,17 @@ class GameClient {
       for (const t of stream.getTracks()) {
         const existingSender = senders.find((s) => s.track && s.track.kind === t.kind);
         if (existingSender) {
-          console.log(`[WebRTC Player] Replacing existing ${t.kind} sender track...`);
+
           await existingSender.replaceTrack(t);
         } else {
-          console.log(`[WebRTC Player] Adding new ${t.kind} track to PC...`);
+
           pc.addTrack(t, stream);
           renegotiateNeeded = true;
         }
       }
 
       if (renegotiateNeeded || senders.length === 0) {
-        console.log("[WebRTC Player] Creating and sending WEBRTC_OFFER...");
+
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
@@ -718,7 +718,7 @@ class GameClient {
 
   public async flipCamera(): Promise<boolean> {
     const nextFacingMode = this.currentFacingMode === "user" ? "environment" : "user";
-    console.log(`[WebRTC Player] Flipping camera to ${nextFacingMode}...`);
+
 
     if (!this.localStream || !this.pc) {
       return await this.startVideoStream(nextFacingMode);
@@ -746,7 +746,7 @@ class GameClient {
       const videoSender = senders.find((s) => s.track && s.track.kind === "video");
 
       if (videoSender) {
-        console.log("[WebRTC Player] Seamlessly replacing video track with flipped camera");
+
         await videoSender.replaceTrack(newVideoTrack);
         return true;
       } else {
@@ -763,7 +763,7 @@ class GameClient {
    */
   public async setCameraZoom(zoomFactor: number): Promise<boolean> {
     this.currentZoomLevel = zoomFactor;
-    console.log(`[WebRTC Player] setCameraZoom called with zoomFactor=${zoomFactor}, activeDeviceId=${this.activeDeviceId}`);
+
 
     // Refresh devices to make sure we have latest labels/devices
     await this.refreshVideoDevices();
@@ -773,9 +773,9 @@ class GameClient {
       const wideCamera = this.findUltraWideCamera();
 
       if (wideCamera) {
-        console.log(`[WebRTC Player] 0.5x wideCamera found: label="${wideCamera.label}", deviceId=${wideCamera.deviceId}. Active deviceId=${this.activeDeviceId}`);
+
         if (wideCamera.deviceId !== this.activeDeviceId) {
-          console.log("[WebRTC Player] Switching to physical 0.5x ultra-wide lens:", wideCamera.label);
+
           return await this.startVideoStream({ exact: wideCamera.deviceId });
         }
       }
@@ -794,7 +794,7 @@ class GameClient {
         });
 
         if (mainCamera) {
-          console.log("[WebRTC Player] Switching back from 0.5x ultra-wide to main camera:", mainCamera.label);
+
           await this.startVideoStream({ exact: mainCamera.deviceId });
         } else {
           await this.startVideoStream("environment");
@@ -809,14 +809,14 @@ class GameClient {
 
     try {
       const capabilities = (videoTrack.getCapabilities ? videoTrack.getCapabilities() : {}) as any;
-      console.log("[WebRTC Player] Active videoTrack capabilities zoom:", capabilities?.zoom, "settings:", videoTrack.getSettings());
+
 
       if (capabilities?.zoom) {
         const minZoom = capabilities.zoom.min !== undefined ? capabilities.zoom.min : 1.0;
         const maxZoom = capabilities.zoom.max !== undefined ? capabilities.zoom.max : 3.0;
         const targetZoom = Math.min(Math.max(zoomFactor, minZoom), maxZoom);
 
-        console.log(`[WebRTC Player] Applying track zoom constraint: target=${targetZoom} (range: ${minZoom}-${maxZoom})`);
+
 
         try {
           await videoTrack.applyConstraints({ zoom: targetZoom } as any);
@@ -848,7 +848,7 @@ class GameClient {
   }
 
   public async startAudioStream(): Promise<boolean> {
-    console.log("[WebRTC Player] startAudioStream requested");
+
     if (!this.isWebRTCSupported()) {
       console.warn("[WebRTC Player] MediaDevices or RTCPeerConnection not supported");
       return false;
@@ -862,7 +862,7 @@ class GameClient {
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         video: false
       });
-      console.log("[WebRTC Player] Microphone stream acquired:", stream.id, stream.getAudioTracks());
+
       this.localAudioStream = stream;
 
       const pc = this.getOrCreatePeerConnection();
@@ -871,18 +871,18 @@ class GameClient {
       for (const track of stream.getAudioTracks()) {
         const existingAudioSender = senders.find((s) => s.track && s.track.kind === "audio");
         if (existingAudioSender) {
-          console.log("[WebRTC Player] Replacing existing audio track sender...");
+
           await existingAudioSender.replaceTrack(track);
         } else {
-          console.log(`[WebRTC Player] Adding new audio track (${track.kind}) to PC`);
+
           pc.addTrack(track, stream);
         }
       }
 
-      console.log("[WebRTC Player] Creating SDP offer for audio stream");
+
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      console.log("[WebRTC Player] Local description set. Sending WEBRTC_OFFER with audio track to Host");
+
       this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
       return true;
     } catch (err) {
@@ -915,10 +915,10 @@ class GameClient {
   private async handleWebRTCAnswer(sdp: RTCSessionDescriptionInit) {
     if (this.pc) {
       try {
-        console.log("[WebRTC Player] Setting remote description from WEBRTC_ANSWER", sdp);
+
         await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
         await this.drainIceCandidateQueue();
-        console.log("[WebRTC Player] Remote description set! signalingState:", this.pc.signalingState, "iceConnectionState:", this.pc.iceConnectionState);
+
       } catch (err) {
         console.error("[WebRTC Player] Error setting remote description from WEBRTC_ANSWER:", err);
       }
@@ -930,7 +930,7 @@ class GameClient {
   public async requestIceRestart() {
     if (!this.pc) return;
     try {
-      console.log("[WebRTC Player] Creating SDP offer for ICE restart");
+
       const offer = await this.pc.createOffer({ iceRestart: true });
       await this.pc.setLocalDescription(offer);
       this.send(OpCode.WEBRTC_OFFER, { sdp: offer });
@@ -942,20 +942,20 @@ class GameClient {
   private async handleWebRTCIceCandidate(candidate: RTCIceCandidateInit) {
     if (this.pc && this.pc.remoteDescription && this.pc.remoteDescription.type) {
       try {
-        console.log("[WebRTC Player] Adding ICE candidate from Host");
+
         await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (err) {
         console.error("[WebRTC Player] Error adding ICE candidate:", err);
       }
     } else {
-      console.log("[WebRTC Player] Remote description not set yet. Queueing ICE candidate...");
+
       this.iceCandidateQueue.push(candidate);
     }
   }
 
   private async drainIceCandidateQueue() {
     if (!this.pc || !this.pc.remoteDescription || this.iceCandidateQueue.length === 0) return;
-    console.log(`[WebRTC Player] Draining ${this.iceCandidateQueue.length} queued ICE candidates`);
+
     const candidates = [...this.iceCandidateQueue];
     this.iceCandidateQueue = [];
     for (const candidate of candidates) {
@@ -1153,7 +1153,7 @@ class GameClient {
     window.addEventListener("nativeRoomCode", (event: Event) => {
       const detail = (event as CustomEvent).detail;
       if (detail && detail.code) {
-        console.log("[GameClient] Received native room code:", detail.code);
+
         this.joinRoomFromNative(detail.code);
       }
     });

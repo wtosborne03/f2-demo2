@@ -29,7 +29,6 @@
   };
 
   let data = (index: number) => {
-    console.log(index);
     if (!m_data?.matches) {
       return {
         title: "No matches",

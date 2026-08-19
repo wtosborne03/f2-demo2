@@ -27,9 +27,7 @@
       if ("wakeLock" in navigator) {
         // @ts-ignore
         wakeLock = await navigator.wakeLock.request("screen");
-        wakeLock.addEventListener("release", () => {
-          console.log("Wake lock released");
-        });
+        wakeLock.addEventListener("release", () => {});
       }
     } catch (err) {
       console.error(`Failed to request wake lock: ${err}`);
