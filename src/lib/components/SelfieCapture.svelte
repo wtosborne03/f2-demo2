@@ -166,10 +166,6 @@
       try {
         const client = await apiClient;
         await client!.putUsersAvatar(null, {
-          avatar_emote: 0,
-          avatar_eyes: 3,
-          avatar_hair: 0,
-          avatar_mouth: 0,
           avatar_selfie: selfieUrl,
           avatar_neutral_open: expressions?.neutral_open || null,
           avatar_neutral_closed: expressions?.neutral_closed || null,
@@ -206,10 +202,6 @@
       gameClient.sendInput({
         type: "avatarUpdate",
         avatar: {
-          eyes: 3,
-          hair: 0,
-          mouth: 0,
-          emote: 0,
           selfieUrl: selfieUrl,
           expressions,
           gender,
@@ -224,10 +216,6 @@
       try {
         const client = await apiClient;
         await client!.putUsersAvatar(null, {
-          avatar_emote: 0,
-          avatar_eyes: 3,
-          avatar_hair: 0,
-          avatar_mouth: 0,
           avatar_selfie: null,
           avatar_neutral_open: null,
           avatar_neutral_closed: null,
@@ -259,10 +247,6 @@
       gameClient.sendInput({
         type: "avatarUpdate",
         avatar: {
-          eyes: 3,
-          hair: 0,
-          mouth: 0,
-          emote: 0,
           selfieUrl: "",
         },
       });

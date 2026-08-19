@@ -28,10 +28,6 @@ const defaultPlayerState: PlayerState = {
   color: "",
   team: "",
   avatar: {
-    eyes: 0,
-    mouth: 0,
-    hair: 0,
-    emote: 0,
     selfieUrl: "",
   },
 };
@@ -256,10 +252,6 @@ class GameClient {
         }
 
         const avatar = {
-          eyes: me.avatar_eyes || 3,
-          mouth: me.avatar_mouth || 0,
-          hair: me.avatar_hair || 0,
-          emote: me.avatar_emote || 0,
           selfieUrl: me.avatar_selfie || localSelfie,
           expressions: expressions || fallbackExpressions,
           gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
@@ -290,10 +282,6 @@ class GameClient {
     const sessionGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
     const sessionCatchphrase = (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined;
     const avatar = {
-      eyes: 3,
-      mouth: 0,
-      hair: 0,
-      emote: 0,
       selfieUrl: sessionSelfie,
       expressions,
       gender: sessionGender,

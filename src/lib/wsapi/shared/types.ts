@@ -10,10 +10,6 @@ export interface AvatarExpressions {
 }
 
 interface Avatar {
-    eyes: number,
-    mouth: number,
-    hair: number,
-    emote: number,
     selfieUrl?: string,
     expressions?: AvatarExpressions,
     gender?: string,

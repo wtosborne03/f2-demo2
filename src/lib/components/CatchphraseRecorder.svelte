@@ -348,10 +348,6 @@
           if (client) {
             const { data: me } = await client.getUsersMe();
             await client.putUsersAvatar(null, {
-              avatar_emote: me.avatar_emote ?? 0,
-              avatar_eyes: me.avatar_eyes ?? undefined,
-              avatar_hair: me.avatar_hair ?? undefined,
-              avatar_mouth: me.avatar_mouth ?? undefined,
               avatar_selfie: me.avatar_selfie ?? undefined,
               avatar_gender: me.avatar_gender ?? undefined,
               avatar_catchphrase: url,
@@ -377,10 +373,6 @@
 
   function syncAvatarWithHost(catchphraseUrl: string | null) {
     const currentAvatar = get(gameState).avatar || {
-      eyes: 3,
-      mouth: 0,
-      hair: 0,
-      emote: 0,
       selfieUrl: "",
     };
 

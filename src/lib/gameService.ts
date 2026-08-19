@@ -91,10 +91,7 @@
 //           $case: "avatarUpdate",
 //           avatarUpdate: {
 //             avatar: {
-//               eyes: me?.data.avatar_eyes || 0,
-//               hair: me?.data.avatar_hair || 0,
-//               mouth: me?.data.avatar_mouth || 0,
-//               emote: me?.data.avatar_emote || 0,
+//               selfieUrl: me?.data.avatar_selfie || "",
 //             },
 //           },
 //         },

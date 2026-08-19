@@ -100,12 +100,7 @@ export interface Ping {}
 
 export interface Pong {}
 
-export interface Avatar {
-  eyes: number;
-  mouth: number;
-  hair: number;
-  emote: number;
-}
+export interface Avatar {}
 
 export interface PlayerState {
   /** Acts as ID */
@@ -1229,26 +1224,14 @@ export const Pong: MessageFns<Pong> = {
 };
 
 function createBaseAvatar(): Avatar {
-  return { eyes: 0, mouth: 0, hair: 0, emote: 0 };
+  return {};
 }
 
 export const Avatar: MessageFns<Avatar> = {
   encode(
-    message: Avatar,
+    _message: Avatar,
     writer: BinaryWriter = new BinaryWriter(),
   ): BinaryWriter {
-    if (message.eyes !== 0) {
-      writer.uint32(8).int32(message.eyes);
-    }
-    if (message.mouth !== 0) {
-      writer.uint32(16).int32(message.mouth);
-    }
-    if (message.hair !== 0) {
-      writer.uint32(24).int32(message.hair);
-    }
-    if (message.emote !== 0) {
-      writer.uint32(32).int32(message.emote);
-    }
     return writer;
   },
 
@@ -1260,38 +1243,6 @@ export const Avatar: MessageFns<Avatar> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.eyes = reader.int32();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.mouth = reader.int32();
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.hair = reader.int32();
-          continue;
-        }
-        case 4: {
-          if (tag !== 32) {
-            break;
-          }
-
-          message.emote = reader.int32();
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1301,41 +1252,20 @@ export const Avatar: MessageFns<Avatar> = {
     return message;
   },
 
-  fromJSON(object: any): Avatar {
-    return {
-      eyes: isSet(object.eyes) ? globalThis.Number(object.eyes) : 0,
-      mouth: isSet(object.mouth) ? globalThis.Number(object.mouth) : 0,
-      hair: isSet(object.hair) ? globalThis.Number(object.hair) : 0,
-      emote: isSet(object.emote) ? globalThis.Number(object.emote) : 0,
-    };
+  fromJSON(_object: any): Avatar {
+    return {};
   },
 
-  toJSON(message: Avatar): unknown {
+  toJSON(_message: Avatar): unknown {
     const obj: any = {};
-    if (message.eyes !== 0) {
-      obj.eyes = Math.round(message.eyes);
-    }
-    if (message.mouth !== 0) {
-      obj.mouth = Math.round(message.mouth);
-    }
-    if (message.hair !== 0) {
-      obj.hair = Math.round(message.hair);
-    }
-    if (message.emote !== 0) {
-      obj.emote = Math.round(message.emote);
-    }
     return obj;
   },
 
   create(base?: DeepPartial<Avatar>): Avatar {
     return Avatar.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<Avatar>): Avatar {
+  fromPartial(_object: DeepPartial<Avatar>): Avatar {
     const message = createBaseAvatar();
-    message.eyes = object.eyes ?? 0;
-    message.mouth = object.mouth ?? 0;
-    message.hair = object.hair ?? 0;
-    message.emote = object.emote ?? 0;
     return message;
   },
 };

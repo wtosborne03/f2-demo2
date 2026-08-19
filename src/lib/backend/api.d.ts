@@ -272,10 +272,6 @@ declare namespace Paths {
                 createdAt: string;
                 updatedAt: string;
                 authenticators: string;
-                avatar_emote: number;
-                avatar_eyes?: number | null;
-                avatar_hair?: number | null;
-                avatar_mouth?: number | null;
                 avatar_selfie?: string | null;
                 avatar_landmarks?: string | null;
                 avatar_neutral_open?: string | null;
@@ -582,10 +578,6 @@ declare namespace Paths {
     }
     namespace PutUsersAvatar {
         export interface RequestBody {
-            avatar_emote: number;
-            avatar_eyes?: number | null;
-            avatar_hair?: number | null;
-            avatar_mouth?: number | null;
             avatar_selfie?: string | null;
             avatar_landmarks?: string | null;
             avatar_neutral_open?: string | null;
@@ -608,10 +600,6 @@ declare namespace Paths {
                 createdAt: string;
                 updatedAt: string;
                 authenticators: string;
-                avatar_emote: number;
-                avatar_eyes?: number | null;
-                avatar_hair?: number | null;
-                avatar_mouth?: number | null;
                 avatar_selfie?: string | null;
                 avatar_landmarks?: string | null;
                 avatar_neutral_open?: string | null;

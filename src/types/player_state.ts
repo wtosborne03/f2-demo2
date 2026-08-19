@@ -1,9 +1,20 @@
 
+export interface AvatarExpressions {
+    neutral_open?: string;
+    neutral_closed?: string;
+    happy_open?: string;
+    happy_closed?: string;
+    sad_open?: string;
+    sad_closed?: string;
+    surprised_open?: string;
+    surprised_closed?: string;
+}
+
 interface Avatar {
-    eyes: number,
-    mouth: number,
-    hair: number,
-    emote: number,
+    selfieUrl?: string;
+    expressions?: AvatarExpressions;
+    gender?: string;
+    catchphraseUrl?: string;
 }
 interface PlayerState {
     name: string;
