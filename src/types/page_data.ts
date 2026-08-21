@@ -122,6 +122,23 @@ interface TrumpMadlibData {
   description: string;
 }
 
+interface PromptDropData {
+  question?: string;
+  title?: string;
+  category?: string;
+  aspectKey?: string;
+  aspectQuestion?: string;
+  aspectIndex?: number;
+  aspectTotal?: number;
+  placeholder?: string;
+  description?: string;
+  fallbacks?: string[];
+  celebrity?: string;
+  celebrityEmotion?: string;
+  decree?: string;
+  playerColor?: string;
+}
+
 export type {
   PickGameData,
   TrumpMadlibData,
@@ -142,6 +159,7 @@ export type {
   QuestionData,
   BallData,
   PromptData,
+  PromptDropData,
   VoteData,
   InstructionData,
   adminStartData,
