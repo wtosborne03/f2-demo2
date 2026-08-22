@@ -53,7 +53,7 @@
         <input
           type="text"
           class="input input-bordered input-lg w-full font-semibold"
-          maxlength={50}
+          maxlength={100}
           bind:value={answer_text}
           placeholder="Type your ide here..."
           disabled={isDropping}
