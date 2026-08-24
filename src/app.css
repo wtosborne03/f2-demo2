@@ -134,9 +134,7 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   font-weight: 400;
-
-  background-color: var(--wbg-dark);
-
+  background-color: #3a3a5c;
   color: var(--color-base-content, #1f2937);
   min-height: 100dvh;
   box-sizing: border-box;

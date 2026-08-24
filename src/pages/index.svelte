@@ -114,8 +114,8 @@
   class="flex flex-col items-center justify-center h-full w-full max-w-md px-6 space-y-8 flex-1"
 >
   <!-- Animated Logo -->
-  <figure class="flex flex-col items-center h-48 mb-2">
-    <img src={logo} alt="logo" class="object-contain h-full drop-shadow-2xl" />
+  <figure class="flex flex-col items-center h-64 mb-0">
+    <img src={logo} alt="logo" class="object-contain h-full" />
   </figure>
 
   {#if step === "join"}
