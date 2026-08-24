@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "@fontsource-variable/google-sans-flex/index.css";
+
 @plugin "daisyui" {
   themes: couchcup-dark --default;
 }
@@ -135,25 +136,6 @@ body {
   font-weight: 400;
 
   background-color: var(--wbg-dark);
-  background-image:
-    radial-gradient(var(--wbg-primary) 17%, var(--wbg-secondary) 18% 35%, transparent 36.5%),
-    radial-gradient(var(--wbg-primary) 17%, var(--wbg-secondary) 18% 35%, transparent 36.5%),
-    radial-gradient(var(--wbg-secondary) 34%, var(--wbg-primary) 36% 68%, transparent 70%),
-    repeating-linear-gradient(45deg, var(--wbg-primary) -12.5% 12.5%, var(--wbg-secondary) 0 37.5%);
-
-  /* Scaled Positions (Original: -20px -20px, 20px 20px, 0 0, 0 0) */
-  background-position:
-    calc(-20px * var(--wbg-scale)) calc(-20px * var(--wbg-scale)),
-    calc(20px * var(--wbg-scale)) calc(20px * var(--wbg-scale)),
-    0 0,
-    0 0;
-
-  /* Scaled Sizes (Original: 80px 80px, 80px 80px, 40px 40px, 80px 80px) */
-  background-size:
-    calc(80px * var(--wbg-scale)) calc(80px * var(--wbg-scale)),
-    calc(80px * var(--wbg-scale)) calc(80px * var(--wbg-scale)),
-    calc(40px * var(--wbg-scale)) calc(40px * var(--wbg-scale)),
-    calc(80px * var(--wbg-scale)) calc(80px * var(--wbg-scale));
 
   color: var(--color-base-content, #1f2937);
   min-height: 100dvh;
