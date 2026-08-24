@@ -144,6 +144,10 @@ class GameClient {
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
+          if (payload?.screen === "kicked") {
+            this.handlePlayerKicked(payload.page_data);
+            return;
+          }
           gameState.update((current) => ({ ...current, ...payload }));
           break;
         case OpCode.ERROR:
@@ -159,6 +163,9 @@ class GameClient {
             this.clearSession();
             gameState.set(defaultPlayerState);
           }
+          break;
+        case OpCode.PLAYER_KICKED:
+          this.handlePlayerKicked(payload);
           break;
         case OpCode.PONG:
           this.handlePong();
@@ -299,6 +306,20 @@ class GameClient {
     gameState.set({
       ...get(gameState),
       screen: "room_ended",
+    });
+  }
+
+  private handlePlayerKicked(payload?: any) {
+    this.clearSession();
+    this.cleanupWebRTC();
+    this.shouldReconnect = false;
+    this.ws?.close();
+    gameState.set({
+      ...get(gameState),
+      screen: "kicked",
+      page_data: {
+        reason: payload?.reason || "You have been kicked by the host."
+      }
     });
   }
 

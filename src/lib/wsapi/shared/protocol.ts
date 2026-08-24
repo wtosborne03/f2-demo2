@@ -18,6 +18,7 @@ export enum OpCode {
     PONG = 13,         // New: Response to Ping
     TIME_RESPONSE = 14,// New: Response with server timestamp
     ROOM_STATE = 15,   // New: Server sending current room state to client
+    PLAYER_KICKED = 16,// Server notifying client they were kicked
 
     // Server -> Host
     PLAYER_JOINED = 20,
@@ -26,6 +27,7 @@ export enum OpCode {
 
     // Host -> Server
     HOST_ERROR = 30,    // New: Host instructing server to send error to specific player
+    KICK_PLAYER = 31,   // Host instructing server to kick a player
     WEBRTC_OFFER = 40,
     WEBRTC_ANSWER = 41,
     WEBRTC_ICE_CANDIDATE = 42,
