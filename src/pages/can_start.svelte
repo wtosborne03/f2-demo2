@@ -7,159 +7,256 @@
 
   const session = authClient.useSession();
 
-  // Send directional and action inputs to the host lobby screen
-  function sendNav(action: "up" | "down" | "left" | "right" | "select" | "back" | "favorite" | "details" | "start") {
+  let padElement: HTMLDivElement | null = $state(null);
+  let ballX = $state(0);
+  let ballY = $state(0);
+  let isDragging = $state(false);
+
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let lastDirectionSent: string | null = null;
+  let repeatTimer: any = null;
+  let hasTriggeredInDrag = false;
+
+  const MAX_DRAG_RADIUS = 68;
+  const TRIGGER_THRESHOLD = 30;
+
+  function vibrate(ms = 22) {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try {
-        navigator.vibrate(25);
+        navigator.vibrate(ms);
       } catch (e) {}
     }
+  }
+
+  function sendNav(action: "up" | "down" | "left" | "right" | "select" | "back") {
+    vibrate(22);
     gameClient.sendInput({
       type: "lobby_nav",
       action: action,
     });
+  }
+
+  function handlePointerDown(e: PointerEvent) {
+    if (!padElement) return;
+    padElement.setPointerCapture(e.pointerId);
+    isDragging = true;
+    hasTriggeredInDrag = false;
+    lastDirectionSent = null;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = Date.now();
+    ballX = 0;
+    ballY = 0;
+  }
+
+  function handlePointerMove(e: PointerEvent) {
+    if (!isDragging) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const distance = Math.hypot(dx, dy);
+
+    // Clamp ball displacement to max radius
+    if (distance > MAX_DRAG_RADIUS) {
+      const angle = Math.atan2(dy, dx);
+      ballX = Math.cos(angle) * MAX_DRAG_RADIUS;
+      ballY = Math.sin(angle) * MAX_DRAG_RADIUS;
+    } else {
+      ballX = dx;
+      ballY = dy;
+    }
+
+    // Determine current direction based on displacement
+    let currentDir: "up" | "down" | "left" | "right" | null = null;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > TRIGGER_THRESHOLD) currentDir = "right";
+      else if (dx < -TRIGGER_THRESHOLD) currentDir = "left";
+    } else {
+      if (dy > TRIGGER_THRESHOLD) currentDir = "down";
+      else if (dy < -TRIGGER_THRESHOLD) currentDir = "up";
+    }
+
+    if (currentDir && currentDir !== lastDirectionSent) {
+      lastDirectionSent = currentDir;
+      hasTriggeredInDrag = true;
+      sendNav(currentDir);
+
+      // Repeat if held in position
+      clearInterval(repeatTimer);
+      repeatTimer = setInterval(() => {
+        if (isDragging && lastDirectionSent === currentDir) {
+          sendNav(currentDir);
+        }
+      }, 260);
+    } else if (!currentDir) {
+      lastDirectionSent = null;
+      clearInterval(repeatTimer);
+    }
+  }
+
+  function handlePointerUp(e: PointerEvent) {
+    if (!isDragging) return;
+    clearInterval(repeatTimer);
+    isDragging = false;
+
+    const duration = Date.now() - startTime;
+    const distance = Math.hypot(ballX, ballY);
+
+    // If tap without dragging, trigger select
+    if (!hasTriggeredInDrag && distance < 12 && duration < 320) {
+      sendNav("select");
+    }
+
+    // Spring back to center
+    ballX = 0;
+    ballY = 0;
+    lastDirectionSent = null;
+  }
+
+  function handlePointerCancel() {
+    clearInterval(repeatTimer);
+    isDragging = false;
+    ballX = 0;
+    ballY = 0;
+    lastDirectionSent = null;
   }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="flex flex-col w-full max-w-md mx-auto px-4 py-4 sm:py-6 pb-28 my-auto max-h-full gap-3.5 items-center select-none"
+  class="flex flex-col w-full max-w-sm mx-auto px-4 py-4 sm:py-6 pb-28 my-auto max-h-full gap-4 items-center select-none"
 >
   <!-- Catchphrase Recorder on top -->
   <div class="w-full">
     <CatchphraseRecorder />
   </div>
 
-  <!-- DaisyUI / Material Design TV Remote Card Container -->
+  <!-- Google TV / Material You Remote Container -->
   <div
-    class="card bg-base-200 border border-base-300 shadow-2xl p-5 sm:p-6 w-full flex flex-col items-center gap-5"
+    class="w-full flex flex-col items-center gap-4 bg-[#181a1d] border border-white/10 rounded-[2.25rem] p-4 sm:p-5 shadow-2xl"
   >
-    <!-- Remote Top Header -->
-    <div class="flex items-center justify-between w-full border-b border-base-300 pb-3">
+    <!-- Room Code Header / Status -->
+    <div class="flex items-center justify-between w-full px-1">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-          <Icon icon="mdi:television-box" class="text-xl" />
-        </div>
-        <div>
-          <h2 class="text-base font-black tracking-wide leading-tight">Lobby TV Remote</h2>
-          <p class="text-[0.7rem] opacity-60 font-medium">Control the Main Screen</p>
-        </div>
+        <Icon icon="mdi:television-ambient-light" class="text-primary text-xl" />
+        <span class="text-xs font-black tracking-wider uppercase text-white/70">
+          Lobby Remote
+        </span>
       </div>
 
       {#if $gameState.roomCode}
-        <div class="badge badge-primary badge-outline font-mono font-black text-xs tracking-widest px-2.5 py-1">
+        <div class="px-2.5 py-0.5 rounded-full bg-white/10 text-primary font-mono font-black text-xs tracking-widest border border-white/10">
           {$gameState.roomCode}
         </div>
       {/if}
     </div>
 
-    <!-- D-Pad Directional Controller (Material Tactile Diamond Layout) -->
-    <div class="relative w-52 h-52 sm:w-56 sm:h-56 flex items-center justify-center my-1">
-      <!-- D-Pad Circular Background Housing -->
-      <div class="absolute inset-0 rounded-full bg-base-300/60 border-2 border-base-300 shadow-inner flex items-center justify-center pointer-events-none" />
-
-      <!-- Up Button -->
+    <!-- Large Touchpad D-Pad Surface with Draggable Ball + Optional Arrow Buttons -->
+    <div
+      bind:this={padElement}
+      onpointerdown={handlePointerDown}
+      onpointermove={handlePointerMove}
+      onpointerup={handlePointerUp}
+      onpointercancel={handlePointerCancel}
+      class="relative w-full aspect-square max-w-[18.5rem] bg-[#282a2d] border border-white/10 rounded-[2.25rem] flex items-center justify-center overflow-hidden shadow-inner cursor-grab active:cursor-grabbing touch-none select-none"
+      style="touch-action: none;"
+    >
+      <!-- Optional Clickable Top Arrow -->
       <button
         type="button"
-        class="absolute top-2 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-100 hover:bg-base-300 active:bg-primary active:text-primary-content border border-base-300 shadow-md flex items-center justify-center text-2xl active:scale-95 transition-all cursor-pointer z-10"
-        onclick={() => sendNav("up")}
-        aria-label="Navigate Up"
+        class="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-10 flex items-center justify-center text-white/40 hover:text-white active:scale-90 transition-all cursor-pointer z-10"
+        onclick={(e) => {
+          e.stopPropagation();
+          sendNav("up");
+        }}
+        aria-label="Up"
       >
-        <Icon icon="mdi:chevron-up" />
+        <Icon icon="mdi:chevron-up" class="text-2xl sm:text-3xl" />
       </button>
 
-      <!-- Down Button -->
+      <!-- Optional Clickable Bottom Arrow -->
       <button
         type="button"
-        class="absolute bottom-2 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-100 hover:bg-base-300 active:bg-primary active:text-primary-content border border-base-300 shadow-md flex items-center justify-center text-2xl active:scale-95 transition-all cursor-pointer z-10"
-        onclick={() => sendNav("down")}
-        aria-label="Navigate Down"
+        class="absolute bottom-2 left-1/2 -translate-x-1/2 w-16 h-10 flex items-center justify-center text-white/40 hover:text-white active:scale-90 transition-all cursor-pointer z-10"
+        onclick={(e) => {
+          e.stopPropagation();
+          sendNav("down");
+        }}
+        aria-label="Down"
       >
-        <Icon icon="mdi:chevron-down" />
+        <Icon icon="mdi:chevron-down" class="text-2xl sm:text-3xl" />
       </button>
 
-      <!-- Left Button -->
+      <!-- Optional Clickable Left Arrow -->
       <button
         type="button"
-        class="absolute left-2 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-100 hover:bg-base-300 active:bg-primary active:text-primary-content border border-base-300 shadow-md flex items-center justify-center text-2xl active:scale-95 transition-all cursor-pointer z-10"
-        onclick={() => sendNav("left")}
-        aria-label="Navigate Left"
+        class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-16 flex items-center justify-center text-white/40 hover:text-white active:scale-90 transition-all cursor-pointer z-10"
+        onclick={(e) => {
+          e.stopPropagation();
+          sendNav("left");
+        }}
+        aria-label="Left"
       >
-        <Icon icon="mdi:chevron-left" />
+        <Icon icon="mdi:chevron-left" class="text-2xl sm:text-3xl" />
       </button>
 
-      <!-- Right Button -->
+      <!-- Optional Clickable Right Arrow -->
       <button
         type="button"
-        class="absolute right-2 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-100 hover:bg-base-300 active:bg-primary active:text-primary-content border border-base-300 shadow-md flex items-center justify-center text-2xl active:scale-95 transition-all cursor-pointer z-10"
-        onclick={() => sendNav("right")}
-        aria-label="Navigate Right"
+        class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-16 flex items-center justify-center text-white/40 hover:text-white active:scale-90 transition-all cursor-pointer z-10"
+        onclick={(e) => {
+          e.stopPropagation();
+          sendNav("right");
+        }}
+        aria-label="Right"
       >
-        <Icon icon="mdi:chevron-right" />
+        <Icon icon="mdi:chevron-right" class="text-2xl sm:text-3xl" />
       </button>
 
-      <!-- Center Select / OK Button -->
-      <button
-        type="button"
-        class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-primary text-primary-content hover:brightness-110 active:scale-90 shadow-lg border-2 border-primary-content/20 flex flex-col items-center justify-center font-black text-sm transition-all cursor-pointer z-20"
-        onclick={() => sendNav("select")}
-        aria-label="Select / OK"
+      <!-- Subtle Guide Ring in center -->
+      <div class="w-24 h-24 rounded-full border border-white/5 pointer-events-none absolute" />
+
+      <!-- Center Draggable Ball (Thumbstick Knob) -->
+      <div
+        class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#e3e3e8] shadow-[0_6px_20px_rgba(0,0,0,0.6)] flex items-center justify-center pointer-events-none z-20 transition-transform {isDragging ? 'duration-0' : 'duration-200 ease-out'}"
+        style="transform: translate({ballX}px, {ballY}px) scale({isDragging ? 1.06 : 1});"
       >
-        <Icon icon="mdi:check-bold" class="text-xl sm:text-2xl" />
-        <span class="text-[0.65rem] tracking-wider uppercase font-black -mt-0.5">OK</span>
-      </button>
+        <div class="w-4 h-4 rounded-full bg-[#b4b4b8] opacity-60" />
+      </div>
     </div>
 
-    <!-- Remote Action Buttons Grid -->
-    <div class="grid grid-cols-3 gap-2.5 w-full pt-1">
+    <!-- Material Pill Buttons: Back and Select -->
+    <div class="grid grid-cols-2 gap-3 w-full max-w-[18.5rem]">
       <!-- Back Button -->
       <button
         type="button"
-        class="btn btn-neutral btn-md rounded-2xl font-bold flex flex-col items-center justify-center gap-0.5 py-2 shadow-md active:scale-95 transition-transform"
+        class="h-14 sm:h-16 rounded-[1.5rem] bg-[#282a2d] hover:bg-[#34373c] active:bg-[#3f4349] border border-white/10 text-white flex items-center justify-center text-xl sm:text-2xl shadow-md active:scale-95 transition-all cursor-pointer"
         onclick={() => sendNav("back")}
+        aria-label="Back"
+        title="Back"
       >
-        <Icon icon="mdi:keyboard-return" class="text-lg" />
-        <span class="text-xs font-semibold">Back</span>
+        <Icon icon="mdi:arrow-left" />
       </button>
 
-      <!-- Star / Favorite Button -->
+      <!-- Select / OK Button -->
       <button
         type="button"
-        class="btn btn-warning text-warning-content btn-md rounded-2xl font-bold flex flex-col items-center justify-center gap-0.5 py-2 shadow-md active:scale-95 transition-transform"
-        onclick={() => sendNav("favorite")}
-      >
-        <Icon icon="mdi:star" class="text-lg" />
-        <span class="text-xs font-semibold">Favorite</span>
-      </button>
-
-      <!-- Details / Info Button -->
-      <button
-        type="button"
-        class="btn btn-info text-info-content btn-md rounded-2xl font-bold flex flex-col items-center justify-center gap-0.5 py-2 shadow-md active:scale-95 transition-transform"
-        onclick={() => sendNav("details")}
-      >
-        <Icon icon="mdi:information-outline" class="text-lg" />
-        <span class="text-xs font-semibold">Inspect</span>
-      </button>
-    </div>
-
-    <!-- Primary Launch CTA (Full Width) -->
-    <div class="w-full pt-1">
-      <button
-        type="button"
-        class="btn btn-success text-success-content btn-block btn-lg rounded-2xl text-base sm:text-lg font-black shadow-xl flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
+        class="h-14 sm:h-16 rounded-[1.5rem] bg-[#282a2d] hover:bg-[#34373c] active:bg-[#3f4349] border border-white/10 text-white flex items-center justify-center gap-2 text-base font-black tracking-wider uppercase shadow-md active:scale-95 transition-all cursor-pointer"
         onclick={() => sendNav("select")}
+        aria-label="Select / OK"
+        title="Select / OK"
       >
-        <Icon icon="mdi:play" class="text-2xl" />
-        <span>Launch / Select (A)</span>
+        <Icon icon="mdi:check" class="text-xl sm:text-2xl text-primary" />
+        <span>Select</span>
       </button>
     </div>
 
-    <!-- Quick Navigation Tips -->
-    <div class="text-center text-xs opacity-60 flex items-center justify-center gap-1.5 pt-1">
-      <Icon icon="mdi:gesture-tap" class="text-base text-primary opacity-80" />
-      <span>Tap buttons to browse games & modes on the TV</span>
+    <!-- Subtle Hint Text -->
+    <div class="text-center text-[0.7rem] text-white/40 -mt-1">
+      Swipe pad or drag ball to navigate • Tap to select
     </div>
 
     {#if !$session.data?.user}
