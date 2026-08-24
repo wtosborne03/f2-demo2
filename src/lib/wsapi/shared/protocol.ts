@@ -30,7 +30,8 @@ export enum OpCode {
     WEBRTC_ANSWER = 41,
     WEBRTC_ICE_CANDIDATE = 42,
     GAME_START = 99,
-    GAME_ENDED = 100
+    GAME_ENDED = 100,
+    GAME_RESET = 101
 }
 
 // ... encode/decode remain the same
