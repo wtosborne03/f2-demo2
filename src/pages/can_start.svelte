@@ -30,7 +30,9 @@
     }
   }
 
-  function sendNav(action: "up" | "down" | "left" | "right" | "select" | "back") {
+  function sendNav(
+    action: "up" | "down" | "left" | "right" | "select" | "back",
+  ) {
     vibrate(22);
     gameClient.sendInput({
       type: "lobby_nav",
@@ -136,19 +138,14 @@
 
   <!-- Google TV / Material You Remote Container -->
   <div
-    class="w-full flex flex-col items-center gap-4 bg-[#181a1d] border border-white/10 rounded-[2.25rem] p-4 sm:p-5 shadow-2xl"
+    class="w-full flex flex-col items-center gap-4 rounded-[2.25rem] p-4 sm:p-5"
   >
     <!-- Room Code Header / Status -->
     <div class="flex items-center justify-between w-full px-1">
-      <div class="flex items-center gap-2">
-        <Icon icon="mdi:television-ambient-light" class="text-primary text-xl" />
-        <span class="text-xs font-black tracking-wider uppercase text-white/70">
-          Lobby Remote
-        </span>
-      </div>
-
       {#if $gameState.roomCode}
-        <div class="px-2.5 py-0.5 rounded-full bg-white/10 text-primary font-mono font-black text-xs tracking-widest border border-white/10">
+        <div
+          class="px-2.5 py-0.5 rounded-full bg-white/10 text-primary font-mono font-black text-xs tracking-widest border border-white/10"
+        >
           {$gameState.roomCode}
         </div>
       {/if}
@@ -215,21 +212,21 @@
       >
         <Icon icon="mdi:chevron-right" class="text-2xl sm:text-3xl" />
       </button>
-
-      <!-- Subtle Guide Ring in center -->
-      <div class="w-24 h-24 rounded-full border border-white/5 pointer-events-none absolute" />
-
       <!-- Center Draggable Ball (Thumbstick Knob) -->
       <div
-        class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#e3e3e8] shadow-[0_6px_20px_rgba(0,0,0,0.6)] flex items-center justify-center pointer-events-none z-20 transition-transform {isDragging ? 'duration-0' : 'duration-200 ease-out'}"
-        style="transform: translate({ballX}px, {ballY}px) scale({isDragging ? 1.06 : 1});"
+        class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#e3e3e8] flex items-center justify-center pointer-events-none z-20 transition-transform {isDragging
+          ? 'duration-0'
+          : 'duration-200 ease-out'}"
+        style="transform: translate({ballX}px, {ballY}px) scale({isDragging
+          ? 1.06
+          : 1});"
       >
         <div class="w-4 h-4 rounded-full bg-[#b4b4b8] opacity-60" />
       </div>
     </div>
 
     <!-- Material Pill Buttons: Back and Select -->
-    <div class="grid grid-cols-2 gap-3 w-full max-w-[18.5rem]">
+    <div class="grid grid-cols-1 gap-3 w-full max-w-[18.5rem]">
       <!-- Back Button -->
       <button
         type="button"
@@ -240,23 +237,6 @@
       >
         <Icon icon="mdi:arrow-left" />
       </button>
-
-      <!-- Select / OK Button -->
-      <button
-        type="button"
-        class="h-14 sm:h-16 rounded-[1.5rem] bg-[#282a2d] hover:bg-[#34373c] active:bg-[#3f4349] border border-white/10 text-white flex items-center justify-center gap-2 text-base font-black tracking-wider uppercase shadow-md active:scale-95 transition-all cursor-pointer"
-        onclick={() => sendNav("select")}
-        aria-label="Select / OK"
-        title="Select / OK"
-      >
-        <Icon icon="mdi:check" class="text-xl sm:text-2xl text-primary" />
-        <span>Select</span>
-      </button>
-    </div>
-
-    <!-- Subtle Hint Text -->
-    <div class="text-center text-[0.7rem] text-white/40 -mt-1">
-      Swipe pad or drag ball to navigate • Tap to select
     </div>
 
     {#if !$session.data?.user}
