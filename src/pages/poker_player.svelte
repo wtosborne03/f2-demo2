@@ -1,14 +1,12 @@
 <script lang="ts">
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { scale, fly, fade } from "svelte/transition";
-  import { cubicOut } from "svelte/easing";
+  import { scale, fade } from "svelte/transition";
 
   let m_data: any = {};
   $: m_data = $gameState.page_data || {};
 
   let lastPhase = "";
   let lastRound = 0;
-  let lastCardCount = 0;
   let hasActed = false;
 
   $: if (m_data.phase !== lastPhase || m_data.round !== lastRound) {
@@ -20,7 +18,7 @@
   $: playerCards = m_data.playerCards || [];
   $: dealerUpcard = m_data.dealerVisibleCard || null;
   $: handValue = m_data.playerHandValue || { score: 0, display: "0", isSoft: false, isBlackjack: false, isBusted: false };
-  $: strategy = m_data.strategyAdvice || { title: "Blackjack", description: "Get close to 21 without going over!", badgeColor: "bg-emerald-600" };
+  $: strategy = m_data.strategyAdvice || { title: "Blackjack", description: "", badgeColor: "" };
   $: isMyTurn = m_data.isMyTurn && !hasActed;
   $: canDouble = m_data.canDouble && isMyTurn;
 
@@ -63,226 +61,143 @@
   }
 </script>
 
-<div class="bj-phone-container flex flex-col justify-between h-full w-full max-w-md mx-auto p-3 text-white font-sans select-none box-border overflow-hidden">
+<div class="flex flex-col justify-between items-center w-full max-w-sm mx-auto h-full p-4 select-none gap-3">
   
-  <!-- Top Header Bar -->
-  <div class="flex justify-between items-center bg-black/60 backdrop-blur-md rounded-2xl p-3 border border-emerald-500/30 shadow-lg">
-    <div>
-      <span class="text-[0.65rem] uppercase font-black text-amber-400 tracking-widest block">
-        Round {m_data.round || 1} &bull; Blackjack 21
-      </span>
-      <div class="flex items-center gap-1.5 mt-0.5">
-        <span class="text-xs font-bold text-gray-300">CHIPS:</span>
-        <span class="text-sm font-black text-emerald-400">${m_data.playerChips || 0}</span>
-      </div>
+  <!-- Top Bar: Dealer Upcard & Bet Info -->
+  <div class="card bg-base-200 border border-base-300 w-full p-3 shadow-sm flex-row items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="text-xs font-bold opacity-70">DEALER:</div>
+      {#if dealerUpcard}
+        <div class="badge badge-lg gap-1.5 font-bold {isRed(dealerUpcard.suit) ? 'badge-error text-white' : 'badge-neutral'}">
+          <span>{displayRanks[dealerUpcard.rank] || dealerUpcard.rank}</span>
+          <span>{suitSymbols[dealerUpcard.suit] || dealerUpcard.suit}</span>
+        </div>
+      {:else}
+        <div class="badge badge-ghost badge-sm">Dealing...</div>
+      {/if}
     </div>
 
-    <div class="text-right">
-      <span class="text-[0.65rem] uppercase font-bold text-amber-300/80 block">Current Bet</span>
-      <div class="text-lg font-black text-amber-400">${m_data.currentBet || 100}</div>
+    <div class="text-right flex items-center gap-1.5">
+      <span class="text-xs opacity-60">BET:</span>
+      <span class="badge badge-primary badge-lg font-black">${m_data.currentBet || 100}</span>
     </div>
   </div>
 
-  <!-- Dealer Upcard Radar Section -->
-  <div class="my-1.5 bg-gradient-to-r from-emerald-950/70 via-black/80 to-emerald-950/70 border border-emerald-500/20 rounded-2xl p-2.5 flex items-center justify-between shadow-inner">
-    <div class="flex flex-col">
-      <span class="text-[0.65rem] font-black text-gray-400 uppercase tracking-wider">Dealer's Visible Card</span>
-      <span class="text-xs font-extrabold text-emerald-300">
-        {#if dealerUpcard}
-          Dealer Shows: {displayRanks[dealerUpcard.rank] || dealerUpcard.rank} {suitSymbols[dealerUpcard.suit] || dealerUpcard.suit}
-        {:else}
-          Waiting for deal...
-        {/if}
-      </span>
+  <!-- Cards Area -->
+  <div class="card bg-base-200 border border-base-300 w-full p-4 flex flex-col items-center justify-center gap-3 my-auto shadow-sm">
+    
+    <!-- Hand Total -->
+    <div class="flex items-center justify-center">
+      {#if handValue.isBlackjack}
+        <div class="badge badge-warning badge-lg font-black text-sm px-4 py-3 animate-bounce">
+          👑 21 BLACKJACK!
+        </div>
+      {:else if handValue.isBusted}
+        <div class="badge badge-error badge-lg font-black text-sm text-white px-4 py-3">
+          💥 BUSTED ({handValue.score})
+        </div>
+      {:else if handValue.score > 0}
+        <div class="badge badge-neutral badge-lg font-bold text-sm px-4 py-3 gap-2">
+          <span class="opacity-70">TOTAL:</span>
+          <span class="text-primary font-black text-base">{handValue.display}</span>
+        </div>
+      {/if}
     </div>
 
-    {#if dealerUpcard}
-      <div
-        class="w-10 h-14 bg-white rounded-lg shadow-md flex flex-col justify-between p-1 font-black leading-none"
-        class:text-red-600={isRed(dealerUpcard.suit)}
-        class:text-gray-900={!isRed(dealerUpcard.suit)}
-        in:scale={{ duration: 250 }}
-      >
-        <span class="text-[0.65rem]">{displayRanks[dealerUpcard.rank] || dealerUpcard.rank}</span>
-        <span class="text-base text-center">{suitSymbols[dealerUpcard.suit] || dealerUpcard.suit}</span>
-        <span class="text-[0.65rem] self-end rotate-180">{displayRanks[dealerUpcard.rank] || dealerUpcard.rank}</span>
+    <!-- Cards Display -->
+    <div class="flex flex-wrap justify-center items-center gap-2 min-h-28">
+      {#if playerCards.length > 0}
+        {#each playerCards as card, idx (idx)}
+          <div
+            class="w-18 h-26 bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between p-1.5 font-black leading-none"
+            class:text-red-600={isRed(card.suit)}
+            class:text-gray-900={!isRed(card.suit)}
+            in:scale={{ duration: 180 }}
+          >
+            <span class="text-sm">{displayRanks[card.rank] || card.rank}</span>
+            <span class="text-3xl text-center">{suitSymbols[card.suit] || card.suit}</span>
+            <span class="text-sm self-end rotate-180">{displayRanks[card.rank] || card.rank}</span>
+          </div>
+        {/each}
+      {:else}
+        <span class="loading loading-spinner loading-md text-primary"></span>
+      {/if}
+    </div>
+
+    <!-- Simple Strategy Tip -->
+    {#if strategy && strategy.description && isMyTurn}
+      <div class="text-xs text-center opacity-80 font-medium px-2 py-1 bg-base-300/50 rounded-lg w-full" in:fade>
+        💡 {strategy.description}
       </div>
     {/if}
   </div>
 
-  <!-- Beginner Strategy Advisor Pill -->
-  <div
-    class="mx-auto w-full px-3 py-2 rounded-2xl border border-white/10 shadow-lg transition-all duration-300 flex items-start gap-2.5 {strategy.badgeColor || 'bg-emerald-800'}"
-    in:fly={{ y: -8, duration: 200 }}
-  >
-    <span class="text-lg">💡</span>
-    <div class="flex flex-col flex-1">
-      <span class="text-xs font-black uppercase tracking-wider text-white">
-        {strategy.title}
-      </span>
-      <span class="text-[0.72rem] font-semibold text-emerald-50/90 leading-tight mt-0.5">
-        {strategy.description}
-      </span>
-    </div>
-  </div>
-
-  <!-- Player's Cards Fan & Total Display -->
-  <div class="my-auto py-2 flex flex-col items-center justify-center">
-    
-    <!-- Hand Score Indicator -->
-    <div class="mb-2">
-      {#if handValue.isBlackjack}
-        <div class="px-4 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-sm uppercase tracking-wider rounded-full shadow-lg border-2 border-white animate-bounce">
-          👑 Natural Blackjack 21!
-        </div>
-      {:else if handValue.isBusted}
-        <div class="px-4 py-1 bg-red-600 text-white font-black text-sm uppercase tracking-wider rounded-full shadow-lg border border-red-300 animate-pulse">
-          💥 BUSTED ({handValue.score})
-        </div>
-      {:else if handValue.score > 0}
-        <div class="px-4 py-1 bg-emerald-600/90 text-white font-black text-sm tracking-wider rounded-full shadow-md border border-emerald-400 flex items-center gap-2">
-          <span>HAND TOTAL:</span>
-          <span class="text-base text-yellow-300">{handValue.display}</span>
-        </div>
-      {/if}
-    </div>
-
-    <!-- Cards Layout -->
-    <div class="flex flex-wrap justify-center items-center gap-2 max-w-full px-2">
-      {#if playerCards && playerCards.length > 0}
-        {#each playerCards as card, idx (idx)}
-          <div
-            class="w-18 h-26 sm:w-20 sm:h-28 bg-white rounded-xl shadow-2xl flex flex-col justify-between p-1.5 font-black transition-all duration-300 transform"
-            class:text-red-600={isRed(card.suit)}
-            class:text-gray-950={!isRed(card.suit)}
-            in:scale={{ duration: 220, start: 0.7, easing: cubicOut }}
-          >
-            <div class="flex justify-between items-start leading-none">
-              <span class="text-sm font-black">{displayRanks[card.rank] || card.rank}</span>
-              <span class="text-xs">{suitSymbols[card.suit] || card.suit}</span>
-            </div>
-            
-            <div class="text-3xl text-center leading-none">
-              {suitSymbols[card.suit] || card.suit}
-            </div>
-
-            <div class="flex justify-between items-end leading-none self-end rotate-180">
-              <span class="text-sm font-black">{displayRanks[card.rank] || card.rank}</span>
-              <span class="text-xs">{suitSymbols[card.suit] || card.suit}</span>
-            </div>
-          </div>
-        {/each}
-      {:else}
-        <div class="h-28 flex items-center justify-center text-emerald-400 font-bold text-sm animate-pulse">
-          Dealing your cards from the shoe...
-        </div>
-      {/if}
-    </div>
-  </div>
-
-  <!-- Interactive Controls / Status -->
-  <div class="flex flex-col gap-2 mb-1">
-    
+  <!-- Bottom Actions -->
+  <div class="w-full flex flex-col gap-2">
     {#if m_data.outcome}
-      <!-- Showdown Outcome Banner -->
+      <!-- Showdown Result -->
       <div
-        class="rounded-2xl p-3 text-center border shadow-xl flex flex-col items-center justify-center gap-1"
-        class:bg-amber-500={m_data.outcome === 'blackjack'}
-        class:text-black={m_data.outcome === 'blackjack'}
-        class:bg-emerald-700={m_data.outcome === 'win'}
-        class:text-white={m_data.outcome === 'win'}
-        class:bg-slate-700={m_data.outcome === 'push'}
-        class:bg-red-900={m_data.outcome === 'loss' || m_data.outcome === 'bust'}
-        in:scale={{ duration: 250 }}
+        class="alert shadow-sm text-center justify-center font-black text-base py-3"
+        class:alert-success={m_data.outcome === 'win' || m_data.outcome === 'blackjack'}
+        class:alert-info={m_data.outcome === 'push'}
+        class:alert-error={m_data.outcome === 'loss' || m_data.outcome === 'bust'}
       >
-        <span class="text-base font-black uppercase tracking-wider">
+        <span>
           {#if m_data.outcome === 'blackjack'}
-            👑 BLACKJACK! Won +${m_data.netWon}
+            👑 Blackjack! +${m_data.netWon}
           {:else if m_data.outcome === 'win'}
-            🏆 YOU WON! +${m_data.netWon}
+            🏆 Won +${m_data.netWon}
           {:else if m_data.outcome === 'push'}
-            🤝 PUSH (TIE) - Bet Returned
+            🤝 Push (Tie)
           {:else if m_data.outcome === 'bust'}
-            💥 BUSTED - Lost ${m_data.currentBet}
+            💥 Busted (-${m_data.currentBet})
           {:else}
-            ❌ HOUSE WINS - Lost ${m_data.currentBet}
+            ❌ Lost (-${m_data.currentBet})
           {/if}
-        </span>
-        <span class="text-[0.7rem] font-semibold opacity-90">
-          Tournament points recorded on the CouchCup leaderboard!
         </span>
       </div>
 
     {:else if isMyTurn}
-      <!-- Active Decisions -->
-      <div class="grid grid-cols-2 gap-2" in:scale={{ duration: 180 }}>
-        <!-- Option 1: HIT (Take Card) -->
+      <!-- Action Buttons -->
+      <div class="flex gap-3 w-full">
         <button
           type="button"
-          class="py-3.5 px-2 bg-gradient-to-r from-emerald-600 to-teal-600 active:scale-95 active:bg-emerald-700 font-black text-sm rounded-2xl shadow-lg border border-emerald-400/40 uppercase tracking-wider flex flex-col items-center justify-center cursor-pointer transition-transform"
-          on:click={() => sendAction("hit")}
+          class="btn btn-success btn-lg flex-1 text-lg font-black text-white"
+          onclick={() => sendAction("hit")}
         >
-          <span class="text-base">🟢 HIT</span>
-          <span class="text-[0.65rem] text-emerald-100 font-semibold mt-0.5">Take +1 Card</span>
+          HIT
         </button>
 
-        <!-- Option 2: STAND (Hold) -->
         <button
           type="button"
-          class="py-3.5 px-2 bg-gradient-to-r from-blue-600 to-indigo-600 active:scale-95 active:bg-blue-700 font-black text-sm rounded-2xl shadow-lg border border-blue-400/40 uppercase tracking-wider flex flex-col items-center justify-center cursor-pointer transition-transform"
-          on:click={() => sendAction("stand")}
+          class="btn btn-error btn-lg flex-1 text-lg font-black text-white"
+          onclick={() => sendAction("stand")}
         >
-          <span class="text-base">🛑 STAND</span>
-          <span class="text-[0.65rem] text-blue-100 font-semibold mt-0.5">Keep Hand</span>
+          STAND
         </button>
       </div>
 
-      <!-- Option 3: DOUBLE DOWN (if eligible) -->
       {#if canDouble}
         <button
           type="button"
-          class="w-full py-2.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 active:scale-95 font-black text-xs rounded-2xl shadow-lg border border-purple-300/40 uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-transform"
-          on:click={() => sendAction("double")}
-          in:fly={{ y: 10, duration: 200 }}
+          class="btn btn-warning btn-md w-full font-bold"
+          onclick={() => sendAction("double")}
         >
-          <span>⚡ DOUBLE DOWN (${m_data.currentBet * 2}) &bull; Draw 1 Final Card</span>
+          ⚡ Double Down (${m_data.currentBet * 2})
         </button>
       {/if}
 
     {:else if handValue.isBusted}
-      <!-- Busted State -->
-      <div class="bg-red-950/80 border border-red-500/40 rounded-2xl p-3 text-center">
-        <span class="text-red-400 font-black text-base block">💥 BUSTED AT {handValue.score}</span>
-        <span class="text-[0.72rem] text-gray-300">Total exceeded 21. Watching dealer play!</span>
-      </div>
-
-    {:else if handValue.isBlackjack}
-      <!-- Natural 21 State -->
-      <div class="bg-amber-950/80 border border-amber-400/50 rounded-2xl p-3 text-center">
-        <span class="text-amber-300 font-black text-base block">👑 21 LOCKED IN</span>
-        <span class="text-[0.72rem] text-gray-300">Natural Blackjack! Waiting for dealer reveal.</span>
+      <div class="alert alert-error text-center justify-center font-bold text-sm py-3 text-white">
+        Busted! Waiting for dealer...
       </div>
 
     {:else}
-      <!-- Waiting / Locked In State -->
-      <div class="bg-black/60 border border-emerald-500/30 rounded-2xl p-3 text-center flex items-center justify-center gap-3">
-        <div class="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-        <div class="flex flex-col text-left">
-          <span class="text-xs font-black text-gray-200">{m_data.status || "Move Locked In!"}</span>
-          <span class="text-[0.68rem] text-gray-400">Waiting for other players & the dealer...</span>
-        </div>
+      <div class="card bg-base-200 border border-base-300 p-3 text-center flex-row items-center justify-center gap-2 shadow-sm">
+        <span class="loading loading-spinner loading-sm text-primary"></span>
+        <span class="text-sm font-semibold opacity-80">{m_data.status || "Waiting for table..."}</span>
       </div>
     {/if}
   </div>
 
 </div>
-
-<style>
-  :global(body:has(.bj-phone-container)) {
-    background-color: #041208 !important;
-  }
-  :global(#main-background:has(.bj-phone-container)) {
-    background-color: #041208 !important;
-    padding: 0 !important;
-  }
-</style>
