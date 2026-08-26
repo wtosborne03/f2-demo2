@@ -61,83 +61,101 @@
   }
 </script>
 
-<div class="flex flex-col justify-between items-center w-full max-w-sm mx-auto h-full p-4 select-none gap-3">
+<div class="flex flex-col justify-between items-center w-full max-w-md mx-auto h-full p-3 sm:p-4 select-none gap-3 box-border overflow-hidden">
   
   <!-- Top Bar: Dealer Upcard & Bet Info -->
-  <div class="card bg-base-200 border border-base-300 w-full p-3 shadow-sm flex-row items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="text-xs font-bold opacity-70">DEALER:</div>
+  <div class="card bg-base-200/90 backdrop-blur-sm border border-base-300 w-full px-4 py-3 shadow-sm flex-row items-center justify-between shrink-0">
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-black tracking-wider opacity-70">DEALER:</span>
       {#if dealerUpcard}
-        <div class="badge badge-lg gap-1.5 font-bold {isRed(dealerUpcard.suit) ? 'badge-error text-white' : 'badge-neutral'}">
-          <span>{displayRanks[dealerUpcard.rank] || dealerUpcard.rank}</span>
-          <span>{suitSymbols[dealerUpcard.suit] || dealerUpcard.suit}</span>
+        <div class="badge badge-lg gap-2 font-black py-3 px-3.5 {isRed(dealerUpcard.suit) ? 'badge-error text-white' : 'badge-neutral'}">
+          <span class="text-base">{displayRanks[dealerUpcard.rank] || dealerUpcard.rank}</span>
+          <span class="text-lg">{suitSymbols[dealerUpcard.suit] || dealerUpcard.suit}</span>
         </div>
       {:else}
         <div class="badge badge-ghost badge-sm">Dealing...</div>
       {/if}
     </div>
 
-    <div class="text-right flex items-center gap-1.5">
-      <span class="text-xs opacity-60">BET:</span>
-      <span class="badge badge-primary badge-lg font-black">${m_data.currentBet || 100}</span>
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-black tracking-wider opacity-70">BET:</span>
+      <span class="badge badge-primary badge-lg font-black text-sm py-3 px-3.5">${m_data.currentBet || 100}</span>
     </div>
   </div>
 
-  <!-- Cards Area -->
-  <div class="card bg-base-200 border border-base-300 w-full p-4 flex flex-col items-center justify-center gap-3 my-auto shadow-sm">
+  <!-- Main Cards & Score Arena (Fills Available Height) -->
+  <div class="card bg-base-200/90 backdrop-blur-sm border border-base-300 w-full flex-1 p-4 sm:p-5 flex flex-col items-center justify-between shadow-sm min-h-0">
     
-    <!-- Hand Total -->
-    <div class="flex items-center justify-center">
+    <!-- Total Score Pill (Top of Card Area) -->
+    <div class="shrink-0 mb-2">
       {#if handValue.isBlackjack}
-        <div class="badge badge-warning badge-lg font-black text-sm px-4 py-3 animate-bounce">
+        <div class="badge badge-warning badge-lg font-black text-base px-6 py-4 shadow-md animate-bounce">
           👑 21 BLACKJACK!
         </div>
       {:else if handValue.isBusted}
-        <div class="badge badge-error badge-lg font-black text-sm text-white px-4 py-3">
+        <div class="badge badge-error badge-lg font-black text-base text-white px-6 py-4 shadow-md">
           💥 BUSTED ({handValue.score})
         </div>
       {:else if handValue.score > 0}
-        <div class="badge badge-neutral badge-lg font-bold text-sm px-4 py-3 gap-2">
-          <span class="opacity-70">TOTAL:</span>
-          <span class="text-primary font-black text-base">{handValue.display}</span>
+        <div class="badge badge-neutral badge-lg font-black text-base px-6 py-4 gap-2.5 shadow-md">
+          <span class="opacity-70 text-xs tracking-wider">TOTAL:</span>
+          <span class="text-primary font-black text-xl">{handValue.display}</span>
         </div>
       {/if}
     </div>
 
-    <!-- Cards Display -->
-    <div class="flex flex-wrap justify-center items-center gap-2 min-h-28">
+    <!-- Dynamic Large Cards Display -->
+    <div class="flex-1 w-full flex items-center justify-center gap-3 sm:gap-4 my-auto px-1 max-h-[46vh]">
       {#if playerCards.length > 0}
         {#each playerCards as card, idx (idx)}
           <div
-            class="w-18 h-26 bg-white rounded-xl shadow-md border border-gray-200 flex flex-col justify-between p-1.5 font-black leading-none"
+            class="flex-1 max-w-[155px] min-w-[90px] aspect-[2.5/3.6] h-full max-h-[250px] bg-white rounded-2xl shadow-xl border-2 border-gray-100 flex flex-col justify-between p-2.5 sm:p-3.5 font-black leading-none transition-all transform"
             class:text-red-600={isRed(card.suit)}
             class:text-gray-900={!isRed(card.suit)}
-            in:scale={{ duration: 180 }}
+            in:scale={{ duration: 200 }}
           >
-            <span class="text-sm">{displayRanks[card.rank] || card.rank}</span>
-            <span class="text-3xl text-center">{suitSymbols[card.suit] || card.suit}</span>
-            <span class="text-sm self-end rotate-180">{displayRanks[card.rank] || card.rank}</span>
+            <!-- Top Corner Index -->
+            <div class="flex flex-col items-start leading-none">
+              <span class="text-base sm:text-xl font-black">{displayRanks[card.rank] || card.rank}</span>
+              <span class="text-sm sm:text-base mt-0.5">{suitSymbols[card.suit] || card.suit}</span>
+            </div>
+            
+            <!-- Giant Center Suit -->
+            <div class="text-5xl sm:text-6xl text-center leading-none my-auto">
+              {suitSymbols[card.suit] || card.suit}
+            </div>
+
+            <!-- Bottom Corner Index (Inverted) -->
+            <div class="flex flex-col items-end leading-none rotate-180">
+              <span class="text-base sm:text-xl font-black">{displayRanks[card.rank] || card.rank}</span>
+              <span class="text-sm sm:text-base mt-0.5">{suitSymbols[card.suit] || card.suit}</span>
+            </div>
           </div>
         {/each}
       {:else}
-        <span class="loading loading-spinner loading-md text-primary"></span>
+        <div class="flex flex-col items-center gap-3">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <span class="text-sm font-bold opacity-70">Dealing your cards...</span>
+        </div>
       {/if}
     </div>
 
-    <!-- Simple Strategy Tip -->
+    <!-- Strategy Advice Tip (Bottom of Card Area) -->
     {#if strategy && strategy.description && isMyTurn}
-      <div class="text-xs text-center opacity-80 font-medium px-2 py-1 bg-base-300/50 rounded-lg w-full" in:fade>
-        💡 {strategy.description}
+      <div class="shrink-0 w-full mt-2" in:fade>
+        <div class="text-xs sm:text-sm text-center font-bold px-3 py-2 bg-base-300/70 border border-base-300 rounded-xl">
+          💡 {strategy.description}
+        </div>
       </div>
     {/if}
   </div>
 
-  <!-- Bottom Actions -->
-  <div class="w-full flex flex-col gap-2">
+  <!-- Bottom Actions (Large, Full-Width, Easy to Tap) -->
+  <div class="w-full flex flex-col gap-2.5 shrink-0">
     {#if m_data.outcome}
-      <!-- Showdown Result -->
+      <!-- Showdown Outcome Banner -->
       <div
-        class="alert shadow-sm text-center justify-center font-black text-base py-3"
+        class="alert shadow-md text-center justify-center font-black text-lg py-4 rounded-2xl"
         class:alert-success={m_data.outcome === 'win' || m_data.outcome === 'blackjack'}
         class:alert-info={m_data.outcome === 'push'}
         class:alert-error={m_data.outcome === 'loss' || m_data.outcome === 'bust'}
@@ -146,41 +164,42 @@
           {#if m_data.outcome === 'blackjack'}
             👑 Blackjack! +${m_data.netWon}
           {:else if m_data.outcome === 'win'}
-            🏆 Won +${m_data.netWon}
+            🏆 You Won! +${m_data.netWon}
           {:else if m_data.outcome === 'push'}
             🤝 Push (Tie)
           {:else if m_data.outcome === 'bust'}
             💥 Busted (-${m_data.currentBet})
           {:else}
-            ❌ Lost (-${m_data.currentBet})
+            ❌ House Wins (-${m_data.currentBet})
           {/if}
         </span>
       </div>
 
     {:else if isMyTurn}
-      <!-- Action Buttons -->
-      <div class="flex gap-3 w-full">
+      <!-- Main Hit & Stand Buttons (Extra Large & Bold) -->
+      <div class="grid grid-cols-2 gap-3 w-full">
         <button
           type="button"
-          class="btn btn-success btn-lg flex-1 text-lg font-black text-white"
+          class="btn btn-success h-18 sm:h-20 text-xl sm:text-2xl font-black text-white rounded-2xl shadow-lg border-2 border-emerald-400/40 active:scale-95 transition-transform"
           onclick={() => sendAction("hit")}
         >
-          HIT
+          🟢 HIT
         </button>
 
         <button
           type="button"
-          class="btn btn-error btn-lg flex-1 text-lg font-black text-white"
+          class="btn btn-error h-18 sm:h-20 text-xl sm:text-2xl font-black text-white rounded-2xl shadow-lg border-2 border-red-400/40 active:scale-95 transition-transform"
           onclick={() => sendAction("stand")}
         >
-          STAND
+          🛑 STAND
         </button>
       </div>
 
+      <!-- Double Down Button (Full Width Bar) -->
       {#if canDouble}
         <button
           type="button"
-          class="btn btn-warning btn-md w-full font-bold"
+          class="btn btn-warning h-12 text-sm sm:text-base font-black w-full rounded-2xl shadow-md active:scale-95 transition-transform"
           onclick={() => sendAction("double")}
         >
           ⚡ Double Down (${m_data.currentBet * 2})
@@ -188,14 +207,14 @@
       {/if}
 
     {:else if handValue.isBusted}
-      <div class="alert alert-error text-center justify-center font-bold text-sm py-3 text-white">
-        Busted! Waiting for dealer...
+      <div class="alert alert-error text-center justify-center font-bold text-base py-4 text-white rounded-2xl shadow-md">
+        💥 Busted! Watching the dealer play...
       </div>
 
     {:else}
-      <div class="card bg-base-200 border border-base-300 p-3 text-center flex-row items-center justify-center gap-2 shadow-sm">
-        <span class="loading loading-spinner loading-sm text-primary"></span>
-        <span class="text-sm font-semibold opacity-80">{m_data.status || "Waiting for table..."}</span>
+      <div class="card bg-base-200/90 border border-base-300 p-4 text-center flex-row items-center justify-center gap-3 shadow-md rounded-2xl">
+        <span class="loading loading-spinner loading-md text-primary"></span>
+        <span class="text-sm sm:text-base font-bold opacity-80">{m_data.status || "Waiting for other players..."}</span>
       </div>
     {/if}
   </div>
