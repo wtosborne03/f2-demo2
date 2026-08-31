@@ -110,6 +110,11 @@
       return;
     }
 
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    isKeyboardVisible.set(false);
+
     isSubmitted = true;
     gameClient.sendPlayerInput("roulette", {
       challenge: trimmed,
