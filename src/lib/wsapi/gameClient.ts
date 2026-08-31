@@ -115,7 +115,11 @@ class GameClient {
       );
       if (!hasQueuedSessionAction && this.canAttemptSessionReconnect()) {
         const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
-        const storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
+        let storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
+        if (!storedUserId && typeof window !== "undefined") {
+          storedUserId = "temp_" + crypto.randomUUID();
+          localStorage.setItem("temp_user_id", storedUserId);
+        }
         this.sendCritical(OpCode.RECONNECT, {
           roomCode: this.roomCode,
           name: this.name,
@@ -140,7 +144,7 @@ class GameClient {
 
       switch (op) {
         case OpCode.IDENTITY:
-          this.joinedRoom(payload.playerId, payload.roomCode, payload.status);
+          this.joinedRoom(payload.playerId, payload.roomCode, payload.status, payload.userId);
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
@@ -210,7 +214,7 @@ class GameClient {
     };
   }
 
-  private async joinedRoom(playerId: string, roomCode: string, status?: string) {
+  private async joinedRoom(playerId: string, roomCode: string, status?: string, userId?: string) {
     this.roomCode = roomCode;
     this.setRoomStatus(status);
     if (typeof window !== "undefined") {
@@ -219,6 +223,9 @@ class GameClient {
       localStorage.setItem("couch_room", roomCode);
       if (playerId) {
         localStorage.setItem("couch_pid", playerId);
+      }
+      if (userId && !localStorage.getItem("temp_user_id")) {
+        localStorage.setItem("temp_user_id", userId);
       }
     }
 
@@ -329,8 +336,12 @@ class GameClient {
     this.name = name.trim();
     this.roomCode = formattedRoom;
 
+    let storedUserId = userId || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null);
+    if (!storedUserId && typeof window !== "undefined") {
+      storedUserId = "temp_" + crypto.randomUUID();
+      localStorage.setItem("temp_user_id", storedUserId);
+    }
     const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
-    const storedUserId = userId || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null);
 
     this.sendCritical(OpCode.JOIN_ROOM, {
       roomCode: formattedRoom,
@@ -345,7 +356,11 @@ class GameClient {
     const roomCode = targetRoom || this.roomCode || (typeof window !== "undefined" ? localStorage.getItem("couch_room") : null);
     const name = targetName || this.name || (typeof window !== "undefined" ? localStorage.getItem("name") : null);
     const playerId = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
-    const userId = targetUserId || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null);
+    let userId = targetUserId || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null);
+    if (!userId && typeof window !== "undefined") {
+      userId = "temp_" + crypto.randomUUID();
+      localStorage.setItem("temp_user_id", userId);
+    }
 
     if (!roomCode || !name) return false;
 
@@ -1163,13 +1178,19 @@ class GameClient {
     localStorage.setItem("couch_room", roomCode);
     this.roomCode = roomCode;
 
+    let storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
+    if (!storedUserId && typeof window !== "undefined") {
+      storedUserId = "temp_" + crypto.randomUUID();
+      localStorage.setItem("temp_user_id", storedUserId);
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       // Already connected — just join the room.
       // Clear any stale session data first so we don't try to reconnect
       // to a different room.
       this.clearSession();
       this.roomCode = roomCode;
-      this.sendCritical(OpCode.JOIN_ROOM, { roomCode, name: this.name });
+      this.sendCritical(OpCode.JOIN_ROOM, { roomCode, name: this.name, userId: storedUserId || undefined });
     } else {
       // Not connected yet — ensure we try to connect.
       // The existing onopen handler will flush the critical queue.
