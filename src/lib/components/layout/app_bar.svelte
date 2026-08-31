@@ -113,10 +113,8 @@
 </script>
 
 <div
-  class="z-20 fixed w-full top-0 transition-all duration-300 ease-out will-change-transform"
-  class:-translate-y-full={$isKeyboardVisible}
-  class:opacity-0={$isKeyboardVisible}
-  class:pointer-events-none={$isKeyboardVisible}
+  class="app-bar-wrapper z-20 fixed w-full top-0"
+  class:keyboard-hidden={$isKeyboardVisible}
 >
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -195,6 +193,17 @@
 </div>
 
 <style>
+  .app-bar-wrapper {
+    transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.22s ease;
+    will-change: transform, opacity;
+  }
+
+  .app-bar-wrapper.keyboard-hidden {
+    transform: translateY(-130%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
   /* App bar needs relative positioning so the timer track can be absolute inside it */
   .app-bar-container {
     position: relative;

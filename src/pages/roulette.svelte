@@ -152,6 +152,15 @@
           bind:this={inputElement}
           bind:value={punishmentText}
           on:keydown={handleKeydown}
+          on:focus={() => isKeyboardVisible.set(true)}
+          on:blur={() => {
+            setTimeout(() => {
+              const el = document.activeElement;
+              if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) {
+                isKeyboardVisible.set(false);
+              }
+            }, 80);
+          }}
           maxlength={90}
           rows={2}
           autocomplete="off"
