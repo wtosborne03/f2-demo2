@@ -6,6 +6,7 @@
   import { gameState, serverTimeOffset } from "$lib/wsapi/gameClient";
   import { onMount, onDestroy } from "svelte";
   import { getContrastColor } from "$lib/util/color";
+  import { isKeyboardVisible } from "$lib/stores/keyboard";
 
   // reactive shortcuts to the store values
   $: name = $gameState.name;
@@ -111,7 +112,12 @@
   }
 </script>
 
-<div class="z-20 fixed w-full top-0">
+<div
+  class="z-20 fixed w-full top-0 transition-all duration-300 ease-out will-change-transform"
+  class:-translate-y-full={$isKeyboardVisible}
+  class:opacity-0={$isKeyboardVisible}
+  class:pointer-events-none={$isKeyboardVisible}
+>
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div

@@ -10,6 +10,7 @@
   import { apiClient } from "$lib/backend/axios";
   import { dbClient } from "../stores/apiClient";
   import { get } from "svelte/store";
+  import { isKeyboardVisible } from "$lib/stores/keyboard";
 
   // Toggle this to enable automatic cycling through screens for debugging
   const debug = false;
@@ -117,7 +118,13 @@
     <div
       in:fly={{ x: 300, duration: 400, easing: cubicOut }}
       out:fly={{ x: -300, duration: 400, easing: cubicOut }}
-      class={`absolute inset-0 p-0 flex flex-1 flex-col justify-center items-center overflow-y-auto ${page.url.pathname === "/" && $gameState.screen != "index" ? "pt-22" : ""}`}
+      class={`absolute inset-0 p-0 flex flex-1 flex-col justify-center items-center overflow-y-auto transition-[padding] duration-300 ease-out ${
+        page.url.pathname === "/" && $gameState.screen != "index"
+          ? $isKeyboardVisible
+            ? "pt-3 pb-3"
+            : "pt-22"
+          : ""
+      }`}
     >
       {#if debug}
         <div class="fixed bottom-5 right-5">
