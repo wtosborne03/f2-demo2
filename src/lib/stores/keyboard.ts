@@ -4,8 +4,11 @@ import { browser } from "$app/environment";
 export const isKeyboardVisible = writable(false);
 
 if (browser) {
-  let initialHeight = window.innerHeight;
-  let focusTimestamp = 0;
+  let maxUnfocusedHeight = Math.max(
+    window.innerHeight,
+    window.visualViewport?.height || 0
+  );
+  let isFocused = false;
 
   const isTextInput = (el: Element | null): boolean => {
     if (!el || !(el instanceof HTMLElement)) return false;
@@ -26,83 +29,78 @@ if (browser) {
     return el.getAttribute("contenteditable") === "true";
   };
 
-  const updateState = (forcedState?: boolean) => {
-    if (forcedState !== undefined) {
-      isKeyboardVisible.set(forcedState);
-      return;
-    }
-
+  const evaluateKeyboardState = () => {
     const activeEl = document.activeElement;
     const activeIsText = isTextInput(activeEl);
 
-    let keyboardOpen = false;
+    const currentHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
 
-    if (window.visualViewport) {
-      const vvHeight = window.visualViewport.height;
-      const winHeight = window.innerHeight;
-      const heightDiff = winHeight - vvHeight;
-      const heightRatio = vvHeight / winHeight;
-
-      if (heightDiff > 80 || heightRatio < 0.88) {
-        // Viewport is visibly contracted by virtual keyboard
-        keyboardOpen = true;
-      } else if (activeIsText && Date.now() - focusTimestamp < 450) {
-        // Just focused within 450ms, waiting for keyboard animation to compress viewport
-        keyboardOpen = true;
-      } else {
-        // Viewport has expanded back to full size -> Keyboard is physically closed!
-        keyboardOpen = false;
-      }
-    } else {
-      const heightDiff = initialHeight - window.innerHeight;
-      if (heightDiff > 100) {
-        keyboardOpen = true;
-      } else if (activeIsText && Date.now() - focusTimestamp < 450) {
-        keyboardOpen = true;
-      } else {
-        keyboardOpen = false;
-      }
+    if (!activeIsText) {
+      isFocused = false;
+      maxUnfocusedHeight = Math.max(maxUnfocusedHeight, window.innerHeight, currentHeight);
+      isKeyboardVisible.set(false);
+      return;
     }
 
-    isKeyboardVisible.set(keyboardOpen);
-  };
+    // A text input is currently focused
+    const heightDifference = maxUnfocusedHeight - currentHeight;
 
-  const scheduleChecks = () => {
-    updateState();
-    setTimeout(updateState, 50);
-    setTimeout(updateState, 150);
-    setTimeout(updateState, 350);
-    setTimeout(updateState, 500);
+    if (heightDifference > 120) {
+      // Screen is compressed by virtual keyboard
+      isKeyboardVisible.set(true);
+    } else {
+      // If height returned to normal full-screen height (diff < 50px) and it's not the initial focus
+      if (heightDifference < 50 && maxUnfocusedHeight > 400 && !isFocused) {
+        isKeyboardVisible.set(false);
+      } else {
+        // Just focused or still within opening threshold
+        isKeyboardVisible.set(true);
+      }
+    }
   };
 
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", () => updateState());
-    window.visualViewport.addEventListener("scroll", () => updateState());
+    window.visualViewport.addEventListener("resize", () => {
+      // When viewport resizes, check if it expanded back to full size
+      const currentHeight = window.visualViewport!.height;
+      if (maxUnfocusedHeight - currentHeight < 60 && maxUnfocusedHeight > 400) {
+        isFocused = false;
+      }
+      evaluateKeyboardState();
+    });
+    window.visualViewport.addEventListener("scroll", evaluateKeyboardState);
   }
 
   window.addEventListener("resize", () => {
     if (!isTextInput(document.activeElement)) {
-      initialHeight = Math.max(initialHeight, window.innerHeight);
+      maxUnfocusedHeight = Math.max(window.innerHeight, window.visualViewport?.height || 0);
     }
-    updateState();
+    evaluateKeyboardState();
+  });
+
+  window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+      maxUnfocusedHeight = Math.max(window.innerHeight, window.visualViewport?.height || 0);
+      evaluateKeyboardState();
+    }, 200);
   });
 
   window.addEventListener("focusin", (e) => {
     if (isTextInput(e.target as Element)) {
-      focusTimestamp = Date.now();
-      updateState(true);
-      scheduleChecks();
+      isFocused = true;
+      isKeyboardVisible.set(true);
+      setTimeout(() => {
+        isFocused = false;
+        evaluateKeyboardState();
+      }, 400);
     }
   });
 
   window.addEventListener("focusout", () => {
     setTimeout(() => {
-      const activeEl = document.activeElement;
-      if (!isTextInput(activeEl)) {
-        updateState(false);
-      } else {
-        updateState();
-      }
-    }, 50);
+      evaluateKeyboardState();
+    }, 60);
   });
 }
