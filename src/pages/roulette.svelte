@@ -3,182 +3,234 @@
   import { toaster } from "$lib/util/toaster";
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
   import { get } from "svelte/store";
-  import { fly } from "svelte/transition";
+  import { fly, fade } from "svelte/transition";
 
-  let selected_challenge = "";
+  const gs = get(gameState);
+  const m_data: RouletteData = gs.page_data;
+
+  let punishmentText = "";
+  let isSubmitted = false;
+  let inputElement: HTMLTextAreaElement | HTMLInputElement;
 
   const shuffle = (array: string[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      [copy[i], copy[j]] = [copy[j], copy[i]];
     }
-    return array;
-  };
-  const gs = get(gameState);
-
-  const challenges: Record<string, string> = {
-    "Take 3 drinks": "Take 3 drinks",
-    "Take 5 drinks": "Take 5 drinks",
-    "Take 10 drinks": "Take 10 drinks",
-    "Take 15 drinks": "Take 15 drinks",
-    "Take 20 drinks": "Take 20 drinks",
-    "Down your drink": "Down your drink",
-    "Give the player on the right your wallet": "Give Wallet",
-    "Give the player on the left a nice compliment": "Compliment 👈",
-    "Take a shot": "Take a shot",
-    "Take off an article of clothing": "Clothes off",
-    "Shotgun a beer": "Shotgun Beer",
-    "Name a law that you have broken": "Name Crime",
-    "Text a family member that you died": "Text Family",
-    "Take 7 drinks if your'e unemployed": "Unemployed Drink",
-    "Take 8 drinks if you're a Man": "Men Drink",
-    "Take 8 drinks if you're a Woman": "Women Drink",
-    "Name your favorite slur": "Favorite Slur",
-    "Take a shot if you're an Atheist": "Atheists Drink",
-    "Show the last photo in your camera roll": "Camera Roll",
-    "Let the person on your right text anyone on your phone": "Text 'em",
-    "Reveal the first three digits of your Social Security Number":
-      "SSN sneak peek",
-    [`Take a drink from ${gs.name}'s cup`]: `${gs.name}'s cup`,
-    "Take a drink if you've lost money gambling": "Gamble Regret",
-    [`Give ${gs.name} a compliment'`]: `Compliment Me`,
-    "Reveal your phone's daily screentime": "Screen Reveal",
+    return copy;
   };
 
-  const available_challenges = shuffle(Object.keys(challenges)).slice(0, 5);
+  const buildSuggestions = (): string[] => {
+    const pool = [
+      "Take 3 drinks",
+      "Take 5 drinks",
+      "Down your drink",
+      "Take a shot",
+      "Shotgun a beer or seltzer",
+      "Give the player on your left a compliment",
+      "Show the last photo in your camera roll",
+      "Let the person on your right text anyone on your phone",
+      "Do 10 pushups or take 5 drinks",
+      "Reveal your phone's daily screen time",
+      "Take 6 drinks if you've lost money gambling",
+      "Swap an article of clothing with someone",
+      "Speak in a British accent until next round",
+      "Name a law that you have broken",
+      "Take 5 drinks if you're single",
+      "Do your best celebrity impression",
+      "Confess your most embarrassing dating story",
+      "Arm wrestle the host or drink 4",
+      "Take 4 drinks if you're currently unemployed",
+      "High-five everyone in the room in 5 seconds",
+      "Let the group make your next drink",
+      "Text your ex 'I miss you' or down your drink",
+      "Post a random selfie on your story",
+      "Whisper everything you say until next round",
+      "Give a 30-second toast celebrating yourself",
+    ];
 
-  const m_data = gs.page_data;
+    if (m_data?.players && m_data.players.length > 0) {
+      const p1 = m_data.players[0];
+      pool.unshift(`Give ${p1} your drink for 1 turn`);
+      pool.unshift(`Give ${p1} a compliment`);
+      pool.unshift(`Challenge ${p1} to rock-paper-scissors (loser drinks 4)`);
+    }
 
-  function placeBet() {
-    if (selected_challenge === "") {
+    return pool;
+  };
+
+  let allSuggestions = buildSuggestions();
+  let displayedSuggestions: string[] = shuffle(allSuggestions).slice(0, 4);
+
+  function refreshSuggestions() {
+    displayedSuggestions = shuffle(allSuggestions).slice(0, 4);
+  }
+
+  function selectSuggestion(suggestion: string) {
+    punishmentText = suggestion;
+    if (inputElement) {
+      inputElement.focus();
+    }
+  }
+
+  function getSuggestionEmoji(text: string): string {
+    const lower = text.toLowerCase();
+    if (lower.includes("shotgun")) return "⚡";
+    if (lower.includes("shot")) return "🥃";
+    if (lower.includes("down") || lower.includes("drink") || lower.includes("cup") || lower.includes("beer")) return "🍺";
+    if (lower.includes("compliment") || lower.includes("toast") || lower.includes("speech")) return "💬";
+    if (lower.includes("wallet") || lower.includes("money") || lower.includes("gambl")) return "💸";
+    if (lower.includes("cloth") || lower.includes("swap") || lower.includes("shirt")) return "👕";
+    if (lower.includes("law") || lower.includes("crime")) return "⚖️";
+    if (lower.includes("text") || lower.includes("phone") || lower.includes("story") || lower.includes("post")) return "📱";
+    if (lower.includes("pushup") || lower.includes("arm wrestle") || lower.includes("high-five")) return "💪";
+    if (lower.includes("photo") || lower.includes("camera") || lower.includes("selfie")) return "📸";
+    if (lower.includes("screentime") || lower.includes("screen")) return "⏱️";
+    if (lower.includes("accent") || lower.includes("whisper") || lower.includes("impression")) return "🗣️";
+    if (lower.includes("secret") || lower.includes("dating") || lower.includes("confess")) return "🤫";
+    return "🔥";
+  }
+
+  function submitPunishment() {
+    const trimmed = punishmentText.trim();
+    if (!trimmed || isSubmitted) {
       toaster.error({
-        title: "Challenge Not Selected",
-        description: "Please select a challenge!",
+        title: "Empty Punishment",
+        description: "Please enter a punishment or pick a suggestion!",
       });
       return;
     }
-    gameClient.sendPlayerInput("roulette", {
-      challenge: selected_challenge,
-      short_challenge: challenges[selected_challenge],
-    });
-  }
 
-  function getChallengeEmoji(challenge: string): string {
-    const text = challenge.toLowerCase();
-    if (text.includes("shotgun")) return "⚡";
-    if (text.includes("shot")) return "🥃";
-    if (
-      text.includes("drink") ||
-      text.includes("cup") ||
-      text.includes("down your")
-    )
-      return "🍺";
-    if (text.includes("compliment")) return "💬";
-    if (text.includes("wallet")) return "💳";
-    if (
-      text.includes("clothing") ||
-      text.includes("clothes") ||
-      text.includes("off")
-    )
-      return "👕";
-    if (text.includes("law") || text.includes("crime")) return "⚖️";
-    if (
-      text.includes("text") ||
-      text.includes("phone") ||
-      text.includes("family")
-    )
-      return "📱";
-    if (text.includes("unemployed")) return "💼";
-    if (text.includes("man") || text.includes("woman") || text.includes("slur"))
-      return "👥";
-    if (
-      text.includes("photo") ||
-      text.includes("camera") ||
-      text.includes("roll")
-    )
-      return "📸";
-    if (text.includes("social security") || text.includes("ssn")) return "🔒";
-    if (text.includes("screentime") || text.includes("screen")) return "⏱️";
-    if (text.includes("gambling") || text.includes("money")) return "🎲";
-    return "🔥";
+    isSubmitted = true;
+    gameClient.sendPlayerInput("roulette", {
+      challenge: trimmed,
+    });
   }
 </script>
 
-<div
-  class="w-full max-w-md mx-auto p-1 md:p-2 text-[var(--m3c-on-surface)] flex flex-col gap-5"
->
+<div class="w-full max-w-md mx-auto p-2 text-[var(--m3c-on-surface)] flex flex-col gap-4">
+  <!-- Title / Header -->
   <div class="text-center space-y-1">
-    <h1 class="text-2xl font-bold tracking-tight text-[var(--m3c-on-surface)]">
-      Add a punishment to the Wheel
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600/15 text-red-500 font-black text-xs uppercase tracking-widest rounded-full border border-red-500/30">
+      <span>🎰</span>
+      <span>Roulette Dare</span>
+    </div>
+    <h1 class="text-2xl font-black tracking-tight text-[var(--m3c-on-surface)]">
+      Add a Punishment to the Wheel
     </h1>
     <p class="text-sm text-[var(--m3c-on-surface-variant)]">
-      Select a challenge to put on the host's wheel.
+      Type a custom dare or pick a suggestion below. The AI will fit it onto the roulette wheel!
     </p>
   </div>
 
-  <div class="flex flex-col gap-3">
-    {#each available_challenges as challenge, i (challenge)}
-      <div in:fly={{ y: 15, delay: i * 50, duration: 250 }}>
+  {#if !isSubmitted}
+    <!-- Input Card -->
+    <div class="flex flex-col gap-2 p-4 rounded-3xl bg-[var(--m3c-surface-container-low)] border-2 border-[var(--m3c-outline-variant)] shadow-sm">
+      <div class="flex items-center justify-between">
+        <label for="punishment-input" class="text-xs font-bold uppercase tracking-wider text-[var(--m3c-on-surface-variant)]">
+          Your Custom Punishment:
+        </label>
+        <span class="text-xs font-mono font-medium text-[var(--m3c-on-surface-variant)]">
+          {punishmentText.length}/90
+        </span>
+      </div>
+
+      <div class="relative w-full">
+        <textarea
+          id="punishment-input"
+          bind:this={inputElement}
+          bind:value={punishmentText}
+          maxlength={90}
+          rows={3}
+          placeholder="e.g., Take 4 drinks while doing pushups, swap shirts, text your ex..."
+          class="w-full p-3.5 pr-10 text-base font-semibold rounded-2xl bg-[var(--m3c-surface-container-highest)] border border-[var(--m3c-outline)] text-[var(--m3c-on-surface)] placeholder:text-[var(--m3c-on-surface-variant)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--m3c-primary)] resize-none transition-all leading-snug"
+        ></textarea>
+
+        {#if punishmentText.length > 0}
+          <button
+            type="button"
+            class="absolute top-3 right-3 w-7 h-7 rounded-full bg-[var(--m3c-surface-variant)] text-[var(--m3c-on-surface-variant)] flex items-center justify-center text-xs font-bold hover:bg-[var(--m3c-outline)] transition-colors cursor-pointer"
+            on:click={() => { punishmentText = ""; if (inputElement) inputElement.focus(); }}
+            aria-label="Clear input"
+          >
+            ✕
+          </button>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Suggestions Section -->
+    <div class="flex flex-col gap-2.5">
+      <div class="flex items-center justify-between px-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-[var(--m3c-on-surface-variant)] flex items-center gap-1">
+          <span>💡</span> Quick Suggestions
+        </span>
         <button
           type="button"
-          class="flex items-center w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer {selected_challenge ===
-          challenge
-            ? 'bg-[var(--m3c-primary-container)] border-[var(--m3c-primary)] text-[var(--m3c-on-primary-container)]'
-            : 'bg-[var(--m3c-surface-container-low)] border-[var(--m3c-outline-variant)] text-[var(--m3c-on-surface)] hover:bg-[var(--m3c-surface-container-high)]'}"
-          on:click={() => (selected_challenge = challenge)}
+          class="text-xs font-bold text-[var(--m3c-primary)] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-1"
+          on:click={refreshSuggestions}
         >
-          <!-- EMOJI BADGE -->
-          <span
-            class="flex items-center justify-center w-10 h-10 rounded-full mr-3 text-xl bg-[var(--m3c-surface-container-highest)] select-none"
-          >
-            {getChallengeEmoji(challenge)}
-          </span>
-
-          <!-- CHALLENGE TEXT -->
-          <span
-            class="flex-1 font-semibold text-base leading-snug pr-2 text-wrap"
-          >
-            {challenge}
-          </span>
-
-          <!-- RADIO CHECKMARK -->
-          <span
-            class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 {selected_challenge ===
-            challenge
-              ? 'border-[var(--m3c-primary)] bg-[var(--m3c-primary)]'
-              : 'border-[var(--m3c-outline)]'}"
-          >
-            {#if selected_challenge === challenge}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-3.5 w-3.5 text-[var(--m3c-on-primary)]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="3.5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            {/if}
-          </span>
+          <span>🎲</span> Shuffle
         </button>
       </div>
-    {/each}
-  </div>
 
-  <button
-    type="button"
-    class="w-full py-4 font-bold text-lg rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer {selected_challenge !==
-    ''
-      ? 'bg-[var(--m3c-primary)] text-[var(--m3c-on-primary)] shadow-md hover:bg-[var(--m3c-primary-container)] hover:text-[var(--m3c-on-primary-container)]'
-      : 'bg-[var(--m3c-surface-variant)] text-[var(--m3c-on-surface-variant)] opacity-50 cursor-not-allowed pointer-events-none'}"
-    on:click={placeBet}
-    disabled={selected_challenge === ""}
-  >
-    Choose Challenge 🔥
-  </button>
+      <div class="grid grid-cols-1 gap-2">
+        {#each displayedSuggestions as suggestion, i (suggestion)}
+          <button
+            type="button"
+            in:fly={{ y: 10, delay: i * 40, duration: 200 }}
+            class="flex items-center gap-3 p-3 rounded-2xl border text-left transition-all duration-150 cursor-pointer {punishmentText === suggestion
+              ? 'bg-[var(--m3c-primary-container)] border-[var(--m3c-primary)] text-[var(--m3c-on-primary-container)] shadow-sm'
+              : 'bg-[var(--m3c-surface-container-low)] border-[var(--m3c-outline-variant)] text-[var(--m3c-on-surface)] hover:bg-[var(--m3c-surface-container-high)] active:scale-[0.99]'}"
+            on:click={() => selectSuggestion(suggestion)}
+          >
+            <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--m3c-surface-container-highest)] text-base shrink-0 select-none">
+              {getSuggestionEmoji(suggestion)}
+            </span>
+            <span class="flex-1 text-sm font-semibold leading-tight line-clamp-2">
+              {suggestion}
+            </span>
+            {#if punishmentText === suggestion}
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--m3c-primary)] text-[var(--m3c-on-primary)] shrink-0">
+                Selected
+              </span>
+            {/if}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button
+      type="button"
+      class="w-full py-4 px-6 font-black text-lg rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md {punishmentText.trim().length > 0
+        ? 'bg-[var(--m3c-primary)] text-[var(--m3c-on-primary)] hover:brightness-110 active:scale-[0.98]'
+        : 'bg-[var(--m3c-surface-variant)] text-[var(--m3c-on-surface-variant)] opacity-50 cursor-not-allowed pointer-events-none'}"
+      on:click={submitPunishment}
+      disabled={punishmentText.trim().length === 0}
+    >
+      <span>Place on Wheel</span>
+      <span class="text-xl">🔥</span>
+    </button>
+  {:else}
+    <!-- Locked-In Confirmation Card -->
+    <div
+      in:fade={{ duration: 250 }}
+      class="w-full flex flex-col items-center justify-center p-6 text-center bg-[var(--m3c-surface-container-low)] border-2 border-[var(--m3c-primary)] rounded-3xl shadow-lg gap-3"
+    >
+      <div class="w-16 h-16 rounded-full bg-[var(--m3c-primary-container)] text-[var(--m3c-on-primary-container)] flex items-center justify-center text-3xl shadow-inner animate-bounce">
+        🎯
+      </div>
+      <div class="font-black text-2xl uppercase tracking-tight text-[var(--m3c-on-surface)]">
+        Punishment Locked In!
+      </div>
+      <div class="px-4 py-3 rounded-2xl bg-[var(--m3c-surface-container-highest)] border border-[var(--m3c-outline-variant)] text-base font-bold text-[var(--m3c-on-surface)] w-full break-words">
+        "{punishmentText}"
+      </div>
+      <p class="text-xs font-semibold uppercase tracking-widest text-[var(--m3c-on-surface-variant)] mt-2">
+        👀 Watch the TV screen to see the wheel spin!
+      </p>
+    </div>
+  {/if}
 </div>
