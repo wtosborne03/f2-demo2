@@ -13,13 +13,18 @@
 
   const session = authClient.useSession();
 
-  let roomCode = (browser && localStorage.getItem("code")) || "";
-  $: name =
-    $session.data?.user.name || (browser && localStorage.getItem("name")) || "";
+  let roomCode = "";
+  let name = (browser && localStorage.getItem("name")) || "";
+  $: if ($session.data?.user?.name && !name) {
+    name = $session.data.user.name;
+  }
 
   let step = "join"; // "join" | "selfie"
+  let isChecking = false;
 
-  onDestroy(() => {});
+  const handleSessionCleared = () => {
+    roomCode = "";
+  };
 
   const updateName = async (new_name: string) => {
     try {
@@ -32,14 +37,42 @@
     }
   };
 
-  onMount(() => {
+  onMount(async () => {
+    gameClient.on("sessionCleared", handleSessionCleared);
+
     const sp = new URLSearchParams(window.location.search);
-    if (sp.get("code") != null) {
-      roomCode = sp.get("code") || "";
+    const urlCode = sp.get("code");
+    if (urlCode) {
+      roomCode = urlCode.trim().toUpperCase();
+      return;
+    }
+
+    const storedCode =
+      (browser &&
+        (localStorage.getItem("code") || localStorage.getItem("couch_room"))) ||
+      "";
+    if (storedCode) {
+      const check = await gameClient.checkRoom(storedCode);
+      if (check.valid) {
+        roomCode = storedCode.trim().toUpperCase();
+      } else {
+        roomCode = "";
+        if (browser) {
+          localStorage.removeItem("code");
+          localStorage.removeItem("couch_room");
+          localStorage.removeItem("couch_pid");
+        }
+      }
     }
   });
 
+  onDestroy(() => {
+    gameClient.off("sessionCleared", handleSessionCleared);
+  });
+
   const startJoinFlow = async () => {
+    if (isChecking) return;
+
     roomCode = roomCode.trim().toUpperCase();
     name = name.substring(0, 10).trim();
     if (!roomCode || !name) {
@@ -50,28 +83,52 @@
       return;
     }
 
-    const user = get(session).data?.user;
-    if (user) {
-      try {
-        const client = await apiClient;
-        if (client) {
-          const { data: me } = await client.getUsersMe();
-          if (me.avatar_selfie) {
-            joinRoom();
-            return;
-          }
-        }
-        step = "selfie";
-      } catch (e) {
-        step = "selfie";
-      }
-    } else {
-      const localSelfie = localStorage.getItem("temp_selfie");
-      if (localSelfie) {
-        joinRoom();
+    isChecking = true;
+    try {
+      const check = await gameClient.checkRoom(roomCode);
+      if (!check.valid) {
+        toaster.error({
+          title: "Cannot Join Room",
+          description: check.error || "Room not found or no longer active.",
+        });
+        isChecking = false;
         return;
       }
-      step = "selfie";
+
+      const user = get(session).data?.user;
+      if (user) {
+        try {
+          const client = await apiClient;
+          if (client) {
+            const { data: me } = await client.getUsersMe();
+            if (me.avatar_selfie) {
+              await joinRoom();
+              return;
+            }
+          }
+          step = "selfie";
+        } catch (e) {
+          step = "selfie";
+        }
+      } else {
+        const localSelfie =
+          typeof window !== "undefined"
+            ? localStorage.getItem("temp_selfie")
+            : null;
+        if (localSelfie) {
+          await joinRoom();
+          return;
+        }
+        step = "selfie";
+      }
+    } catch (err) {
+      console.error("Join flow error:", err);
+      toaster.error({
+        title: "Error",
+        description: "Failed to verify room. Please try again.",
+      });
+    } finally {
+      isChecking = false;
     }
   };
 
@@ -79,10 +136,15 @@
     const user = get(session).data?.user;
     let userId = user?.id;
     if (!userId) {
-      userId = localStorage.getItem("temp_user_id") || "";
+      userId =
+        (typeof window !== "undefined" &&
+          localStorage.getItem("temp_user_id")) ||
+        "";
       if (!userId) {
         userId = "temp_" + crypto.randomUUID();
-        localStorage.setItem("temp_user_id", userId);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("temp_user_id", userId);
+        }
       }
     }
     if (user) {
@@ -119,7 +181,13 @@
   </figure>
 
   {#if step === "join"}
-    <div class="flex flex-col gap-6 w-full mt-6">
+    <form
+      class="flex flex-col gap-6 w-full mt-6"
+      onsubmit={(e) => {
+        e.preventDefault();
+        startJoinFlow();
+      }}
+    >
       <span
         class="flex justify-between items-center w-full input input-xl pr-0"
       >
@@ -128,11 +196,32 @@
         >
         <input
           id="room-code-field"
+          name="roomCode"
           type="text"
           bind:value={roomCode}
           maxlength={4}
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="characters"
+          spellcheck="false"
+          enterkeyhint={name.trim() ? "go" : "next"}
           class="input uppercase input-xl input-ghost border-2 border-accent/35"
           placeholder="ABCD"
+          oninput={() => {
+            roomCode = roomCode.toUpperCase();
+          }}
+          onkeydown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (roomCode.trim() && name.trim()) {
+                startJoinFlow();
+              } else if (roomCode.trim() && !name.trim()) {
+                document.getElementById("name-field")?.focus();
+              } else {
+                startJoinFlow();
+              }
+            }
+          }}
         />
       </span>
       <span
@@ -143,17 +232,39 @@
 
         <input
           id="name-field"
+          name="name"
           type="text"
           bind:value={name}
           maxlength={10}
+          autocomplete="nickname"
+          autocorrect="off"
+          autocapitalize="words"
+          spellcheck="false"
+          enterkeyhint="go"
           class="input input-xl input-ghost border-2 border-accent/35"
           placeholder=""
+          onkeydown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              startJoinFlow();
+            }
+          }}
         />
       </span>
-      <button class="btn btn-lg btn-primary" onclick={startJoinFlow}
-        >Join Game<Icon icon="mingcute:enter-door-fill" class="mb-1" />
+      <button
+        type="submit"
+        class="btn btn-lg btn-primary flex items-center justify-center gap-2"
+        disabled={isChecking}
+      >
+        {#if isChecking}
+          <span class="loading loading-spinner loading-sm"></span>
+          <span>Checking Room...</span>
+        {:else}
+          <span>Join Game</span>
+          <Icon icon="mingcute:enter-door-fill" class="mb-1" />
+        {/if}
       </button>
-    </div>
+    </form>
   {:else if step === "selfie"}
     <SelfieCapture
       initialMode="camera"

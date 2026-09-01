@@ -330,6 +330,38 @@ class GameClient {
     });
   }
 
+  public async checkRoom(
+    roomCode: string,
+    timeout = 4000
+  ): Promise<{ valid: boolean; status?: "LOBBY" | "RUNNING" | string; error?: string }> {
+    const formattedRoom = roomCode.trim().toUpperCase();
+    if (!formattedRoom) {
+      return { valid: false, error: "Please enter a valid room code" };
+    }
+
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      if (this.connectUrl) {
+        this.connect(this.connectUrl);
+      }
+    }
+
+    this.sendCritical(OpCode.QUERY_ROOM_STATE, { roomCode: formattedRoom });
+
+    try {
+      const res = await this.waitForResponse([OpCode.ROOM_STATE, OpCode.ERROR], timeout);
+      if (res.op === OpCode.ERROR) {
+        return { valid: false, error: res.payload || "Room not found" };
+      }
+      if (res.op === OpCode.ROOM_STATE) {
+        return { valid: true, status: res.payload?.status };
+      }
+      return { valid: false, error: "Unknown response from server" };
+    } catch (e) {
+      console.warn("checkRoom failed or timed out:", e);
+      return { valid: false, error: "Room not found or server unreachable" };
+    }
+  }
+
   async join(room: string, name: string, userId?: string) {
     this.cleanupWebRTC();
     const formattedRoom = room.trim().toUpperCase();
@@ -1140,7 +1172,7 @@ class GameClient {
     }
   }
 
-  private clearSession() {
+  public clearSession() {
     this.roomCode = null;
     this.roomStatus = "UNKNOWN";
     this.hasSeenInGameState = false;
@@ -1149,7 +1181,9 @@ class GameClient {
     if (typeof window !== "undefined") {
       localStorage.removeItem("couch_pid");
       localStorage.removeItem("couch_room");
+      localStorage.removeItem("code");
     }
+    this.emit("sessionCleared");
   }
 
   /**
