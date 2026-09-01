@@ -10,6 +10,7 @@
   import { toaster } from "$lib/util/toaster";
   import SelfieCapture from "$lib/components/SelfieCapture.svelte";
   import Icon from "@iconify/svelte";
+  import { isKeyboardVisible } from "$lib/stores/keyboard";
 
   const session = authClient.useSession();
 
@@ -155,7 +156,9 @@
 </script>
 
 <div
-  class="w-full absolute top-0 right-0 p-6 flex flex-row justify-end items-center"
+  class="w-full absolute top-0 right-0 p-6 flex flex-row justify-end items-center transition-all duration-300 {$isKeyboardVisible
+    ? 'opacity-0 pointer-events-none -translate-y-4'
+    : 'opacity-100 translate-y-0'}"
 >
   <button
     type="button"
@@ -173,16 +176,24 @@
 </div>
 
 <div
-  class="flex flex-col items-center justify-center h-full w-full max-w-md px-6 space-y-8 flex-1"
+  class="flex flex-col items-center justify-center h-full w-full max-w-md px-6 flex-1 transition-all duration-300 {$isKeyboardVisible
+    ? 'space-y-4 py-2'
+    : 'space-y-8'}"
 >
-  <!-- Animated Logo -->
-  <figure class="flex flex-col items-center h-64 mb-0">
+  <!-- Animated Logo (Pops out when keyboard is visible) -->
+  <figure
+    class="flex flex-col items-center overflow-hidden transition-all duration-300 ease-out origin-center {$isKeyboardVisible
+      ? 'h-0 opacity-0 scale-75 mb-0 pointer-events-none'
+      : 'h-64 opacity-100 scale-100 mb-0'}"
+  >
     <img src={logo} alt="logo" class="object-contain h-full" />
   </figure>
 
   {#if step === "join"}
     <form
-      class="flex flex-col gap-6 w-full mt-6"
+      class="flex flex-col w-full transition-all duration-300 {$isKeyboardVisible
+        ? 'gap-4 mt-0'
+        : 'gap-6 mt-6'}"
       onsubmit={(e) => {
         e.preventDefault();
         startJoinFlow();
