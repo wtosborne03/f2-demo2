@@ -204,6 +204,16 @@
     pointer-events: none !important;
   }
 
+  /* Never hide or animate the app bar on desktop devices */
+  @media (hover: hover) and (pointer: fine) {
+    .app-bar-wrapper.keyboard-hidden {
+      transform: none !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transition: none !important;
+    }
+  }
+
   /* App bar needs relative positioning so the timer track can be absolute inside it */
   .app-bar-container {
     position: relative;
