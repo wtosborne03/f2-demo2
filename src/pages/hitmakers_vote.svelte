@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   const PASTEL_COLORS = [
@@ -45,10 +44,7 @@
   let hasSubmitted = false;
 
   $: pageData = $gameState.page_data || {};
-  $: question = pageData.question || "Vote for your favorite!";
-  $: title = pageData.title || "";
-  $: roundNum = (pageData.aspectIndex ?? 0) + 1;
-  $: totalRounds = pageData.aspectTotal ?? 5;
+  $: category = pageData.title || pageData.question || "Vote";
 
   // Standardize options array: supports either pageData.options or legacy pageData.answers
   $: choices = (() => {
@@ -57,15 +53,13 @@
         const text = typeof opt === "string" ? opt : opt.text;
         const color =
           (typeof opt === "object" && opt.color) || getRandomPastelColor(text);
-        const author = typeof opt === "object" ? opt.author : undefined;
-        return { text, color, author };
+        return { text, color };
       });
     }
     if (Array.isArray(pageData.answers) && pageData.answers.length > 0) {
       return pageData.answers.map((ans: string) => ({
         text: ans,
         color: getRandomPastelColor(ans),
-        author: undefined,
       }));
     }
     return [];
@@ -84,25 +78,12 @@
 </script>
 
 <div class="hitmakers-vote-screen">
-  <!-- Top Marquee & Status Badge -->
-  <header class="hitmakers-vote-header">
-    <div class="marquee-row">
-      <span class="marquee-pill">HITMAKERS</span>
-      <span class="round-badge">ROUND {roundNum}/{totalRounds}</span>
-    </div>
-
-    <h2 class="vote-title">
-      {#if title}
-        Pick the Best <span class="highlight-text">{title}</span>
-      {:else}
-        {question}
-      {/if}
-    </h2>
-
-    <p class="vote-sub">Tap your favorite card to vote on the big stage!</p>
+  <!-- Voting Category Header -->
+  <header class="category-header">
+    <h1 class="category-title">{category}</h1>
   </header>
 
-  <!-- Main Choices List with Identical Pastel Physics Card Styling -->
+  <!-- Voting Choices Column with Matching Styling -->
   <main class="choices-container">
     <div class="choices-list">
       {#each choices as choice, idx}
@@ -126,38 +107,24 @@
           <div class="card-body">
             <span class="card-text">{choice.text}</span>
           </div>
-
-          <!-- Selected Stamped Badge -->
-          {#if isSelected}
-            <div class="voted-stamp">★ VOTED!</div>
-          {/if}
         </button>
       {/each}
     </div>
   </main>
-
-  <!-- Waiting Status Footer when Voted -->
-  {#if hasSubmitted}
-    <footer class="status-footer">
-      <div class="status-pulse-dot" />
-      <span class="status-text">
-        Vote locked in! Look up at the big screen!
-      </span>
-    </footer>
-  {/if}
 </div>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap");
 
   .hitmakers-vote-screen {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     height: 100%;
     width: 100%;
-    max-width: 32rem;
+    max-width: 28rem;
     margin: 0 auto;
-    padding: 1.25rem 1rem;
+    padding: 1.5rem 1.25rem;
     box-sizing: border-box;
     font-family: "Fredoka", "Outfit", system-ui, sans-serif;
     color: #ffffff;
@@ -165,83 +132,35 @@
     overflow-y: auto;
   }
 
-  /* Header */
-  .hitmakers-vote-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* Voting Category Title at Top */
+  .category-header {
     text-align: center;
-    margin-bottom: 1.25rem;
-    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
   }
 
-  .marquee-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .marquee-pill {
-    background: #ff007f;
-    color: #ffffff;
-    font-family: "Bungee", cursive;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    border: 2px solid #18181b;
-    box-shadow: 0 3px 0 #18181b;
-    letter-spacing: 0.08em;
-  }
-
-  .round-badge {
-    background: #00f2fe;
-    color: #0f172a;
-    font-family: "Fredoka", sans-serif;
+  .category-title {
+    font-size: 2.1rem;
     font-weight: 900;
-    font-size: 0.8rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    border: 2px solid #18181b;
-    box-shadow: 0 3px 0 #18181b;
-    letter-spacing: 0.04em;
-  }
-
-  .vote-title {
-    font-size: 1.45rem;
-    font-weight: 900;
-    line-height: 1.25;
+    line-height: 1.2;
     margin: 0;
     color: #ffffff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.02em;
   }
 
-  .highlight-text {
-    color: #ffd700;
-  }
-
-  .vote-sub {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.75);
-    margin: 0;
-  }
-
-  /* Choices */
+  /* Choices Column */
   .choices-container {
-    flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 100%;
-    margin-bottom: 1rem;
   }
 
   .choices-list {
     display: flex;
     flex-direction: column;
-    gap: 0.95rem;
+    gap: 1rem;
     width: 100%;
   }
 
@@ -251,8 +170,8 @@
     width: 100%;
     background: var(--card-grad);
     border: 3.5px solid #18181b;
-    border-radius: 1.15rem;
-    padding: 1.15rem 1.25rem;
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.35rem;
     cursor: pointer;
     box-shadow:
       0 5px 0 #18181b,
@@ -283,7 +202,7 @@
       0 4px 8px rgba(0, 0, 0, 0.25);
   }
 
-  /* Top Glossy Highlight (matching the 42% height shine on stage canvas) */
+  /* Top Glossy Highlight (matching the shine on stage canvas) */
   .card-gloss-shine {
     position: absolute;
     top: 3px;
@@ -295,7 +214,7 @@
       rgba(255, 255, 255, 0.55) 0%,
       rgba(255, 255, 255, 0.1) 100%
     );
-    border-radius: 0.85rem 0.85rem 0.4rem 0.4rem;
+    border-radius: 0.95rem 0.95rem 0.4rem 0.4rem;
     pointer-events: none;
   }
 
@@ -309,14 +228,14 @@
   .card-text {
     font-family: "Fredoka", "Outfit", sans-serif;
     font-weight: 900;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     line-height: 1.28;
     color: #0f172a;
     display: block;
     word-break: break-word;
   }
 
-  /* Voted / Selected State */
+  /* Selected State */
   .stage-card-btn.is-selected {
     border-color: #ffd700;
     box-shadow:
@@ -326,92 +245,8 @@
   }
 
   .stage-card-btn.is-dimmed {
-    opacity: 0.45;
-    filter: grayscale(0.2);
+    opacity: 0.35;
+    filter: grayscale(0.3);
     cursor: default;
-  }
-
-  /* Comic Voted Stamp Badge */
-  .voted-stamp {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.65rem;
-    background: #ffd700;
-    color: #120320;
-    font-family: "Bungee", cursive;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.55rem;
-    border-radius: 0.5rem;
-    border: 2px solid #18181b;
-    box-shadow: 0 2px 0 #18181b;
-    z-index: 3;
-    animation: stampPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  @keyframes stampPop {
-    0% {
-      transform: scale(0) rotate(-15deg);
-      opacity: 0;
-    }
-    70% {
-      transform: scale(1.2) rotate(4deg);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-      opacity: 1;
-    }
-  }
-
-  /* Status Footer */
-  .status-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    background: rgba(18, 3, 32, 0.85);
-    border: 2px solid #ffd700;
-    border-radius: 0.85rem;
-    padding: 0.75rem 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    animation: fadeIn 0.3s ease;
-  }
-
-  .status-pulse-dot {
-    width: 0.65rem;
-    height: 0.65rem;
-    border-radius: 9999px;
-    background: #00ff88;
-    box-shadow: 0 0 10px #00ff88;
-    animation: pulseDot 1.4s infinite alternate;
-  }
-
-  @keyframes pulseDot {
-    0% {
-      transform: scale(0.8);
-      opacity: 0.6;
-    }
-    100% {
-      transform: scale(1.2);
-      opacity: 1;
-    }
-  }
-
-  .status-text {
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: #ffd700;
-    letter-spacing: 0.02em;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 </style>
