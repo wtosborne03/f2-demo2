@@ -197,7 +197,116 @@
         }
     }
 
+    // Audio Player State
+    let audioElement: HTMLAudioElement | null = null;
+    let isPlaying = false;
+    let currentTime = 0;
+    let duration = 0;
+    let isAudioLoading = false;
+
+    function resetAudio() {
+        if (audioElement) {
+            audioElement.pause();
+            audioElement.currentTime = 0;
+        }
+        isPlaying = false;
+        currentTime = 0;
+        duration = 0;
+        isAudioLoading = false;
+    }
+
+    function toggleAudioPlay(e?: Event) {
+        if (e) e.stopPropagation();
+        if (!audioElement) return;
+
+        if (isPlaying) {
+            audioElement.pause();
+            isPlaying = false;
+        } else {
+            isAudioLoading = true;
+            audioElement
+                .play()
+                .then(() => {
+                    isPlaying = true;
+                    isAudioLoading = false;
+                })
+                .catch((err) => {
+                    console.error("Audio playback error:", err);
+                    isPlaying = false;
+                    isAudioLoading = false;
+                });
+        }
+    }
+
+    function handleAudioTimeUpdate() {
+        if (audioElement) {
+            currentTime = audioElement.currentTime;
+        }
+    }
+
+    function handleAudioLoadedMetadata() {
+        if (audioElement) {
+            duration = audioElement.duration || 0;
+            isAudioLoading = false;
+        }
+    }
+
+    function handleAudioEnded() {
+        isPlaying = false;
+        currentTime = 0;
+        if (audioElement) {
+            audioElement.currentTime = 0;
+        }
+    }
+
+    function handleAudioSeek(e: Event) {
+        const input = e.target as HTMLInputElement;
+        const targetTime = parseFloat(input.value);
+        currentTime = targetTime;
+        if (audioElement) {
+            audioElement.currentTime = targetTime;
+        }
+    }
+
+    function formatTime(seconds: number): string {
+        if (isNaN(seconds) || seconds < 0) return "0:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    }
+
+    // CORS-safe audio download trigger
+    async function downloadAudio(url: string, title?: string, e?: Event) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            const cleanTitle = title
+                ? title.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 35)
+                : "hitmakers_song";
+            const ext = url.includes(".wav") ? ".wav" : ".mp3";
+            const filename = `${cleanTitle}${ext}`;
+
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error("Failed to download audio natively, opening in new window instead:", err);
+            window.open(url, "_blank");
+        }
+    }
+
     function openLightbox(index: number) {
+        resetAudio();
         activeIndex = index;
         if (typeof document !== "undefined") {
             document.body.style.overflow = "hidden";
@@ -205,6 +314,7 @@
     }
 
     function closeLightbox() {
+        resetAudio();
         activeIndex = null;
         if (typeof document !== "undefined") {
             document.body.style.overflow = "";
@@ -213,6 +323,7 @@
 
     function prevImage(e: Event) {
         e.stopPropagation();
+        resetAudio();
         if (activeIndex !== null && images.length > 0) {
             activeIndex = (activeIndex - 1 + images.length) % images.length;
         }
@@ -220,6 +331,7 @@
 
     function nextImage(e: Event) {
         e.stopPropagation();
+        resetAudio();
         if (activeIndex !== null && images.length > 0) {
             activeIndex = (activeIndex + 1) % images.length;
         }
@@ -255,6 +367,7 @@
         }
 
         return () => {
+            resetAudio();
             if (observer) observer.disconnect();
             if (typeof document !== "undefined") {
                 document.body.style.overflow = "";
@@ -301,6 +414,12 @@
                     <div class="img-container">
                         <img src={img.content} alt={img.prompt || "Generated creation"} loading="lazy" />
                     </div>
+                    {#if img.audioUrl}
+                        <div class="card-audio-pill" title="Includes Generated Song">
+                            <span class="pill-music-icon">🎵</span>
+                            <span class="pill-text">Song</span>
+                        </div>
+                    {/if}
                     <!-- Download Icon Overlay -->
                     <button
                         class="card-download-btn"
@@ -362,19 +481,108 @@
                     <span class="game-tag">Game #{current.game}</span>
                     <span class="minigame-tag-large">{current.minigameName || "Minigame"}</span>
                     <div class="spacer"></div>
-                    <!-- Lightbox Download Button -->
-                    <button class="lightbox-download-btn" onclick={() => downloadImage(current.content)}>
-                        <svg viewBox="0 0 24 24"
-                            ><path
-                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"
-                            /></svg
+                    <!-- Lightbox Download Buttons -->
+                    <div class="lightbox-actions">
+                        {#if current.audioUrl}
+                            <button
+                                class="lightbox-download-btn audio-download"
+                                onclick={(e) => downloadAudio(current.audioUrl!, current.prompt, e)}
+                                title="Download Song Audio"
+                            >
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                                    />
+                                </svg>
+                                <span>Song</span>
+                            </button>
+                        {/if}
+                        <button
+                            class="lightbox-download-btn"
+                            onclick={() => downloadImage(current.content)}
+                            title="Download Cover Art"
                         >
-                        <span>Download</span>
-                    </button>
+                            <svg viewBox="0 0 24 24"
+                                ><path
+                                    d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"
+                                /></svg
+                            >
+                            <span>Artwork</span>
+                        </button>
+                    </div>
                 </div>
+
                 {#if current.prompt}
                     <p class="lightbox-prompt">"{current.prompt}"</p>
                 {/if}
+
+                <!-- Hitmakers Music Player -->
+                {#if current.audioUrl}
+                    <div class="audio-player-card">
+                        <audio
+                            bind:this={audioElement}
+                            src={current.audioUrl}
+                            onplay={() => (isPlaying = true)}
+                            onpause={() => (isPlaying = false)}
+                            ontimeupdate={handleAudioTimeUpdate}
+                            onloadedmetadata={handleAudioLoadedMetadata}
+                            onended={handleAudioEnded}
+                            preload="metadata"
+                        ></audio>
+
+                        <div class="player-top-row">
+                            <button
+                                class="play-toggle-btn"
+                                onclick={toggleAudioPlay}
+                                aria-label={isPlaying ? "Pause track" : "Play track"}
+                            >
+                                {#if isAudioLoading}
+                                    <div class="audio-spinner"></div>
+                                {:else if isPlaying}
+                                    <svg viewBox="0 0 24 24" class="play-icon">
+                                        <rect x="6" y="5" width="4" height="14" rx="1.5" />
+                                        <rect x="14" y="5" width="4" height="14" rx="1.5" />
+                                    </svg>
+                                {:else}
+                                    <svg viewBox="0 0 24 24" class="play-icon">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                {/if}
+                            </button>
+
+                            <div class="player-meta-column">
+                                <div class="player-title-row">
+                                    <span class="track-badge">Hit Single</span>
+                                    {#if isPlaying}
+                                        <div class="equalizer-bars">
+                                            <span class="eq-bar eq-1"></span>
+                                            <span class="eq-bar eq-2"></span>
+                                            <span class="eq-bar eq-3"></span>
+                                            <span class="eq-bar eq-4"></span>
+                                        </div>
+                                    {/if}
+                                </div>
+                                <span class="player-track-name">{current.prompt || "Hitmakers Collaboration"}</span>
+                            </div>
+                        </div>
+
+                        <div class="player-progress-row">
+                            <span class="time-label">{formatTime(currentTime)}</span>
+                            <input
+                                type="range"
+                                class="progress-slider"
+                                min="0"
+                                max={duration || 100}
+                                step="0.1"
+                                value={currentTime}
+                                oninput={handleAudioSeek}
+                                aria-label="Audio scrubber"
+                            />
+                            <span class="time-label duration">{formatTime(duration)}</span>
+                        </div>
+                    </div>
+                {/if}
+
                 <div class="details-footer">
                     <span class="date-text">{new Date(current.createdAt).toLocaleDateString()}</span>
                     {#if current.votes !== undefined && current.votes !== null}
@@ -943,5 +1151,235 @@
         .nav-btn {
             display: none;
         }
+    }
+
+    /* Card Audio Pill Badge */
+    .card-audio-pill {
+        position: absolute;
+        top: 0.6rem;
+        left: 0.6rem;
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.85), rgba(236, 72, 153, 0.85));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+        color: #fff;
+        padding: 0.2rem 0.55rem;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        z-index: 5;
+        pointer-events: none;
+        animation: pulse-glow 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse-glow {
+        0%,
+        100% {
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+        }
+        50% {
+            box-shadow: 0 4px 18px rgba(168, 85, 247, 0.6);
+        }
+    }
+
+    .pill-music-icon {
+        font-size: 0.72rem;
+    }
+
+    .pill-text {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    /* Lightbox Actions & Music Player */
+    .lightbox-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .lightbox-download-btn.audio-download {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+    }
+
+    .lightbox-download-btn.audio-download:hover {
+        filter: brightness(1.15);
+    }
+
+    .audio-player-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 1.25rem;
+        padding: 0.9rem 1.1rem;
+        margin: 0.35rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        box-shadow:
+            inset 0 1px 1px rgba(255, 255, 255, 0.08),
+            0 8px 24px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(12px);
+    }
+
+    .player-top-row {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        width: 100%;
+    }
+
+    .play-toggle-btn {
+        width: 2.8rem;
+        height: 2.8rem;
+        min-width: 2.8rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        border: none;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+        transition:
+            transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+            filter 0.2s;
+    }
+
+    .play-toggle-btn:hover {
+        transform: scale(1.08);
+        filter: brightness(1.15);
+    }
+
+    .play-icon {
+        width: 1.35rem;
+        height: 1.35rem;
+        fill: currentColor;
+    }
+
+    .audio-spinner {
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .player-meta-column {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .player-title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .track-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        background: rgba(236, 72, 153, 0.2);
+        color: #f472b6;
+        border: 1px solid rgba(236, 72, 153, 0.35);
+        padding: 0.1rem 0.45rem;
+        border-radius: 0.4rem;
+    }
+
+    .equalizer-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 14px;
+    }
+
+    .eq-bar {
+        width: 3px;
+        background: #f472b6;
+        border-radius: 1px;
+        animation: eq-bounce 1s ease-in-out infinite alternate;
+    }
+
+    .eq-1 {
+        animation-delay: 0s;
+        height: 6px;
+    }
+    .eq-2 {
+        animation-delay: 0.2s;
+        height: 12px;
+    }
+    .eq-3 {
+        animation-delay: 0.4s;
+        height: 14px;
+    }
+    .eq-4 {
+        animation-delay: 0.1s;
+        height: 8px;
+    }
+
+    @keyframes eq-bounce {
+        0% {
+            height: 3px;
+        }
+        100% {
+            height: 14px;
+        }
+    }
+
+    .player-track-name {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .player-progress-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        width: 100%;
+    }
+
+    .time-label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-variant-numeric: tabular-nums;
+        min-width: 2.2rem;
+    }
+
+    .time-label.duration {
+        text-align: right;
+    }
+
+    .progress-slider {
+        flex-grow: 1;
+        height: 5px;
+        accent-color: #ec4899;
+        cursor: pointer;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+        transition: opacity 0.2s;
+    }
+
+    .progress-slider:hover {
+        opacity: 0.9;
     }
 </style>

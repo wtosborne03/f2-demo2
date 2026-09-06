@@ -18,6 +18,7 @@ export interface GameImage {
   minigameName?: string;
   prompt?: string;
   votes?: number;
+  audioUrl?: string;
 }
 
 interface CacheEntry {
