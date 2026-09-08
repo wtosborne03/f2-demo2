@@ -14,6 +14,7 @@ export interface Avatar {
     expressions?: AvatarExpressions,
     gender?: string,
     facialDescription?: string,
+    catchphraseUrl?: string,
 }
 
 export interface PlayerState {

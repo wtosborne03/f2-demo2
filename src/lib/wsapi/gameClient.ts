@@ -208,6 +208,15 @@ class GameClient {
             if (payload.avatar.facialDescription && typeof window !== "undefined") {
               localStorage.setItem("temp_facial_description", payload.avatar.facialDescription);
             }
+            if (payload.avatar.expressions && typeof window !== "undefined") {
+              localStorage.setItem("temp_expressions", JSON.stringify(payload.avatar.expressions));
+            }
+            if (payload.avatar.selfieUrl && typeof window !== "undefined") {
+              localStorage.setItem("temp_selfie", payload.avatar.selfieUrl);
+            }
+            if (payload.avatar.catchphraseUrl && typeof window !== "undefined") {
+              localStorage.setItem("temp_catchphrase", payload.avatar.catchphraseUrl);
+            }
             gameState.update((current) => ({
               ...current,
               avatar: {
@@ -247,83 +256,28 @@ class GameClient {
       }
     }
 
-    const user = get(authClient.useSession()).data?.user;
-
-    if (user) {
-      try {
-        let client = get(dbClient);
-        if (!client) {
-          client = await apiClient;
-          if (client) {
-            dbClient.set(client);
-          }
-        }
-        const { data: me } = await client!.getUsersMe();
-        let expressions = undefined;
-        if (me.avatar_neutral_open) {
-          expressions = {
-            neutral_open: me.avatar_neutral_open,
-            neutral_closed: me.avatar_neutral_closed || undefined,
-            happy_open: me.avatar_happy_open || undefined,
-            happy_closed: me.avatar_happy_closed || undefined,
-            sad_open: me.avatar_sad_open || undefined,
-            sad_closed: me.avatar_sad_closed || undefined,
-            surprised_open: me.avatar_surprised_open || undefined,
-            surprised_closed: me.avatar_surprised_closed || undefined,
-          };
-        }
-        // Fallback to local storage if API returned blank/null selfie/expressions
-        const localSelfie = localStorage.getItem("temp_selfie") || "";
-        const localExprStr = localStorage.getItem("temp_expressions") || "";
-        let fallbackExpressions = undefined;
-        if (localExprStr) {
-          try {
-            fallbackExpressions = JSON.parse(localExprStr);
-          } catch (e) {
-            console.error("Failed to parse fallback expressions:", e);
-          }
-        }
-
-        const avatar = {
-          selfieUrl: me.avatar_selfie || localSelfie,
-          expressions: expressions || fallbackExpressions,
-          gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
-          facialDescription: (me as any).avatar_facial_description || (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined,
-          catchphraseUrl: (me as any).avatar_catchphrase || (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
-        };
-        this.sendPlayerInput("avatarUpdate", { avatar }, true);
-      } catch (error) {
-        console.error("Failed to get user:", error);
-        this.sendGuestAvatar();
-      }
-    } else {
-      this.sendGuestAvatar();
+    // Update local gameState avatar directly from profile or localStorage
+    const localSelfie = (typeof window !== "undefined" && localStorage.getItem("temp_selfie")) || "";
+    const localExprStr = (typeof window !== "undefined" && localStorage.getItem("temp_expressions")) || "";
+    let localExpressions = undefined;
+    if (localExprStr) {
+      try { localExpressions = JSON.parse(localExprStr); } catch {}
     }
-  }
+    const localGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
+    const localFacialDesc = (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined;
+    const localCatchphrase = (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined;
 
-  private sendGuestAvatar() {
-    const sessionSelfie = (typeof window !== "undefined" && localStorage.getItem("temp_selfie")) || "";
-    const sessionExprStr =
-      (typeof window !== "undefined" && localStorage.getItem("temp_expressions")) || "";
-    let expressions = undefined;
-    if (sessionExprStr) {
-      try {
-        expressions = JSON.parse(sessionExprStr);
-      } catch (e) {
-        console.error("Failed to parse session expressions:", e);
+    gameState.update((current) => ({
+      ...current,
+      avatar: {
+        ...current.avatar,
+        selfieUrl: current.avatar?.selfieUrl || localSelfie,
+        expressions: current.avatar?.expressions || localExpressions,
+        gender: current.avatar?.gender || localGender,
+        facialDescription: current.avatar?.facialDescription || localFacialDesc,
+        catchphraseUrl: current.avatar?.catchphraseUrl || localCatchphrase,
       }
-    }
-    const sessionGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
-    const sessionFacialDesc = (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined;
-    const sessionCatchphrase = (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined;
-    const avatar = {
-      selfieUrl: sessionSelfie,
-      expressions,
-      gender: sessionGender,
-      facialDescription: sessionFacialDesc,
-      catchphraseUrl: sessionCatchphrase,
-    };
-    this.sendPlayerInput("avatarUpdate", { avatar }, true);
+    }));
   }
 
   public getRoomCode(): string | null {
@@ -404,11 +358,26 @@ class GameClient {
     }
     const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
 
+    const localSelfie = typeof window !== "undefined" ? localStorage.getItem("temp_selfie") : null;
+    let expressions = undefined;
+    const localExpr = typeof window !== "undefined" ? localStorage.getItem("temp_expressions") : null;
+    if (localExpr) {
+      try { expressions = JSON.parse(localExpr); } catch {}
+    }
+    const avatar = localSelfie ? {
+      selfieUrl: localSelfie,
+      expressions,
+      gender: (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
+      facialDescription: (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined,
+      catchphraseUrl: (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
+    } : undefined;
+
     this.sendCritical(OpCode.JOIN_ROOM, {
       roomCode: formattedRoom,
       name: this.name,
       playerId: storedPid || undefined,
       userId: storedUserId || undefined,
+      avatar,
     });
   }
 
@@ -747,10 +716,6 @@ class GameClient {
       const track = stream.getVideoTracks()[0];
       if (track) {
         this.activeDeviceId = track.getSettings().deviceId || null;
-
-        if (track.getCapabilities) {
-
-        }
       }
 
       // Re-populate device list now that permissions are granted (labels are now visible)

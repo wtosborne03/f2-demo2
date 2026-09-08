@@ -279,6 +279,7 @@
   {:else if step === "selfie"}
     <SelfieCapture
       initialMode="camera"
+      roomCode={roomCode}
       onUploadComplete={() => joinRoom()}
       onSkip={() => joinRoom()}
     />

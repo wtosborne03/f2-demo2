@@ -320,8 +320,18 @@
           : "webm";
       formData.append("file", audioBlob, `catchphrase.${ext}`);
 
+      const roomCode = (typeof window !== "undefined" && (localStorage.getItem("couch_room") || localStorage.getItem("code"))) || undefined;
+      const playerId = (typeof window !== "undefined" && localStorage.getItem("couch_pid")) || undefined;
+      const user = $session.data?.user;
+      const userId = user?.id || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : undefined);
+
+      const query = new URLSearchParams();
+      if (roomCode) query.set("room_code", roomCode);
+      if (playerId) query.set("player_id", playerId);
+      if (userId) query.set("user_id", userId);
+
       const res = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/upload/audio`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/upload/audio?${query.toString()}`,
         {
           method: "POST",
           body: formData,
@@ -337,6 +347,15 @@
 
       currentCatchphraseUrl = url;
       localStorage.setItem("temp_catchphrase", url);
+
+      // Update local state directly; host is notified automatically by the backend
+      gameState.update((s) => ({
+        ...s,
+        avatar: {
+          ...(s.avatar || { selfieUrl: "" }),
+          catchphraseUrl: url,
+        },
+      }));
 
       if ($session.data?.user) {
         try {
@@ -361,7 +380,6 @@
         }
       }
 
-      syncAvatarWithHost(url);
       statusMessage = null;
     } catch (err: any) {
       console.error("Error uploading catchphrase:", err);
@@ -369,19 +387,6 @@
     } finally {
       isUploading = false;
     }
-  }
-
-  function syncAvatarWithHost(catchphraseUrl: string | null) {
-    const currentAvatar = get(gameState).avatar || {
-      selfieUrl: "",
-    };
-
-    const updatedAvatar = {
-      ...currentAvatar,
-      catchphraseUrl: catchphraseUrl || undefined,
-    };
-
-    gameClient.sendPlayerInput("avatarUpdate", { avatar: updatedAvatar });
   }
 </script>
 

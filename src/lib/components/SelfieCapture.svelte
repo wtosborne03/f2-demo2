@@ -18,6 +18,7 @@
   export let onSkip: (() => void) | undefined = undefined;
   export let onCancel: (() => void) | undefined = undefined;
   export let onAvatarRemoved: (() => void) | undefined = undefined;
+  export let roomCode: string | undefined = undefined;
 
   const session = authClient.useSession();
 
@@ -201,19 +202,6 @@
         localStorage.setItem("temp_facial_description", facialDescription);
       }
     }
-
-    // If in a game, send avatar update
-    if (get(gameState).screen !== "index") {
-      gameClient.sendInput({
-        type: "avatarUpdate",
-        avatar: {
-          selfieUrl: selfieUrl,
-          expressions,
-          gender,
-          facialDescription: facialDescription || (browser ? localStorage.getItem("temp_facial_description") || undefined : undefined),
-        },
-      });
-    }
   }
 
   async function deleteAvatar() {
@@ -249,16 +237,6 @@
     currentSelfieUrl = null;
     currentNeutralOpenUrl = null;
     currentNeutralClosedUrl = null;
-
-    // If in a game, send avatar update
-    if (get(gameState).screen !== "index") {
-      gameClient.sendInput({
-        type: "avatarUpdate",
-        avatar: {
-          selfieUrl: "",
-        },
-      });
-    }
 
     toaster.success({
       title: "Avatar Removed",
@@ -428,13 +406,13 @@
     formData.append("file", file, "selfie.webp");
     const client = await apiClient;
 
-    const roomCode = (typeof window !== "undefined" && (localStorage.getItem("couch_room") || localStorage.getItem("code"))) || undefined;
+    const resolvedRoomCode = roomCode || (typeof window !== "undefined" && (localStorage.getItem("couch_room") || localStorage.getItem("code"))) || undefined;
     const playerId = (typeof window !== "undefined" && localStorage.getItem("couch_pid")) || undefined;
     const user = get(session).data?.user;
     const userId = user?.id || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : undefined);
 
     const queryParams: any = { generate_expressions: "true" };
-    if (roomCode) queryParams.room_code = roomCode;
+    if (resolvedRoomCode) queryParams.room_code = resolvedRoomCode;
     if (playerId) queryParams.player_id = playerId;
     if (userId) queryParams.user_id = userId;
 
