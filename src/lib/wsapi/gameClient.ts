@@ -324,14 +324,17 @@ class GameClient {
 
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       if (this.connectUrl) {
+        console.log(`[Player GameClient] checkRoom("${formattedRoom}"): WS not open, initiating connection to ${this.connectUrl}`);
         this.connect(this.connectUrl);
       }
     }
 
+    console.log(`[Player GameClient] checkRoom("${formattedRoom}"): sending OpCode.QUERY_ROOM_STATE`);
     this.sendCritical(OpCode.QUERY_ROOM_STATE, { roomCode: formattedRoom });
 
     try {
       const res = await this.waitForResponse([OpCode.ROOM_STATE, OpCode.ERROR], timeout);
+      console.log(`[Player GameClient] checkRoom("${formattedRoom}") response received:`, res);
       if (res.op === OpCode.ERROR) {
         return { valid: false, error: res.payload || "Room not found" };
       }
@@ -340,7 +343,7 @@ class GameClient {
       }
       return { valid: false, error: "Unknown response from server" };
     } catch (e) {
-      console.warn("checkRoom failed or timed out:", e);
+      console.warn(`[Player GameClient] checkRoom("${formattedRoom}") failed or timed out:`, e);
       return { valid: false, error: "Room not found or server unreachable" };
     }
   }
@@ -372,6 +375,7 @@ class GameClient {
       catchphraseUrl: (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
     } : undefined;
 
+    console.log(`[Player GameClient] join("${formattedRoom}", "${this.name}"): sending OpCode.JOIN_ROOM`);
     this.sendCritical(OpCode.JOIN_ROOM, {
       roomCode: formattedRoom,
       name: this.name,
