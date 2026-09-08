@@ -9,10 +9,11 @@ export interface AvatarExpressions {
     surprised_closed?: string;
 }
 
-interface Avatar {
+export interface Avatar {
     selfieUrl?: string,
     expressions?: AvatarExpressions,
     gender?: string,
+    facialDescription?: string,
 }
 
 export interface PlayerState {

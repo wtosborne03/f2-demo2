@@ -24,6 +24,7 @@ export enum OpCode {
     PLAYER_JOINED = 20,
     PLAYER_LEFT = 21,
     PLAYER_INPUT = 22,
+    AVATAR_UPDATE = 23,
 
     // Host -> Server
     HOST_ERROR = 30,    // New: Host instructing server to send error to specific player

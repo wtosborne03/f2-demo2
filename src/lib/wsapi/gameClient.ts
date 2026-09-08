@@ -200,6 +200,24 @@ class GameClient {
           }
           break;
 
+        case OpCode.AVATAR_UPDATE:
+          if (payload?.avatar) {
+            if (payload.avatar.gender && typeof window !== "undefined") {
+              localStorage.setItem("temp_gender", payload.avatar.gender);
+            }
+            if (payload.avatar.facialDescription && typeof window !== "undefined") {
+              localStorage.setItem("temp_facial_description", payload.avatar.facialDescription);
+            }
+            gameState.update((current) => ({
+              ...current,
+              avatar: {
+                ...current.avatar,
+                ...payload.avatar,
+              }
+            }));
+          }
+          break;
+
         case OpCode.GAME_ENDED:
           this.handleGameEnded();
           break;
@@ -270,6 +288,7 @@ class GameClient {
           selfieUrl: me.avatar_selfie || localSelfie,
           expressions: expressions || fallbackExpressions,
           gender: me.avatar_gender || (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
+          facialDescription: (me as any).avatar_facial_description || (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined,
           catchphraseUrl: (me as any).avatar_catchphrase || (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
         };
         this.sendPlayerInput("avatarUpdate", { avatar }, true);
@@ -295,14 +314,24 @@ class GameClient {
       }
     }
     const sessionGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
+    const sessionFacialDesc = (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined;
     const sessionCatchphrase = (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined;
     const avatar = {
       selfieUrl: sessionSelfie,
       expressions,
       gender: sessionGender,
+      facialDescription: sessionFacialDesc,
       catchphraseUrl: sessionCatchphrase,
     };
     this.sendPlayerInput("avatarUpdate", { avatar }, true);
+  }
+
+  public getRoomCode(): string | null {
+    return this.roomCode;
+  }
+
+  public getPlayerId(): string | null {
+    return typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
   }
 
   private handleGameEnded() {

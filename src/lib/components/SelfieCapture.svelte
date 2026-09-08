@@ -160,6 +160,7 @@
     selfieUrl: string,
     expressions?: any,
     gender?: string,
+    facialDescription?: string,
   ) {
     const user = get(session).data?.user;
     if (user) {
@@ -176,7 +177,8 @@
           avatar_surprised_open: expressions?.surprised_open || null,
           avatar_surprised_closed: expressions?.surprised_closed || null,
           avatar_gender: gender || null,
-        });
+          ...(facialDescription !== undefined ? { avatar_facial_description: facialDescription || null } : {}),
+        } as any);
       } catch (e) {
         console.error("Failed to save avatar to backend:", e);
       }
@@ -195,6 +197,9 @@
       } else {
         localStorage.removeItem("temp_gender");
       }
+      if (facialDescription) {
+        localStorage.setItem("temp_facial_description", facialDescription);
+      }
     }
 
     // If in a game, send avatar update
@@ -205,6 +210,7 @@
           selfieUrl: selfieUrl,
           expressions,
           gender,
+          facialDescription: facialDescription || (browser ? localStorage.getItem("temp_facial_description") || undefined : undefined),
         },
       });
     }
@@ -225,7 +231,8 @@
           avatar_sad_closed: null,
           avatar_surprised_open: null,
           avatar_surprised_closed: null,
-        });
+          avatar_facial_description: null,
+        } as any);
       } catch (e) {
         console.error("Failed to remove avatar:", e);
       }
@@ -235,6 +242,7 @@
         localStorage.removeItem("temp_expressions");
         localStorage.removeItem("temp_landmarks");
         localStorage.removeItem("temp_gender");
+        localStorage.removeItem("temp_facial_description");
       }
     }
 
@@ -419,9 +427,20 @@
     const formData = new FormData();
     formData.append("file", file, "selfie.webp");
     const client = await apiClient;
+
+    const roomCode = (typeof window !== "undefined" && (localStorage.getItem("couch_room") || localStorage.getItem("code"))) || undefined;
+    const playerId = (typeof window !== "undefined" && localStorage.getItem("couch_pid")) || undefined;
+    const user = get(session).data?.user;
+    const userId = user?.id || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : undefined);
+
+    const queryParams: any = { generate_expressions: "true" };
+    if (roomCode) queryParams.room_code = roomCode;
+    if (playerId) queryParams.player_id = playerId;
+    if (userId) queryParams.user_id = userId;
+
     try {
       const response = await client.postUpload(
-        { generate_expressions: "true" },
+        queryParams,
         formData as any,
       );
       if (response.status === 200) {
