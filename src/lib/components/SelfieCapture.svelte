@@ -19,6 +19,7 @@
   export let onCancel: (() => void) | undefined = undefined;
   export let onAvatarRemoved: (() => void) | undefined = undefined;
   export let roomCode: string | undefined = undefined;
+  export let playerName: string | undefined = undefined;
 
   const session = authClient.useSession();
 
@@ -84,8 +85,19 @@
     loop();
   }
 
+  const handleAvatarUpdate = (avatar: any) => {
+    if (avatar?.expressions) {
+      currentNeutralOpenUrl = avatar.expressions.neutral_open || currentNeutralOpenUrl;
+      currentNeutralClosedUrl = avatar.expressions.neutral_closed || currentNeutralClosedUrl;
+    }
+    if (avatar?.selfieUrl) {
+      currentSelfieUrl = avatar.selfieUrl;
+    }
+  };
+
   onMount(() => {
     startBlinkLoop();
+    gameClient.on("avatarUpdate", handleAvatarUpdate);
   });
 
   $: if (browser && currentNeutralOpenUrl) {
@@ -409,12 +421,21 @@
     const resolvedRoomCode = roomCode || (typeof window !== "undefined" && (localStorage.getItem("couch_room") || localStorage.getItem("code"))) || undefined;
     const playerId = (typeof window !== "undefined" && localStorage.getItem("couch_pid")) || undefined;
     const user = get(session).data?.user;
-    const userId = user?.id || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : undefined);
+    let userId = user?.id;
+    if (!userId && typeof window !== "undefined") {
+      userId = localStorage.getItem("temp_user_id") || undefined;
+      if (!userId) {
+        userId = "temp_" + crypto.randomUUID();
+        localStorage.setItem("temp_user_id", userId);
+      }
+    }
+    const localName = playerName || (typeof window !== "undefined" ? localStorage.getItem("name") : undefined) || undefined;
 
     const queryParams: any = { generate_expressions: "true" };
     if (resolvedRoomCode) queryParams.room_code = resolvedRoomCode;
     if (playerId) queryParams.player_id = playerId;
     if (userId) queryParams.user_id = userId;
+    if (localName) queryParams.player_name = localName;
 
     try {
       const response = await client.postUpload(
@@ -591,6 +612,7 @@
     clearTimeout(blinkTimer);
     clearTimeout(blinkCloseTimer);
     clearTimeout(blinkDoubleTimer);
+    gameClient.off("avatarUpdate", handleAvatarUpdate);
   });
 </script>
 

@@ -202,6 +202,7 @@ class GameClient {
 
         case OpCode.AVATAR_UPDATE:
           if (payload?.avatar) {
+            console.log("[Player GameClient] OpCode.AVATAR_UPDATE received:", payload);
             if (payload.avatar.gender && typeof window !== "undefined") {
               localStorage.setItem("temp_gender", payload.avatar.gender);
             }
@@ -209,7 +210,12 @@ class GameClient {
               localStorage.setItem("temp_facial_description", payload.avatar.facialDescription);
             }
             if (payload.avatar.expressions && typeof window !== "undefined") {
-              localStorage.setItem("temp_expressions", JSON.stringify(payload.avatar.expressions));
+              let mergedExpr: any = payload.avatar.expressions;
+              try {
+                const existing = JSON.parse(localStorage.getItem("temp_expressions") || "{}");
+                mergedExpr = { ...existing, ...payload.avatar.expressions };
+              } catch {}
+              localStorage.setItem("temp_expressions", JSON.stringify(mergedExpr));
             }
             if (payload.avatar.selfieUrl && typeof window !== "undefined") {
               localStorage.setItem("temp_selfie", payload.avatar.selfieUrl);
@@ -222,8 +228,13 @@ class GameClient {
               avatar: {
                 ...current.avatar,
                 ...payload.avatar,
-              }
+                expressions: {
+                  ...(current.avatar?.expressions || {}),
+                  ...(payload.avatar?.expressions || {}),
+                },
+              },
             }));
+            this.emit("avatarUpdate", payload.avatar);
           }
           break;
 

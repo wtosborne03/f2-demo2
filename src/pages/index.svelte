@@ -84,6 +84,11 @@
       return;
     }
 
+    if (typeof window !== "undefined") {
+      localStorage.setItem("name", name);
+      localStorage.setItem("couch_room", roomCode);
+    }
+
     isChecking = true;
     try {
       const check = await gameClient.checkRoom(roomCode);
@@ -280,6 +285,7 @@
     <SelfieCapture
       initialMode="camera"
       roomCode={roomCode}
+      playerName={name}
       onUploadComplete={() => joinRoom()}
       onSkip={() => joinRoom()}
     />
