@@ -9,8 +9,8 @@
     const HAPTIC_DURATION_MS = 15; // short sharp buzz
     const HAPTIC_COOLDOWN_MS = 80; // prevent buzz spam when sliding along the rim
 
-    // Ergonomic physical travel radius: comfortable for thumbs without stretching
-    const MAX_RANGE = 52; 
+    // Ergonomic physical travel radius: comfortable travel, enlarged slightly per request
+    const MAX_RANGE = 70; 
 
     // --- State ---
     let touchActive = false;
@@ -71,13 +71,10 @@
         let dy = e.clientY - originY;
         const dist = Math.hypot(dx, dy);
 
-        // "Follow-thumb" behavior: if dragged further than MAX_RANGE, slide origin towards touch
-        // This prevents the thumb from getting disconnected from the control
+        // Fixed base on initial tap: origin does NOT move.
+        // Clamp the knob visually and logically to MAX_RANGE if dragged further.
         if (dist > MAX_RANGE) {
-            const excess = dist - MAX_RANGE;
             const angle = Math.atan2(dy, dx);
-            originX += Math.cos(angle) * excess;
-            originY += Math.sin(angle) * excess;
             dx = Math.cos(angle) * MAX_RANGE;
             dy = Math.sin(angle) * MAX_RANGE;
         }
