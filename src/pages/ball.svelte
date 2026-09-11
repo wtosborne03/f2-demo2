@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import JoystickController from "joystick-controller";
     import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
     // --- Config ---
@@ -10,11 +9,18 @@
     const HAPTIC_DURATION_MS = 15; // short sharp buzz
     const HAPTIC_COOLDOWN_MS = 80; // prevent buzz spam when sliding along the rim
 
-    // --- State ---
-    // Dynamic joystick sizing
-    let maxRange = 90;
+    // Ergonomic physical travel radius: comfortable for thumbs without stretching
+    const MAX_RANGE = 52; 
 
-    // Raw values from the joystick library (pixels, -maxRange..+maxRange)
+    // --- State ---
+    let touchActive = false;
+    let originX = 0;
+    let originY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let activeTouchId: number | null = null;
+
+    // Relative offset from origin (-MAX_RANGE..+MAX_RANGE)
     let rawX = 0;
     let rawY = 0;
 
@@ -33,47 +39,70 @@
     let wasAtEdge = false;
     let lastHapticTime = 0;
 
-    let joystickContainer: HTMLElement;
-    let staticJoystick: JoystickController | null = null;
+    let touchArea: HTMLElement;
     let rafId = 0;
     let lastSendTime = 0;
 
-    function initJoystick() {
-        if (staticJoystick) {
-            staticJoystick.destroy();
+    function handlePointerDown(e: PointerEvent) {
+        // Only accept primary pointer (or first active finger)
+        if (activeTouchId !== null) return;
+        activeTouchId = e.pointerId;
+        touchActive = true;
+
+        originX = e.clientX;
+        originY = e.clientY;
+        currentX = e.clientX;
+        currentY = e.clientY;
+        rawX = 0;
+        rawY = 0;
+
+        // Capture pointer to receive move/up events even if dragged outside container/viewport
+        try {
+            touchArea.setPointerCapture(e.pointerId);
+        } catch {
+            // ignore if not supported
+        }
+    }
+
+    function handlePointerMove(e: PointerEvent) {
+        if (!touchActive || e.pointerId !== activeTouchId) return;
+
+        let dx = e.clientX - originX;
+        let dy = e.clientY - originY;
+        const dist = Math.hypot(dx, dy);
+
+        // "Follow-thumb" behavior: if dragged further than MAX_RANGE, slide origin towards touch
+        // This prevents the thumb from getting disconnected from the control
+        if (dist > MAX_RANGE) {
+            const excess = dist - MAX_RANGE;
+            const angle = Math.atan2(dy, dx);
+            originX += Math.cos(angle) * excess;
+            originY += Math.sin(angle) * excess;
+            dx = Math.cos(angle) * MAX_RANGE;
+            dy = Math.sin(angle) * MAX_RANGE;
         }
 
-        // Cap joystick base size to screen width up to a small screen (~420px max)
-        const screenWidth = window.innerWidth;
-        const availableWidth = Math.min(screenWidth * 0.85, 420);
+        currentX = originX + dx;
+        currentY = originY + dy;
 
-        const radius = availableWidth / 2;
-        maxRange = radius * 0.75;
-        const joystickRadius = radius * 0.33;
+        // Joystick coordinate system: +x is right, +y is UP
+        rawX = dx;
+        rawY = -dy;
+    }
 
-        staticJoystick = new JoystickController(
-            {
-                maxRange,
-                level: 10,
-                radius,
-                joystickRadius,
-                opacity: 0.5,
-                leftToRight: false,
-                bottomToUp: true,
-                containerClass: "joystick-container rounded-full",
-                controllerClass: "joystick-controller",
-                joystickClass: "joystick",
-                distortion: true,
-                x: "50%",
-                y: "50%",
-                mouseClickButton: "ALL",
-                hideContextMenu: false,
-            },
-            ({ x, y }) => {
-                rawX = x;
-                rawY = y;
-            },
-        );
+    function endTouch(e: PointerEvent) {
+        if (e.pointerId !== activeTouchId) return;
+        touchActive = false;
+        activeTouchId = null;
+        rawX = 0;
+        rawY = 0;
+        try {
+            if (touchArea.hasPointerCapture(e.pointerId)) {
+                touchArea.releasePointerCapture(e.pointerId);
+            }
+        } catch {
+            // ignore
+        }
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -94,15 +123,9 @@
         }
     }
 
-    function handleResize() {
-        initJoystick();
-    }
-
     onMount(() => {
-        initJoystick();
         window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("keyup", handleKeyUp);
-        window.addEventListener("resize", handleResize);
 
         lastSendTime = performance.now();
         rafId = requestAnimationFrame(sendLoop);
@@ -139,8 +162,8 @@
         }
 
         // Apply deadzone to touch/mouse raw joystick values
-        const joyNormX = applyDeadzone(rawX, maxRange);
-        const joyNormY = applyDeadzone(rawY, maxRange);
+        const joyNormX = applyDeadzone(rawX, MAX_RANGE);
+        const joyNormY = applyDeadzone(rawY, MAX_RANGE);
 
         // Prefer keyboard when active, fallback to touch/mouse
         if (pressedKeys.size > 0) {
@@ -190,35 +213,82 @@
 
     onDestroy(() => {
         if (rafId) cancelAnimationFrame(rafId);
-        if (staticJoystick) staticJoystick.destroy();
         if (typeof window !== "undefined") {
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("keyup", handleKeyUp);
-            window.removeEventListener("resize", handleResize);
         }
     });
 </script>
 
-<div class="h-full w-full joy-bg fixed top-0 left-0">
-    <div
-        bind:this={joystickContainer}
-        class="w-[85vw] h-[85vw] max-w-[420px] max-h-[420px] opacity-100 border-8 fixed rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        style="background-color: {$gameState.color}; border-color: {$gameState.team ===
-        'Black'
-            ? 'black'
-            : $gameState.team === 'White'
-              ? 'white'
-              : 'transparent'};"
-    ></div>
+<!-- Full touch capture surface -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+    bind:this={touchArea}
+    class="fixed inset-0 w-full h-full select-none touch-none overflow-hidden joy-bg"
+    onpointerdown={handlePointerDown}
+    onpointermove={handlePointerMove}
+    onpointerup={endTouch}
+    onpointercancel={endTouch}
+>
+    <!-- Idle subtle guide when not touching -->
+    {#if !touchActive}
+        <div
+            class="absolute bottom-12 left-1/2 -translate-x-1/2 text-center pointer-events-none opacity-40 select-none animate-pulse text-sm font-medium tracking-wide"
+            style="color: {$gameState.team === 'Black' ? 'black' : 'white'};"
+        >
+            Touch anywhere to steer
+        </div>
+    {/if}
+
+    <!-- Dynamic Floating Joystick Visual -->
+    {#if touchActive}
+        <!-- Base Ring (Spawned at origin) -->
+        <div
+            class="fixed rounded-full pointer-events-none transition-transform duration-75 ease-out shadow-2xl flex items-center justify-center"
+            style="
+                width: {MAX_RANGE * 2.5}px;
+                height: {MAX_RANGE * 2.5}px;
+                left: {originX}px;
+                top: {originY}px;
+                transform: translate(-50%, -50%);
+                background-color: {$gameState.color || 'rgba(255, 255, 255, 0.15)'};
+                border: 4px solid {$gameState.team === 'Black' ? 'black' : 'white'};
+                opacity: 0.65;
+            "
+        >
+            <!-- Center target dot -->
+            <div
+                class="w-3 h-3 rounded-full opacity-40"
+                style="background-color: {$gameState.team === 'Black' ? 'black' : 'white'};"
+            ></div>
+        </div>
+
+        <!-- Knob / Thumb Pad (Follows finger, clamped to MAX_RANGE) -->
+        <div
+            class="fixed rounded-full pointer-events-none shadow-lg z-50 flex items-center justify-center backdrop-blur-sm"
+            style="
+                width: {MAX_RANGE * 1.1}px;
+                height: {MAX_RANGE * 1.1}px;
+                left: {currentX}px;
+                top: {currentY}px;
+                transform: translate(-50%, -50%);
+                background-color: {$gameState.color || 'white'};
+                border: 3px solid {$gameState.team === 'Black' ? 'black' : 'white'};
+                box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+            "
+        >
+            <div
+                class="w-4 h-4 rounded-full opacity-60"
+                style="background-color: {$gameState.team === 'Black' ? 'black' : 'white'};"
+            ></div>
+        </div>
+    {/if}
 </div>
 
 <style>
-    :global([class*="joystick-container-"]) {
-        touch-action: none !important;
-        z-index: 50 !important;
-    }
-    :global([class*="joystick-controller-"]),
-    :global([class*="joystick-"]) {
-        touch-action: none !important;
+    :global(body) {
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-user-select: none;
     }
 </style>
