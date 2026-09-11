@@ -40,11 +40,12 @@
     let lastHapticTime = 0;
 
     let touchArea: HTMLElement;
+    let baseEl: HTMLElement;
+    let knobEl: HTMLElement;
     let rafId = 0;
     let lastSendTime = 0;
 
     function handlePointerDown(e: PointerEvent) {
-        // Only accept primary pointer (or first active finger)
         if (activeTouchId !== null) return;
         activeTouchId = e.pointerId;
         touchActive = true;
@@ -56,7 +57,11 @@
         rawX = 0;
         rawY = 0;
 
-        // Capture pointer to receive move/up events even if dragged outside container/viewport
+        if (knobEl) {
+            knobEl.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) scale(1)`;
+            knobEl.style.opacity = "1";
+        }
+
         try {
             touchArea.setPointerCapture(e.pointerId);
         } catch {
@@ -71,8 +76,6 @@
         let dy = e.clientY - originY;
         const dist = Math.hypot(dx, dy);
 
-        // Fixed base on initial tap: origin does NOT move.
-        // Clamp the knob visually and logically to MAX_RANGE if dragged further.
         if (dist > MAX_RANGE) {
             const angle = Math.atan2(dy, dx);
             dx = Math.cos(angle) * MAX_RANGE;
@@ -81,6 +84,11 @@
 
         currentX = originX + dx;
         currentY = originY + dy;
+
+        // Directly update DOM transform with hardware acceleration for silky 60/120fps
+        if (knobEl) {
+            knobEl.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) scale(1)`;
+        }
 
         // Joystick coordinate system: +x is right, +y is UP
         rawX = dx;
@@ -93,6 +101,12 @@
         activeTouchId = null;
         rawX = 0;
         rawY = 0;
+
+        if (knobEl) {
+            knobEl.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) scale(0.2)`;
+            knobEl.style.opacity = "0";
+        }
+
         try {
             if (touchArea.hasPointerCapture(e.pointerId)) {
                 touchArea.releasePointerCapture(e.pointerId);
@@ -274,16 +288,16 @@
         {/if}
     </div>
 
-    <!-- Joystick Knob (Appears when active, follows finger up to MAX_RANGE) -->
+    <!-- Joystick Knob (Directly updated on pointermove for 0ms input latency) -->
     <div
-        class="fixed rounded-full pointer-events-none shadow-2xl z-30 flex items-center justify-center transition-all duration-150 ease-out"
+        bind:this={knobEl}
+        class="fixed top-0 left-0 rounded-full pointer-events-none shadow-2xl z-30 flex items-center justify-center will-change-transform"
         style="
             width: {MAX_RANGE * 1.15}px;
             height: {MAX_RANGE * 1.15}px;
-            left: {currentX}px;
-            top: {currentY}px;
-            transform: translate(-50%, -50%) scale({touchActive ? 1 : 0.2});
-            opacity: {touchActive ? 1 : 0};
+            opacity: 0;
+            transform: translate3d(0, 0, 0) translate(-50%, -50%) scale(0.2);
+            transition: opacity 120ms ease-out, border 120ms ease-out;
             background-color: {$gameState.team === 'Black' ? '#18181b' : '#ffffff'};
             border: 3px solid {$gameState.team === 'Black' ? 'white' : 'black'};
             box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
