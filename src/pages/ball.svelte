@@ -121,6 +121,11 @@
     }
 
     onMount(() => {
+        originX = window.innerWidth / 2;
+        originY = window.innerHeight / 2;
+        currentX = originX;
+        currentY = originY;
+
         window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("keyup", handleKeyUp);
 
@@ -221,65 +226,75 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     bind:this={touchArea}
-    class="fixed inset-0 w-full h-full select-none touch-none overflow-hidden joy-bg"
+    class="fixed inset-0 w-full h-full select-none touch-none overflow-hidden bg-neutral-950"
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
     onpointerup={endTouch}
     onpointercancel={endTouch}
 >
-    <!-- Idle subtle guide when not touching -->
-    {#if !touchActive}
+    <!-- 
+      Morphing Canvas / Background:
+      - Idle: fills 100vw x 100vh with 0px border radius (full screen player color).
+      - Active: collapses smoothly into a circular joystick base of (MAX_RANGE * 2.5)px centered at (originX, originY).
+      - Released: smoothly expands back out from that point across the entire screen.
+    -->
+    <div
+        class="absolute pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center overflow-hidden"
+        style="
+            background-color: {$gameState.color || '#3b82f6'};
+            border: {touchActive ? '4px' : '0px'} solid {$gameState.team === 'Black' ? 'black' : 'white'};
+            left: {originX}px;
+            top: {originY}px;
+            width: {touchActive ? (MAX_RANGE * 2.5) + 'px' : '220vmax'};
+            height: {touchActive ? (MAX_RANGE * 2.5) + 'px' : '220vmax'};
+            border-radius: {touchActive ? '9999px' : '0px'};
+            transform: translate(-50%, -50%);
+            box-shadow: {touchActive ? '0 20px 40px -10px rgba(0,0,0,0.6), inset 0 2px 6px rgba(255,255,255,0.2)' : 'none'};
+            z-index: 10;
+        "
+    >
+        <!-- Idle instruction text on full screen, fades out when morphing -->
         <div
-            class="absolute bottom-12 left-1/2 -translate-x-1/2 text-center pointer-events-none opacity-40 select-none animate-pulse text-sm font-medium tracking-wide"
-            style="color: {$gameState.team === 'Black' ? 'black' : 'white'};"
-        >
-            Touch anywhere to steer
-        </div>
-    {/if}
-
-    <!-- Dynamic Floating Joystick Visual -->
-    {#if touchActive}
-        <!-- Base Ring (Spawned at origin) -->
-        <div
-            class="fixed rounded-full pointer-events-none transition-transform duration-75 ease-out shadow-2xl flex items-center justify-center"
+            class="transition-opacity duration-150 pointer-events-none select-none text-center px-6"
             style="
-                width: {MAX_RANGE * 2.5}px;
-                height: {MAX_RANGE * 2.5}px;
-                left: {originX}px;
-                top: {originY}px;
-                transform: translate(-50%, -50%);
-                background-color: {$gameState.color || 'rgba(255, 255, 255, 0.15)'};
-                border: 4px solid {$gameState.team === 'Black' ? 'black' : 'white'};
-                opacity: 0.65;
+                opacity: {touchActive ? 0 : 0.85};
+                color: {$gameState.team === 'Black' ? 'black' : 'white'};
             "
         >
-            <!-- Center target dot -->
-            <div
-                class="w-3 h-3 rounded-full opacity-40"
-                style="background-color: {$gameState.team === 'Black' ? 'black' : 'white'};"
-            ></div>
+            <div class="text-2xl font-bold tracking-tight mb-1 drop-shadow-sm">Touch anywhere to steer</div>
+            <div class="text-sm font-medium opacity-70">Joystick anchors to your thumb</div>
         </div>
 
-        <!-- Knob / Thumb Pad (Follows finger, clamped to MAX_RANGE) -->
-        <div
-            class="fixed rounded-full pointer-events-none shadow-lg z-50 flex items-center justify-center backdrop-blur-sm"
-            style="
-                width: {MAX_RANGE * 1.1}px;
-                height: {MAX_RANGE * 1.1}px;
-                left: {currentX}px;
-                top: {currentY}px;
-                transform: translate(-50%, -50%);
-                background-color: {$gameState.color || 'white'};
-                border: 3px solid {$gameState.team === 'Black' ? 'black' : 'white'};
-                box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-            "
-        >
+        <!-- Center reference dot when collapsed as joystick base -->
+        {#if touchActive}
             <div
-                class="w-4 h-4 rounded-full opacity-60"
+                class="w-3 h-3 rounded-full opacity-40 animate-pulse pointer-events-none"
                 style="background-color: {$gameState.team === 'Black' ? 'black' : 'white'};"
             ></div>
-        </div>
-    {/if}
+        {/if}
+    </div>
+
+    <!-- Joystick Knob (Appears when active, follows finger up to MAX_RANGE) -->
+    <div
+        class="fixed rounded-full pointer-events-none shadow-2xl z-30 flex items-center justify-center transition-all duration-150 ease-out"
+        style="
+            width: {MAX_RANGE * 1.15}px;
+            height: {MAX_RANGE * 1.15}px;
+            left: {currentX}px;
+            top: {currentY}px;
+            transform: translate(-50%, -50%) scale({touchActive ? 1 : 0.2});
+            opacity: {touchActive ? 1 : 0};
+            background-color: {$gameState.team === 'Black' ? '#18181b' : '#ffffff'};
+            border: 3px solid {$gameState.team === 'Black' ? 'white' : 'black'};
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
+        "
+    >
+        <!-- Inner accent dot with player's color -->
+        <div
+            class="w-5 h-5 rounded-full"
+            style="background-color: {$gameState.color || '#3b82f6'};"
+        ></div>
+    </div>
 </div>
 
 <style>
