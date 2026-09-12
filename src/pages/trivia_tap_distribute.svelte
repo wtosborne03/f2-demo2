@@ -10,7 +10,6 @@
   $: availableTotal = pData?.availableDrinks || 1;
   $: losers = pData?.losers || [];
 
-  // Track drink allocation per losing player
   let allocations: Record<string, number> = {};
   let prevLosersKey = "";
 
@@ -27,10 +26,19 @@
   }
 
   // Calculate allocated vs remaining
-  $: totalAllocated = Object.values(allocations).reduce((sum, n) => sum + n, 0);
-  $: remainingDrinks = availableTotal - totalAllocated;
+  $: totalAllocated = Object.values(allocations).reduce((sum, n) => sum + (n || 0), 0);
+  $: remainingDrinks = Math.max(0, availableTotal - totalAllocated);
 
   let isSubmitted = false;
+
+  function handleSliderChange(target: string, val: number) {
+    if (isSubmitted) return;
+    const current = allocations[target] || 0;
+    const maxPossible = current + remainingDrinks;
+    const clamped = Math.max(0, Math.min(val, maxPossible));
+    allocations[target] = clamped;
+    allocations = { ...allocations };
+  }
 
   function adjustDrinks(target: string, delta: number) {
     if (isSubmitted) return;
@@ -38,8 +46,30 @@
     if (delta > 0 && remainingDrinks <= 0) return;
     if (delta < 0 && current <= 0) return;
 
-    allocations[target] = current + delta;
-    allocations = { ...allocations }; // trigger reactivity
+    allocations[target] = Math.max(0, current + delta);
+    allocations = { ...allocations };
+  }
+
+  function splitEvenly() {
+    if (isSubmitted || losers.length === 0) return;
+    const next: Record<string, number> = {};
+    const base = Math.floor(availableTotal / losers.length);
+    let remainder = availableTotal % losers.length;
+
+    losers.forEach((l) => {
+      next[l] = base + (remainder > 0 ? 1 : 0);
+      if (remainder > 0) remainder -= 1;
+    });
+    allocations = next;
+  }
+
+  function resetAll() {
+    if (isSubmitted) return;
+    const next: Record<string, number> = {};
+    losers.forEach((l) => {
+      next[l] = 0;
+    });
+    allocations = next;
   }
 
   function submitAllocations() {
@@ -53,60 +83,93 @@
 </script>
 
 <div
-  class="min-h-full w-full flex flex-col justify-center items-center p-4 bg-[#0c0a09] text-[#e7e5e4] font-mono select-none"
+  class="flex flex-col justify-center items-center min-h-full w-full max-w-md mx-auto px-4 py-4 text-center select-none"
 >
   {#if !isSubmitted}
-    <!-- Tavern Tab Container -->
+    <!-- Main Distribution Card -->
     <div
-      class="w-full max-w-sm bg-[#fbfbf9] text-[#1c1917] border-2 border-dashed border-[#78716c] border-t-8 border-t-[#b45309] p-5 shadow-2xl rounded-sm -rotate-1"
+      class="w-full bg-base-200/90 text-base-content border border-base-content/15 rounded-2xl p-5 shadow-xl text-left"
     >
-      <div class="text-xs uppercase tracking-widest text-[#78350f] font-black mb-1">
-        🍺 ROUND WINNER PRIVILEGE
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+          <span>🍺</span>
+          <span>SERVE DRINKS</span>
+        </h1>
+        <div class="flex items-center gap-1.5">
+          {#if losers.length > 1}
+            <button
+              type="button"
+              on:click={splitEvenly}
+              class="btn btn-xs btn-outline font-bold"
+            >
+              Split
+            </button>
+          {/if}
+          <button
+            type="button"
+            on:click={resetAll}
+            class="btn btn-xs btn-ghost text-base-content/60"
+          >
+            Reset
+          </button>
+        </div>
       </div>
-      <h1 class="text-2xl font-black uppercase tracking-tight mb-2">
-        SERVE THE DRINKS!
-      </h1>
 
-      <div class="p-2.5 bg-[#fef3c7] border border-[#d97706] rounded mb-4 text-center">
-        <span class="text-xs uppercase font-bold text-[#78350f] block">
-          DRINKS REMAINING TO HAND OUT:
+      <!-- Drinks Pool Status Badge -->
+      <div
+        class="w-full p-3 rounded-xl mb-4 text-center flex items-center justify-between {remainingDrinks === 0 ? 'bg-success/20 text-success border border-success/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}"
+      >
+        <span class="text-xs uppercase font-black tracking-wider">
+          {remainingDrinks === 0 ? 'ALL DRINKS ASSIGNED!' : 'DRINKS LEFT TO GIVE:'}
         </span>
-        <span class="text-3xl font-black text-[#b45309]">
+        <span class="text-xl font-black">
           {remainingDrinks} / {availableTotal}
         </span>
       </div>
 
-      <!-- Losers Distribution List -->
-      <div class="flex flex-col gap-2.5 mb-5">
+      <!-- Losers Sliders List -->
+      <div class="flex flex-col gap-3.5 mb-5">
         {#each losers as loser}
           <div
-            class="flex items-center justify-between p-2.5 bg-[#e7e5e4] border border-stone-400 rounded"
+            class="p-3.5 bg-base-100 rounded-xl border border-base-content/10 shadow-sm flex flex-col gap-2"
           >
-            <div class="flex flex-col">
-              <span class="font-black text-sm text-[#1c1917]">{loser}</span>
-              <span class="text-[10px] text-stone-500 font-bold uppercase">MISS</span>
+            <!-- Player Name & Current Allocation Count -->
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-base text-base-content">{loser}</span>
+              <span
+                class="px-2.5 py-1 rounded-lg text-xs font-black {(allocations[loser] || 0) > 0 ? 'bg-amber-500 text-stone-950 shadow-sm' : 'bg-base-300 text-base-content/50'}"
+              >
+                🍺 {allocations[loser] || 0} {(allocations[loser] || 0) === 1 ? 'DRINK' : 'DRINKS'}
+              </span>
             </div>
 
-            <!-- Plus / Minus Stepper -->
-            <div class="flex items-center gap-2">
+            <!-- Intuitive Slider with Quick Steppers -->
+            <div class="flex items-center gap-3">
               <button
                 type="button"
                 on:click={() => adjustDrinks(loser, -1)}
                 disabled={(allocations[loser] || 0) <= 0}
-                class="w-8 h-8 rounded bg-[#1c1917] text-white font-black text-base flex items-center justify-center disabled:opacity-30 active:scale-95"
+                class="btn btn-circle btn-sm btn-ghost border border-base-content/20 text-lg font-black shrink-0"
               >
                 -
               </button>
 
-              <span class="font-black text-base w-6 text-center text-[#b45309]">
-                {allocations[loser] || 0}
-              </span>
+              <input
+                type="range"
+                min="0"
+                max={availableTotal}
+                step="1"
+                value={allocations[loser] || 0}
+                on:input={(e) => handleSliderChange(loser, parseInt(e.currentTarget.value) || 0)}
+                class="range range-primary range-sm w-full cursor-pointer"
+              />
 
               <button
                 type="button"
                 on:click={() => adjustDrinks(loser, 1)}
                 disabled={remainingDrinks <= 0}
-                class="w-8 h-8 rounded bg-[#1c1917] text-white font-black text-base flex items-center justify-center disabled:opacity-30 active:scale-95"
+                class="btn btn-circle btn-sm btn-ghost border border-base-content/20 text-lg font-black shrink-0"
               >
                 +
               </button>
@@ -119,26 +182,27 @@
       <button
         type="button"
         on:click={submitAllocations}
-        class="w-full py-3 bg-[#1c1917] text-[#fde047] font-black text-base uppercase tracking-wider rounded border border-[#78350f] shadow-lg active:translate-y-0.5 cursor-pointer"
+        disabled={totalAllocated === 0}
+        class="btn btn-primary btn-lg w-full font-black text-base uppercase tracking-wider shadow-lg cursor-pointer disabled:opacity-40"
       >
-        SERVE TO LOSERS ➔
+        SERVE {totalAllocated} {totalAllocated === 1 ? 'DRINK' : 'DRINKS'} ➔
       </button>
     </div>
   {:else}
-    <!-- Drinks Served Stamped Badge -->
+    <!-- Confirmed State Card -->
     <div
-      class="w-full max-w-sm bg-[#d6c7a1] text-[#1c1917] border-4 border-[#5c4426] p-6 shadow-2xl rounded-xl rotate-1 text-center"
+      class="w-full bg-base-200/90 text-base-content border border-amber-500/40 p-6 shadow-xl rounded-2xl text-center"
     >
       <div class="text-4xl mb-2">🍻</div>
-      <div class="text-xs uppercase font-black tracking-widest text-[#78350f]">
+      <div class="text-xs uppercase font-black tracking-widest text-amber-500">
         DRINKS SERVED!
       </div>
-      <h2 class="text-2xl font-black uppercase mt-1 mb-2">
-        ORDER SENT!
+      <h2 class="text-2xl font-black uppercase mt-2 mb-2">
+        ORDER SENT
       </h2>
-      <div class="text-xs text-stone-700 font-bold">
+      <p class="text-xs text-base-content/70 font-semibold">
         Watch the pints fly into their trays on the TV!
-      </div>
+      </p>
     </div>
   {/if}
 </div>
