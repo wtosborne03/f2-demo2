@@ -4,14 +4,14 @@
   import { gameState, gameClient } from "$lib/wsapi/gameClient";
   import { isKeyboardVisible } from "$lib/stores/keyboard";
   import { get } from "svelte/store";
-  import { fly, fade } from "svelte/transition";
+  import { fade } from "svelte/transition";
 
   const gs = get(gameState);
   const m_data: RouletteData = gs.page_data;
 
   let punishmentText = "";
   let isSubmitted = false;
-  let inputElement: HTMLTextAreaElement | HTMLInputElement;
+  let inputElement: HTMLTextAreaElement;
 
   const shuffle = (array: string[]) => {
     const copy = [...array];
@@ -70,27 +70,7 @@
 
   function selectSuggestion(suggestion: string) {
     punishmentText = suggestion;
-    if (inputElement) {
-      inputElement.focus();
-    }
-  }
-
-  function getSuggestionEmoji(text: string): string {
-    const lower = text.toLowerCase();
-    if (lower.includes("shotgun")) return "⚡";
-    if (lower.includes("shot")) return "🥃";
-    if (lower.includes("down") || lower.includes("drink") || lower.includes("cup") || lower.includes("beer")) return "🍺";
-    if (lower.includes("compliment") || lower.includes("toast") || lower.includes("speech")) return "💬";
-    if (lower.includes("wallet") || lower.includes("money") || lower.includes("gambl")) return "💸";
-    if (lower.includes("cloth") || lower.includes("swap") || lower.includes("shirt")) return "👕";
-    if (lower.includes("law") || lower.includes("crime")) return "⚖️";
-    if (lower.includes("text") || lower.includes("phone") || lower.includes("story") || lower.includes("post")) return "📱";
-    if (lower.includes("pushup") || lower.includes("arm wrestle") || lower.includes("high-five")) return "💪";
-    if (lower.includes("photo") || lower.includes("camera") || lower.includes("selfie")) return "📸";
-    if (lower.includes("screentime") || lower.includes("screen")) return "⏱️";
-    if (lower.includes("accent") || lower.includes("whisper") || lower.includes("impression")) return "🗣️";
-    if (lower.includes("secret") || lower.includes("dating") || lower.includes("confess")) return "🤫";
-    return "🔥";
+    inputElement?.focus();
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -122,131 +102,122 @@
   }
 </script>
 
-<div class="w-full max-w-md mx-auto px-3 py-1 text-[var(--m3c-on-surface)] flex flex-col gap-2.5 sm:gap-4 select-none">
-  <!-- Header (Ultra compact when keyboard is active) -->
-  <div class="text-center space-y-0.5 sm:space-y-1">
-    <div class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-600/15 text-red-500 font-black text-[10px] sm:text-xs uppercase tracking-widest rounded-full border border-red-500/30">
-      <span>🎰</span>
-      <span>Roulette Dare</span>
-    </div>
-    <h1 class="text-xl sm:text-2xl font-black tracking-tight text-[var(--m3c-on-surface)] leading-tight">
-      Add a Punishment to the Wheel
-    </h1>
+<div class="w-full max-w-md mx-auto p-4 flex flex-col gap-4 text-white">
+  <!-- Minimal Header -->
+  <div class="text-center space-y-1">
+    <h1 class="text-xl font-bold tracking-tight">Add a Punishment</h1>
     {#if !$isKeyboardVisible}
-      <p class="text-xs text-[var(--m3c-on-surface-variant)] leading-snug">
-        Type a custom dare or tap a suggestion below. The AI will fit it onto the roulette wheel!
+      <p class="text-xs text-slate-400">
+        Enter a dare or pick a suggestion below.
       </p>
     {/if}
   </div>
 
   {#if !isSubmitted}
-    <!-- Input Card -->
-    <div class="flex flex-col gap-1.5 p-3 rounded-2xl bg-[var(--m3c-surface-container-low)] border-2 border-[var(--m3c-outline-variant)] shadow-sm">
-      <div class="flex items-center justify-between px-0.5">
-        <label for="punishment-input" class="text-[11px] font-bold uppercase tracking-wider text-[var(--m3c-on-surface-variant)]">
-          Custom Punishment:
-        </label>
-        <span class="text-[11px] font-mono font-medium text-[var(--m3c-on-surface-variant)]">
-          {punishmentText.length}/90
-        </span>
-      </div>
-
-      <div class="relative w-full">
+    <!-- Solid Input Box (No nested frames) -->
+    <div
+      class="flex flex-col bg-slate-800 rounded-xl p-3 border border-slate-700"
+    >
+      <div class="relative">
         <textarea
           id="punishment-input"
           bind:this={inputElement}
           bind:value={punishmentText}
           on:keydown={handleKeydown}
           maxlength={90}
-          rows={2}
+          rows={3}
           autocomplete="off"
-          autocapitalize="sentences"
           enterkeyhint="done"
-          placeholder="e.g., Take 4 drinks while doing pushups, swap shirts..."
-          class="w-full p-2.5 pr-8 text-sm sm:text-base font-semibold rounded-xl bg-[var(--m3c-surface-container-highest)] border border-[var(--m3c-outline)] text-[var(--m3c-on-surface)] placeholder:text-[var(--m3c-on-surface-variant)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--m3c-primary)] resize-none transition-all leading-snug"
+          placeholder="e.g. Take 4 drinks while doing pushups..."
+          class="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none resize-none pr-6 leading-relaxed"
         ></textarea>
 
         {#if punishmentText.length > 0}
           <button
             type="button"
-            class="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-[var(--m3c-surface-variant)] text-[var(--m3c-on-surface-variant)] flex items-center justify-center text-xs font-bold hover:bg-[var(--m3c-outline)] transition-colors cursor-pointer"
-            on:click={() => { punishmentText = ""; if (inputElement) inputElement.focus(); }}
-            aria-label="Clear input"
+            class="absolute top-0 right-0 text-slate-400 hover:text-white text-xs font-bold p-1"
+            on:click={() => {
+              punishmentText = "";
+              inputElement?.focus();
+            }}
+            aria-label="Clear"
           >
             ✕
           </button>
         {/if}
       </div>
+
+      <div class="flex justify-end pt-2 border-t border-slate-700/60">
+        <span class="text-[11px] font-mono text-slate-400">
+          {punishmentText.length}/90
+        </span>
+      </div>
     </div>
 
-    <!-- Suggestions Section (Horizontal Scrollable Chips) -->
-    <div class="flex flex-col gap-1">
-      <div class="flex items-center justify-between px-1">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-[var(--m3c-on-surface-variant)] flex items-center gap-1">
-          <span>💡</span> Quick Suggestions
-        </span>
+    <!-- Solid Chips Section -->
+    <div class="space-y-2">
+      <div
+        class="flex items-center justify-between text-xs text-slate-400 font-medium px-0.5"
+      >
+        <span>Suggestions</span>
         <button
           type="button"
-          class="text-[11px] font-bold text-[var(--m3c-primary)] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0.5"
+          class="text-indigo-400 hover:text-indigo-300 transition-colors"
           on:click={refreshSuggestions}
         >
-          <span>🎲</span> Shuffle
+          Shuffle
         </button>
       </div>
 
-      <!-- Horizontal scroll container -->
-      <div class="flex flex-row overflow-x-auto gap-1.5 py-1 -mx-1 px-1 no-scrollbar touch-pan-x">
+      <div
+        class="flex flex-row overflow-x-auto gap-2 pb-1 no-scrollbar touch-pan-x"
+      >
         {#each displayedSuggestions as suggestion (suggestion)}
           <button
             type="button"
-            class="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-left shrink-0 transition-all duration-150 cursor-pointer text-xs font-semibold whitespace-nowrap {punishmentText === suggestion
-              ? 'bg-[var(--m3c-primary-container)] border-[var(--m3c-primary)] text-[var(--m3c-on-primary-container)] shadow-sm'
-              : 'bg-[var(--m3c-surface-container-low)] border-[var(--m3c-outline-variant)] text-[var(--m3c-on-surface)] hover:bg-[var(--m3c-surface-container-high)] active:scale-95'}"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 whitespace-nowrap transition-colors {punishmentText ===
+            suggestion
+              ? 'bg-indigo-600 text-white'
+              : 'bg-slate-800 text-slate-200 hover:bg-slate-700 active:bg-slate-600'}"
             on:click={() => selectSuggestion(suggestion)}
           >
-            <span class="text-sm select-none">{getSuggestionEmoji(suggestion)}</span>
-            <span class="max-w-[210px] truncate">{suggestion}</span>
+            {suggestion}
           </button>
         {/each}
       </div>
     </div>
 
-    <!-- Submit Button -->
+    <!-- Solid Action Button -->
     <button
       type="button"
-      class="w-full py-3.5 px-4 font-black text-base sm:text-lg rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md {punishmentText.trim().length > 0
-        ? 'bg-[var(--m3c-primary)] text-[var(--m3c-on-primary)] hover:brightness-110 active:scale-[0.98]'
-        : 'bg-[var(--m3c-surface-variant)] text-[var(--m3c-on-surface-variant)] opacity-50 cursor-not-allowed pointer-events-none'}"
+      class="w-full py-3 px-4 font-semibold text-sm rounded-xl transition-all {punishmentText.trim()
+        .length > 0
+        ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer active:scale-[0.99]'
+        : 'bg-slate-800 text-slate-500 cursor-not-allowed'}"
       on:click={submitPunishment}
       disabled={punishmentText.trim().length === 0}
     >
-      <span>Place on Wheel</span>
-      <span class="text-lg">🔥</span>
+      Place on Wheel
     </button>
   {:else}
-    <!-- Locked-In Confirmation Card -->
+    <!-- Confirmation View -->
     <div
-      in:fade={{ duration: 250 }}
-      class="w-full flex flex-col items-center justify-center p-6 text-center bg-[var(--m3c-surface-container-low)] border-2 border-[var(--m3c-primary)] rounded-3xl shadow-lg gap-3"
+      in:fade={{ duration: 200 }}
+      class="flex flex-col items-center text-center p-6 bg-slate-800 border border-slate-700 rounded-xl space-y-3"
     >
-      <div class="w-14 h-14 rounded-full bg-[var(--m3c-primary-container)] text-[var(--m3c-on-primary-container)] flex items-center justify-center text-3xl shadow-inner animate-bounce">
-        🎯
-      </div>
-      <div class="font-black text-2xl uppercase tracking-tight text-[var(--m3c-on-surface)]">
-        Punishment Locked In!
-      </div>
-      <div class="px-4 py-3 rounded-2xl bg-[var(--m3c-surface-container-highest)] border border-[var(--m3c-outline-variant)] text-base font-bold text-[var(--m3c-on-surface)] w-full break-words">
+      <div class="text-2xl">✓</div>
+      <div class="font-bold text-lg">Punishment Locked In</div>
+      <div
+        class="p-3 bg-slate-900 rounded-lg text-sm text-slate-200 w-full break-words border border-slate-700/50"
+      >
         "{punishmentText}"
       </div>
-      <p class="text-xs font-semibold uppercase tracking-widest text-[var(--m3c-on-surface-variant)] mt-2">
-        👀 Watch the TV screen to see the wheel spin!
-      </p>
+      <p class="text-xs text-slate-400">Watch the screen for the wheel spin.</p>
     </div>
   {/if}
 </div>
 
 <style>
-  /* Hide scrollbar for horizontal chips */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
