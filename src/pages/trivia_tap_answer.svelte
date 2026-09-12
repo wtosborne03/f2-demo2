@@ -36,23 +36,23 @@
   </div>
 
   {#if !isSubmitted}
-    <!-- Question Card -->
-    <div class="w-full max-w-sm bg-[#1e293b] border-2 border-[#0f172a] rounded-lg p-3.5 mb-4 shadow-xl text-center">
-      <div class="text-sm font-bold text-[#f1f5f9] leading-snug">
+    <!-- Question Card (Dark Charcoal Slate with Chalk Highlight) -->
+    <div class="w-full max-w-sm bg-[#0f172a] border-2 border-[#1e293b] rounded-lg p-4 mb-4 shadow-xl text-center">
+      <div class="text-sm font-bold text-[#f8fafc] leading-snug tracking-wide">
         {pData.question || "Look at the TV screen for the question..."}
       </div>
     </div>
 
     <!-- 4 Tactile Coaster Answer Options -->
-    <div class="w-full max-w-sm flex flex-col gap-2.5">
+    <div class="w-full max-w-sm flex flex-col gap-3">
       {#each pData.answers as answer, i}
         <button
           type="button"
           on:click={() => submitAnswer(i)}
-          class="w-full flex items-center gap-3 p-3.5 bg-[#d6c7a1] text-[#1c1917] border-2 border-[#785a3c] border-b-4 border-b-[#443220] rounded-xl shadow-lg active:translate-y-1 active:border-b-2 transition-transform text-left cursor-pointer"
+          class="w-full flex items-center gap-3.5 p-3.5 bg-[#d6c7a1] text-[#1c1917] border-2 border-[#785a3c] border-b-4 border-b-[#3d2817] rounded-xl shadow-lg active:translate-y-1 active:border-b-2 transition-transform text-left cursor-pointer"
         >
-          <!-- Coaster Stamp Letter -->
-          <div class="w-8 h-8 rounded-full border border-dashed border-[#5c4426] bg-[#fbfbf9] flex items-center justify-center font-black text-base shrink-0">
+          <!-- Metal Bottle Cap Letter Badge -->
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#f59e0b] via-[#b45309] to-[#78350f] border-2 border-[#fbbf24] shadow-md flex items-center justify-center font-black text-sm text-white shrink-0">
             {letters[i]}
           </div>
 
