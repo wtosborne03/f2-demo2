@@ -12,7 +12,9 @@
 
 <div class="card-container perspective-1000">
     <div
-        class="card-inner transform-style-3d {flipped ? 'flipped' : ''}"
+        class="card-inner transform-style-3d transition-all duration-700 ease-out {flipped
+            ? 'flipped'
+            : ''}"
     >
         <!-- Front (face-up) -->
         <div
@@ -24,28 +26,29 @@
                 <div class="top-corner">
                     <span
                         class="card-value"
-                        style="color: {color === 'red' ? '#e11d48' : '#0f172a'}"
+                        style="color: {color === 'red' ? '#dc2626' : '#000'}"
                         >{value}</span
                     >
                     <span
                         class="card-suit"
-                        style="color: {color === 'red' ? '#e11d48' : '#0f172a'}"
+                        style="color: {color === 'red' ? '#dc2626' : '#000'}"
                         >{type}</span
                     >
                 </div>
-                <div
+                <span
                     class="center-suit"
-                    style="color: {color === 'red' ? '#e11d48' : '#0f172a'}"
-                    >{type}</div>
+                    style="color: {color === 'red' ? '#dc2626' : '#000'}"
+                    >{type}</span
+                >
                 <div class="bottom-corner">
                     <span
                         class="card-value"
-                        style="color: {color === 'red' ? '#e11d48' : '#0f172a'}"
+                        style="color: {color === 'red' ? '#dc2626' : '#000'}"
                         >{value}</span
                     >
                     <span
                         class="card-suit"
-                        style="color: {color === 'red' ? '#e11d48' : '#0f172a'}"
+                        style="color: {color === 'red' ? '#dc2626' : '#000'}"
                         >{type}</span
                     >
                 </div>
@@ -54,15 +57,16 @@
 
         <!-- Back (face-down) -->
         <div class="card-face card-back">
-            <div class="retro-card-back">
-                <div class="card-frame">
-                    <div class="card-pattern">
-                        {#if drinking}
-                            <span class="beer-icon">🍺</span>
-                        {:else}
-                            <span class="retro-star">★</span>
-                        {/if}
-                    </div>
+            <div class="card-pattern">
+                {#if drinking}
+                    <span class="beer-icon">🍺</span>
+                {:else}
+                    <span class="beer-icon"></span>
+                {/if}
+                <div class="pattern-grid">
+                    {#each Array(12) as _, i}
+                        <span class="pattern-dot"></span>
+                    {/each}
                 </div>
             </div>
         </div>
@@ -71,15 +75,15 @@
 
 <style>
     .card-container {
-        width: 5.2rem;
-        height: 7.2rem;
+        width: 5rem;
+        height: 6.5rem;
         perspective: 1000px;
     }
 
     @media (max-width: 380px) {
         .card-container {
-            width: 4.6rem;
-            height: 6.4rem;
+            width: 120px;
+            height: 170px;
         }
     }
 
@@ -88,7 +92,6 @@
         width: 100%;
         height: 100%;
         transform-style: preserve-3d;
-        transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .card-inner.flipped {
@@ -100,42 +103,51 @@
         width: 100%;
         height: 100%;
         backface-visibility: hidden;
-        border-radius: 8px;
-        box-shadow: 3px 3px 0px #000000;
+        border-radius: 12px;
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
-        box-sizing: border-box;
     }
 
-    /* 90s Vintage Face-Up Card */
     .card-front {
-        background: #fffdf5;
-        border: 2.5px solid #000000;
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        border: 3px solid #1f2937;
         transform: rotateY(180deg);
+        animation: cardGlow 2s ease-in-out infinite;
     }
 
     .card-front.red-card {
-        border-color: #000000;
+        border-color: #dc2626;
     }
 
     .card-front.black-card {
         border-color: #000000;
     }
 
+    @keyframes cardGlow {
+        0%,
+        100% {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        50% {
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(255, 255, 255, 0.2);
+        }
+    }
+
     .card-content {
         position: relative;
         width: 100%;
         height: 100%;
-        padding: 6px;
-        box-sizing: border-box;
+        padding: 12px;
     }
 
     .top-corner {
         position: absolute;
-        top: 4px;
-        left: 6px;
+        top: 8px;
+        left: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -144,8 +156,8 @@
 
     .bottom-corner {
         position: absolute;
-        bottom: 4px;
-        right: 6px;
+        bottom: 8px;
+        right: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -154,82 +166,76 @@
     }
 
     .card-value {
-        font-size: 1.25rem;
-        font-weight: 900;
-        font-family: "Impact", "Arial Black", sans-serif;
-        letter-spacing: -0.5px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        font-family: serif;
     }
 
     .card-suit {
-        font-size: 0.85rem;
-        margin-top: 1px;
+        font-size: 0.5rem;
+        margin-top: 4px;
     }
 
     .center-suit {
-        font-size: 2.5rem;
+        font-size: 2rem;
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        user-select: none;
-        filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.15));
+        opacity: 0.9;
     }
 
-    /* 90s Vintage Face-Down Card Back */
+    @media (max-width: 380px) {
+        .card-value {
+            font-size: 1.6rem;
+        }
+        .card-suit {
+            font-size: 1.2rem;
+        }
+        .center-suit {
+            font-size: 4rem;
+        }
+    }
+
     .card-back {
-        background: #1e1b4b;
-        border: 2.5px solid #000000;
-        padding: 4px;
-    }
-
-    .retro-card-back {
-        width: 100%;
-        height: 100%;
-        border-radius: 4px;
-        border: 1.5px solid #facc15;
-        background: radial-gradient(circle, #312e81 0%, #1e1b4b 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
-    }
-
-    .card-frame {
-        width: calc(100% - 6px);
-        height: calc(100% - 6px);
-        border: 1px dashed rgba(250, 204, 21, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+        border: 3px solid #000;
     }
 
     .card-pattern {
+        position: relative;
+        width: 100%;
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .retro-star {
-        font-size: 1.8rem;
-        color: #facc15;
-        text-shadow: 0 0 6px rgba(250, 204, 21, 0.8), 2px 2px 0px #000;
-        animation: pulseStar 2s ease-in-out infinite;
-    }
-
     .beer-icon {
-        font-size: 2rem;
-        filter: drop-shadow(1px 1px 0 #000);
+        font-size: 4rem;
+        opacity: 0.3;
+        filter: blur(1px);
     }
 
-    @keyframes pulseStar {
-        0%, 100% {
-            transform: scale(1);
-            opacity: 0.9;
-        }
-        50% {
-            transform: scale(1.15);
-            opacity: 1;
-        }
+    .pattern-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .pattern-dot {
+        width: 8px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        justify-self: center;
+        align-self: center;
     }
 </style>
