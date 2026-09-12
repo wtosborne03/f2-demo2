@@ -220,9 +220,7 @@
         style="transform: translate({ballX}px, {ballY}px) scale({isDragging
           ? 1.06
           : 1});"
-      >
-        <div class="w-4 h-4 rounded-full bg-[#b4b4b8] opacity-60" />
-      </div>
+      ></div>
     </div>
 
     <!-- Material Pill Buttons: Back and Select -->
