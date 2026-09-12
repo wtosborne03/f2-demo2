@@ -62,7 +62,7 @@
   };
 
   let allSuggestions = buildSuggestions();
-  let displayedSuggestions: string[] = shuffle(allSuggestions).slice(0, 8);
+  let displayedSuggestions: string[] = shuffle(allSuggestions).slice(0, 3);
 
   function refreshSuggestions() {
     displayedSuggestions = shuffle(allSuggestions).slice(0, 8);
@@ -106,11 +106,6 @@
   <!-- Minimal Header -->
   <div class="text-center space-y-1">
     <h1 class="text-xl font-bold tracking-tight">Add a Punishment</h1>
-    {#if !$isKeyboardVisible}
-      <p class="text-xs text-slate-400">
-        Enter a dare or pick a suggestion below.
-      </p>
-    {/if}
   </div>
 
   {#if !isSubmitted}
@@ -160,13 +155,6 @@
         class="flex items-center justify-between text-xs text-slate-400 font-medium px-0.5"
       >
         <span>Suggestions</span>
-        <button
-          type="button"
-          class="text-indigo-400 hover:text-indigo-300 transition-colors"
-          on:click={refreshSuggestions}
-        >
-          Shuffle
-        </button>
       </div>
 
       <div
