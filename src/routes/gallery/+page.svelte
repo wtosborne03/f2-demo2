@@ -7,6 +7,7 @@
     import GoogleSignInButton from "$lib/components/GoogleSignInButton.svelte";
     import SpotifySignInButton from "$lib/components/SpotifySignInButton.svelte";
     import AppleSignInButton from "$lib/components/AppleSignInButton.svelte";
+    import TwitchSignInButton from "$lib/components/TwitchSignInButton.svelte";
     import { toaster } from "$lib/util/toaster";
     import { apiClient } from "$lib/backend/axios";
     import { browser } from "$app/environment";
@@ -66,6 +67,31 @@
         } catch (error) {
             toaster.error({
                 title: "Spotify Sign-In Failed",
+                description:
+                    error instanceof Error ? error.message : String(error),
+            });
+        }
+    };
+
+    const signInWithTwitch = async () => {
+        try {
+            const { data, error } = await signIn.social({
+                provider: "twitch",
+                callbackURL: `${window.location.origin}/gallery`,
+            });
+            if (error) {
+                toaster.error({
+                    title: "Twitch Sign-In Failed",
+                    description: error.message,
+                });
+                return;
+            }
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        } catch (error) {
+            toaster.error({
+                title: "Twitch Sign-In Failed",
                 description:
                     error instanceof Error ? error.message : String(error),
             });
@@ -138,6 +164,7 @@
                         <GoogleSignInButton onClick={signInWithGoogle} />
                         <SpotifySignInButton onClick={signInWithSpotify} />
                         <AppleSignInButton onClick={signInWithApple} />
+                        <TwitchSignInButton onClick={signInWithTwitch} />
                     </div>
                 </div>
             </Card>

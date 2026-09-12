@@ -4,6 +4,7 @@
     import { toaster } from "$lib/util/toaster";
     import GoogleSignInButton from "./GoogleSignInButton.svelte";
     import AppleSignInButton from "./AppleSignInButton.svelte";
+    import TwitchSignInButton from "./TwitchSignInButton.svelte";
     import { sideBarOpen } from "../../stores/sidebar";
     import SpotifySignInButton from "./SpotifySignInButton.svelte";
     import { Icon, NavigationRail } from "m3-svelte";
@@ -87,6 +88,32 @@
         }
     };
 
+    const signInWithTwitch = async () => {
+        try {
+            const redirectTo = `${window.location.origin}/`;
+            const { data, error } = await signIn.social({
+                provider: "twitch",
+                callbackURL: redirectTo,
+            });
+            if (error) {
+                toaster.error({
+                    title: "Twitch Sign-In Failed",
+                    description: error.message,
+                });
+                return;
+            }
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        } catch (error) {
+            toaster.error({
+                title: "Twitch Sign-In Failed",
+                description:
+                    error instanceof Error ? error.message : String(error),
+            });
+        }
+    };
+
     const signInWithApple = async () => {
         try {
             const { data, error } = await signIn.social({
@@ -149,6 +176,7 @@
                 <div class="w-full flex flex-col gap-3">
                     <GoogleSignInButton onClick={signInWithGoogle} />
                     <AppleSignInButton onClick={signInWithApple} />
+                    <TwitchSignInButton onClick={signInWithTwitch} />
                 </div>
             </div>
         {/if}
