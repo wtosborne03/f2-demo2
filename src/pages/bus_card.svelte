@@ -120,7 +120,26 @@
 
   let timeouts: any[] = [];
 
+  const broadcastDeck = (customCards?: Card[], customRound?: number, isFailed?: boolean) => {
+    try {
+      const activeCards = (customCards || cards).map((c) => ({
+        color: c.color,
+        value: c.value,
+        type: c.type,
+        flipped: c.flipped,
+      }));
+      gameClient.sendPlayerInput("bus_cards", {
+        cards: activeCards,
+        round_progress: customRound !== undefined ? customRound : round_progress,
+        failed: isFailed !== undefined ? isFailed : failed,
+      });
+    } catch (e) {
+      console.warn("Error broadcasting bus cards:", e);
+    }
+  };
+
   const failRound = () => {
+    broadcastDeck(cards, round_progress, true);
     const t1 = setTimeout(
       () => {
         canContinue = true;
@@ -130,6 +149,7 @@
     const t2 = setTimeout(() => {
       gameClient.sendPlayerInput("photoReady");
       failed = true;
+      broadcastDeck(cards, round_progress, true);
     }, 1500);
     timeouts.push(t1, t2);
   };
@@ -141,6 +161,7 @@
     }, 800);
 
     const new_round = round_progress + 1;
+    broadcastDeck(cards, new_round, false);
     if (new_round == 4) {
       //won game
       gameClient.sendPlayerInput("confirm");
@@ -148,6 +169,7 @@
     round_progress = -1;
     const t2 = setTimeout(() => {
       round_progress = new_round;
+      broadcastDeck(cards, new_round, false);
     }, 1500);
     timeouts.push(t1, t2);
   };
@@ -164,6 +186,7 @@
       const new_card = getRandomCard();
       cards = [...cards, new_card];
     }
+    broadcastDeck(cards, 0, false);
   };
 
   const chooseColor = (event: Event) => {
@@ -171,6 +194,7 @@
     let current_cards = cards.slice();
     cards[0].flipped = true;
     cards = current_cards;
+    broadcastDeck(cards, 0, false);
 
     const chosen_color = (event.currentTarget as HTMLButtonElement).value;
     if (chosen_color === cards[0].color) {
@@ -184,6 +208,7 @@
     let current_cards = cards.slice();
     cards[1].flipped = true;
     cards = current_cards;
+    broadcastDeck(cards, 1, false);
 
     const chosen_position = (event.currentTarget as HTMLButtonElement).value;
     if (chosen_position == "higher") {
@@ -212,6 +237,7 @@
     let current_cards = cards.slice();
     cards[2].flipped = true;
     cards = current_cards;
+    broadcastDeck(cards, 2, false);
 
     const chosen_space = (event.currentTarget as HTMLButtonElement).value;
     if (chosen_space == "outside") {
@@ -240,6 +266,7 @@
     let current_cards = cards.slice();
     cards[3].flipped = true;
     cards = current_cards;
+    broadcastDeck(cards, 3, false);
 
     const chosen_suite = (event.currentTarget as HTMLButtonElement).value;
     if (chosen_suite == "spade" && cards[3].type == "♠️") {
@@ -270,50 +297,72 @@
       {#if m_data.drinking}
         <Drink prompt={"Drink."} />
         <button
-          class="action-button restart-button"
+          class="retro-action-btn restart-button"
           disabled={!canContinue}
           on:click={startGame}
           in:scale={{ duration: 400, delay: 200, easing: bounceOut }}
         >
           <span class="button-emoji">🔄</span>
-          I have drank. Give me a new deck.
+          <span>I HAVE DRANK • NEW DECK</span>
         </button>
       {:else}
         <div
           class="fail-content"
           in:scale={{ duration: 500, easing: elasticOut }}
         >
-          <h1 class="fail-title">You Failed!</h1>
-          <span class="fail-emoji">😞</span>
-          <p class="fail-subtitle">Try Again</p>
+          <div class="fail-badge">CRASH!</div>
+          <h1 class="fail-title">SPUN OUT!</h1>
+          <span class="fail-emoji">💥🚌💥</span>
+          <p class="fail-subtitle">RESETTING TO CARD 1</p>
         </div>
         <button
-          class="action-button restart-button"
+          class="retro-action-btn restart-button"
           disabled={!canContinue}
           on:click={startGame}
           in:scale={{ duration: 400, delay: 300, easing: bounceOut }}
         >
           <span class="button-emoji">🔄</span>
-          Give me a new deck
+          <span>GET NEW DECK</span>
         </button>
       {/if}
     </div>
   {:else}
     <div class="game-content">
-      <h1 class="game-title" in:fade={{ duration: 300 }}>
-        <span class="title-emoji">🚌</span>
-        Ride the Bus
-      </h1>
+      <!-- 90s Vintage Arcade Marquee Header -->
+      <div class="arcade-header" in:fade={{ duration: 300 }}>
+        <div class="arcade-marquee">
+          <span class="retro-dot">●</span>
+          <span class="header-title">BUS RIDE</span>
+          <span class="retro-dot">●</span>
+        </div>
+        <div class="stage-pill">
+          {#if round_progress === 0}
+            STAGE 1 OF 4 • RED OR BLACK?
+          {:else if round_progress === 1}
+            STAGE 2 OF 4 • HIGHER OR LOWER?
+          {:else if round_progress === 2}
+            STAGE 3 OF 4 • OUTSIDE OR BETWEEN?
+          {:else if round_progress === 3}
+            STAGE 4 OF 4 • GUESS THE SUIT!
+          {:else if round_progress === 4}
+            STAGE CLEAR • BUS MASTER!
+          {:else}
+            STAGE ADVANCE...
+          {/if}
+        </div>
+      </div>
 
+      <!-- 4 Cards Rack Section -->
       <div class="cards-section">
         <div class="cards-container">
           {#each cards as card, index}
             <div
               class="card-wrapper"
+              class:active-card={index === round_progress}
               in:fly={{
-                y: -50,
-                duration: 500,
-                delay: index * 100,
+                y: -30,
+                duration: 400,
+                delay: index * 80,
               }}
             >
               {#if card == cards[round_progress]}
@@ -324,8 +373,10 @@
                     easing: bounceOut,
                   }}
                 >
-                  👇
+                  ▼
                 </div>
+              {:else}
+                <div class="pointer-placeholder"></div>
               {/if}
               <Card
                 color={card.color}
@@ -334,135 +385,132 @@
                 flipped={card.flipped}
                 drinking={m_data.drinking}
               />
+              <div class="step-num">#{index + 1}</div>
             </div>
           {/each}
         </div>
       </div>
 
+      <!-- Controls Section -->
       <div class="controls-section">
-        {#if round_progress >= 0 && round_progress < 4}
-          <div class="question-text" in:fade={{ duration: 300 }}>
-            Will this card be:
-          </div>
-        {/if}
-
         {#if round_progress === -1}
           <div class="loading-indicator">
-            <div class="spinner"></div>
+            <div class="retro-spinner"></div>
+            <span class="loading-text">DEALING...</span>
           </div>
         {:else if round_progress === 0}
-          <div class="button-group" in:fly={{ y: 50, duration: 400 }}>
+          <div class="button-group" in:fly={{ y: 30, duration: 350 }}>
             <button
               type="button"
               value="red"
-              class="choice-button red-button"
+              class="retro-btn red-btn"
               on:click={chooseColor}
             >
-              <span class="button-icon">🔴</span>
-              Red
+              <span class="btn-icon">♦</span>
+              <span>RED</span>
             </button>
             <button
               value="black"
               type="button"
-              class="choice-button black-button"
+              class="retro-btn black-btn"
               on:click={chooseColor}
             >
-              <span class="button-icon">⚫</span>
-              Black
+              <span class="btn-icon">♠</span>
+              <span>BLACK</span>
             </button>
           </div>
         {:else if round_progress === 1}
-          <div class="button-group vertical" in:fly={{ y: 50, duration: 400 }}>
+          <div class="button-group vertical" in:fly={{ y: 30, duration: 350 }}>
             <button
               value="higher"
               type="button"
-              class="choice-button primary-button"
+              class="retro-btn cyan-btn"
               on:click={choosePosition}
             >
               <Icon font-size="2rem" icon="icon-park-solid:up-two" />
-              Higher
+              <span>HIGHER</span>
             </button>
             <button
               value="same"
               type="button"
-              class="choice-button primary-button"
+              class="retro-btn yellow-btn"
               on:click={choosePosition}
             >
               <Icon font-size="2rem" icon="material-symbols:equal-rounded" />
-              Same
+              <span>SAME VALUE</span>
             </button>
             <button
               value="lower"
               type="button"
-              class="choice-button primary-button"
+              class="retro-btn purple-btn"
               on:click={choosePosition}
             >
               <Icon font-size="2rem" icon="icon-park-solid:down-two" />
-              Lower
+              <span>LOWER</span>
             </button>
           </div>
         {:else if round_progress === 2}
-          <div class="button-group" in:fly={{ y: 50, duration: 400 }}>
+          <div class="button-group" in:fly={{ y: 30, duration: 350 }}>
             <button
               value="outside"
-              class="choice-button secondary-button"
+              class="retro-btn orange-btn"
               on:click={chooseSpace}
             >
-              <span class="button-icon">↔️</span>
-              Outside
+              <span class="btn-icon">◀ ▶</span>
+              <span>OUTSIDE</span>
             </button>
             <button
               value="between"
-              class="choice-button secondary-button"
+              class="retro-btn cyan-btn"
               on:click={chooseSpace}
             >
-              <span class="button-icon">🎯</span>
-              In Between
+              <span class="btn-icon">▶ ◀</span>
+              <span>IN BETWEEN</span>
             </button>
           </div>
         {:else if round_progress === 3}
-          <div class="button-grid" in:fly={{ y: 50, duration: 400 }}>
+          <div class="button-grid" in:fly={{ y: 30, duration: 350 }}>
             <button
               value="spade"
-              class="choice-button suit-button"
+              class="retro-btn suit-btn dark-suit"
               on:click={chooseSuite}
             >
-              <span class="suit-icon">♠️</span>
-              Spade
+              <span class="suit-icon">♠</span>
+              <span>SPADES</span>
             </button>
             <button
               value="hearts"
-              class="choice-button suit-button"
+              class="retro-btn suit-btn red-suit"
               on:click={chooseSuite}
             >
-              <span class="suit-icon">♥️</span>
-              Hearts
+              <span class="suit-icon">♥</span>
+              <span>HEARTS</span>
             </button>
             <button
               value="diamonds"
-              class="choice-button suit-button"
+              class="retro-btn suit-btn red-suit"
               on:click={chooseSuite}
             >
-              <span class="suit-icon">♦️</span>
-              Diamonds
+              <span class="suit-icon">♦</span>
+              <span>DIAMONDS</span>
             </button>
             <button
               value="clubs"
-              class="choice-button suit-button"
+              class="retro-btn suit-btn dark-suit"
               on:click={chooseSuite}
             >
-              <span class="suit-icon">♣️</span>
-              Clubs
+              <span class="suit-icon">♣</span>
+              <span>CLUBS</span>
             </button>
           </div>
         {:else if round_progress === 4}
           <div
             class="victory-message"
-            in:scale={{ duration: 600, easing: elasticOut }}
+            in:scale={{ duration: 500, easing: elasticOut }}
           >
-            <span class="victory-emoji">🎉</span>
-            <h2 class="victory-text">You rode the bus!</h2>
-            <span class="victory-bus">🚌✨</span>
+            <span class="victory-emoji">👑</span>
+            <h2 class="victory-text">YOU RODE THE BUS!</h2>
+            <div class="victory-sub">1ST PLACE CHAMPION! 🚌✨</div>
           </div>
         {/if}
       </div>
@@ -472,10 +520,10 @@
   {#if showSuccess}
     <div
       class="success-overlay"
-      in:scale={{ duration: 300 }}
-      out:fade={{ duration: 200 }}
+      in:scale={{ duration: 250 }}
+      out:fade={{ duration: 180 }}
     >
-      <span class="success-emoji">✅</span>
+      <div class="success-banner">CORRECT! ★</div>
     </div>
   {/if}
 </div>
@@ -485,260 +533,259 @@
     position: relative;
     width: 100vw;
     height: 100vh;
-    height: 100dvh; /* Dynamic viewport height for mobile */
+    height: 100dvh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    background: #0f1026;
+    background-image: 
+      radial-gradient(#2c1a4d 15%, transparent 16%),
+      radial-gradient(#1e153b 15%, #0d0a1a 85%);
+    background-size: 24px 24px, 100% 100%;
+    color: #ffffff;
+    font-family: "Arial Black", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   .game-content {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 16px;
-    gap: 16px;
+    padding: 12px 14px;
+    gap: 10px;
+    box-sizing: border-box;
   }
 
-  .game-title {
+  /* 90s Arcade Marquee Header */
+  .arcade-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .arcade-marquee {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffe600;
+    color: #000000;
+    padding: 6px 18px;
+    border: 3px solid #000000;
+    border-radius: 6px;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  .header-title {
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .retro-dot {
+    font-size: 0.8rem;
+    color: #ff007f;
+    animation: blinkDot 1s infinite alternate;
+  }
+
+  @keyframes blinkDot {
+    0% { opacity: 0.2; }
+    100% { opacity: 1; }
+  }
+
+  .stage-pill {
+    background: #18182e;
+    color: #00f0ff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border: 2px solid #00f0ff;
+    border-radius: 20px;
+    box-shadow: 2px 2px 0px #000000;
     text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #f1f5f9;
-    margin: 0;
-    padding: 12px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    animation: titlePulse 2s ease-in-out infinite;
   }
 
-  @keyframes titlePulse {
-    0%,
-    100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-  }
-
-  .title-emoji {
-    display: inline-block;
-    font-size: 2.5rem;
-    margin-right: 8px;
-    animation: busMove 3s ease-in-out infinite;
-  }
-
-  @keyframes busMove {
-    0%,
-    100% {
-      transform: translateX(0) rotate(0deg);
-    }
-    25% {
-      transform: translateX(5px) rotate(2deg);
-    }
-    75% {
-      transform: translateX(-5px) rotate(-2deg);
-    }
-  }
-
+  /* Cards Rack */
   .cards-section {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 220px;
+    min-height: 180px;
   }
 
   .cards-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     width: 100%;
+    max-width: 420px;
   }
 
   .card-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    transition: transform 0.2s ease;
+  }
+
+  .card-wrapper.active-card {
+    transform: scale(1.06);
   }
 
   .pointer-indicator {
-    font-size: 2rem;
-    animation: bounce 1s ease-in-out infinite;
+    font-size: 1.1rem;
+    color: #ffe600;
+    text-shadow: 0 0 6px #ffe600, 1px 1px 0 #000;
+    animation: bouncePointer 0.8s ease-in-out infinite;
+    line-height: 1;
+    height: 18px;
   }
 
-  @keyframes bounce {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
+  .pointer-placeholder {
+    height: 18px;
   }
 
+  @keyframes bouncePointer {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .step-num {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #94a3b8;
+    background: #1e1b4b;
+    border: 1.5px solid #000;
+    padding: 1px 6px;
+    border-radius: 4px;
+    box-shadow: 1px 1px 0 #000;
+  }
+
+  .card-wrapper.active-card .step-num {
+    background: #ffe600;
+    color: #000;
+    border-color: #000;
+  }
+
+  /* 90s Arcade Buttons */
   .controls-section {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding-bottom: 16px;
-  }
-
-  .question-text {
-    text-align: center;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #cbd5e1;
+    gap: 12px;
+    padding-bottom: 8px;
   }
 
   .button-group {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
     justify-content: center;
   }
 
   .button-group.vertical {
     flex-direction: column;
-    max-width: 400px;
+    max-width: 380px;
     margin: 0 auto;
   }
 
   .button-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
     margin: 0 auto;
   }
 
-  .choice-button {
-    padding: 18px 24px;
-    font-size: 1.125rem;
-    font-weight: bold;
-    border-radius: 12px;
-    border: none;
+  /* Tactile 90s Push-Buttons */
+  .retro-btn {
+    border: 3px solid #000000;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 64px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    min-height: 58px;
+    box-shadow: 0 5px 0px #000000;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .choice-button:active {
-    transform: scale(0.95);
+  .retro-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0px #000000;
   }
 
-  .choice-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+  .red-btn {
+    background: #ef4444;
+    color: #ffffff;
+    flex: 1;
+    border-color: #000;
   }
 
-  .red-button {
-    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-    color: white;
+  .black-btn {
+    background: #0f172a;
+    color: #ffffff;
+    flex: 1;
+    border-color: #000;
+  }
+
+  .cyan-btn {
+    background: #06b6d4;
+    color: #000000;
     flex: 1;
   }
 
-  .black-button {
-    background: linear-gradient(135deg, #1f2937 0%, #000000 100%);
-    color: white;
+  .yellow-btn {
+    background: #facc15;
+    color: #000000;
     flex: 1;
   }
 
-  .primary-button {
-    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-    color: white;
-  }
-
-  .secondary-button {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-    color: white;
+  .purple-btn {
+    background: #a855f7;
+    color: #ffffff;
     flex: 1;
   }
 
-  .suit-button {
-    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-    color: white;
+  .orange-btn {
+    background: #f97316;
+    color: #000000;
+    flex: 1;
   }
 
-  .button-icon,
-  .button-emoji,
-  .suit-icon {
-    font-size: 1.5rem;
+  .suit-btn {
+    font-size: 1.05rem;
+    padding: 12px 10px;
   }
 
-  .loading-indicator {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
+  .suit-btn.dark-suit {
+    background: #1e293b;
+    color: #ffffff;
   }
 
-  .spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  .suit-btn.red-suit {
+    background: #dc2626;
+    color: #ffffff;
   }
 
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
+  .btn-icon, .suit-icon {
+    font-size: 1.4rem;
+    line-height: 1;
   }
 
-  .victory-message {
-    text-align: center;
-    padding: 24px;
-    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-    border-radius: 16px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  .victory-emoji {
-    font-size: 4rem;
-    display: block;
-    animation: rotate 2s ease-in-out infinite;
-  }
-
-  @keyframes rotate {
-    0%,
-    100% {
-      transform: rotate(0deg) scale(1);
-    }
-    25% {
-      transform: rotate(-10deg) scale(1.1);
-    }
-    75% {
-      transform: rotate(10deg) scale(1.1);
-    }
-  }
-
-  .victory-text {
-    font-size: 1.75rem;
-    font-weight: bold;
-    color: white;
-    margin: 12px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .victory-bus {
-    font-size: 3rem;
-    display: block;
-    margin-top: 8px;
-    animation: busMove 3s ease-in-out infinite;
-  }
-
+  /* 90s Failure Screen */
   .failure-screen {
     display: flex;
     flex-direction: column;
@@ -746,145 +793,178 @@
     justify-content: center;
     height: 100%;
     padding: 24px;
-    gap: 24px;
-  }
-
-  .fail-content {
+    gap: 20px;
     text-align: center;
   }
 
+  .fail-badge {
+    display: inline-block;
+    background: #ff0055;
+    color: #fff;
+    padding: 4px 14px;
+    border: 3px solid #000;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 900;
+    box-shadow: 3px 3px 0 #000;
+    margin-bottom: 8px;
+    animation: flashBadge 0.6s infinite alternate;
+  }
+
+  @keyframes flashBadge {
+    0% { transform: scale(0.95); background: #ff0055; }
+    100% { transform: scale(1.05); background: #ffe600; color: #000; }
+  }
+
   .fail-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #ef4444;
-    margin: 0 0 16px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #ff0055;
+    margin: 0;
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0px #000000;
   }
 
   .fail-emoji {
-    font-size: 6rem;
+    font-size: 4.5rem;
     display: block;
-    margin: 16px 0;
-    animation: shake 0.5s ease-in-out;
-  }
-
-  @keyframes shake {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-    25% {
-      transform: translateX(-10px) rotate(-5deg);
-    }
-    75% {
-      transform: translateX(10px) rotate(5deg);
-    }
+    margin: 10px 0;
   }
 
   .fail-subtitle {
-    font-size: 1.5rem;
-    color: #f1f5f9;
-    font-weight: 600;
+    font-size: 1.1rem;
+    color: #cbd5e1;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0;
   }
 
-  .action-button {
-    padding: 20px 32px;
-    font-size: 1.125rem;
-    font-weight: bold;
+  .retro-action-btn {
+    border: 3px solid #000;
     border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-    color: white;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    padding: 16px 28px;
+    font-family: inherit;
+    font-size: 1.15rem;
+    font-weight: 900;
+    background: #ffe600;
+    color: #000;
+    box-shadow: 0 6px 0 #000;
     display: flex;
     align-items: center;
-    gap: 12px;
     justify-content: center;
-    min-height: 64px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
   }
 
-  .action-button:not(:disabled):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  .retro-action-btn:not(:disabled):active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #000;
   }
 
-  .action-button:not(:disabled):active {
-    transform: scale(0.95);
-  }
-
-  .action-button:disabled {
-    opacity: 0.5;
+  .retro-action-btn:disabled {
+    opacity: 0.4;
     cursor: not-allowed;
+    background: #64748b;
+    color: #1e293b;
   }
 
+  /* Success Flash Overlay */
   .success-overlay {
     position: fixed;
-    top: 30%;
+    top: 25%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 1000;
+    z-index: 999;
     pointer-events: none;
   }
 
-  .success-emoji {
+  .success-banner {
+    background: #10b981;
+    color: #ffffff;
+    padding: 8px 24px;
+    font-size: 1.8rem;
+    font-weight: 900;
+    border: 3px solid #000;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 #000;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0 #000;
+  }
+
+  /* Victory Message */
+  .victory-message {
+    text-align: center;
+    padding: 18px;
+    background: #10b981;
+    border: 3px solid #000000;
+    border-radius: 12px;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  .victory-emoji {
     font-size: 3rem;
-    display: block;
-    filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.8));
+  }
+
+  .victory-text {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 4px 0;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #000;
+  }
+
+  .victory-sub {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #ffe600;
+    letter-spacing: 1px;
+  }
+
+  /* Loading State */
+  .loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+  }
+
+  .retro-spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #334155;
+    border-top-color: #00f0ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #00f0ff;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   @media (max-width: 380px) {
-    .game-title {
-      font-size: 1.5rem;
+    .header-title {
+      font-size: 1.15rem;
     }
 
-    .title-emoji {
-      font-size: 2rem;
-    }
-
-    .choice-button {
-      padding: 14px 18px;
-      font-size: 1rem;
-      min-height: 56px;
-    }
-
-    .button-icon,
-    .button-emoji,
-    .suit-icon {
-      font-size: 1.25rem;
+    .retro-btn {
+      font-size: 0.95rem;
+      min-height: 52px;
+      padding: 10px 12px;
     }
 
     .cards-container {
-      gap: 12px;
-    }
-
-    .victory-text {
-      font-size: 1.5rem;
-    }
-
-    .fail-title {
-      font-size: 2rem;
-    }
-
-    .fail-emoji {
-      font-size: 4rem;
-    }
-  }
-
-  @media (max-height: 700px) {
-    .cards-section {
-      min-height: 180px;
-    }
-
-    .game-title {
-      padding: 8px 0;
-    }
-
-    .choice-button {
-      min-height: 56px;
-      padding: 14px 20px;
+      gap: 5px;
     }
   }
 </style>
