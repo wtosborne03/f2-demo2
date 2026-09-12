@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   interface TopicData {
@@ -8,13 +7,13 @@
     message?: string;
   }
 
-  const pData = (get(gameState).page_data || {}) as TopicData;
-  const isPicker = !pData.picker || pData.picker === get(gameState).name;
+  $: pData = ($gameState?.page_data || {}) as TopicData;
+  $: isPicker = !pData?.picker || pData.picker === $gameState?.name;
 
   let topicInput = "";
   let isSubmitted = false;
 
-  const suggestions = pData.suggestions || [
+  $: suggestions = pData?.suggestions || [
     "90s Cartoon Villains",
     "Dive Bar Cocktails",
     "Trash TV & Reality Drama",

@@ -1,19 +1,30 @@
 <script lang="ts">
-  import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   interface AnswerPageData {
-    question: string;
-    answers: string[];
+    question?: string;
+    answers?: string[];
     roundNumber?: number;
     totalRounds?: number;
   }
 
-  const pData = (get(gameState).page_data || {}) as AnswerPageData;
+  $: pData = ($gameState?.page_data || {}) as AnswerPageData;
+  $: answers = (pData?.answers || []) as string[];
+  $: question = pData?.question || "";
+  $: roundNumber = pData?.roundNumber || 1;
+  $: totalRounds = pData?.totalRounds || 4;
+
   const letters = ["A", "B", "C", "D"];
 
   let selectedIdx: number | null = null;
   let isSubmitted = false;
+  let lastQuestion = "";
+
+  $: if (question && question !== lastQuestion) {
+    lastQuestion = question;
+    selectedIdx = null;
+    isSubmitted = false;
+  }
 
   function submitAnswer(idx: number) {
     if (isSubmitted) return;
@@ -32,20 +43,20 @@
   <!-- Top Round Badge -->
   <div class="inline-flex items-center gap-2 px-3 py-1 mb-3 bg-[#1c1917] text-[#f59e0b] border border-[#78350f] rounded text-xs font-bold uppercase tracking-wider">
     <span>🍺</span>
-    <span>ROUND {pData.roundNumber || 1} OF {pData.totalRounds || 4}</span>
+    <span>ROUND {roundNumber} OF {totalRounds}</span>
   </div>
 
   {#if !isSubmitted}
     <!-- Question Card (Dark Charcoal Slate with Chalk Highlight) -->
     <div class="w-full max-w-sm bg-[#0f172a] border-2 border-[#1e293b] rounded-lg p-4 mb-4 shadow-xl text-center">
       <div class="text-sm font-bold text-[#f8fafc] leading-snug tracking-wide">
-        {pData.question || "Look at the TV screen for the question..."}
+        {question || "Look at the TV screen for the question..."}
       </div>
     </div>
 
     <!-- 4 Tactile Coaster Answer Options -->
     <div class="w-full max-w-sm flex flex-col gap-3">
-      {#each pData.answers as answer, i}
+      {#each answers as answer, i}
         <button
           type="button"
           on:click={() => submitAnswer(i)}
@@ -53,7 +64,7 @@
         >
           <!-- Metal Bottle Cap Letter Badge -->
           <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#f59e0b] via-[#b45309] to-[#78350f] border-2 border-[#fbbf24] shadow-md flex items-center justify-center font-black text-sm text-white shrink-0">
-            {letters[i]}
+            {letters[i] || `${i + 1}`}
           </div>
 
           <!-- Answer text -->
@@ -73,7 +84,7 @@
         ANSWER LOCKED IN!
       </div>
       <div class="text-lg font-black uppercase mt-1 mb-2">
-        "{pData.answers[selectedIdx ?? 0]}"
+        "{answers[selectedIdx ?? 0] || 'LOCKED IN'}"
       </div>
       <div class="mt-3 px-3 py-1.5 bg-[#1c1917] text-[#f59e0b] text-xs font-bold uppercase rounded inline-block">
         WATCH TV FOR THE REVEAL

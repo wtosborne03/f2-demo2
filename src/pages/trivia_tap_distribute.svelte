@@ -1,21 +1,30 @@
 <script lang="ts">
-  import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
 
   interface DistributeData {
-    availableDrinks: number;
-    losers: string[];
+    availableDrinks?: number;
+    losers?: string[];
   }
 
-  const pData = (get(gameState).page_data || {}) as DistributeData;
-  const availableTotal = pData.availableDrinks || 1;
-  const losers = pData.losers || [];
+  $: pData = ($gameState?.page_data || {}) as DistributeData;
+  $: availableTotal = pData?.availableDrinks || 1;
+  $: losers = pData?.losers || [];
 
   // Track drink allocation per losing player
   let allocations: Record<string, number> = {};
-  losers.forEach((l) => {
-    allocations[l] = 0;
-  });
+  let prevLosersKey = "";
+
+  $: {
+    const key = (losers || []).join(",");
+    if (key !== prevLosersKey) {
+      prevLosersKey = key;
+      const next: Record<string, number> = {};
+      (losers || []).forEach((l) => {
+        next[l] = 0;
+      });
+      allocations = next;
+    }
+  }
 
   // Calculate allocated vs remaining
   $: totalAllocated = Object.values(allocations).reduce((sum, n) => sum + n, 0);
