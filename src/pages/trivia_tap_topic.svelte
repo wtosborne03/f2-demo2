@@ -13,13 +13,12 @@
   let topicInput = "";
   let isSubmitted = false;
 
-  $: suggestions = pData?.suggestions || [
-    "90s Cartoon Villains",
-    "Dive Bar Cocktails",
-    "Trash TV & Reality Drama",
-    "Florida Man Headlines",
-    "Questionable Life Choices",
-    "Forgotten 2000s Pop Hits",
+  $: suggestions = [
+    "College Football",
+    "Cocktail Culture",
+    "Henry Ford",
+    "Charlie Kirk Facts",
+    "Zambonis",
   ];
 
   function submitTopic(topicToSubmit: string) {
@@ -73,7 +72,9 @@
         </form>
 
         <!-- House Suggestions -->
-        <div class="text-xs font-bold text-base-content/60 uppercase tracking-wider mb-2">
+        <div
+          class="text-xs font-bold text-base-content/60 uppercase tracking-wider mb-2"
+        >
           OR TAP A SUGGESTION:
         </div>
         <div class="flex flex-wrap gap-1.5">
@@ -94,7 +95,9 @@
         class="w-full bg-base-200/90 text-base-content border border-amber-500/40 p-6 shadow-xl rounded-2xl text-center"
       >
         <div class="text-4xl mb-2">🍻</div>
-        <div class="text-xs uppercase font-black tracking-widest text-amber-500">
+        <div
+          class="text-xs uppercase font-black tracking-widest text-amber-500"
+        >
           TOPIC LOCKED IN!
         </div>
         <h2 class="text-2xl font-black uppercase mt-2 mb-2">
@@ -111,11 +114,10 @@
       class="w-full bg-base-200/90 text-base-content border border-base-content/15 p-6 shadow-xl rounded-2xl text-center"
     >
       <div class="text-4xl mb-3 animate-bounce">🍺</div>
-      <h2 class="text-lg font-black uppercase mb-1">
-        POURING THE DRAFT...
-      </h2>
+      <h2 class="text-lg font-black uppercase mb-1">POURING THE DRAFT...</h2>
       <p class="text-xs font-semibold text-base-content/70 leading-relaxed">
-        {pData.message || `Waiting for ${pData.picker || "the bar"} to pick tonight's topic...`}
+        {pData.message ||
+          `Waiting for ${pData.picker || "the bar"} to pick tonight's topic...`}
       </p>
     </div>
   {/if}
