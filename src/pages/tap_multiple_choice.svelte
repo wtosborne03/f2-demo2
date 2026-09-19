@@ -4,6 +4,7 @@
   $: m_data = ($gameState?.page_data || {}) as any;
   $: answers = (m_data?.answers || []) as string[];
   $: question = m_data?.question || "";
+  $: isTimedOut = m_data?.timedOut === true;
 
   const letters = ["A", "B", "C", "D"];
 
@@ -32,7 +33,23 @@
 <div
   class="flex flex-col justify-center items-center min-h-full w-full max-w-md mx-auto px-4 py-4 text-center select-none"
 >
-  {#if !isSubmitted}
+  {#if isTimedOut && !isSubmitted}
+    <!-- Timed Out Card -->
+    <div
+      class="w-full bg-error/20 text-base-content border-2 border-error p-6 shadow-xl rounded-xl text-center"
+    >
+      <div class="text-4xl mb-2">⏰ 🚨</div>
+      <div class="text-sm uppercase font-black tracking-widest text-error">
+        TIME'S UP!
+      </div>
+      <div class="text-xl font-black mt-2 mb-2">
+        TOO SLOW!
+      </div>
+      <div class="text-xs text-base-content/70 font-semibold">
+        You didn't lock in an answer in time. That's a drink!
+      </div>
+    </div>
+  {:else if !isSubmitted}
     <!-- Clean Question Card -->
     {#if question}
       <div
