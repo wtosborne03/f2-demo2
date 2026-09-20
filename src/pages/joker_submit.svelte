@@ -28,7 +28,7 @@
         class="textarea textarea-bordered w-full text-base"
         rows="4"
         bind:value={dareText}
-        placeholder={$gameState.page_data?.placeholder || "Type your dare here..."}
+        placeholder={"e.g. go outside and go 'goblin' on your neighbour."}
         maxlength={120}
         required
       ></textarea>
