@@ -1,12 +1,11 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
-  import { scale, fade } from "svelte/transition";
+  import { scale } from "svelte/transition";
 
   let m_data: any = {};
   let guessValue = 50;
   let submitted = false;
-  let imgFailed = false;
 
   // Retrieve the page_data
   m_data = get(gameState).page_data || {};
@@ -22,47 +21,54 @@
 </script>
 
 <div
-  class="kalshi-page w-full max-w-md mx-auto flex flex-col justify-center p-6 text-[#080c14] font-sans"
+  class="kalshi-page w-full max-w-md mx-auto flex flex-col justify-center p-5 font-sans"
 >
   {#if !submitted}
     <div class="w-full flex flex-col gap-5" in:scale={{ duration: 300 }}>
       <!-- Category Badge & Header -->
       <div class="text-center space-y-2">
         <span
-          class="inline-block px-4 py-1.5 k-badge text-xs font-bold tracking-wider uppercase rounded-sm"
+          class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border-[2px] border-[#11141A] shadow-[2px_2px_0px_#11141A] text-xs font-black tracking-widest uppercase rounded-full text-[#11141A]"
         >
+          <span
+            class="w-2 h-2 rounded-full bg-[#2563EB] inline-block border border-[#11141A]"
+          ></span>
           {m_data.category || "Prediction Market"}
         </span>
-        {#if m_data.subtitle}
-          <h1 class="text-xl font-black leading-tight text-[#080c14] px-2 mt-2">
-            {m_data.question || "Will the event happen?"}
-          </h1>
-        {:else}
-          <h1 class="text-md font-black leading-tight text-[#080c14] px-2 mt-2">
-            {m_data.question || "Will the event happen?"}
-          </h1>
-        {/if}
+        <h1
+          class="text-2xl font-black leading-tight text-[#11141A] px-2 mt-2 tracking-tight"
+        >
+          {m_data.question || "Will the event happen?"}
+        </h1>
         {#if m_data.subTitle}
-          <p class="text-xl text-[#080c14]/90 font-semibold tracking-wide">
+          <p
+            class="text-sm text-[#11141A]/80 font-bold tracking-wide border-l-[3px] border-[#2563EB] pl-2 text-left mx-2 mt-1"
+          >
             {m_data.subTitle}
           </p>
         {/if}
       </div>
 
-      <!-- Guess Display & Slider -->
-      <div class="space-y-6 bg-[#080c14]/10 p-4 rounded-2xl">
+      <!-- Guess Display & Slider Card -->
+      <div
+        class="bg-white border-[2.5px] border-[#11141A] shadow-[4px_4px_0px_#11141A] p-5 rounded-xl space-y-6"
+      >
         <div class="text-center">
+          <span
+            class="text-[11px] font-black uppercase tracking-widest text-[#11141A]/60"
+            >Your Estimate</span
+          >
           <div
-            class="text-6xl font-black tracking-tight k-accent-text mt-2 flex items-center justify-center"
+            class="text-6xl font-black tracking-tight text-[#11141A] mt-1 flex items-center justify-center font-mono"
           >
             <span>{guessValue}</span>
-            <span class="text-3xl opacity-60 font-medium ml-1">%</span>
+            <span class="text-3xl text-[#2563EB] font-black ml-1">%</span>
           </div>
         </div>
 
         <!-- Slider Track -->
-        <div class="space-y-4">
-          <div class="py-4 relative flex items-center w-full">
+        <div class="space-y-3">
+          <div class="py-2 relative flex items-center w-full">
             <input
               type="range"
               min="1"
@@ -74,7 +80,7 @@
 
           <!-- Ticks description -->
           <div
-            class="flex justify-between text-[10px] font-bold text-[#080c14]/60 px-2"
+            class="flex justify-between text-[11px] font-black text-[#11141A]/70 px-1 tracking-wider uppercase"
           >
             <span>NO (1%)</span>
             <span>UNSURE (50%)</span>
@@ -84,26 +90,26 @@
       </div>
 
       <!-- Action Button -->
-      <div class="px-2">
+      <div class="px-1">
         <button
           on:click={submitGuess}
-          class="w-full py-4 k-accent-bg font-black tracking-wider uppercase rounded-lg text-center text-sm cursor-pointer"
+          class="w-full py-4 bg-[#11141A] hover:bg-[#2563EB] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none text-white font-black tracking-widest uppercase rounded-lg text-sm border-[2.5px] border-[#11141A] shadow-[4px_4px_0px_#11141A] transition-all cursor-pointer"
         >
-          Lock In Guess
+          Lock In Estimate
         </button>
       </div>
     </div>
   {:else}
     <div
-      class="w-full flex flex-col items-center justify-center text-center gap-6 py-12"
+      class="w-full bg-white border-[2.5px] border-[#11141A] shadow-[4px_4px_0px_#11141A] rounded-xl flex flex-col items-center justify-center text-center gap-5 p-8 my-auto"
       in:scale={{ duration: 400, start: 0.9 }}
     >
       <div
-        class="w-20 h-20 bg-[#080c14]/10 k-accent-text rounded-full flex items-center justify-center"
+        class="w-16 h-16 bg-[#FFC82C] border-[2.5px] border-[#11141A] shadow-[3px_3px_0px_#11141A] rounded-full flex items-center justify-center text-[#11141A]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-10 w-10 animate-bounce"
+          class="h-8 w-8"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -117,14 +123,20 @@
         </svg>
       </div>
       <div class="space-y-2">
-        <h2 class="text-2xl font-bold text-[#080c14]">Estimate Locked!</h2>
-        <p class="text-[#080c14]/70 text-sm font-semibold">
-          Your guess of <strong class="k-accent-text text-lg font-black"
+        <h2
+          class="text-2xl font-black text-[#11141A] uppercase tracking-tight"
+        >
+          Estimate Locked!
+        </h2>
+        <p class="text-[#11141A]/80 text-sm font-bold">
+          Your estimate of <strong class="text-[#2563EB] text-xl font-black"
             >{guessValue}%</strong
           > is registered.
         </p>
-        <p class="text-[#080c14]/50 text-xs mt-2 font-bold">
-          Waiting for other players to submit...
+        <p
+          class="text-[#11141A]/50 text-xs font-black uppercase tracking-widest pt-2"
+        >
+          Look at the TV screen...
         </p>
       </div>
     </div>
@@ -132,56 +144,41 @@
 </div>
 
 <style>
-  :global(body:has(.kalshi-page)) {
-    background-color: #00dd94 !important;
-  }
-  :global(#main-background:has(.kalshi-page)) {
-    background-color: #00dd94 !important;
-    padding: 0 !important;
-  }
-
-  .k-badge {
-    background: rgba(8, 12, 20, 0.08);
-    color: #080c14;
-  }
-  .k-accent-text {
-    color: #080c14;
-  }
-  .k-accent-bg {
-    background: #080c14;
-    color: #00dd94;
-  }
-
-  /* Customizing range inputs inside webkit/moz browsers */
+  /* Customizing range inputs inside webkit/moz browsers — Bauhaus ruler track */
   input[type="range"]::-webkit-slider-runnable-track {
-    background: rgba(8, 12, 20, 0.15);
-    height: 12px;
-    border-radius: 9999px;
+    background: #11141A;
+    height: 6px;
+    border-radius: 3px;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: #080c14;
+    background: #FFC82C;
+    border: 2.5px solid #11141A;
+    box-shadow: 2px 2px 0px #11141A;
     cursor: pointer;
-    margin-top: -6px;
-    transition: transform 0.1s;
+    margin-top: -11px;
+    transition: transform 0.1s, background-color 0.1s;
   }
   input[type="range"]::-webkit-slider-thumb:active {
-    transform: scale(1.2);
+    transform: scale(1.15);
+    background: #2563EB;
   }
   input[type="range"]::-moz-range-track {
-    background: rgba(8, 12, 20, 0.15);
-    height: 12px;
-    border-radius: 9999px;
+    background: #11141A;
+    height: 6px;
+    border-radius: 3px;
   }
   input[type="range"]::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: #080c14;
+    background: #FFC82C;
+    border: 2.5px solid #11141A;
+    box-shadow: 2px 2px 0px #11141A;
     cursor: pointer;
   }
 </style>
