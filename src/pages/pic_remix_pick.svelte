@@ -65,16 +65,15 @@
             AI Prompt (e.g. 'as a cyberpunk warrior')
           </span>
         </div>
-        <input
-          type="text"
-          class="input input-bordered input-lg w-full font-semibold"
-          maxlength={128}
+        <textarea
+          class="textarea textarea-bordered textarea-lg w-full font-semibold h-32"
+          maxlength={512}
           placeholder="Type how you want to remix this photo..."
           bind:value={promptText}
-        />
+        ></textarea>
         <div class="label py-1 justify-end">
           <span class="label-text-alt text-xs text-base-content/50">
-            {promptText.length} / 128
+            {promptText.length} / 512
           </span>
         </div>
       </label>
