@@ -13,7 +13,7 @@
   import { isKeyboardVisible } from "$lib/stores/keyboard";
 
   // Toggle this to enable automatic cycling through screens for debugging
-  const debug = true;
+  const debug = false;
 
   let paused = false;
 
