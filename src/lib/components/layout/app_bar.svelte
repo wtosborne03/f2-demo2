@@ -122,7 +122,7 @@
     on:click={() => {
       sideBarOpen.set(true);
     }}
-    class="app-bar-container z-20 mx-4 mt-4 rounded-xl flex flex-row justify-between items-center p-3 hover:opacity-80 cursor-pointer"
+    class="app-bar-container z-20 mx-4 mt-3 rounded-none border-3 border-[#121212] shadow-[4px_4px_0px_#121212] flex flex-row justify-between items-center p-3 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#121212] transition-all cursor-pointer font-headline"
     class:flash
     style="--app-color: {color}; --timer-percent: {timerPercent}%; background-color: color(from {color} srgb r g b / 1.0); color: {textColor};"
   >
@@ -137,22 +137,22 @@
       ></div>
     {/if}
 
-    <!-- App Bar -->
+    <!-- App Bar Menu -->
     <div class="h-10 flex flex-col justify-center items-start w-20 flex-none">
-      <Icon icon="material-symbols:menu-rounded" font-size="3rem" />
+      <Icon icon="material-symbols:menu-rounded" font-size="2.75rem" />
     </div>
 
     <span class="text-xl flex flex-col justify-center items-center gap-0">
-      <div class="flex flex-col justify-center items-center h-10">
+      <div class="flex flex-col justify-center items-center h-10 tracking-tight font-extrabold uppercase">
         {name}
         {#if admin}
-          <span class="text-sm opacity-70"> admin </span>
+          <span class="text-xs font-mono tracking-widest uppercase opacity-85"> admin </span>
         {/if}
       </div>
     </span>
 
     <div
-      class="text-xl flex flex-row items-center justify-end gap-2.5 md:gap-3.5 min-w-20 h-12 flex-none font-semibold"
+      class="text-xl flex flex-row items-center justify-end gap-2.5 md:gap-3.5 min-w-20 h-12 flex-none font-bold"
     >
       {#if drinks > 0}
         <span
@@ -166,7 +166,7 @@
       {/if}
 
       <span
-        class="flex flex-row items-center gap-1 score"
+        class="flex flex-row items-center gap-1 score font-headline"
         aria-live="polite"
         aria-atomic="true"
       >
@@ -182,10 +182,10 @@
 
   {#if team != ""}
     <div
-      class="flex flex-row items-center text-lg font-semibold justify-between border-opacity-60 border-white p-2 h-10 border-b-2 mx-6"
+      class="flex flex-row items-center text-sm font-bold uppercase tracking-wider justify-between bg-white text-black border-x-3 border-b-3 border-[#121212] px-4 py-1.5 shadow-[4px_4px_0px_#121212] mx-4"
     >
-      <div class="opacity-60">Team:</div>
-      <div class="font-bold" style:color={team}>
+      <div class="opacity-80">TEAM:</div>
+      <div class="font-extrabold" style:color={team}>
         {team}
       </div>
     </div>
@@ -226,8 +226,9 @@
     bottom: 0;
     left: 0;
     height: 6px;
-    border-radius: 0 2px 2px 0;
-    background: rgba(255, 255, 255, 0.85);
+    border-radius: 0;
+    background: #ffffff;
+    border-top: 2px solid #121212;
     transition: width 0.5s linear;
     pointer-events: none;
     z-index: 1;
@@ -235,21 +236,20 @@
 
   .timer-track.critical {
     height: 7px;
-    background: rgba(239, 68, 68, 0.95);
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
-    animation: pulse-critical 0.6s ease-in-out infinite alternate;
+    background: #d02020;
+    animation: pulse-critical 0.4s ease-in-out infinite alternate;
   }
 
   @keyframes pulse-critical {
     0% {
-      opacity: 0.7;
+      opacity: 0.6;
     }
     100% {
       opacity: 1;
     }
   }
 
-  /* Container flash: gentle scale + glow */
+  /* Container flash: scale */
   .flash {
     animation: appFlash 700ms cubic-bezier(0.2, 0.9, 0.2, 1);
   }
@@ -257,11 +257,9 @@
   @keyframes appFlash {
     0% {
       transform: scale(1);
-      box-shadow: none;
     }
     35% {
-      transform: scale(1.06);
-      box-shadow: 0 0 30px var(--app-color);
+      transform: scale(1.05);
     }
     100% {
       transform: scale(1);

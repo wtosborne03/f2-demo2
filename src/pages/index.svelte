@@ -205,9 +205,9 @@
       }}
     >
       <span
-        class="flex justify-between items-center w-full input input-xl pr-0"
+        class="flex justify-between items-center w-full input input-xl pr-0 border-3 border-[#121212] shadow-[4px_4px_0px_#121212] bg-white"
       >
-        <label for="room-code-field" class="w-24 flex items-center gap-2"
+        <label for="room-code-field" class="w-24 flex items-center gap-2 font-headline uppercase font-black tracking-wider text-sm"
           >Code</label
         >
         <input
@@ -221,7 +221,7 @@
           autocapitalize="characters"
           spellcheck="false"
           enterkeyhint={name.trim() ? "go" : "next"}
-          class="input uppercase input-xl input-ghost border-2 border-accent/35"
+          class="input uppercase input-xl input-ghost font-mono font-bold tracking-widest text-xl"
           placeholder="ABCD"
           oninput={() => {
             roomCode = roomCode.toUpperCase();
@@ -241,9 +241,9 @@
         />
       </span>
       <span
-        class="flex justify-between items-center w-full input input-xl pr-0"
+        class="flex justify-between items-center w-full input input-xl pr-0 border-3 border-[#121212] shadow-[4px_4px_0px_#121212] bg-white"
       >
-        <label for="name-field" class="w-24 flex items-center gap-2">Name</label
+        <label for="name-field" class="w-24 flex items-center gap-2 font-headline uppercase font-black tracking-wider text-sm">Name</label
         >
 
         <input
@@ -257,7 +257,7 @@
           autocapitalize="words"
           spellcheck="false"
           enterkeyhint="go"
-          class="input input-xl input-ghost border-2 border-accent/35"
+          class="input input-xl input-ghost font-display font-bold text-lg"
           placeholder=""
           onkeydown={(e) => {
             if (e.key === "Enter") {
@@ -269,7 +269,7 @@
       </span>
       <button
         type="submit"
-        class="btn btn-lg btn-primary flex items-center justify-center gap-2"
+        class="btn btn-lg btn-primary flex items-center justify-center gap-2 font-headline tracking-wider text-lg shadow-[6px_6px_0px_#121212]"
         disabled={isChecking}
       >
         {#if isChecking}

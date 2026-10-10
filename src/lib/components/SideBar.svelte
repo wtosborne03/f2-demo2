@@ -153,16 +153,30 @@
             </div>
         {:else if $session.data?.user}
             <div
-                class="flex flex-col gap-2 m-3 mt-1 p-3 rounded-2xl bg-accent/15"
+                class="flex flex-col gap-2 m-3 mt-2 p-3 bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212]"
             >
-                <span class="flex w-full justify-center text-xl"
+                <div
+                    class="flex items-center justify-between border-b-2 border-[#121212] pb-1"
+                >
+                    <span
+                        class="font-headline text-xs font-black uppercase tracking-wider text-[#121212]"
+                        >Player</span
+                    >
+                    <span
+                        class="font-mono text-[10px] font-bold text-[#1040C0] uppercase tracking-widest"
+                        >ONLINE</span
+                    >
+                </div>
+                <span
+                    class="flex w-full justify-start font-headline text-lg font-black uppercase tracking-tight text-[#121212]"
                     >{$session.data.user.name}</span
                 >
                 <span
-                    class="flex gap-2 justify-between w-full items-center opacity-60"
+                    class="flex gap-2 justify-start items-center font-mono text-xs font-bold text-[#121212]/75"
                     ><Iconify
                         icon="mdi:email-outline"
-                        font-size="1.5rem"
+                        font-size="1.15rem"
+                        class="text-[#121212]"
                     /><span class="overflow-hidden text-ellipsis"
                         >{$session.data?.user?.email}</span
                     ></span
@@ -170,10 +184,15 @@
             </div>
         {:else}
             <div
-                class="flex flex-col gap-2 m-3 mt-1 p-3 rounded-2xl bg-accent/15"
+                class="flex flex-col gap-2.5 m-3 mt-2 p-3 bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212]"
             >
-                <span class="w-full text-center text-xl mb-2">Sign In</span>
-                <div class="w-full flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <span
+                        class="font-headline text-xs font-black uppercase tracking-wider text-[#121212]"
+                        >Sign In</span
+                    >
+                </div>
+                <div class="w-full flex flex-col gap-2.5 pt-1">
                     <GoogleSignInButton onClick={signInWithGoogle} />
                     <AppleSignInButton onClick={signInWithApple} />
                     <TwitchSignInButton onClick={signInWithTwitch} />
@@ -233,7 +252,7 @@
     }
 
     .rail-wrapper.open {
-        width: 220px;
+        width: 240px;
     }
 
     /* Force only the outer navigation rail container and background to show correctly */
@@ -243,7 +262,9 @@
     }
 
     .rail-wrapper :global(.rail) {
-        background-color: var(--m3c-surface-container) !important;
+        background-color: var(--b-white, #ffffff) !important;
+        border-right: 4px solid var(--b-black, #121212) !important;
+        box-shadow: 6px 0px 0px var(--b-black, #121212) !important;
         width: 100% !important;
         height: 100% !important;
         visibility: visible !important;
@@ -265,26 +286,28 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+        padding: 1.5rem 0.75rem 0.75rem 0.75rem;
         width: 100%;
         box-sizing: border-box;
     }
 
     .user-email {
-        font-family: var(--m3-font);
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--m3c-on-surface-variant);
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--b-black, #121212);
         text-align: center;
         word-break: break-all;
-        max-width: 180px;
+        max-width: 200px;
     }
 
     .signin-title {
-        font-family: var(--m3-font);
+        font-family: var(--font-headline);
         font-size: 1.25rem;
-        font-weight: 500;
-        color: var(--m3c-on-surface);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        color: var(--b-black, #121212);
     }
 
     .spacer {

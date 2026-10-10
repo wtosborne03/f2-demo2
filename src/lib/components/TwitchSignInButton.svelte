@@ -6,9 +6,12 @@
 
 <button
     aria-label="Continue with Twitch"
-    class="flex items-center justify-between h-12 bg-[#9146FF] px-3 py-7 rounded-2xl pr-3 hover:bg-[#772ce8] active:bg-[#5c16c5] cursor-pointer transition-colors"
+    type="button"
+    class="w-full flex items-center justify-between h-11 bg-[#9146FF] px-3.5 py-2 border-3 border-[#121212] shadow-[3px_3px_0px_#121212] hover:bg-[#7b2bf0] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0px_#121212] transition-all cursor-pointer font-headline"
     on:click={onClick}
 >
-    <Icon icon="mdi:twitch" font-size="2.75rem" class="mr-2 text-white" />
-    <span class="text-white text-2xl">Twitch</span>
+    <Icon icon="mdi:twitch" font-size="1.5rem" class="text-white shrink-0" />
+    <span class="font-headline font-black text-sm uppercase tracking-wider text-white">
+        Twitch
+    </span>
 </button>

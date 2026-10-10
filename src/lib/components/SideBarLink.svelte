@@ -44,7 +44,7 @@
 
 {#if preset}
     <div
-        class="py-4 px-8 flex justify-between items-center rounded-bl-2xl rounded-tl-2xl ml-2 transition-colors duration-200 cursor-pointer {active ? preset.active : preset.inactive} {preset.hover}"
+        class="py-3 px-6 flex justify-between items-center border-y-2 border-l-2 border-[#121212] ml-2 mb-2 transition-all duration-150 cursor-pointer font-headline text-sm font-extrabold uppercase tracking-wider shadow-[-3px_3px_0px_#121212] hover:translate-x-1 {active ? preset.active : preset.inactive} {preset.hover}"
         {onclick}
         onkeydown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -60,7 +60,7 @@
     </div>
 {:else}
     <div
-        class="py-4 px-8 flex justify-between items-center rounded-bl-2xl rounded-tl-2xl ml-2 transition-colors duration-200 cursor-pointer custom-link"
+        class="py-3 px-6 flex justify-between items-center border-y-2 border-l-2 border-[#121212] ml-2 mb-2 transition-all duration-150 cursor-pointer font-headline text-sm font-extrabold uppercase tracking-wider shadow-[-3px_3px_0px_#121212] hover:translate-x-1 custom-link"
         class:active
         style={customStyle}
         {onclick}

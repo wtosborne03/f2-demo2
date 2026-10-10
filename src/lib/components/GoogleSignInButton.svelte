@@ -6,16 +6,16 @@
 
 <button
     aria-label="Continue with Google"
-    class="flex items-center justify-between h-12 bg-[#f2f2f2] px-3 py-7 rounded-2xl pr-3 hover:bg-[#eaeaea]"
+    type="button"
+    class="w-full flex items-center justify-between h-11 bg-white px-3.5 py-2 border-3 border-[#121212] shadow-[3px_3px_0px_#121212] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0px_#121212] transition-all cursor-pointer font-headline"
     on:click={onClick}
 >
     <Icon
         icon="material-icon-theme:google"
-        font-size="2.75rem"
-        class="mr-2 text-white"
+        font-size="1.5rem"
+        class="text-black shrink-0"
     />
-    <span
-        class="text-2xl text-black"
-        style="font-family: 'Roboto', arial, sans-serif;">Google</span
-    >
+    <span class="font-headline font-black text-sm uppercase tracking-wider text-[#121212]">
+        Google
+    </span>
 </button>

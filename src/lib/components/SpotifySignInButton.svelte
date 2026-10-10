@@ -6,9 +6,12 @@
 
 <button
     aria-label="Continue with Spotify"
-    class="flex items-center justify-between h-12 bg-[#1abb53] px-3 py-7 rounded-md pr-3"
+    type="button"
+    class="w-full flex items-center justify-between h-11 bg-[#1DB954] px-3.5 py-2 border-3 border-[#121212] shadow-[3px_3px_0px_#121212] hover:bg-[#1aa34a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0px_#121212] transition-all cursor-pointer font-headline"
     on:click={onClick}
 >
-    <Icon icon="mdi:spotify" font-size="2.75rem" class="mr-2 text-white" />
-    <span class="text-[1.1rem] text-white font-medium">Spotify</span>
+    <Icon icon="mdi:spotify" font-size="1.5rem" class="text-white shrink-0" />
+    <span class="font-headline font-black text-sm uppercase tracking-wider text-white">
+        Spotify
+    </span>
 </button>

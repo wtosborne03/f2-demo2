@@ -1,143 +1,228 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "@fontsource-variable/google-sans-flex/index.css";
 
+/* ==========================================================================
+   COUCH CUP — STREAMLINED BAUHAUS CONSTRUCTIVISM
+   Colors: Red #D02020 | Blue #1040C0 | Yellow #F0C020 | Black #121212
+   Canvas Background: Warm architectural paper tone #D8D1C0
+   Card Surfaces: Stark White #FFFFFF | Light Canvas #ECE6DA
+   Rule of Functional Honesty: Direct opaque color blocks, chunky lines, hard shadows
+   ========================================================================== */
+
 @plugin "daisyui" {
-  themes: couchcup-dark --default;
+  themes: couchcup --default, couchcup-dark;
+}
+
+@plugin "daisyui/theme" {
+  name: "couchcup";
+  --color-primary: #1040C0;
+  --color-primary-content: #ffffff;
+  --color-secondary: #F0C020;
+  --color-secondary-content: #121212;
+  --color-accent: #D02020;
+  --color-accent-content: #ffffff;
+  --color-neutral: #121212;
+  --color-neutral-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #ece6da;
+  --color-base-300: #d8d1c0;
+  --color-base-content: #121212;
+
+  /* Feedback / State colors */
+  --color-info: #1040C0;
+  --color-info-content: #ffffff;
+  --color-success: #108040;
+  --color-success-content: #ffffff;
+  --color-warning: #F0C020;
+  --color-warning-content: #121212;
+  --color-error: #D02020;
+  --color-error-content: #ffffff;
+
+  /* Global design tokens */
+  --border: 3px;
+  --depth: 1;
+
+  /* Constructivist sharp geometry */
+  --radius-box: 0px;
+  --radius-field: 0px;
+  --radius-selector: 0px;
 }
 
 @plugin "daisyui/theme" {
   name: "couchcup-dark";
-  --color-primary: #bf382c;
+  --color-primary: #1040C0;
   --color-primary-content: #ffffff;
-  --color-secondary: #f2b90f;
-  --color-secondary-content: #1e1b00;
-  --color-accent: #a855f7;
+  --color-secondary: #F0C020;
+  --color-secondary-content: #121212;
+  --color-accent: #D02020;
   --color-accent-content: #ffffff;
-  --color-neutral: #282859;
-  --color-neutral-content: #f3f4f6;
-  --color-base-100: #1c1c4e;
-  --color-base-200: #161642;
-  --color-base-300: #0e0e2d;
-  --color-base-content: #f3f4f6;
+  --color-neutral: #121212;
+  --color-neutral-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #ece6da;
+  --color-base-300: #d8d1c0;
+  --color-base-content: #121212;
 
-  /* Feedback / State colors */
-  --color-info: #38bdf8;
-  --color-info-content: #042f2e;
-  --color-success: #34d399;
-  --color-success-content: #022c22;
-  --color-warning: #fbbf24;
-  --color-warning-content: #1e1b00;
-  --color-error: #f87171;
+  --color-info: #1040C0;
+  --color-info-content: #ffffff;
+  --color-success: #108040;
+  --color-success-content: #ffffff;
+  --color-warning: #F0C020;
+  --color-warning-content: #121212;
+  --color-error: #D02020;
   --color-error-content: #ffffff;
 
-  /* Global design tokens */
-  --border: 1px;
+  --border: 3px;
   --depth: 1;
 
-  /* Playful rounded variables */
-  --radius-box: 1.5rem;
-  --radius-field: 1.25rem;
-  --radius-selector: 9999px;
+  --radius-box: 0px;
+  --radius-field: 0px;
+  --radius-selector: 0px;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Simple fallback utility mapping for legacy typography scales */
+:root {
+  /* Core Bauhaus Palette */
+  --b-red: #D02020;
+  --b-blue: #1040C0;
+  --b-yellow: #F0C020;
+  --b-black: #121212;
+  --b-white: #FFFFFF;
+
+  /* Architectural Canvas Background Tones */
+  --b-canvas: #D8D1C0;
+  --b-canvas-dark: #C5BCAB;
+  --b-canvas-light: #ECE6DA;
+
+  /* Chunky Solid Black Outlines */
+  --border-heavy: 4px solid var(--b-black);
+  --border-thick: 3px solid var(--b-black);
+  --border-thin: 2px solid var(--b-black);
+
+  /* Hard Offset Shadows with Zero Blur */
+  --shadow-xs: 2px 2px 0px var(--b-black);
+  --shadow-sm: 4px 4px 0px var(--b-black);
+  --shadow-md: 6px 6px 0px var(--b-black);
+  --shadow-lg: 8px 8px 0px var(--b-black);
+  --shadow-xl: 10px 10px 0px var(--b-black);
+
+  /* Typographic Tokens */
+  --font-headline: 'Archivo Black', 'Space Grotesk', sans-serif;
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  --speed: 0.12s;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY SCALES & UTILITIES
+   ========================================================================== */
+
+.font-headline {
+  font-family: var(--font-headline) !important;
+}
+
+.font-display {
+  font-family: var(--font-display) !important;
+}
+
+.font-mono {
+  font-family: var(--font-mono) !important;
+}
+
 @utility m3-display-large {
-  @apply text-4xl font-extrabold;
+  font-family: var(--font-headline);
+  @apply text-4xl font-extrabold uppercase tracking-tight;
 }
 
 @utility m3-display-medium {
-  @apply text-3xl font-extrabold;
+  font-family: var(--font-headline);
+  @apply text-3xl font-extrabold uppercase tracking-tight;
 }
 
 @utility m3-display-small {
-  @apply text-2xl font-bold;
+  font-family: var(--font-headline);
+  @apply text-2xl font-bold uppercase;
 }
 
 @utility m3-headline-large {
-  @apply text-2xl font-bold;
+  font-family: var(--font-headline);
+  @apply text-2xl font-bold uppercase;
 }
 
 @utility m3-headline-medium {
-  @apply text-xl font-bold;
+  font-family: var(--font-headline);
+  @apply text-xl font-bold uppercase;
 }
 
 @utility m3-headline-small {
-  @apply text-lg font-bold;
+  font-family: var(--font-headline);
+  @apply text-lg font-bold uppercase;
 }
 
 @utility m3-title-large {
-  @apply text-lg font-semibold;
+  font-family: var(--font-headline);
+  @apply text-lg font-semibold uppercase;
 }
 
 @utility m3-title-medium {
-  @apply text-base font-semibold;
+  font-family: var(--font-display);
+  @apply text-base font-bold;
 }
 
 @utility m3-title-small {
-  @apply text-sm font-semibold;
+  font-family: var(--font-display);
+  @apply text-sm font-bold;
 }
 
 @utility m3-label-large {
-  @apply text-sm font-medium;
+  font-family: var(--font-mono);
+  @apply text-sm font-bold uppercase tracking-wider;
 }
 
 @utility m3-label-medium {
-  @apply text-xs font-semibold;
+  font-family: var(--font-mono);
+  @apply text-xs font-bold uppercase tracking-wider;
 }
 
 @utility m3-label-small {
-  @apply text-[10px] font-semibold tracking-wider;
+  font-family: var(--font-mono);
+  @apply text-[10px] font-bold uppercase tracking-widest;
 }
 
 @utility m3-body-large {
-  @apply text-lg;
+  font-family: var(--font-display);
+  @apply text-lg font-medium;
 }
 
 @utility m3-body-medium {
-  @apply text-base;
+  font-family: var(--font-display);
+  @apply text-base font-normal;
 }
 
 @utility m3-body-small {
-  @apply text-xs;
+  font-family: var(--font-display);
+  @apply text-xs font-normal;
 }
 
-.inter-face {
-  font-family: "Inter", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-}
-
-:root {
-  /* 
-    Lightweight 2x2 pixel Bayer dither noise pattern (using an optimized SVG data URI).
-    This creates an incredibly crisp, performant dither overlay that looks analog and organic.
-  */
-  --m3-dither: url("data:image/svg+xml,%3Csvg viewBox='0 0 4 4' width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zm2 0h1v1H2zm-1 1h1v1H1zm2 0h1v1H3zm-3 2h1v1H0zm2 0h1v1H2zm-1 1h1v1H1zm2 0h1v1H3z' fill='%23000000' fill-opacity='0.015'/%3E%3C/svg%3E");
-  --wbg-dark: #161642;
-  --wbg-primary: #3d293b;
-  --wbg-secondary: #322436;
-
-  /* Scale multiplier (Change this to scale the entire pattern) */
-  --wbg-scale: 2;
-}
-
-
-/* Base Body Styles matching Material 3 specifications */
+/* Base Body Styles */
 html,
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  line-height: 1.5;
-  font-weight: 400;
-  background-color: #3a3a5c;
-  color: var(--color-base-content, #1f2937);
+  padding: 0;
+  width: 100%;
   min-height: 100dvh;
+  background-color: var(--b-canvas);
+  color: var(--b-black);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 500;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
 }
 
 *,
@@ -146,34 +231,182 @@ body {
   box-sizing: inherit;
 }
 
-/* Custom Scrollbar styles using Material 3 container colors */
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--b-black);
+  line-height: 1.1;
+}
+
+/* Text utility colors */
+.text-bauhaus-red, .text-b-red {
+  color: var(--b-red);
+}
+
+.text-bauhaus-blue, .text-b-blue {
+  color: var(--b-blue);
+}
+
+.text-bauhaus-yellow, .text-b-yellow {
+  color: var(--b-yellow);
+}
+
+/* ==========================================================================
+   BAUHAUS COMPONENT OVERRIDES: BUTTONS, INPUTS, CARDS, MODALS
+   ========================================================================== */
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-headline) !important;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: var(--border-thick) !important;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-sm) !important;
+  cursor: pointer;
+  transition: transform var(--speed), box-shadow var(--speed), background-color var(--speed) !important;
+  color: var(--b-black);
+  font-weight: 800;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(2px, 2px) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  border-color: #555555 !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--b-blue) !important;
+  color: var(--b-white) !important;
+  border-color: var(--b-black) !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0d349e !important;
+}
+
+.btn-secondary {
+  background-color: var(--b-yellow) !important;
+  color: var(--b-black) !important;
+  border-color: var(--b-black) !important;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #ffd733 !important;
+}
+
+.btn-accent {
+  background-color: var(--b-red) !important;
+  color: var(--b-white) !important;
+  border-color: var(--b-black) !important;
+}
+
+.btn-accent:hover:not(:disabled) {
+  background-color: #b51a1a !important;
+}
+
+.btn-neutral {
+  background-color: var(--b-black) !important;
+  color: var(--b-white) !important;
+  border-color: var(--b-black) !important;
+}
+
+/* Inputs & Form Fields */
+.input,
+.textarea {
+  background-color: var(--b-white);
+  color: var(--b-black);
+  border: var(--border-thick);
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  transition: box-shadow var(--speed), border-color var(--speed);
+}
+
+.input:focus,
+.input:focus-within,
+.textarea:focus {
+  outline: none !important;
+  border-color: var(--b-black) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.input.input-ghost {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--b-black) !important;
+}
+
+.input.input-ghost:focus {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Cards & Modals */
+.card,
+.m3-card-wrapper,
+.modal-box,
+.bauhaus-card {
+  background-color: var(--b-white) !important;
+  color: var(--b-black) !important;
+  border: var(--border-heavy) !important;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-md) !important;
+  background-image: none !important;
+}
+
+.modal {
+  background-color: rgba(18, 18, 18, 0.65);
+  backdrop-filter: none !important;
+}
+
+/* Badges */
+.badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  border: var(--border-thin) !important;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* Active Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-base-100, #ffffff);
+  background: var(--b-canvas-dark);
+  border-left: 2px solid var(--b-black);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-base-300, #e5e7eb);
-  border-radius: 9999px;
+  background: var(--b-red);
+  border: 2px solid var(--b-black);
+  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-base-200, #d1d5db);
-}
-
-/* Material 3 helper styling for buttons or wrappers */
-.m3-card-wrapper {
-  background-color: var(--color-base-200, #f9fafb);
-  color: var(--color-base-content, #1f2937);
-  border-radius: 1rem;
-  border: 1px solid var(--color-base-300, #e5e7eb);
-  padding: 1.5rem;
-
-  /* Add the dither pattern subtly inside cards as well for material depth */
-  background-image: var(--m3-dither);
-  background-repeat: repeat;
+  background: #b51a1a;
 }

@@ -14,18 +14,21 @@
   const screen = $derived($gameState.screen);
 </script>
 
-<EmoteRippleLayer />
+<div class="bauhaus-shell min-h-dvh flex flex-col w-full bg-[var(--b-canvas)] text-[var(--b-black)] selection:bg-[var(--b-yellow)] selection:text-[var(--b-black)]">
+  <EmoteRippleLayer />
 
-<Snackbar />
+  <Snackbar />
 
-<SideBar />
+  <SideBar />
 
-{#if page.url.pathname === "/" && screen != "index"}
-  <AppBar />
-{/if}
-<!-- Page Route Content -->
-<slot />
+  {#if page.url.pathname === "/" && screen != "index"}
+    <AppBar />
+  {/if}
 
-<!-- Global modal -->
-<Modal />
+  <!-- Page Route Content -->
+  <slot />
+
+  <!-- Global modal -->
+  <Modal />
+</div>
 
