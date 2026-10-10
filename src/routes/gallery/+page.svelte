@@ -130,17 +130,21 @@
 
 <div class="gallery-container">
     <div class="back-btn-wrapper">
-        <Button
-            variant="filled"
-            size="l"
+        <button
+            type="button"
+            class="btn btn-secondary flex items-center gap-2"
             onclick={() => goto("/")}
             id="back-to-home-btn"
         >
             <Icon icon="lets-icons:back" style="font-size: 1.5rem;" />
-        </Button>
+            <span>Back</span>
+        </button>
     </div>
 
-    <h1 class="gallery-title">Creation Gallery</h1>
+    <div class="gallery-header-row">
+        <h1 class="gallery-title">Creation Gallery</h1>
+        <span class="gallery-badge">ARCHIVE // 01 // CREATIONS</span>
+    </div>
 
     {#if $session.isPending && browser && document.cookie.includes("better-auth")}
         <div class="spinner-wrapper">
@@ -152,9 +156,12 @@
         </div>
     {:else}
         <div class="auth-prompt-wrapper">
-            <Card variant="outlined">
+            <div class="auth-card">
                 <div class="auth-card-content">
                     <div class="prompt-icon">🔒</div>
+                    <div class="flex items-center gap-2 justify-center mb-1">
+                        <span class="font-mono text-[10px] font-bold text-[#D02020] uppercase tracking-widest bg-white border border-[#121212] px-2 py-0.5">AUTH REQUIRED</span>
+                    </div>
                     <h2 class="prompt-title">Sign In Required</h2>
                     <p class="prompt-desc">
                         Please log in to view your persistent history of
@@ -162,29 +169,32 @@
                     </p>
                     <div class="signin-options">
                         <GoogleSignInButton onClick={signInWithGoogle} />
-                        <SpotifySignInButton onClick={signInWithSpotify} />
                         <AppleSignInButton onClick={signInWithApple} />
                         <TwitchSignInButton onClick={signInWithTwitch} />
+                        <SpotifySignInButton onClick={signInWithSpotify} />
                     </div>
                 </div>
-            </Card>
+            </div>
         </div>
     {/if}
 </div>
 
 <style>
     .gallery-container {
-        height: 100vh;
+        min-height: 100vh;
+        height: 100%;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        padding: 2rem 1rem;
+        padding: 2rem 1.25rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        max-width: 48rem;
+        max-width: 52rem;
         margin: 0 auto;
         width: 100%;
         box-sizing: border-box;
+        background-color: var(--b-canvas);
+        color: var(--b-black);
     }
 
     .back-btn-wrapper {
@@ -194,14 +204,37 @@
         margin-bottom: 1.5rem;
     }
 
+    .gallery-header-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        gap: 0.5rem;
+    }
+
     .gallery-title {
-        font-family: var(--m3-font);
-        font-size: 2rem;
-        line-height: 1.286;
-        font-weight: 800;
-        color: var(--m3c-on-background);
+        font-family: var(--font-headline);
+        font-size: clamp(2rem, 5vw, 2.75rem);
+        line-height: 1.05;
+        font-weight: 900;
+        color: var(--b-black);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: -0.03em;
+        margin: 0;
+    }
+
+    .gallery-badge {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: var(--b-red);
+        background-color: var(--b-white);
+        border: 2px solid var(--b-black);
+        padding: 0.2rem 0.75rem;
+        box-shadow: 2px 2px 0px var(--b-black);
+        text-transform: uppercase;
     }
 
     .grid-container {
@@ -214,8 +247,14 @@
         margin-top: 1.5rem;
     }
 
+    .auth-card {
+        background-color: var(--b-white);
+        border: var(--border-heavy);
+        box-shadow: var(--shadow-lg);
+    }
+
     .auth-card-content {
-        padding: 2.5rem 1.5rem;
+        padding: 2.25rem 1.5rem;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -223,37 +262,40 @@
     }
 
     .prompt-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
+        font-size: 2.75rem;
+        margin-bottom: 0.75rem;
     }
 
     .prompt-title {
-        font-family: var(--m3-font);
+        font-family: var(--font-headline);
         font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--m3c-on-surface);
-        margin: 0 0 0.5rem 0;
+        font-weight: 900;
+        color: var(--b-black);
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        margin: 0.25rem 0 0.5rem 0;
     }
 
     .prompt-desc {
-        font-family: var(--m3-font);
+        font-family: var(--font-display);
         font-size: 0.95rem;
-        color: var(--m3c-on-surface-variant);
-        line-height: 1.5;
-        margin: 0 0 2rem 0;
+        color: #444444;
+        line-height: 1.45;
+        font-weight: 500;
+        margin: 0 0 1.75rem 0;
     }
 
     .signin-options {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.85rem;
         width: 100%;
         align-items: center;
     }
 
     .signin-options :global(button) {
         width: 100%;
-        max-width: 15rem;
+        max-width: 16rem;
     }
 
     .spinner-wrapper {

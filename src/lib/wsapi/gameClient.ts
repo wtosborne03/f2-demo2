@@ -214,7 +214,7 @@ class GameClient {
               try {
                 const existing = JSON.parse(localStorage.getItem("temp_expressions") || "{}");
                 mergedExpr = { ...existing, ...payload.avatar.expressions };
-              } catch {}
+              } catch { }
               localStorage.setItem("temp_expressions", JSON.stringify(mergedExpr));
             }
             if (payload.avatar.selfieUrl && typeof window !== "undefined") {
@@ -272,7 +272,7 @@ class GameClient {
     const localExprStr = (typeof window !== "undefined" && localStorage.getItem("temp_expressions")) || "";
     let localExpressions = undefined;
     if (localExprStr) {
-      try { localExpressions = JSON.parse(localExprStr); } catch {}
+      try { localExpressions = JSON.parse(localExprStr); } catch { }
     }
     const localGender = (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined;
     const localFacialDesc = (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined;
@@ -376,7 +376,7 @@ class GameClient {
     let expressions = undefined;
     const localExpr = typeof window !== "undefined" ? localStorage.getItem("temp_expressions") : null;
     if (localExpr) {
-      try { expressions = JSON.parse(localExpr); } catch {}
+      try { expressions = JSON.parse(localExpr); } catch { }
     }
     const avatar = localSelfie ? {
       selfieUrl: localSelfie,

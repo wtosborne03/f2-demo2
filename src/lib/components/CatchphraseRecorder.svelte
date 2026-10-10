@@ -320,10 +320,20 @@
           : "webm";
       formData.append("file", audioBlob, `catchphrase.${ext}`);
 
-      const roomCode = (typeof window !== "undefined" && (localStorage.getItem("couch_room") || localStorage.getItem("code"))) || undefined;
-      const playerId = (typeof window !== "undefined" && localStorage.getItem("couch_pid")) || undefined;
+      const roomCode =
+        (typeof window !== "undefined" &&
+          (localStorage.getItem("couch_room") ||
+            localStorage.getItem("code"))) ||
+        undefined;
+      const playerId =
+        (typeof window !== "undefined" && localStorage.getItem("couch_pid")) ||
+        undefined;
       const user = $session.data?.user;
-      const userId = user?.id || (typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : undefined);
+      const userId =
+        user?.id ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("temp_user_id")
+          : undefined);
 
       const query = new URLSearchParams();
       if (roomCode) query.set("room_code", roomCode);
@@ -393,34 +403,40 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="w-full bg-base-300 border border-base-300 rounded-xl px-3 py-3 select-none flex items-center justify-between gap-2"
+  class="w-full bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212] px-3.5 py-3 select-none flex flex-col items-center justify-between gap-2 max-w-[17.5rem]"
   onclick={(e) => e.stopPropagation()}
 >
   <!-- Left: Title & Status -->
-  <div class="flex items-center gap-1.5 min-w-0">
+  <div class="flex items-center gap-2 min-w-0">
     <Icon
-      icon={isRecording ? "mdi:record-rec" : "mdi:microphone"}
+      icon={isRecording ? "mdi:record-rec" : "mdi:account-voice"}
       class="text-2xl shrink-0 {isRecording
-        ? 'text-error animate-pulse'
-        : 'text-primary'}"
+        ? 'text-[#D02020] animate-pulse'
+        : 'text-[#1040C0]'}"
     />
     <div class="flex flex-col min-w-0">
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-md font-bold truncate">Catchphrase</span>
+        <span
+          class="text-xs font-headline font-black uppercase tracking-wider text-[#121212]"
+          >Catchphrase</span
+        >
         {#if isRecording}
           <span
-            class="badge badge-error badge-xs font-semibold animate-pulse font-mono"
+            class="badge bg-[#D02020] text-white border-2 border-[#121212] badge-xs font-black animate-pulse font-mono"
           >
             {currentTimeSec.toFixed(1)}s / 2.0s
           </span>
         {:else if isUploading}
-          <span class="badge badge-warning badge-xs font-semibold"
-            >Saving...</span
+          <span
+            class="badge bg-[#F0C020] text-[#121212] border-2 border-[#121212] badge-xs font-black font-mono"
+            >SAVING...</span
           >
         {/if}
       </div>
       {#if statusMessage && !isRecording}
-        <span class="text-[10px] text-warning truncate">{statusMessage}</span>
+        <span class="text-[10px] font-mono font-bold text-[#D02020] truncate"
+          >{statusMessage}</span
+        >
       {/if}
     </div>
   </div>
@@ -431,7 +447,7 @@
       <!-- Play Emote Preview -->
       <button
         type="button"
-        class="btn btn-md btn-outline btn-info gap-1"
+        class="btn btn-outline h-9 min-h-0 px-2.5 font-headline font-black uppercase text-xs tracking-wider border-2 border-[#121212] shadow-[2px_2px_0px_#121212] gap-1"
         onclick={() => playerEmote()}
         title="Play emote"
       >
@@ -443,8 +459,9 @@
     <!-- Record / Re-record Button -->
     <button
       type="button"
-      class="btn btn-secondary btn-md gap-1 touch-none select-none font-bold transition-transform active:scale-95"
-      class:btn-error={isRecording}
+      class="btn h-9 min-h-0 px-3 font-headline font-black uppercase text-[0.25rem] tracking-wider border-2 border-[#121212] shadow-[2px_2px_0px_#121212] gap-1 touch-none select-none {isRecording
+        ? 'bg-[#D02020] text-white hover:bg-[#D02020]'
+        : 'bg-[#F0C020] text-[#121212] hover:bg-[#F0C020]'}"
       disabled={isUploading}
       onmousedown={handlePressStart}
       onmouseup={handlePressEnd}
@@ -457,13 +474,13 @@
         icon={isRecording ? "mdi:record-rec" : "mdi:microphone"}
         class="text-base {isRecording ? 'animate-pulse' : ''}"
       />
-      <span>
+      <span class="text-xs">
         {#if isRecording}
-          Release to Stop
+          RELEASE TO STOP
         {:else if currentCatchphraseUrl || audioPreviewUrl}
-          Re-record
+          RE-RECORD
         {:else}
-          Hold to Record 🎙️
+          HOLD TO RECORD
         {/if}
       </span>
     </button>
