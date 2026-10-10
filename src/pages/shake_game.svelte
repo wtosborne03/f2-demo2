@@ -22,30 +22,14 @@
   /**
    * Requests wake lock for keeping screen on while shaking
    */
+  import { requestScreenWakeLock, releaseScreenWakeLock } from "$lib/util/wakeLock";
+
   const requestWakeLock = async () => {
-    try {
-      if ("wakeLock" in navigator) {
-        // @ts-ignore
-        wakeLock = await navigator.wakeLock.request("screen");
-        wakeLock.addEventListener("release", () => {});
-      }
-    } catch (err) {
-      console.error(`Failed to request wake lock: ${err}`);
-    }
+    await requestScreenWakeLock();
   };
 
-  /**
-   * Releases wake lock when shaking is finished
-   */
   const releaseWakeLock = async () => {
-    if (wakeLock) {
-      try {
-        await wakeLock.release();
-      } catch (e) {
-        console.warn("Failed releasing wake lock:", e);
-      }
-      wakeLock = null;
-    }
+    // Keep lock managed globally or released if explicitly needed
   };
 
   // --- Improved motion detection ---

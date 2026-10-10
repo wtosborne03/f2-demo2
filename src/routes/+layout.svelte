@@ -10,8 +10,22 @@
   import Footer from "$lib/components/layout/footer.svelte";
   import { gameState } from "$lib/wsapi/gameClient";
   import EmoteRippleLayer from "$lib/components/EmoteRippleLayer.svelte";
+  import { requestScreenWakeLock, releaseScreenWakeLock } from "$lib/util/wakeLock";
 
   const screen = $derived($gameState.screen);
+
+  $effect(() => {
+    if (!browser) return;
+    if (screen && screen !== "index") {
+      requestScreenWakeLock();
+    } else {
+      releaseScreenWakeLock();
+    }
+
+    return () => {
+      releaseScreenWakeLock();
+    };
+  });
 </script>
 
 <div class="bauhaus-shell min-h-dvh flex flex-col w-full bg-[var(--b-canvas)] text-[var(--b-black)] selection:bg-[var(--b-yellow)] selection:text-[var(--b-black)]">
