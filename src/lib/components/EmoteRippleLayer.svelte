@@ -44,7 +44,9 @@
 
   onMount(() => {
     if (!browser) return;
-    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    window.addEventListener("pointerdown", handlePointerDown, {
+      passive: true,
+    });
   });
 
   onDestroy(() => {
@@ -54,7 +56,10 @@
 </script>
 
 <!-- Minimal Background Circular Ripple Overlay (Rendered behind UI elements at z-0) -->
-<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+<div
+  class="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+  aria-hidden="true"
+>
   {#each ripples as ripple (ripple.id)}
     <div
       class="m3-ripple-origin"
@@ -77,7 +82,7 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.3);
     will-change: transform, opacity;
     animation: m3-ripple-fill-anim 700ms cubic-bezier(0, 0, 0.2, 1) forwards;
   }
@@ -96,4 +101,3 @@
     }
   }
 </style>
-
