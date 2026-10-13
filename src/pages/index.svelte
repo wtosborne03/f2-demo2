@@ -11,6 +11,7 @@
   import SelfieCapture from "$lib/components/SelfieCapture.svelte";
   import Icon from "@iconify/svelte";
   import { isKeyboardVisible } from "$lib/stores/keyboard";
+  import { isCasting } from "$lib/stores/casting";
 
   const session = authClient.useSession();
 
@@ -19,6 +20,12 @@
   $: if ($session.data?.user?.name && !name) {
     name = $session.data.user.name;
   }
+
+  $: castingActive = $isCasting || (browser && (
+    new URLSearchParams(window.location.search).has("isCasting") ||
+    localStorage.getItem("is_casting") === "true" ||
+    !!(window as any).CouchCupAndroid?.isCasting?.()
+  ));
 
   let step = "join"; // "join" | "selfie"
   let isChecking = false;
@@ -38,14 +45,58 @@
     }
   };
 
+  const handleNativeRoomCode = (e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    if (detail?.code) {
+      roomCode = detail.code.trim().toUpperCase();
+      if (!name) {
+        name = (browser && localStorage.getItem("name")) || $session.data?.user?.name || "Host";
+      }
+      autoJoinCasting();
+    }
+  };
+
+  const autoJoinCasting = async () => {
+    if (!roomCode || isChecking) return;
+    if (!name) {
+      name = (browser && localStorage.getItem("name")) || $session.data?.user?.name || "Host";
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("name", name);
+      localStorage.setItem("couch_room", roomCode);
+    }
+    await joinRoom();
+  };
+
   onMount(async () => {
     gameClient.on("sessionCleared", handleSessionCleared);
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("nativeRoomCode", handleNativeRoomCode);
+    }
 
     const sp = new URLSearchParams(window.location.search);
     const urlCode = sp.get("code");
     if (urlCode) {
       roomCode = urlCode.trim().toUpperCase();
-      return;
+      if (castingActive) {
+        autoJoinCasting();
+        return;
+      }
+    }
+
+    if (castingActive) {
+      if (!name) {
+        name = (browser && localStorage.getItem("name")) || $session.data?.user?.name || "Host";
+      }
+      const nativeCode = (window as any).CouchCupAndroid?.getRoomCode?.();
+      if (nativeCode && !roomCode) {
+        roomCode = nativeCode.trim().toUpperCase();
+      }
+      if (roomCode) {
+        autoJoinCasting();
+        return;
+      }
     }
 
     const storedCode =
@@ -56,6 +107,9 @@
       const check = await gameClient.checkRoom(storedCode);
       if (check.valid) {
         roomCode = storedCode.trim().toUpperCase();
+        if (castingActive) {
+          autoJoinCasting();
+        }
       } else {
         roomCode = "";
         if (browser) {
@@ -69,6 +123,9 @@
 
   onDestroy(() => {
     gameClient.off("sessionCleared", handleSessionCleared);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("nativeRoomCode", handleNativeRoomCode);
+    }
   });
 
   const startJoinFlow = async () => {
@@ -194,7 +251,31 @@
     <img src={logo} alt="logo" class="object-contain h-full" />
   </figure>
 
-  {#if step === "join"}
+  {#if castingActive}
+    <div class="flex flex-col items-center justify-center gap-5 w-full max-w-sm text-center py-6 px-4 bg-white border-3 border-[#121212] shadow-[6px_6px_0px_#121212]">
+      <div class="relative flex items-center justify-center">
+        <div class="w-16 h-16 bg-[#F0C020] border-3 border-[#121212] shadow-[3px_3px_0px_#121212] flex items-center justify-center">
+          <Icon icon="mdi:cast-connected" class="text-3xl text-[#121212]" />
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <h2 class="text-xl font-headline font-black uppercase tracking-wider text-[#121212]">
+          Mirroring Active
+        </h2>
+        <p class="text-xs font-display font-bold text-[#121212]/80">
+          {#if roomCode}
+            Joining Room <span class="font-mono font-black text-black bg-[#ECE6DA] px-1.5 py-0.5 border border-[#121212]">{roomCode}</span> as Host...
+          {:else}
+            Connecting controller to TV screen...
+          {/if}
+        </p>
+      </div>
+      <div class="flex items-center gap-2 font-mono text-[11px] font-black text-[#121212]/70 uppercase tracking-widest pt-1">
+        <span class="loading loading-spinner loading-xs"></span>
+        <span>Syncing Game Session</span>
+      </div>
+    </div>
+  {:else if step === "join"}
     <form
       class="flex flex-col w-full transition-all duration-300 {$isKeyboardVisible
         ? 'gap-4 mt-0'

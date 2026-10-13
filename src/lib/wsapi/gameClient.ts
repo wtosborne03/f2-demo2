@@ -148,11 +148,27 @@ class GameClient {
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
+          const isCastingActive = typeof window !== "undefined" && (
+            localStorage.getItem("is_casting") === "true" ||
+            (window as any).CouchCupAndroid?.isCasting?.()
+          );
           if (payload?.screen === "kicked") {
+            if (isCastingActive) {
+              console.warn("[Player GameClient] Casting player cannot be kicked; ignoring and auto-rejoining");
+              this.tryRejoin(true);
+              return;
+            }
             this.handlePlayerKicked(payload.page_data);
             return;
           }
-          gameState.update((current) => ({ ...current, ...payload }));
+          if (isCastingActive && payload) {
+            payload.admin = true;
+          }
+          gameState.update((current) => ({
+            ...current,
+            ...payload,
+            admin: isCastingActive ? true : (payload?.admin ?? current.admin),
+          }));
           break;
         case OpCode.ERROR:
           errorStore.set(payload);
@@ -311,6 +327,15 @@ class GameClient {
   }
 
   private handlePlayerKicked(payload?: any) {
+    const isCastingActive = typeof window !== "undefined" && (
+      localStorage.getItem("is_casting") === "true" ||
+      (window as any).CouchCupAndroid?.isCasting?.()
+    );
+    if (isCastingActive) {
+      console.warn("[Player GameClient] Immutable casting player cannot be kicked; auto-rejoining immediately");
+      this.tryRejoin(true);
+      return;
+    }
     this.clearSession();
     this.cleanupWebRTC();
     this.shouldReconnect = false;
@@ -322,6 +347,27 @@ class GameClient {
         reason: payload?.reason || "You have been kicked by the host."
       }
     });
+  }
+
+  public renamePlayer(newName: string) {
+    const trimmed = (newName || "").trim().substring(0, 10);
+    if (!trimmed) return;
+    this.name = trimmed;
+    if (typeof window !== "undefined") {
+      localStorage.setItem("name", trimmed);
+      const uid = localStorage.getItem("temp_user_id");
+      if ((window as any).CouchCupAndroid?.setCastingPlayer) {
+        (window as any).CouchCupAndroid.setCastingPlayer(trimmed, uid);
+      }
+    }
+    this.sendInput({
+      type: "rename_player",
+      name: trimmed,
+    });
+    gameState.update((s) => ({
+      ...s,
+      name: trimmed,
+    }));
   }
 
   public async checkRoom(
@@ -1205,8 +1251,10 @@ class GameClient {
     window.addEventListener("nativeRoomCode", (event: Event) => {
       const detail = (event as CustomEvent).detail;
       if (detail && detail.code) {
-
-        this.joinRoomFromNative(detail.code);
+        if (detail.isCasting) {
+          localStorage.setItem("is_casting", "true");
+        }
+        this.joinRoomFromNative(detail.code, !!detail.isCasting);
       }
     });
   }
@@ -1216,10 +1264,14 @@ class GameClient {
    * If we're already connected, send JOIN_ROOM directly.
    * If not, queue it for when the connection opens.
    */
-  private joinRoomFromNative(roomCode: string) {
+  private joinRoomFromNative(roomCode: string, isCasting = false) {
     // Store it so hydrate/reconnect can find it
     localStorage.setItem("couch_room", roomCode);
     this.roomCode = roomCode;
+
+    if (!this.name) {
+      this.name = (typeof window !== "undefined" && localStorage.getItem("name")) || "Host";
+    }
 
     let storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
     if (!storedUserId && typeof window !== "undefined") {
@@ -1227,16 +1279,25 @@ class GameClient {
       localStorage.setItem("temp_user_id", storedUserId);
     }
 
+    const isCastingActive = isCasting || (typeof window !== "undefined" && (
+      localStorage.getItem("is_casting") === "true" ||
+      (window as any).CouchCupAndroid?.isCasting?.()
+    ));
+
+    if (isCastingActive && typeof window !== "undefined") {
+      localStorage.setItem("is_casting", "true");
+      if ((window as any).CouchCupAndroid?.setCastingPlayer) {
+        (window as any).CouchCupAndroid.setCastingPlayer(this.name, storedUserId);
+      }
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       // Already connected — just join the room.
-      // Clear any stale session data first so we don't try to reconnect
-      // to a different room.
       this.clearSession();
       this.roomCode = roomCode;
       this.sendCritical(OpCode.JOIN_ROOM, { roomCode, name: this.name, userId: storedUserId || undefined });
     } else {
       // Not connected yet — ensure we try to connect.
-      // The existing onopen handler will flush the critical queue.
       if (this.connectUrl) {
         this.connect(this.connectUrl);
       }

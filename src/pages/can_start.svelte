@@ -4,8 +4,37 @@
   import { gameClient, gameState } from "$lib/wsapi/gameClient";
   import Icon from "@iconify/svelte";
   import CatchphraseRecorder from "$lib/components/CatchphraseRecorder.svelte";
+  import { apiClient } from "$lib/backend/axios";
 
   const session = authClient.useSession();
+
+  let isEditingName = $state(false);
+  let editNameInput = $state("");
+
+  function startEditName() {
+    editNameInput = $gameState.name || "Host";
+    isEditingName = true;
+  }
+
+  async function saveName() {
+    const trimmed = editNameInput.trim().substring(0, 10);
+    if (trimmed) {
+      gameClient.renamePlayer(trimmed);
+      try {
+        const client = await apiClient;
+        if (client) {
+          await client.putUsersName({}, { name: trimmed });
+        }
+      } catch (err) {
+        console.warn("Failed saving name to account:", err);
+      }
+    }
+    isEditingName = false;
+  }
+
+  function cancelEditName() {
+    isEditingName = false;
+  }
 
   let padElement: HTMLDivElement | null = $state(null);
   let ballX = $state(0);
@@ -148,6 +177,81 @@
 
   <!-- Bauhaus Constructivist Remote Housing -->
   <div class="w-full flex flex-col items-center gap-3.5">
+    <!-- Casting Host / Controller Name Bar -->
+    <div
+      class="w-full max-w-[17.5rem] bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212] p-2 px-3 flex flex-col gap-1.5"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div
+            class="w-6 h-6 bg-[#F0C020] border-2 border-[#121212] flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#121212]"
+          >
+            <Icon icon="mdi:crown" class="text-sm text-[#121212]" />
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span
+              class="text-[10px] font-headline font-black uppercase tracking-wider text-[#121212]/60 leading-none"
+            >
+              Casting Host
+            </span>
+            <span
+              class="text-sm font-headline font-black uppercase tracking-tight text-[#121212] truncate leading-tight"
+            >
+              {$gameState.name || "Host"}
+            </span>
+          </div>
+        </div>
+
+        {#if !isEditingName}
+          <button
+            type="button"
+            class="btn btn-xs bg-[#ECE6DA] hover:bg-[#F0C020] border-2 border-[#121212] font-headline font-black text-[11px] uppercase tracking-wider px-2.5 py-1 flex items-center gap-1 shrink-0 cursor-pointer shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+            onclick={startEditName}
+          >
+            <Icon icon="mdi:pencil" class="text-xs" />
+            <span>Rename</span>
+          </button>
+        {/if}
+      </div>
+
+      {#if isEditingName}
+        <form
+          class="flex items-center gap-1.5 pt-1 border-t-2 border-[#121212]/15"
+          onsubmit={(e) => {
+            e.preventDefault();
+            saveName();
+          }}
+        >
+          <input
+            type="text"
+            bind:value={editNameInput}
+            maxlength={10}
+            placeholder="New Name"
+            autofocus
+            class="input input-xs bg-white border-2 border-[#121212] text-xs font-headline font-bold uppercase tracking-wider flex-1 px-2 h-7 focus:outline-none focus:bg-[#FFFEEA]"
+          />
+          <button
+            type="submit"
+            class="btn btn-xs bg-[#20B050] text-white hover:bg-[#1a9443] border-2 border-[#121212] shadow-[2px_2px_0px_#121212] font-headline font-black text-[11px] uppercase px-2 h-7 cursor-pointer"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            onclick={cancelEditName}
+            class="btn btn-xs bg-[#ECE6DA] hover:bg-[#ddd4c4] border-2 border-[#121212] shadow-[2px_2px_0px_#121212] font-headline font-black text-[11px] uppercase px-2 h-7 cursor-pointer"
+          >
+            ✕
+          </button>
+        </form>
+      {:else if ($gameState.name === "Host" || !$gameState.name)}
+        <div class="text-[10px] font-display font-bold text-[#1040C0] uppercase tracking-wide flex items-center gap-1 bg-[#1040C0]/10 px-1.5 py-0.5 border border-[#1040C0]/30">
+          <Icon icon="mdi:information-outline" class="text-xs shrink-0" />
+          <span>Default name set. Tap 'Rename' to customize!</span>
+        </div>
+      {/if}
+    </div>
+
     <!-- Controller Header / Directives -->
     <CatchphraseRecorder />
 
