@@ -25,18 +25,18 @@
     });
   }
 
-  // Premium custom tailwind color mappings to match AnswerGrid.tsx (rose, blue, emerald, amber)
+  // Vibrant high-contrast color mappings to stand out cleanly against light background (rose, blue, emerald, amber)
   const optionBtnClasses = [
-    "border-rose-500/30 bg-rose-950/20 text-rose-200 hover:bg-rose-950/40 hover:border-rose-500/50 active:scale-[0.98]",
-    "border-blue-500/30 bg-blue-950/20 text-blue-200 hover:bg-blue-950/40 hover:border-blue-500/50 active:scale-[0.98]",
-    "border-emerald-500/30 bg-emerald-950/20 text-emerald-200 hover:bg-emerald-950/40 hover:border-emerald-500/50 active:scale-[0.98]",
-    "border-amber-500/30 bg-amber-950/20 text-amber-200 hover:bg-amber-950/40 hover:border-amber-500/50 active:scale-[0.98]",
+    "border-rose-800/50 bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 shadow-rose-950/20 active:scale-[0.98]",
+    "border-blue-800/50 bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-blue-950/20 active:scale-[0.98]",
+    "border-emerald-800/50 bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-emerald-950/20 active:scale-[0.98]",
+    "border-amber-600/50 bg-amber-400 text-stone-950 hover:bg-amber-500 active:bg-amber-600 shadow-amber-950/20 active:scale-[0.98]",
   ];
   const optionBgClasses = [
-    "bg-rose-950/40 border-rose-500/30 text-rose-200",
-    "bg-blue-950/40 border-blue-500/30 text-blue-200",
-    "bg-emerald-950/40 border-emerald-500/30 text-emerald-200",
-    "bg-amber-950/40 border-amber-500/30 text-amber-200",
+    "!bg-rose-600 !border-rose-800 !text-white",
+    "!bg-blue-600 !border-blue-800 !text-white",
+    "!bg-emerald-600 !border-emerald-800 !text-white",
+    "!bg-amber-400 !border-amber-600 !text-stone-950",
   ];
 </script>
 
@@ -96,7 +96,7 @@
         <div class="flex flex-col gap-3 w-full">
           {#each options as option, idx}
             <button
-              class="w-full text-lg font-black py-4 px-6 rounded-2xl border text-center transition-all duration-200 shadow-md backdrop-blur-md cursor-pointer {optionBtnClasses[
+              class="w-full text-lg font-black py-4 px-6 rounded-2xl border-2 text-center transition-all duration-200 shadow-md cursor-pointer {optionBtnClasses[
                 idx
               ]}"
               onclick={() => submitAnswer(option)}
@@ -116,13 +116,13 @@
 
         {#if selectedAnswer}
           <div
-            class="w-full card border p-5 mt-4 rounded-2xl shadow-sm {selectedIdx !==
+            class="w-full border-2 p-5 mt-4 rounded-2xl shadow-md {selectedIdx !==
             -1
               ? optionBgClasses[selectedIdx]
               : 'bg-base-200 border-base-300'}"
           >
             <span
-              class="text-xs uppercase font-extrabold opacity-60 tracking-wider"
+              class="text-xs uppercase font-extrabold opacity-80 tracking-wider"
               >Your Guess</span
             >
             <p class="text-lg font-black italic mt-1 leading-relaxed">
