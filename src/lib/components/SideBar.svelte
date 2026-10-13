@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { authClient } from "../../stores/authStore";
+    import { authClient, triggerGoogleSignIn } from "../../stores/authStore";
     import { toaster } from "$lib/util/toaster";
     import GoogleSignInButton from "./GoogleSignInButton.svelte";
     import AppleSignInButton from "./AppleSignInButton.svelte";
@@ -39,21 +39,7 @@
 
     const signInWithGoogle = async () => {
         try {
-            const redirectTo = `${window.location.origin}/`;
-            const { data, error } = await signIn.social({
-                provider: "google",
-                callbackURL: redirectTo,
-            });
-            if (error) {
-                toaster.error({
-                    title: "Google Sign-In Failed",
-                    description: error.message,
-                });
-                return;
-            }
-            if (data?.url) {
-                window.location.href = data.url;
-            }
+            await triggerGoogleSignIn();
         } catch (error) {
             toaster.error({
                 title: "Google Sign-In Failed",
