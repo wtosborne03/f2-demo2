@@ -49,11 +49,12 @@ export async function authenticateWithGoogleIdToken(idToken: string) {
  * 2. Web & Fallback: Direct Better Auth social OAuth sign-in (redirect to Google)
  */
 export async function triggerGoogleSignIn(callbackURL?: string): Promise<void> {
+    const isAndroidNative = typeof window !== 'undefined' && !!(window as any).CouchCupAndroid?.hasNativeGoogleOneTap?.();
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const redirectTarget = callbackURL || (origin ? `${origin}/` : undefined);
+    const redirectTarget = callbackURL || (isAndroidNative ? 'couchcup://auth-callback' : (origin ? `${origin}/` : undefined));
 
     // 1. Native Android Credential Manager (in CouchCup Android app)
-    if (typeof window !== 'undefined' && (window as any).CouchCupAndroid?.hasNativeGoogleOneTap?.()) {
+    if (isAndroidNative) {
         try {
             await new Promise<void>((resolve, reject) => {
                 let cleanup: () => void;
@@ -96,11 +97,12 @@ export async function triggerGoogleSignIn(callbackURL?: string): Promise<void> {
             });
             return;
         } catch (nativeErr) {
-            console.warn("Native Google Sign-In dismissed or failed, attempting standard OAuth:", nativeErr);
+            console.warn("Native Google Sign-In dismissed or failed, attempting browser OAuth:", nativeErr);
         }
     }
 
-    // 2. Standard Google OAuth (Web & mobile browser fallback)
+    // 2. Standard Google OAuth (Web & Android browser fallback)
+    const baseURL = import.meta.env.VITE_PUBLIC_API_URL || 'https://api.couchcup.tv:8443';
     const { data, error } = await authClient.signIn.social({
         provider: 'google',
         callbackURL: redirectTarget,
@@ -109,6 +111,13 @@ export async function triggerGoogleSignIn(callbackURL?: string): Promise<void> {
         throw error;
     }
     if (data?.url && typeof window !== 'undefined') {
-        window.location.href = data.url;
+        if (isAndroidNative) {
+            // Route through capacitor-authorization-proxy so the external browser
+            // receives the OAuth state cookie before opening Google, preventing state_mismatch!
+            const proxyURL = `${baseURL}/api/auth/capacitor-authorization-proxy?authorizationURL=${encodeURIComponent(data.url)}`;
+            window.location.href = proxyURL;
+        } else {
+            window.location.href = data.url;
+        }
     }
 }
