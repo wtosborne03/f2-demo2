@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { authClient } from "../../stores/authStore";
+    import { authClient, triggerGoogleSignIn } from "../../stores/authStore";
     import Icon from "@iconify/svelte";
     import { Button, Card } from "m3-svelte";
     import UserImageGrid from "$lib/components/UserImageGrid.svelte";
@@ -24,21 +24,7 @@
 
     const signInWithGoogle = async () => {
         try {
-            const redirectTo = `${window.location.origin}/gallery`;
-            const { data, error } = await signIn.social({
-                provider: "google",
-                callbackURL: redirectTo,
-            });
-            if (error) {
-                toaster.error({
-                    title: "Google Sign-In Failed",
-                    description: error.message,
-                });
-                return;
-            }
-            if (data?.url) {
-                window.location.href = data.url;
-            }
+            await triggerGoogleSignIn(`${window.location.origin}/gallery`);
         } catch (error) {
             toaster.error({
                 title: "Google Sign-In Failed",

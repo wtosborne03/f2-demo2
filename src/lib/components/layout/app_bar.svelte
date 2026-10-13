@@ -90,21 +90,8 @@
   let prevScore = 0;
   let flashTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  import { authClient } from "../../../stores/authStore";
-  import { browser } from "$app/environment";
-
-  const session = authClient.useSession();
-
   onMount(() => {
     prevScore = $gameState.score ?? 0;
-    if (browser && !$session.data?.user) {
-      if (
-        typeof (authClient as any).oneTap === "function" &&
-        !(typeof window !== "undefined" && (window as any).CouchCupAndroid?.hasNativeGoogleOneTap?.())
-      ) {
-        (authClient as any).oneTap({ autoSelect: false }).catch(() => {});
-      }
-    }
   });
 
   onDestroy(() => {

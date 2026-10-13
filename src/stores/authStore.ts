@@ -1,7 +1,5 @@
 import { get, writable } from 'svelte/store';
 import { createAuthClient } from 'better-auth/svelte';
-import { magicLinkClient, oneTapClient } from 'better-auth/client/plugins';
-import { magicLink } from 'better-auth/plugins/magic-link';
 import { withCapacitor } from 'better-auth-capacitor/client';
 
 export const GOOGLE_CLIENT_ID = '780344995591-drqgn4dh7mrtir6p8bne8738qqg2ahtp.apps.googleusercontent.com';
@@ -9,14 +7,7 @@ export const GOOGLE_CLIENT_ID = '780344995591-drqgn4dh7mrtir6p8bne8738qqg2ahtp.a
 export const authClient = createAuthClient(
     withCapacitor({
         baseURL: import.meta.env.VITE_PUBLIC_API_URL,
-        fetchOptions: { credentials: 'include' },
-        plugins: [
-            oneTapClient({
-                clientId: GOOGLE_CLIENT_ID,
-                autoSelect: false,
-                context: 'signin',
-            }),
-        ]
+        fetchOptions: { credentials: 'include' as const },
     }, {
         scheme: 'couchcup',
     })
@@ -46,24 +37,29 @@ export async function authenticateWithGoogleIdToken(idToken: string) {
     if (typeof (authClient as any).getSession === 'function') {
         await (authClient as any).getSession();
     }
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('better-auth:session-update'));
+    }
     return data;
 }
 
 /**
  * Hybrid Google Sign-In:
- * 1. Native Android: Uses Android Credential Manager via window.CouchCupAndroid.requestGoogleOneTap()
- * 2. Web: Uses Better Auth Google One Tap client (Google Identity Services)
- * 3. Fallback: Standard Better Auth social OAuth redirect
+ * 1. Native Android: Uses Android Credential Manager modal via window.CouchCupAndroid.requestGoogleOneTap()
+ * 2. Web & Fallback: Direct Better Auth social OAuth sign-in (redirect to Google)
  */
-export async function triggerGoogleSignIn(): Promise<void> {
-    // 1. Native Android Credential Manager One Tap
+export async function triggerGoogleSignIn(callbackURL?: string): Promise<void> {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const redirectTarget = callbackURL || (origin ? `${origin}/` : undefined);
+
+    // 1. Native Android Credential Manager (in CouchCup Android app)
     if (typeof window !== 'undefined' && (window as any).CouchCupAndroid?.hasNativeGoogleOneTap?.()) {
         try {
             await new Promise<void>((resolve, reject) => {
                 let cleanup: () => void;
                 const timeoutId = setTimeout(() => {
                     cleanup();
-                    reject(new Error("Native One Tap request timed out"));
+                    reject(new Error("Native Google Sign-In timed out"));
                 }, 45000);
 
                 const handleSuccess = async (e: Event) => {
@@ -77,14 +73,14 @@ export async function triggerGoogleSignIn(): Promise<void> {
                             reject(err);
                         }
                     } else {
-                        reject(new Error("No ID token received from native One Tap"));
+                        reject(new Error("No ID token received from native Google Sign-In"));
                     }
                 };
 
                 const handleError = (e: Event) => {
                     cleanup();
                     const detail = (e as CustomEvent).detail;
-                    reject(new Error(detail?.error || "Native One Tap cancelled"));
+                    reject(new Error(detail?.error || "Native Google Sign-In cancelled"));
                 };
 
                 cleanup = () => {
@@ -100,24 +96,14 @@ export async function triggerGoogleSignIn(): Promise<void> {
             });
             return;
         } catch (nativeErr) {
-            console.warn("Native Google One Tap dismissed or failed, attempting web fallback:", nativeErr);
+            console.warn("Native Google Sign-In dismissed or failed, attempting standard OAuth:", nativeErr);
         }
     }
 
-    // 2. Web Google One Tap (Google Identity Services)
-    if (typeof (authClient as any).oneTap === 'function') {
-        try {
-            await (authClient as any).oneTap();
-            return;
-        } catch (webOneTapErr) {
-            console.warn("Web Google One Tap unavailable, attempting social redirect:", webOneTapErr);
-        }
-    }
-
-    // 3. Fallback: standard social redirect
+    // 2. Standard Google OAuth (Web & mobile browser fallback)
     const { data, error } = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
+        callbackURL: redirectTarget,
     });
     if (error) {
         throw error;
