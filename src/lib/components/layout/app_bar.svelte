@@ -145,7 +145,11 @@
     <span class="text-xl flex flex-col justify-center items-center gap-0">
       <div class="flex flex-col justify-center items-center h-10 tracking-tight font-extrabold uppercase">
         {name}
-        {#if admin}
+        {#if paused}
+          <span class="text-xs font-mono tracking-widest uppercase font-black text-amber-300 animate-pulse">
+            {admin ? "admin • paused" : "paused"}
+          </span>
+        {:else if admin}
           <span class="text-xs font-mono tracking-widest uppercase opacity-85"> admin </span>
         {/if}
       </div>

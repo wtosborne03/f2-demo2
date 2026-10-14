@@ -30,6 +30,8 @@ const defaultPlayerState: PlayerState = {
   avatar: {
     selfieUrl: "",
   },
+  paused: false,
+  inGame: false,
 };
 
 export const gameState = writable<PlayerState>(defaultPlayerState); // The screen content
@@ -368,6 +370,22 @@ class GameClient {
       ...s,
       name: trimmed,
     }));
+  }
+
+  public pauseGame() {
+    this.sendPlayerInput("pause_game");
+  }
+
+  public resumeGame() {
+    this.sendPlayerInput("resume_game");
+  }
+
+  public togglePause() {
+    this.sendPlayerInput("toggle_pause");
+  }
+
+  public exitGame() {
+    this.sendPlayerInput("exit_game");
   }
 
   public async checkRoom(
@@ -1189,9 +1207,8 @@ class GameClient {
     if (!screen) return;
     // In practice lobby screens are index/start/can_start. Any other game screen implies RUNNING.
     if (screen === "index" || screen === "start" || screen === "can_start") {
-      if (!this.hasSeenInGameState) {
-        this.roomStatus = "LOBBY";
-      }
+      this.roomStatus = "LOBBY";
+      this.hasSeenInGameState = false;
       return;
     }
     this.roomStatus = "RUNNING";

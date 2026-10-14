@@ -31,6 +31,7 @@ export interface PlayerState {
     team: string;
     avatar: Avatar;
     paused?: boolean;
+    inGame?: boolean;
 }
 
 export interface PlayerInput {

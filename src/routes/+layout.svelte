@@ -10,7 +10,9 @@
   import Footer from "$lib/components/layout/footer.svelte";
   import { gameState } from "$lib/wsapi/gameClient";
   import EmoteRippleLayer from "$lib/components/EmoteRippleLayer.svelte";
-  import { requestScreenWakeLock, releaseScreenWakeLock } from "$lib/util/wakeLock";
+  import { modalStore, closeModal } from "../stores/modal";
+  import { get } from "svelte/store";
+  import { goto } from "$app/navigation";
   import { onMount } from "svelte";
 
   const screen = $derived($gameState.screen);
@@ -51,9 +53,30 @@
       }
     };
 
+    const handleBackEvent = (e: Event) => {
+      const modal = get(modalStore);
+      if (modal?.open) {
+        closeModal();
+        e.preventDefault();
+        return;
+      }
+      if (get(sideBarOpen)) {
+        sideBarOpen.set(false);
+        e.preventDefault();
+        return;
+      }
+      if (window.location.pathname !== "/") {
+        goto("/");
+        e.preventDefault();
+        return;
+      }
+    };
+
     window.addEventListener("couchcup_safe_insets", handleInsetsEvent);
+    window.addEventListener("couchcup_back", handleBackEvent);
     return () => {
       window.removeEventListener("couchcup_safe_insets", handleInsetsEvent);
+      window.removeEventListener("couchcup_back", handleBackEvent);
     };
   });
 </script>

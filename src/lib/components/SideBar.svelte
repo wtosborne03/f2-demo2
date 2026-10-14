@@ -18,6 +18,11 @@
     import iconLeaderboard from "@ktibow/iconset-material-symbols/leaderboard";
     import iconLogout from "@ktibow/iconset-material-symbols/logout";
     import iconImage from "@ktibow/iconset-material-symbols/image";
+    import iconPause from "@ktibow/iconset-material-symbols/pause";
+    import iconPlayArrow from "@ktibow/iconset-material-symbols/play-arrow";
+    import iconMeetingRoom from "@ktibow/iconset-material-symbols/meeting-room";
+    import { onDestroy } from "svelte";
+    import { gameState, gameClient } from "$lib/wsapi/gameClient";
 
     const { signIn, signOut, useSession } = authClient;
     const session = useSession();
@@ -53,7 +58,7 @@
         try {
             const { data, error } = await signIn.social({
                 provider: "spotify",
-                callbackURL: `${window.location.origin}/`,
+                callbackURL: window.location.href,
             });
             if (error) {
                 toaster.error({
@@ -76,10 +81,9 @@
 
     const signInWithTwitch = async () => {
         try {
-            const redirectTo = `${window.location.origin}/`;
             const { data, error } = await signIn.social({
                 provider: "twitch",
-                callbackURL: redirectTo,
+                callbackURL: window.location.href,
             });
             if (error) {
                 toaster.error({
@@ -104,7 +108,7 @@
         try {
             const { data, error } = await signIn.social({
                 provider: "apple",
-                callbackURL: `${window.location.origin}/`,
+                callbackURL: window.location.href,
             });
             if (error) {
                 toaster.error({
@@ -128,6 +132,62 @@
     const goShop = async () => {
         await goto("/shop", { replaceState: false });
         sideBarOpen.set(false);
+    };
+
+    $: admin = $gameState.admin;
+    $: paused = $gameState.paused;
+    $: isGameRunning =
+        $gameState.inGame ??
+        ($gameState.screen !== "" &&
+            $gameState.screen !== "index" &&
+            $gameState.screen !== "start" &&
+            $gameState.screen !== "can_start" &&
+            $gameState.screen !== "room_ended" &&
+            $gameState.screen !== "kicked");
+
+    let confirmingExit = false;
+    let exitTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    $: if (!$sideBarOpen && confirmingExit) {
+        confirmingExit = false;
+        if (exitTimeout) {
+            clearTimeout(exitTimeout);
+            exitTimeout = null;
+        }
+    }
+
+    onDestroy(() => {
+        if (exitTimeout) clearTimeout(exitTimeout);
+    });
+
+    const handlePause = () => {
+        gameClient.pauseGame();
+    };
+
+    const handleResume = () => {
+        gameClient.resumeGame();
+        sideBarOpen.set(false);
+    };
+
+    const handleExit = () => {
+        if (!confirmingExit) {
+            confirmingExit = true;
+            if (exitTimeout) clearTimeout(exitTimeout);
+            exitTimeout = setTimeout(() => {
+                confirmingExit = false;
+                exitTimeout = null;
+            }, 4000);
+            return;
+        }
+        if (exitTimeout) clearTimeout(exitTimeout);
+        confirmingExit = false;
+        exitTimeout = null;
+        gameClient.exitGame();
+        sideBarOpen.set(false);
+        toaster.info({
+            title: "Exiting Game",
+            description: "Returning to lobby...",
+        });
     };
 </script>
 
@@ -182,6 +242,64 @@
                     <GoogleSignInButton onClick={signInWithGoogle} />
                     <AppleSignInButton onClick={signInWithApple} />
                     <TwitchSignInButton onClick={signInWithTwitch} />
+                </div>
+            </div>
+        {/if}
+
+        {#if admin && isGameRunning}
+            <div
+                class="flex flex-col gap-2 m-3 mt-1 p-3 bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212]"
+            >
+                <div
+                    class="flex items-center justify-between border-b-2 border-[#121212] pb-1"
+                >
+                    <span
+                        class="font-headline text-xs font-black uppercase tracking-wider text-[#121212]"
+                        >Host Controls</span
+                    >
+                    {#if paused}
+                        <span
+                            class="font-mono text-[10px] font-black text-amber-500 uppercase tracking-widest animate-pulse"
+                            >PAUSED</span
+                        >
+                    {:else}
+                        <span
+                            class="font-mono text-[10px] font-black text-emerald-600 uppercase tracking-widest"
+                            >RUNNING</span
+                        >
+                    {/if}
+                </div>
+                <div class="flex flex-col gap-2 pt-1">
+                    {#if paused}
+                        <button
+                            type="button"
+                            on:click={handleResume}
+                            class="py-2.5 px-3 flex justify-between items-center bg-emerald-500 hover:bg-emerald-400 text-white border-2 border-[#121212] shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline text-xs font-black uppercase tracking-wider"
+                        >
+                            <span>Resume Game</span>
+                            <Icon size={20} icon={iconPlayArrow} />
+                        </button>
+                    {:else}
+                        <button
+                            type="button"
+                            on:click={handlePause}
+                            class="py-2.5 px-3 flex justify-between items-center bg-amber-500 hover:bg-amber-400 text-black border-2 border-[#121212] shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline text-xs font-black uppercase tracking-wider"
+                        >
+                            <span>Pause Game</span>
+                            <Icon size={20} icon={iconPause} />
+                        </button>
+                    {/if}
+
+                    <button
+                        type="button"
+                        on:click={handleExit}
+                        class="py-2.5 px-3 flex justify-between items-center {confirmingExit
+                            ? 'bg-red-600 text-white animate-pulse'
+                            : 'bg-rose-100 hover:bg-rose-200 text-rose-900'} border-2 border-[#121212] shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline text-xs font-black uppercase tracking-wider"
+                    >
+                        <span>{confirmingExit ? "Confirm Exit?" : "Exit to Lobby"}</span>
+                        <Icon size={20} icon={iconMeetingRoom} />
+                    </button>
                 </div>
             </div>
         {/if}

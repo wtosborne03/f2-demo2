@@ -88,7 +88,7 @@
         try {
             const { data, error } = await signIn.social({
                 provider: "apple",
-                callbackURL: `${window.location.origin}/gallery`,
+                callbackURL: window.location.href,
             });
             if (error) {
                 toaster.error({
