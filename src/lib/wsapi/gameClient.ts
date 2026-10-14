@@ -450,6 +450,18 @@ class GameClient {
       catchphraseUrl: (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
     } : undefined;
 
+    const isCastingActive = typeof window !== "undefined" && (
+      localStorage.getItem("is_casting") === "true" ||
+      (window as any).CouchCupAndroid?.isCasting?.()
+    );
+
+    if (isCastingActive && typeof window !== "undefined") {
+      localStorage.setItem("is_casting", "true");
+      if ((window as any).CouchCupAndroid?.setCastingPlayer) {
+        (window as any).CouchCupAndroid.setCastingPlayer(this.name, storedUserId);
+      }
+    }
+
     console.log(`[Player GameClient] join("${formattedRoom}", "${this.name}"): sending OpCode.JOIN_ROOM`);
     this.sendCritical(OpCode.JOIN_ROOM, {
       roomCode: formattedRoom,
@@ -1309,7 +1321,10 @@ class GameClient {
     }
 
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      // Already connected — just join the room.
+      if (this.roomCode === roomCode && typeof window !== "undefined" && localStorage.getItem("couch_pid")) {
+        // Already joined in this room; no need to clear session
+        return;
+      }
       this.clearSession();
       this.roomCode = roomCode;
       this.sendCritical(OpCode.JOIN_ROOM, { roomCode, name: this.name, userId: storedUserId || undefined });
