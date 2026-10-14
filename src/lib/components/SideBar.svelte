@@ -21,7 +21,6 @@
     import iconPause from "@ktibow/iconset-material-symbols/pause";
     import iconPlayArrow from "@ktibow/iconset-material-symbols/play-arrow";
     import iconMeetingRoom from "@ktibow/iconset-material-symbols/meeting-room";
-    import { onDestroy } from "svelte";
     import { gameState, gameClient } from "$lib/wsapi/gameClient";
 
     const { signIn, signOut, useSession } = authClient;
@@ -145,20 +144,7 @@
             $gameState.screen !== "room_ended" &&
             $gameState.screen !== "kicked");
 
-    let confirmingExit = false;
-    let exitTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    $: if (!$sideBarOpen && confirmingExit) {
-        confirmingExit = false;
-        if (exitTimeout) {
-            clearTimeout(exitTimeout);
-            exitTimeout = null;
-        }
-    }
-
-    onDestroy(() => {
-        if (exitTimeout) clearTimeout(exitTimeout);
-    });
+    let showExitModal = false;
 
     const handlePause = () => {
         gameClient.pauseGame();
@@ -169,19 +155,12 @@
         sideBarOpen.set(false);
     };
 
-    const handleExit = () => {
-        if (!confirmingExit) {
-            confirmingExit = true;
-            if (exitTimeout) clearTimeout(exitTimeout);
-            exitTimeout = setTimeout(() => {
-                confirmingExit = false;
-                exitTimeout = null;
-            }, 4000);
-            return;
-        }
-        if (exitTimeout) clearTimeout(exitTimeout);
-        confirmingExit = false;
-        exitTimeout = null;
+    const openExitModal = () => {
+        showExitModal = true;
+    };
+
+    const confirmExit = () => {
+        showExitModal = false;
         gameClient.exitGame();
         sideBarOpen.set(false);
         toaster.info({
@@ -246,9 +225,36 @@
             </div>
         {/if}
 
+        <SideBarLink
+            label="Avatar"
+            icon={iconPerson}
+            active={page.url.pathname === "/avatar"}
+            onclick={customizeAvatar}
+            color="amber"
+        />
+
+        {#if $session.data?.user || ($session.isPending && browser && document.cookie.includes("better-auth"))}
+            <SideBarLink
+                label="Stats"
+                icon={iconLeaderboard}
+                active={page.url.pathname === "/stats"}
+                onclick={goStats}
+                color="emerald"
+            />
+            <SideBarLink
+                label="Gallery"
+                icon={iconImage}
+                active={page.url.pathname === "/gallery"}
+                onclick={goGallery}
+                color="purple"
+            />
+        {/if}
+
+        <div class="spacer"></div>
+
         {#if admin && isGameRunning}
             <div
-                class="flex flex-col gap-2 m-3 mt-1 p-3 bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212]"
+                class="flex flex-col gap-2 m-3 mb-2 p-3 bg-white border-3 border-[#121212] shadow-[4px_4px_0px_#121212]"
             >
                 <div
                     class="flex items-center justify-between border-b-2 border-[#121212] pb-1"
@@ -292,44 +298,17 @@
 
                     <button
                         type="button"
-                        on:click={handleExit}
-                        class="py-2.5 px-3 flex justify-between items-center {confirmingExit
-                            ? 'bg-red-600 text-white animate-pulse'
-                            : 'bg-rose-100 hover:bg-rose-200 text-rose-900'} border-2 border-[#121212] shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline text-xs font-black uppercase tracking-wider"
+                        on:click={openExitModal}
+                        class="py-2.5 px-3 flex justify-between items-center bg-rose-100 hover:bg-rose-200 text-rose-900 border-2 border-[#121212] shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline text-xs font-black uppercase tracking-wider"
                     >
-                        <span>{confirmingExit ? "Confirm Exit?" : "Exit to Lobby"}</span>
+                        <span>Exit to Lobby</span>
                         <Icon size={20} icon={iconMeetingRoom} />
                     </button>
                 </div>
             </div>
         {/if}
 
-        <SideBarLink
-            label="Avatar"
-            icon={iconPerson}
-            active={page.url.pathname === "/avatar"}
-            onclick={customizeAvatar}
-            color="amber"
-        />
-
         {#if $session.data?.user || ($session.isPending && browser && document.cookie.includes("better-auth"))}
-            <SideBarLink
-                label="Stats"
-                icon={iconLeaderboard}
-                active={page.url.pathname === "/stats"}
-                onclick={goStats}
-                color="emerald"
-            />
-            <SideBarLink
-                label="Gallery"
-                icon={iconImage}
-                active={page.url.pathname === "/gallery"}
-                onclick={goGallery}
-                color="purple"
-            />
-
-            <div class="spacer"></div>
-
             <SideBarLink
                 label="Sign Out"
                 icon={iconLogout}
@@ -339,6 +318,59 @@
         {/if}
     </NavigationRail>
 </div>
+
+{#if showExitModal}
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <div
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="exit-modal-title"
+        on:click|self={() => (showExitModal = false)}
+        on:keydown={(e) => {
+            if (e.key === "Escape") showExitModal = false;
+        }}
+    >
+        <div
+            class="bg-white border-3 border-[#121212] shadow-[6px_6px_0px_#121212] p-5 max-w-sm w-full flex flex-col gap-3 font-headline transform transition-all"
+        >
+            <div
+                class="flex items-center gap-2.5 border-b-2 border-[#121212] pb-2 text-rose-600"
+            >
+                <Icon size={26} icon={iconMeetingRoom} />
+                <h3
+                    id="exit-modal-title"
+                    class="font-black text-lg uppercase tracking-tight text-[#121212]"
+                >
+                    Exit to Lobby?
+                </h3>
+            </div>
+
+            <p
+                class="font-sans text-sm font-semibold text-[#121212]/80 leading-snug"
+            >
+                This will end the current game for all players and return everyone to the lobby. Are you sure?
+            </p>
+
+            <div class="flex gap-2.5 pt-2 justify-end">
+                <button
+                    type="button"
+                    on:click={() => (showExitModal = false)}
+                    class="py-2 px-4 border-2 border-[#121212] bg-gray-100 hover:bg-gray-200 text-[#121212] font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    on:click={confirmExit}
+                    class="py-2 px-4 border-2 border-[#121212] bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-headline"
+                >
+                    Exit Game
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 <style>
     .rail-wrapper {
