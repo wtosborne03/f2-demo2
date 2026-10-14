@@ -171,7 +171,10 @@
         height: 100%;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        padding: 2rem 1.25rem;
+        padding-top: calc(var(--safe-area-top) + 1.5rem);
+        padding-bottom: calc(var(--safe-area-bottom) + 2rem);
+        padding-left: calc(var(--safe-area-left) + 1.25rem);
+        padding-right: calc(var(--safe-area-right) + 1.25rem);
         display: flex;
         flex-direction: column;
         align-items: center;

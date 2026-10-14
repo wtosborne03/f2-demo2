@@ -194,6 +194,10 @@
 
 <style>
   .app-bar-wrapper {
+    padding-top: var(--safe-area-top);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+    box-sizing: border-box;
     transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.22s ease;
     will-change: transform, opacity;
   }

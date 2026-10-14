@@ -35,7 +35,10 @@
   }
 </script>
 
-<div class="mx-auto flex w-full max-w-lg flex-col items-center px-4 py-8">
+<div
+  class="mx-auto flex w-full max-w-lg flex-col items-center px-4 py-8"
+  style="padding-top: calc(var(--safe-area-top) + 1.5rem); padding-bottom: calc(var(--safe-area-bottom) + 2rem); padding-left: calc(var(--safe-area-left) + 1rem); padding-right: calc(var(--safe-area-right) + 1rem);"
+>
   <!-- Back Button -->
   <div class="mb-6 flex w-full justify-start">
     <Button

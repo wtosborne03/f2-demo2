@@ -49,7 +49,10 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 1.5rem;
+    padding-top: calc(var(--safe-area-top) + 1rem);
+    padding-bottom: 1rem;
+    padding-left: calc(var(--safe-area-left) + 1.5rem);
+    padding-right: calc(var(--safe-area-right) + 1.5rem);
     background-color: var(--m3c-surface-container);
     border-bottom: 1px solid var(--m3c-outline-variant);
   }

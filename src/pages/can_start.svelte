@@ -171,7 +171,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="flex flex-col w-full max-w-lg mx-auto px-4 py-3 sm:py-5 pb-24 my-auto max-h-full gap-3.5 items-center select-none justify-between"
+  class="flex flex-col w-full max-w-lg mx-auto px-4 py-2 my-auto max-h-full gap-3 items-center select-none justify-between"
 >
   <!-- Catchphrase Recorder on top -->
 

@@ -221,6 +221,7 @@
   class="w-full absolute top-0 right-0 p-6 flex flex-row justify-end items-center transition-all duration-300 {$isKeyboardVisible
     ? 'opacity-0 pointer-events-none -translate-y-4'
     : 'opacity-100 translate-y-0'}"
+  style="padding-top: calc(var(--safe-area-top) + 1.25rem); padding-right: calc(var(--safe-area-right) + 1.5rem);"
 >
   <button
     type="button"

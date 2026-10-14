@@ -254,6 +254,10 @@
         width: 100% !important;
         height: 100% !important;
         visibility: visible !important;
+        padding-top: var(--safe-area-top) !important;
+        padding-bottom: var(--safe-area-bottom) !important;
+        padding-left: var(--safe-area-left) !important;
+        box-sizing: border-box !important;
     }
 
     /* Hide default toggle button from M3 NavigationRail */

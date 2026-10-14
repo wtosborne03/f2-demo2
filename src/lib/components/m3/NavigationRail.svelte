@@ -18,6 +18,7 @@
 
 <div
   class="fixed top-0 bottom-0 left-0 w-72 bg-base-200 border-r border-base-300 z-50 flex flex-col justify-stretch items-stretch px-0 py-4 transition-transform duration-300"
+  style="padding-top: calc(var(--safe-area-top) + 1rem); padding-bottom: calc(var(--safe-area-bottom) + 1rem); padding-left: var(--safe-area-left);"
   class:-translate-x-full={!open}
   class:translate-x-0={open}
   class:shadow-2xl={open}

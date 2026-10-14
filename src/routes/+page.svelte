@@ -118,13 +118,10 @@
     <div
       in:fly={{ x: 300, duration: 400, easing: cubicOut }}
       out:fly={{ x: -300, duration: 400, easing: cubicOut }}
-      class={`absolute inset-0 p-0 flex flex-1 flex-col justify-center items-center overflow-y-auto transition-[padding] duration-300 ease-out ${
-        page.url.pathname === "/" && $gameState.screen != "index"
-          ? $isKeyboardVisible
-            ? "pt-3 pb-3"
-            : "pt-22"
-          : ""
-      }`}
+      class="page-screen-container absolute inset-0 p-0 flex flex-1 flex-col justify-center items-center overflow-y-auto transition-[padding] duration-300 ease-out"
+      class:has-app-bar={page.url.pathname === "/" && $gameState.screen != "index"}
+      class:has-team={page.url.pathname === "/" && $gameState.screen != "index" && !!$gameState.team}
+      class:keyboard-visible={$isKeyboardVisible}
     >
       {#if debug}
         <div class="fixed bottom-5 right-5">
@@ -151,3 +148,26 @@
     </div>
   {/key}
 </div>
+
+<style>
+  .page-screen-container {
+    padding-top: calc(var(--safe-area-top) + 1rem);
+    padding-bottom: calc(var(--safe-area-bottom) + 1rem);
+    padding-left: calc(var(--safe-area-left) + 0.5rem);
+    padding-right: calc(var(--safe-area-right) + 0.5rem);
+    box-sizing: border-box;
+  }
+
+  .page-screen-container.has-app-bar {
+    padding-top: calc(var(--safe-area-top) + 5.75rem);
+  }
+
+  .page-screen-container.has-app-bar.has-team {
+    padding-top: calc(var(--safe-area-top) + 7.5rem);
+  }
+
+  .page-screen-container.keyboard-visible {
+    padding-top: calc(var(--safe-area-top) + 0.75rem) !important;
+    padding-bottom: calc(var(--safe-area-bottom) + 0.75rem) !important;
+  }
+</style>
