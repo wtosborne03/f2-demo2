@@ -70,6 +70,15 @@ export async function triggerGoogleSignIn(callbackURL?: string): Promise<void> {
                         try {
                             await authenticateWithGoogleIdToken(detail.idToken);
                             resolve();
+                            if (typeof (authClient as any).$store?.notify === 'function') {
+                                (authClient as any).$store.notify('$sessionSignal');
+                            }
+                            if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new CustomEvent('better-auth:session-update'));
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 100);
+                            }
                         } catch (err) {
                             reject(err);
                         }
@@ -81,6 +90,11 @@ export async function triggerGoogleSignIn(callbackURL?: string): Promise<void> {
                 const handleError = (e: Event) => {
                     cleanup();
                     const detail = (e as CustomEvent).detail;
+                    if (detail?.error === 'USER_CANCELED') {
+                        // User dismissed the native account picker; do not fall back to browser OAuth
+                        resolve();
+                        return;
+                    }
                     reject(new Error(detail?.error || "Native Google Sign-In cancelled"));
                 };
 
