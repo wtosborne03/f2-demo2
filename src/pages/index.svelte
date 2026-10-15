@@ -11,20 +11,21 @@
   import SelfieCapture from "$lib/components/SelfieCapture.svelte";
   import Icon from "@iconify/svelte";
   import { isKeyboardVisible } from "$lib/stores/keyboard";
-  import { isCasting } from "$lib/stores/casting";
+  import { isCasting, getNativeCastingBridge } from "$lib/stores/casting";
+  import { resolvePlayerProfile, type PlayerProfile } from "$lib/util/playerProfile";
 
   const session = authClient.useSession();
 
   let roomCode = "";
   let name = (browser && localStorage.getItem("name")) || "";
-  $: if ($session.data?.user?.name && !name) {
-    name = $session.data.user.name;
+  $: if ($session.data?.user?.name && (!name || name === "Host")) {
+    name = $session.data.user.name.substring(0, 10);
   }
 
   $: castingActive = $isCasting || (browser && (
     new URLSearchParams(window.location.search).has("isCasting") ||
-    localStorage.getItem("is_casting") === "true" ||
-    !!(window as any).CouchCupAndroid?.isCasting?.()
+    new URLSearchParams(window.location.search).has("cast") ||
+    !!getNativeCastingBridge()?.isCasting?.()
   ));
 
   let step = "join"; // "join" | "selfie"
@@ -45,27 +46,23 @@
     }
   };
 
-  const handleNativeRoomCode = (e: Event) => {
+  const handleNativeRoomCode = async (e: Event) => {
     const detail = (e as CustomEvent).detail;
     if (detail?.code) {
       roomCode = detail.code.trim().toUpperCase();
-      if (!name) {
-        name = (browser && localStorage.getItem("name")) || $session.data?.user?.name || "Host";
-      }
-      autoJoinCasting();
+      await autoJoinCasting();
     }
   };
 
   const autoJoinCasting = async () => {
     if (!roomCode || isChecking) return;
-    if (!name) {
-      name = (browser && localStorage.getItem("name")) || $session.data?.user?.name || "Host";
-    }
+    const profile = await resolvePlayerProfile(name || "Host");
+    name = profile.name;
     if (typeof window !== "undefined") {
       localStorage.setItem("name", name);
       localStorage.setItem("couch_room", roomCode);
     }
-    await joinRoom();
+    await joinRoom(profile);
   };
 
   onMount(async () => {
@@ -80,21 +77,18 @@
     if (urlCode) {
       roomCode = urlCode.trim().toUpperCase();
       if (castingActive) {
-        autoJoinCasting();
+        await autoJoinCasting();
         return;
       }
     }
 
     if (castingActive) {
-      if (!name) {
-        name = (browser && localStorage.getItem("name")) || $session.data?.user?.name || "Host";
-      }
-      const nativeCode = (window as any).CouchCupAndroid?.getRoomCode?.();
+      const nativeCode = getNativeCastingBridge()?.getRoomCode?.();
       if (nativeCode && !roomCode) {
         roomCode = nativeCode.trim().toUpperCase();
       }
       if (roomCode) {
-        autoJoinCasting();
+        await autoJoinCasting();
         return;
       }
     }
@@ -108,7 +102,7 @@
       if (check.valid) {
         roomCode = storedCode.trim().toUpperCase();
         if (castingActive) {
-          autoJoinCasting();
+          await autoJoinCasting();
         }
       } else {
         roomCode = "";
@@ -158,32 +152,12 @@
         return;
       }
 
-      const user = get(session).data?.user;
-      if (user) {
-        try {
-          const client = await apiClient;
-          if (client) {
-            const { data: me } = await client.getUsersMe();
-            if (me.avatar_selfie) {
-              await joinRoom();
-              return;
-            }
-          }
-          step = "selfie";
-        } catch (e) {
-          step = "selfie";
-        }
-      } else {
-        const localSelfie =
-          typeof window !== "undefined"
-            ? localStorage.getItem("temp_selfie")
-            : null;
-        if (localSelfie) {
-          await joinRoom();
-          return;
-        }
-        step = "selfie";
+      const profile = await resolvePlayerProfile(name);
+      if (profile.avatar?.selfieUrl) {
+        await joinRoom(profile);
+        return;
       }
+      step = "selfie";
     } catch (err) {
       console.error("Join flow error:", err);
       toaster.error({
@@ -195,25 +169,14 @@
     }
   };
 
-  const joinRoom = async () => {
+  const joinRoom = async (explicitProfile?: PlayerProfile) => {
+    const profile = explicitProfile || (await resolvePlayerProfile(name));
+    name = profile.name;
     const user = get(session).data?.user;
-    let userId = user?.id;
-    if (!userId) {
-      userId =
-        (typeof window !== "undefined" &&
-          localStorage.getItem("temp_user_id")) ||
-        "";
-      if (!userId) {
-        userId = "temp_" + crypto.randomUUID();
-        if (typeof window !== "undefined") {
-          localStorage.setItem("temp_user_id", userId);
-        }
-      }
-    }
-    if (user) {
+    if (user && name) {
       await updateName(name);
     }
-    gameClient.join(roomCode.toUpperCase(), name, userId);
+    gameClient.join(roomCode.toUpperCase(), profile.name, profile.userId, profile.avatar);
   };
 </script>
 

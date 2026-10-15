@@ -52,7 +52,11 @@
     };
 
     try {
-      const raw = (window as any).CouchCupAndroid?.getSafeInsets?.();
+      const bridge =
+        (window as any).CouchCupAndroid ||
+        (window as any).CouchCupIOS ||
+        (window as any).CouchCupNative;
+      const raw = bridge?.getSafeInsets?.();
       if (raw) {
         const insets = JSON.parse(raw);
         applyInsets(

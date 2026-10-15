@@ -13,6 +13,40 @@ const HEARTBEAT_INTERVAL_MS = 10000;
 const HEARTBEAT_TIMEOUT_MS = 25000;
 const MAX_PENDING_CRITICAL_MESSAGES = 50;
 
+function getNativeCastingBridge() {
+  if (typeof window === "undefined") return null;
+  const bridges = [
+    (window as any).CouchCupIOS,
+    (window as any).CouchCupNative,
+    (window as any).CouchCupAndroid,
+  ];
+  return (
+    bridges.find((b) => b && (typeof b.isCasting === "function" || typeof b.setCastingPlayer === "function")) ||
+    (window as any).CouchCupAndroid ||
+    (window as any).CouchCupIOS ||
+    (window as any).CouchCupNative ||
+    null
+  );
+}
+
+function checkIsCastingActive(explicitCasting?: boolean): boolean {
+  if (explicitCasting) return true;
+  if (typeof window === "undefined") return false;
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.has("isCasting") || sp.has("cast")) return true;
+  } catch {}
+  return Boolean(getNativeCastingBridge()?.isCasting?.());
+}
+
+function notifyNativeCastingPlayer(name: string, userId: string | null) {
+  if (typeof window === "undefined") return;
+  const bridge = getNativeCastingBridge();
+  if (bridge?.setCastingPlayer) {
+    bridge.setCastingPlayer(name, userId);
+  }
+}
+
 type RoomStatus = "LOBBY" | "RUNNING" | "UNKNOWN";
 
 const defaultPlayerState: PlayerState = {
@@ -87,7 +121,6 @@ class GameClient {
   constructor() {
     this.hydrateSessionFromStorage();
     this.bindBrowserLifecycleListeners();
-    this.bindNativeRoomCodeListener();
   }
 
   connect(url: string) {
@@ -150,10 +183,7 @@ class GameClient {
           break;
         case OpCode.STATE_UPDATE:
           this.trackStateStatus(payload);
-          const isCastingActive = typeof window !== "undefined" && (
-            localStorage.getItem("is_casting") === "true" ||
-            (window as any).CouchCupAndroid?.isCasting?.()
-          );
+          const isCastingActive = checkIsCastingActive();
           if (payload?.screen === "kicked") {
             if (isCastingActive) {
               console.warn("[Player GameClient] Casting player cannot be kicked; ignoring and auto-rejoining");
@@ -329,12 +359,11 @@ class GameClient {
   }
 
   private handlePlayerKicked(payload?: any) {
-    const isCastingActive = typeof window !== "undefined" && (
-      localStorage.getItem("is_casting") === "true" ||
-      (window as any).CouchCupAndroid?.isCasting?.()
-    );
-    if (isCastingActive) {
-      console.warn("[Player GameClient] Immutable casting player cannot be kicked; auto-rejoining immediately");
+    const isCastingActive = checkIsCastingActive();
+    const reason = payload?.reason || "";
+    // If kicked because casting stopped, accept the kick cleanly and do NOT auto-rejoin
+    if (isCastingActive && reason !== "Casting stopped") {
+      console.warn("[Player GameClient] Casting player cannot be kicked; auto-rejoining immediately");
       this.tryRejoin(true);
       return;
     }
@@ -346,7 +375,7 @@ class GameClient {
       ...get(gameState),
       screen: "kicked",
       page_data: {
-        reason: payload?.reason || "You have been kicked by the host."
+        reason: reason || "You have been kicked by the host."
       }
     });
   }
@@ -358,9 +387,7 @@ class GameClient {
     if (typeof window !== "undefined") {
       localStorage.setItem("name", trimmed);
       const uid = localStorage.getItem("temp_user_id");
-      if ((window as any).CouchCupAndroid?.setCastingPlayer) {
-        (window as any).CouchCupAndroid.setCastingPlayer(trimmed, uid);
-      }
+      notifyNativeCastingPlayer(trimmed, uid);
     }
     this.sendInput({
       type: "rename_player",
@@ -423,7 +450,7 @@ class GameClient {
     }
   }
 
-  async join(room: string, name: string, userId?: string) {
+  async join(room: string, name: string, userId?: string, explicitAvatar?: any) {
     this.cleanupWebRTC();
     const formattedRoom = room.trim().toUpperCase();
     this.name = name.trim();
@@ -436,39 +463,37 @@ class GameClient {
     }
     const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
 
-    const localSelfie = typeof window !== "undefined" ? localStorage.getItem("temp_selfie") : null;
-    let expressions = undefined;
-    const localExpr = typeof window !== "undefined" ? localStorage.getItem("temp_expressions") : null;
-    if (localExpr) {
-      try { expressions = JSON.parse(localExpr); } catch { }
+    let avatar = explicitAvatar;
+    if (!avatar) {
+      const localSelfie = typeof window !== "undefined" ? localStorage.getItem("temp_selfie") : null;
+      let expressions = undefined;
+      const localExpr = typeof window !== "undefined" ? localStorage.getItem("temp_expressions") : null;
+      if (localExpr) {
+        try { expressions = JSON.parse(localExpr); } catch { }
+      }
+      avatar = localSelfie ? {
+        selfieUrl: localSelfie,
+        expressions,
+        gender: (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
+        facialDescription: (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined,
+        catchphraseUrl: (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
+      } : undefined;
     }
-    const avatar = localSelfie ? {
-      selfieUrl: localSelfie,
-      expressions,
-      gender: (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
-      facialDescription: (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined,
-      catchphraseUrl: (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
-    } : undefined;
 
-    const isCastingActive = typeof window !== "undefined" && (
-      localStorage.getItem("is_casting") === "true" ||
-      (window as any).CouchCupAndroid?.isCasting?.()
-    );
+    const isCastingActive = checkIsCastingActive();
 
     if (isCastingActive && typeof window !== "undefined") {
-      localStorage.setItem("is_casting", "true");
-      if ((window as any).CouchCupAndroid?.setCastingPlayer) {
-        (window as any).CouchCupAndroid.setCastingPlayer(this.name, storedUserId);
-      }
+      notifyNativeCastingPlayer(this.name, storedUserId);
     }
 
-    console.log(`[Player GameClient] join("${formattedRoom}", "${this.name}"): sending OpCode.JOIN_ROOM`);
+    console.log(`[Player GameClient] join("${formattedRoom}", "${this.name}"): sending OpCode.JOIN_ROOM with isCasting=${isCastingActive}`);
     this.sendCritical(OpCode.JOIN_ROOM, {
       roomCode: formattedRoom,
       name: this.name,
       playerId: storedPid || undefined,
       userId: storedUserId || undefined,
       avatar,
+      isCasting: isCastingActive,
     });
   }
 
@@ -1270,71 +1295,6 @@ class GameClient {
     this.emit("sessionCleared");
   }
 
-  /**
-   * Listen for room codes injected by the Android host via CustomEvent.
-   * This lets the host change the room without reloading the page,
-   * keeping the WebSocket session alive.
-   */
-  private bindNativeRoomCodeListener() {
-    if (typeof window === "undefined") return;
-    window.addEventListener("nativeRoomCode", (event: Event) => {
-      const detail = (event as CustomEvent).detail;
-      if (detail && detail.code) {
-        if (detail.isCasting) {
-          localStorage.setItem("is_casting", "true");
-        }
-        this.joinRoomFromNative(detail.code, !!detail.isCasting);
-      }
-    });
-  }
-
-  /**
-   * Join a room code provided by the native host.
-   * If we're already connected, send JOIN_ROOM directly.
-   * If not, queue it for when the connection opens.
-   */
-  private joinRoomFromNative(roomCode: string, isCasting = false) {
-    // Store it so hydrate/reconnect can find it
-    localStorage.setItem("couch_room", roomCode);
-    this.roomCode = roomCode;
-
-    if (!this.name) {
-      this.name = (typeof window !== "undefined" && localStorage.getItem("name")) || "Host";
-    }
-
-    let storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
-    if (!storedUserId && typeof window !== "undefined") {
-      storedUserId = "temp_" + crypto.randomUUID();
-      localStorage.setItem("temp_user_id", storedUserId);
-    }
-
-    const isCastingActive = isCasting || (typeof window !== "undefined" && (
-      localStorage.getItem("is_casting") === "true" ||
-      (window as any).CouchCupAndroid?.isCasting?.()
-    ));
-
-    if (isCastingActive && typeof window !== "undefined") {
-      localStorage.setItem("is_casting", "true");
-      if ((window as any).CouchCupAndroid?.setCastingPlayer) {
-        (window as any).CouchCupAndroid.setCastingPlayer(this.name, storedUserId);
-      }
-    }
-
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      if (this.roomCode === roomCode && typeof window !== "undefined" && localStorage.getItem("couch_pid")) {
-        // Already joined in this room; no need to clear session
-        return;
-      }
-      this.clearSession();
-      this.roomCode = roomCode;
-      this.sendCritical(OpCode.JOIN_ROOM, { roomCode, name: this.name, userId: storedUserId || undefined });
-    } else {
-      // Not connected yet — ensure we try to connect.
-      if (this.connectUrl) {
-        this.connect(this.connectUrl);
-      }
-    }
-  }
 }
 
 export const gameClient = new GameClient();
