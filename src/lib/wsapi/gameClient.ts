@@ -161,6 +161,7 @@ class GameClient {
           name: this.name,
           playerId: storedPid || undefined,
           userId: storedUserId || undefined,
+          avatar: this.getLocalAvatar(),
         });
       }
       this.flushCriticalQueue();
@@ -463,22 +464,7 @@ class GameClient {
     }
     const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
 
-    let avatar = explicitAvatar;
-    if (!avatar) {
-      const localSelfie = typeof window !== "undefined" ? localStorage.getItem("temp_selfie") : null;
-      let expressions = undefined;
-      const localExpr = typeof window !== "undefined" ? localStorage.getItem("temp_expressions") : null;
-      if (localExpr) {
-        try { expressions = JSON.parse(localExpr); } catch { }
-      }
-      avatar = localSelfie ? {
-        selfieUrl: localSelfie,
-        expressions,
-        gender: (typeof window !== "undefined" && localStorage.getItem("temp_gender")) || undefined,
-        facialDescription: (typeof window !== "undefined" && localStorage.getItem("temp_facial_description")) || undefined,
-        catchphraseUrl: (typeof window !== "undefined" && localStorage.getItem("temp_catchphrase")) || undefined,
-      } : undefined;
-    }
+    let avatar = explicitAvatar || this.getLocalAvatar();
 
     const isCastingActive = checkIsCastingActive();
 
@@ -494,6 +480,44 @@ class GameClient {
       userId: storedUserId || undefined,
       avatar,
       isCasting: isCastingActive,
+    });
+  }
+
+  public getLocalAvatar() {
+    if (typeof window === "undefined") return undefined;
+    const localSelfie = localStorage.getItem("temp_selfie");
+    if (!localSelfie) return undefined;
+    let expressions = undefined;
+    const localExpr = localStorage.getItem("temp_expressions");
+    if (localExpr) {
+      try { expressions = JSON.parse(localExpr); } catch { }
+    }
+    return {
+      selfieUrl: localSelfie,
+      expressions,
+      gender: localStorage.getItem("temp_gender") || undefined,
+      facialDescription: localStorage.getItem("temp_facial_description") || undefined,
+      catchphraseUrl: localStorage.getItem("temp_catchphrase") || undefined,
+    };
+  }
+
+  public updateAvatar(avatar?: any) {
+    if (typeof window !== "undefined" && avatar) {
+      if (avatar.selfieUrl) localStorage.setItem("temp_selfie", avatar.selfieUrl);
+      if (avatar.expressions) localStorage.setItem("temp_expressions", JSON.stringify(avatar.expressions));
+      if (avatar.facialDescription) localStorage.setItem("temp_facial_description", avatar.facialDescription);
+      if (avatar.gender) localStorage.setItem("temp_gender", avatar.gender);
+      if (avatar.catchphraseUrl) localStorage.setItem("temp_catchphrase", avatar.catchphraseUrl);
+    }
+    const resolvedAvatar = avatar || this.getLocalAvatar();
+    const storedPid = typeof window !== "undefined" ? localStorage.getItem("couch_pid") : null;
+    let storedUserId = typeof window !== "undefined" ? localStorage.getItem("temp_user_id") : null;
+    console.log(`[Player GameClient] updateAvatar: sending OpCode.AVATAR_UPDATE for "${this.name}"`);
+    this.sendCritical(OpCode.AVATAR_UPDATE, {
+      playerId: storedPid || undefined,
+      playerName: this.name,
+      userId: storedUserId || undefined,
+      avatar: resolvedAvatar,
     });
   }
 
@@ -517,7 +541,8 @@ class GameClient {
       roomCode,
       name,
       playerId: playerId || undefined,
-      userId: userId || undefined
+      userId: userId || undefined,
+      avatar: this.getLocalAvatar(),
     });
 
     try {
@@ -1298,3 +1323,7 @@ class GameClient {
 }
 
 export const gameClient = new GameClient();
+
+if (typeof window !== "undefined") {
+  (window as any).__gameClient = gameClient;
+}
