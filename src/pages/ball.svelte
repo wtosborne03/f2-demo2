@@ -145,6 +145,33 @@
 
         lastSendTime = performance.now();
         rafId = requestAnimationFrame(sendLoop);
+
+        if (typeof window !== "undefined") {
+            (window as any).__ballJoystick = {
+                setNormalized: (x: number, y: number) => {
+                    touchActive = true;
+                    const clampedX = Math.max(-1, Math.min(1, x));
+                    const clampedY = Math.max(-1, Math.min(1, y));
+                    rawX = clampedX * MAX_RANGE;
+                    rawY = clampedY * MAX_RANGE;
+                    currentX = originX + rawX;
+                    currentY = originY - rawY;
+                    if (knobEl) {
+                        knobEl.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) scale(1)`;
+                        knobEl.style.opacity = "1";
+                    }
+                },
+                release: () => {
+                    touchActive = false;
+                    rawX = 0;
+                    rawY = 0;
+                    if (knobEl) {
+                        knobEl.style.transform = `translate3d(${originX}px, ${originY}px, 0) translate(-50%, -50%) scale(0.2)`;
+                        knobEl.style.opacity = "0";
+                    }
+                }
+            };
+        }
     });
 
     function applyDeadzone(value: number, range: number): number {
@@ -232,6 +259,7 @@
         if (typeof window !== "undefined") {
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("keyup", handleKeyUp);
+            delete (window as any).__ballJoystick;
         }
     });
 </script>
@@ -240,6 +268,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     bind:this={touchArea}
+    id="joystick-touch-area"
+    data-screen="ball"
     class="fixed inset-0 w-full h-full select-none touch-none overflow-hidden bg-neutral-950"
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
