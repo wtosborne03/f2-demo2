@@ -98,6 +98,22 @@
   onMount(() => {
     startBlinkLoop();
     gameClient.on("avatarUpdate", handleAvatarUpdate);
+    if (browser) {
+      (window as any).__selfieCapture = {
+        saveAvatar,
+        processSelfieBlob,
+        setAvatar: (res: any) => {
+          saveAvatar(res.url, res.expressions, res.gender || undefined);
+          currentSelfieUrl = res.url;
+          currentNeutralOpenUrl = res.expressions?.neutral_open || null;
+          currentNeutralClosedUrl = res.expressions?.neutral_closed || null;
+          mode = "preview";
+          if (onUploadComplete) {
+            onUploadComplete(res);
+          }
+        },
+      };
+    }
   });
 
   $: if (browser && currentNeutralOpenUrl) {
@@ -608,6 +624,9 @@
   }
 
   onDestroy(() => {
+    if (browser && (window as any).__selfieCapture) {
+      delete (window as any).__selfieCapture;
+    }
     stopCamera();
     clearTimeout(blinkTimer);
     clearTimeout(blinkCloseTimer);

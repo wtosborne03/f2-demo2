@@ -178,6 +178,11 @@
     }
     gameClient.join(roomCode.toUpperCase(), profile.name, profile.userId, profile.avatar);
   };
+
+  $: if (browser) {
+    (window as any).__joinRoom = joinRoom;
+    (window as any).__startJoinFlow = startJoinFlow;
+  }
 </script>
 
 <div

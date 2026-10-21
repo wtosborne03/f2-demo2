@@ -123,8 +123,9 @@ class GameClient {
     this.bindBrowserLifecycleListeners();
   }
 
-  connect(url: string) {
-    this.connectUrl = url;
+  connect(url?: string) {
+    const targetUrl = url || this.connectUrl || "wss://api.couchcup.tv:8443/game/play";
+    this.connectUrl = targetUrl;
     if (
       this.ws &&
       (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)
@@ -133,7 +134,7 @@ class GameClient {
     }
 
     connectionStatus.set("CONNECTING");
-    this.ws = new WebSocket(url);
+    this.ws = new WebSocket(targetUrl);
     this.ws.binaryType = "arraybuffer";
 
     this.ws.onopen = () => {
@@ -425,10 +426,9 @@ class GameClient {
     }
 
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      if (this.connectUrl) {
-        console.log(`[Player GameClient] checkRoom("${formattedRoom}"): WS not open, initiating connection to ${this.connectUrl}`);
-        this.connect(this.connectUrl);
-      }
+      const targetUrl = this.connectUrl || "wss://api.couchcup.tv:8443/game/play";
+      console.log(`[Player GameClient] checkRoom("${formattedRoom}"): WS not open, initiating connection to ${targetUrl}`);
+      this.connect(targetUrl);
     }
 
     console.log(`[Player GameClient] checkRoom("${formattedRoom}"): sending OpCode.QUERY_ROOM_STATE`);
